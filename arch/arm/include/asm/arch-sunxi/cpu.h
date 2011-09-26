@@ -143,6 +143,7 @@
 
 
 
-
+#define SUNXI_GET_BITS(value, start_bit, bits_num) ( (value >> start_bit) & \
+													((1 << bits_num) - 1) )
 
 #endif /* _CPU_H */

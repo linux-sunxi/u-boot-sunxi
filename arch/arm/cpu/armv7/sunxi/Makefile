@@ -30,6 +30,7 @@ SOBJS	+= reset.o
 
 COBJS	+= timer.o
 COBJS	+= cpu_info.o
+COBJS	+= clock.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
