@@ -24,13 +24,35 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/timer.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#define TIMER_MODE   (0 << 7)   /* continuous mode */
+#define TIMER_DIV    (0 << 4)	/* pre scale 1 */
+#define TIMER_SRC    (1 << 2)   /* osc24m */
+
+#define TIMER_CLOCK	       (24 * 1000 * 1000)
+#define COUNT_TO_USEC(x)	((x) / 24)
+#define USEC_TO_COUNT(x)	((x) * 24)
+#define TICKS_PER_HZ		(TIMER_CLOCK / CONFIG_SYS_HZ)
+#define TICKS_TO_HZ(x)		((x) / TICKS_PER_HZ)
+
+#define TIMER_LOAD_VAL     0xffffffff
+
+#define TIMER_NUM    (0)        /* we use timer 0 */
+
+static struct sunxi_timer *timer_base =
+	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[TIMER_NUM];
+
+/* macro to read the 32 bit timer: since it decrements, we invert read value */
+#define READ_TIMER() (~readl(&timer_base->val))
 
 /* TODO add timer init code here */
 
 int timer_init(void)
 {
+	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC, &timer_base->ctl);
 	return 0;
 }
 
@@ -42,15 +64,29 @@ ulong get_timer(ulong base)
 
 ulong get_timer_masked(void)
 {
-	gd->tbl += 0x100;
+	/* current tick value */
+	ulong now = TICKS_TO_HZ(READ_TIMER());
+
+	if (now >= gd->lastinc)	/* normal (non rollover) */
+		gd->tbl += (now - gd->lastinc);
+	else			/* rollover */
+		gd->tbl += (TICKS_TO_HZ(TIMER_LOAD_VAL) - gd->lastinc) + now;
+	gd->lastinc = now;
 	return gd->tbl;
 }
 
 /* delay x useconds */
 void __udelay(unsigned long usec)
 {
-	/* TODO add more presice time code here*/
-	int i;
-	for(i = 10 ; i > 0; i--)
-		;
+	long tmo = usec * (TIMER_CLOCK / 1000) / 1000;
+	ulong now, last = READ_TIMER();
+
+	while (tmo > 0) {
+		now = READ_TIMER();
+		if (now > last)	/* normal (non rollover) */
+			tmo -= now - last;
+		else		/* rollover */
+			tmo -= TIMER_LOAD_VAL - last + now;
+		last = now;
+	}
 }
