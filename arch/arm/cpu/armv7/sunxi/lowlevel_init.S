@@ -32,23 +32,20 @@ _TEXT_BASE:
 
 	.globl lowlevel_init
 lowlevel_init:
-    ldr     sp, SRAM_STACK
-    str     lr, [sp]    /* save link reg across call */
-    bl      basic_init      /* go setup pll,mux,memory */
-    ldr     lr, [sp]    /* restore link reg */
-    /* back to arch calling code */
-    mov     pc, lr
+	ldr     sp, SRAM_STACK
+	str     lr, [sp]		/* save link reg across call */
 
-    /* the literal pools origin */
-    .ltorg
+	/* ldr     r0, =1000000000	 set clock to 1G */
+	/* bl      sunxi_core_clock_set	 go setup pll,mux,memory */
+
+	ldr     lr, [sp]		/* restore link reg */
+	mov     pc, lr			/* back to arch calling code */
+
+	/* the literal pools origin */
+	.ltorg
 
 
 SRAM_STACK:
 	.word LOW_LEVEL_SRAM_STACK
 
 
-
-basic_init:
-	nop
-	nop
-	mov pc, lr
