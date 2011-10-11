@@ -54,9 +54,9 @@
 #define SUNXI_CCM_AHB_GATING1		(SUNXI_CCM_BASE + 0x64)
 #define SUNXI_CCM_APB0_GATING		(SUNXI_CCM_BASE + 0x68)
 #define SUNXI_CCM_APB1_GATING		(SUNXI_CCM_BASE + 0x6C)
-
-//#define SUNXI_CCM_		(SUNXI_CCM_BASE + 0x)
-
+#if 0
+#define SUNXI_CCM_		(SUNXI_CCM_BASE + 0x)
+#endif
 
 
 

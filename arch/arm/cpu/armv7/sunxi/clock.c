@@ -43,7 +43,7 @@ static ulong sunxi_get_core_clock(void)
 	k = SUNXI_GET_BITS(pll1_cfg, 0, 2) + 1;
 
 	/* PLL1 output=(24MHz * N * K)/(M * P) */
-	clock = 24000000 * n * k / p / m;
+	clock = 24 * 1000 * 1000 * n * k / p / m;
 	
 	return clock;
 }
@@ -62,16 +62,16 @@ static ulong sunxi_get_axi_clock(void)
 	switch(clock_src)
 	{
 		case 0:					/* 32KHz OSC(internal)  */
-			clock = 32000;
+			clock = 32 * 1000;
 			break;
 		case 1:					/* OSC24M */
-			clock = 24000000;
+			clock = 24 * 1000 * 1000;
 			break;
 		case 2:					/* PLL1 */
 			clock = sunxi_get_core_clock();
 			break;
 		case 3:					/* 200MHz(source from PLL6) */
-			clock = 200000000;
+			clock = 200 * 1000 * 1000;
 		default:
 			return 0;
 	}
@@ -111,7 +111,7 @@ static ulong sunxi_get_ahb0_clock(void)
 
 	return clock;
 }
-
+ /* return ahb1 clock */
 static ulong sunxi_get_ahb1_clock(void)
 {
 	u32 ahb1_div_reg;
@@ -122,7 +122,7 @@ static ulong sunxi_get_ahb1_clock(void)
 	clock_src = SUNXI_GET_BITS(ahb1_div_reg, 24, 2);
 	
 	if(clock_src == 0) /* OSC24M */
-		clock = 24000000;
+		clock = 24 * 1000 * 1000;
 
 	return clock;
 }
@@ -149,7 +149,7 @@ ulong sunxi_core_clock_set(ulong clock_frequency)
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, 0x01);
 
 	if(clk_freq == 24) {
-		return 24 * 1000000;
+		return 24 * 1000 * 1000;
 	}
 	else if(clk_freq <= 744) {
 		k = 0;
@@ -175,5 +175,5 @@ ulong sunxi_core_clock_set(ulong clock_frequency)
 	/* change cpu clock source to pll1 */
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, 2);		/* CPU_CLK_SRC_SEL [17:16] */
 	
-	return 24000000 * n * (k + 1);
+	return 24 * 1000 * 1000 * n * (k + 1);
 }
