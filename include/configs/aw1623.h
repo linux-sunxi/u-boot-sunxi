@@ -39,8 +39,9 @@
 
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
-
-
+#if 0
+#define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
+#endif
 /*
  * Display CPU and Board information
  */

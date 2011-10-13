@@ -26,26 +26,24 @@
 
 #include<config.h>
 
-
 _TEXT_BASE:
-	.word	CONFIG_SYS_TEXT_BASE
+	.word	CONFIG_SYS_TEXT_BASE	/* sdram load addr from config.mk */
 
-	.globl lowlevel_init
+
+.globl lowlevel_init
 lowlevel_init:
-	ldr     sp, SRAM_STACK
-	str     lr, [sp]		/* save link reg across call */
+	ldr	sp, SRAM_STACK
+	str	ip, [sp]	/* stash old link register */
+	mov	ip, lr		/* save link reg across call */
+	bl	s_init		/* go setup pll, mux, memory */
+	ldr	ip, [sp]	/* restore save ip */
+	mov	lr, ip		/* restore link reg */
 
-	/* ldr     r0, =1000000000	 set clock to 1G */
-	/* bl      sunxi_core_clock_set	 go setup pll,mux,memory */
-
-	ldr     lr, [sp]		/* restore link reg */
-	mov     pc, lr			/* back to arch calling code */
+	/* back to arch calling code */
+	mov	pc, lr
 
 	/* the literal pools origin */
 	.ltorg
 
-
 SRAM_STACK:
 	.word LOW_LEVEL_SRAM_STACK
-
-

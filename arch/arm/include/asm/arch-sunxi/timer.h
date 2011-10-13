@@ -53,6 +53,12 @@ struct sunxi_64cnt {
 	u32 hi;			/* 0xa8 */
 };
 
+/* Watchdog */
+struct sunxi_wdog {
+	u32 ctl;		/* 0x90 */
+	u32 mode;		/* 0x94 */
+};
+
 /* Rtc */
 struct sunxi_rtc {
 	u32 ctl;		/* 0x100 */
@@ -81,8 +87,7 @@ struct sunxi_timer_reg {
 	struct sunxi_timer timer[6];	/* We have 6 timers */
 	u8  res2[16];
 	struct sunxi_avs avs;
-	u32 wdogctl;	/* 0x90 */
-	u32 wdogmode;	/* 0x94 */
+	struct sunxi_wdog wdog;
 	u8  res3[8];
 	struct sunxi_64cnt cnt64;
 	u8  res4[0x5c];

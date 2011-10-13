@@ -54,15 +54,30 @@
 #define SUNXI_CCM_AHB_GATING1		(SUNXI_CCM_BASE + 0x64)
 #define SUNXI_CCM_APB0_GATING		(SUNXI_CCM_BASE + 0x68)
 #define SUNXI_CCM_APB1_GATING		(SUNXI_CCM_BASE + 0x6C)
-#if 0
-#define SUNXI_CCM_		(SUNXI_CCM_BASE + 0x)
+
+/* pll1 factors */
+#define PLL1_FACTOR_N			21
+#define PLL1_FACTOR_K			1
+#define PLL1_FACTOR_M			0
+#define PLL1_FACTOR_P			0
+
+/* apb1 bit field */
+#define APB1_CLK_SRC_OSC24M		0
+#define APB1_FACTOR_M			0
+#define APB1_FACTOR_N			0
+
+/* clock divide */
+#define CPU_CLK_SRC_OSC24M		1
+#define CPU_CLK_SRC_PLL1		2
+#define AXI_DIV					1
+#define AHB_DIV					1
+#define APB0_DIV				1
+#ifdef SUN5I
+#define AHB_CLK_SRC_AXI			0
 #endif
 
 
-
-
-
-
+#define APB1_UARTS_GATING		0x1
 
 
 
