@@ -152,7 +152,7 @@
 #define CONFIG_SYS_NO_FLASH			1
 
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
-#define CONFIG_IDENT_STRING			"for sun4i"
+#define CONFIG_IDENT_STRING			" Allwinner Technology "
 
 #define CONFIG_ENV_IS_NOWHERE		1
 
