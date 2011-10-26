@@ -55,6 +55,8 @@
 #define SUNXI_CCM_APB0_GATING		(SUNXI_CCM_BASE + 0x68)
 #define SUNXI_CCM_APB1_GATING		(SUNXI_CCM_BASE + 0x6C)
 
+#define SUNXI_CCM_NAND_SCLK_CFG		(SUNXI_CCM_BASE + 0x80)
+
 /* pll1 factors */
 #define PLL1_FACTOR_N			21
 #define PLL1_FACTOR_K			1
@@ -77,9 +79,13 @@
 #endif
 
 
-#define APB1_UARTS_GATING		0x1
+#define CLK_GATE_OPEN			0x1
+#define CLK_GATE_CLOSE			0x0
 
-
+/* nand clock */
+#define NAND_CLK_SRC_OSC24		0
+#define NAND_CLK_DIV_N			0
+#define NAND_CLK_DIV_M			0
 
 
 

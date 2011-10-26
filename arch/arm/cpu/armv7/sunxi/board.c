@@ -28,6 +28,8 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
+#include <asm/arch/gpio.h>
+
 
 void watchdog_init()
 {
@@ -69,20 +71,41 @@ void clock_init()
 	 */
 	sdelay(10);
 
-	/* set apb1 clock to 24Mhz, clock for uart, i2c etc */
+	/* config apb1 clock */
 	sr32(SUNXI_CCM_APB1_CLK_DIV, 24, 2, APB1_CLK_SRC_OSC24M);
 	sr32(SUNXI_CCM_APB1_CLK_DIV, 16, 2, APB1_FACTOR_N);
 	sr32(SUNXI_CCM_APB1_CLK_DIV, 0, 5, APB1_FACTOR_M);
-	/* open the clock for uart */
-	sr32(SUNXI_CCM_APB1_GATING, 16, 8, APB1_UARTS_GATING);
 
+	/* open the clock for uart0 */
+	sr32(SUNXI_CCM_APB1_GATING, 16, 1, CLK_GATE_OPEN);
+
+	/* config nand clock */
+	sr32(SUNXI_CCM_NAND_SCLK_CFG, 24, 2, NAND_CLK_SRC_OSC24);
+	sr32(SUNXI_CCM_NAND_SCLK_CFG, 16, 2, NAND_CLK_DIV_N);
+	sr32(SUNXI_CCM_NAND_SCLK_CFG, 0, 4, NAND_CLK_DIV_M);
+	sr32(SUNXI_CCM_NAND_SCLK_CFG, 31, 1, CLK_GATE_OPEN);
+	/* open clock for nand */
+	sr32(SUNXI_CCM_AHB_GATING0, 13, 1, CLK_GATE_OPEN);
 }
 
-/* do some early init like clock */
+void gpio_init()
+{
+	u32 i;
+	static struct sunxi_gpio *gpio_c =
+		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
+
+	/* set nand controller pin */
+	for(i=0; i < 4; i++) {
+		writel(0x22222222, &gpio_c->cfg[i]);
+	}
+	writel(0x55555555, &gpio_c->drv[0]);
+	writel(0x15555, &gpio_c->drv[1]);
+}
+
+/* do some early init */
 void s_init(void)
 {
 	watchdog_init();
 	clock_init();
+	gpio_init();
 }
-
-

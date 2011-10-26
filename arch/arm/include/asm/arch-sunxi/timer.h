@@ -25,8 +25,8 @@
  */
 
 
-#ifndef __ASM_ARM_ARCH_TIMER_H_
-#define __ASM_ARM_ARCH_TIMER_H_
+#ifndef _SUNXI_TIMER_H_
+#define _SUNXI_TIMER_H_
 
 #ifndef __ASSEMBLY__
 
