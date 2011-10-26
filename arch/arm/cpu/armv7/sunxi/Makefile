@@ -31,6 +31,7 @@ SOBJS	+= reset.o
 COBJS	+= timer.o
 COBJS	+= cpu_info.o
 COBJS	+= board.o
+COBJS	+= gpio.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
