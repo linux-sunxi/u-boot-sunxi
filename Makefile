@@ -212,6 +212,7 @@ endif
 OBJS := $(addprefix $(obj),$(OBJS))
 
 LIBS  = lib/libgeneric.o
+LIBS += nand_sun4i/libnand_sun4i.o
 LIBS += lib/lzma/liblzma.o
 LIBS += lib/lzo/liblzo.o
 LIBS += lib/zlib/libz.o

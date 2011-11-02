@@ -65,6 +65,7 @@ typedef struct block_dev_desc {
 #define IF_TYPE_MMC		6
 #define IF_TYPE_SD		7
 #define IF_TYPE_SATA		8
+#define IF_TYPE_NAND		9
 
 /* Part types */
 #define PART_TYPE_UNKNOWN	0x00
