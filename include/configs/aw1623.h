@@ -80,6 +80,12 @@
 
 //#define CONFIG_SYS_MONITOR_BASE	0x00000000
 
+/* Nand config */
+#define CONFIG_NAND
+#define CONFIG_NAND_SUN4I
+#define CONFIG_CMD_NAND                         /* NAND support */
+#define CONFIG_SYS_MAX_NAND_DEVICE      1
+#define CONFIG_SYS_NAND_BASE            0x00
 
 
 
