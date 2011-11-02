@@ -582,7 +582,6 @@ int  PHY_PageRead(struct __PhysicOpPara_t *pPageAdr)
 				ret |= _read_sectors(&readop,SUPPORT_DMA_IRQ);
 		}
 	}
-
 PHY_PageRead_exit:
 	if (ret == -ERR_TIMEOUT)
 		PHY_ERR("PHY_PageRead : read timeout\n");

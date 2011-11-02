@@ -2,5 +2,6 @@
 
 int board_nand_init()
 {
-	return 0;
+	NAND_Init();
+	return 1;
 }

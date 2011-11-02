@@ -49,7 +49,7 @@
 #include <linux/mtd/mtd.h>
 #include <nand.h>
 #include <jffs2/jffs2.h>
-
+#include <bsp_nand.h>
 typedef struct erase_info erase_info_t;
 typedef struct mtd_info	  mtd_info_t;
 
@@ -692,3 +692,8 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 
 	return 0;
 }
+
+
+
+
+
