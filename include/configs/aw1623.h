@@ -101,6 +101,9 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128 KiB */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
+#define CONFIG_FASTBOOT					1
+
+#define CONFIG_STORAGE_NAND				1
 /*
  * Hardware drivers
  */

@@ -32,6 +32,7 @@ COBJS	+= timer.o
 COBJS	+= cpu_info.o
 COBJS	+= board.o
 COBJS	+= gpio.o
+COBJS	+= fastboot.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
