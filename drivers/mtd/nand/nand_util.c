@@ -49,7 +49,8 @@
 #include <linux/mtd/mtd.h>
 #include <nand.h>
 #include <jffs2/jffs2.h>
-#include <bsp_nand.h>
+#include <asm/arch/nand_bsp.h>
+
 typedef struct erase_info erase_info_t;
 typedef struct mtd_info	  mtd_info_t;
 

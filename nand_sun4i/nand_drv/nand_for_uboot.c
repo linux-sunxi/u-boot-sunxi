@@ -1,5 +1,5 @@
 #include <common.h>
-#include "bsp_nand.h"
+#include <asm/arch/nand_bsp.h>
 #include <malloc.h>
 
 #define  OOB_BUF_SIZE                   32

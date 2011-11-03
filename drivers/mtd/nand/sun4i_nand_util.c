@@ -1,5 +1,5 @@
 #include <common.h>
-#include "bsp_nand.h"
+#include <asm/arch/nand_bsp.h>
 #include <nand.h>
 
 

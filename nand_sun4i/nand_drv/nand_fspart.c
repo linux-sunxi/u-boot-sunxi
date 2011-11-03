@@ -18,9 +18,9 @@
 * Descript:
 **********************************************************************************************************************
 */
-#include "common.h"
-#include "nand_fspart.h"
-#include "../bsp_nand.h"
+#include <common.h>
+#include <asm/arch/nand_fspart.h>
+#include <asm/arch/nand_bsp.h>
 
 typedef struct tag_CRC32_DATA
 {

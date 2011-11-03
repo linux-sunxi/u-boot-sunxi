@@ -27,7 +27,7 @@ LIB	= $(obj)libnand_sun4i.o
 
 COBJS	:= ./nand_drv/nand_for_uboot.o  		\
 		   ./nand_drv/nand_osal_uboot.o 		\
-		   ./nand_drv/nand_part/nand_fspart.o 	\
+		   ./nand_drv/nand_fspart.o 			\
 		   ./src/format/nand_format.o			\
 		   ./src/logic/bad_manage.o				\
 		   ./src/logic/logic_cache.o			\
@@ -43,8 +43,7 @@ COBJS	:= ./nand_drv/nand_for_uboot.o  		\
 		   ./src/physic/nand_simple_r.o			\
 		   ./src/physic/nand_simple_w.o			\
 		   ./src/scan/nand_id.o					\
-		   ./src/scan/nand_scan.o				
-		   #./src/scan/nand_scan_for_boot.o
+		   ./src/scan/nand_scan.o
 
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
