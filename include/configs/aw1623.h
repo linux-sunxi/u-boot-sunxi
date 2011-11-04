@@ -102,8 +102,10 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
 #define CONFIG_FASTBOOT					1
+#define FASTBOOT_TRANSFER_BUFFER		0x44000000
 
 #define CONFIG_STORAGE_NAND				1
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	64 << 20 /* 64M */	
 /*
  * Hardware drivers
  */

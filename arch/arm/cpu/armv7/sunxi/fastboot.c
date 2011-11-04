@@ -24,12 +24,12 @@
 #include <asm/types.h>
 #include <environment.h>
 #include <command.h>
-#include <usbdcore.h>
+#include <usbdevice.h>
 #include <fastboot.h>
 
 #if defined(CONFIG_FASTBOOT)
 
-#include  "usb/usbc_sun4i/usb_bsp.h"
+#include  "usbc_sun4i/usb_bsp.h"
 
 //-----------------------------------------------------------------------------
 //   ∫Í∂®“Â
