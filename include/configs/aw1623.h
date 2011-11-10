@@ -45,8 +45,8 @@
 /*
  * Display CPU and Board information
  */
-#define CONFIG_DISPLAY_CPUINFO		1
-#define CONFIG_DISPLAY_BOARDINFO	1
+#define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_DISPLAY_BOARDINFO
 
 /* Clock Defines */
 
@@ -98,13 +98,12 @@
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_ENV_SIZE				(128 << 10)	/* 128 KiB */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
-#define CONFIG_FASTBOOT					1
+#define CONFIG_FASTBOOT
 #define FASTBOOT_TRANSFER_BUFFER		0x44000000
 
-#define CONFIG_STORAGE_NAND				1
+#define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	64 << 20 /* 64M */	
 /*
  * Hardware drivers
@@ -160,24 +159,16 @@
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
-#define CONFIG_SYS_NO_FLASH			1
+#define CONFIG_SYS_NO_FLASH
 
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-#define CONFIG_ENV_IS_NOWHERE		1
+#define CONFIG_ENV_IS_IN_NAND_SUN4I	/* we store env in one partition of our nand */
+#define CONFIG_ENV_ADDR				(256 << 20)
+#define CONFIG_ENV_SIZE				(1 << 10)	/* 128 KiB */
+#define CONFIG_CMD_SAVEENV
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#define CONFIG_EXTRA_ENV_SETTINGS \
+									"loadaddr=0x4A000000\0"
 #endif /* __CONFIG_H */

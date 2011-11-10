@@ -22,18 +22,16 @@ int sun4i_nand_read(nand_info_t *nand, loff_t offset, size_t *length,
 			
 	unsigned int nSectNum,  nSectorCnt;
 
-	nSectNum   = (unsigned int)offset / 512;
-	nSectorCnt = *(unsigned int *)length / 512;
-//	printf("start:%d, count:%d \n", nSectNum, nSectorCnt);
-	NAND_LogicRead(nSectNum, nSectorCnt, buffer);	
+	nSectNum   = (unsigned int)(offset / 512);
+	nSectorCnt = (unsigned int )(*length / 512);
+	return NAND_LogicRead(nSectNum, nSectorCnt, buffer);
 }
 
 int sun4i_nand_write(nand_info_t *nand, loff_t offset, size_t *length,
 			u_char *buffer, int flags){
 	unsigned int nSectNum,  nSectorCnt;
 
-	nSectNum   = (unsigned int)offset / 512;
-	nSectorCnt = *(unsigned int *)length / 512;
-	NAND_LogicWrite(nSectNum, nSectorCnt, buffer);
+	nSectNum   = (unsigned int)(offset / 512);
+	nSectorCnt = (unsigned int )(*length / 512);
+	return NAND_LogicWrite(nSectNum, nSectorCnt, buffer);
 }
-

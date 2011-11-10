@@ -99,7 +99,9 @@ extern int NAND_CacheRead(unsigned int blk, unsigned int nblk, void *buf);
 extern int NAND_CacheWrite(unsigned int blk, unsigned int nblk, void *buf);
 extern int NAND_CacheOpen(void);
 extern int NAND_CacheClose(void);
-
+extern int NAND_LogicRead(uint nSectNum, uint nSectorCnt, void * pBuf);
+extern int NAND_LogicWrite(uint nSectNum, uint nSectorCnt, void * pBuf);
+extern uint NAND_GetDiskSize(void);
 //for format
 extern int FMT_Init(void);
 extern int FMT_Exit(void);
