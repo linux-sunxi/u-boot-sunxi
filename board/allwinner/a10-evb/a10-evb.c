@@ -26,16 +26,54 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <fastboot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 
-/* TODO add board specific code here */
 
+void fastboot_partition_init(void)
+{
+	fastboot_ptentry ptn[4] = {
+		{
+			.name	= "mbr",
+			.start	= 0x00,		/* start sector */
+			.length	= 0x200,	/* 512B */
+			.flags	= 0,
+		},
+		{
+			.name	= "bootfs",
+			.start	= 0x100000,	/* start sector */
+			.length	= 0x100000,	/* 512B */
+			.flags	= 0,
+		},
+		{
+			.name	= "rootfs",
+			.start	= 0x400000,	/* start sector */
+			.length	= 0x400000,	/* 512B */
+			.flags	= 0,
+		},
+		{
+			.name	= "datafs",
+			.start	= 0x800000,	/* start sector */
+			.length	= 0x800000,	/* 512B */
+			.flags	= 0,
+		},
+		/* Rest fastboot can not see */
+	};
+
+	int i;
+	for (i=0; i < 4; i++) {
+		fastboot_flash_add_ptn(&ptn[i]);;
+	}
+}
+
+/* TODO add board specific code here */
 int board_init(void)
 {
 	gd->bd->bi_arch_number = 0x1000;
 	gd->bd->bi_boot_params = 0x50000000;
+	fastboot_partition_init();
 	return 0;
 }
 

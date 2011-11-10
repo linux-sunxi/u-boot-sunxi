@@ -237,7 +237,7 @@ struct fastboot_boot_img_hdr {
 	unsigned id[8]; /* timestamp / checksum / sha1 / etc */
 };
 
-#if (CONFIG_FASTBOOT)
+#ifdef CONFIG_FASTBOOT
 /* A board specific test if u-boot should go into the fastboot command
    ahead of the bootcmd
    Returns 0 to continue with normal u-boot flow

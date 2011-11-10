@@ -60,7 +60,7 @@
 #include <fastboot.h>
 #include <environment.h>
 
-#if (CONFIG_FASTBOOT)
+#ifdef CONFIG_FASTBOOT
 
 /* Use do_reset for fastboot's 'reboot' command */
 //extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
