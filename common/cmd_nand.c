@@ -563,7 +563,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				return -1;
 			}
 		}
-		ret = nand_erase_opts(nand, &opts);
+		ret = sun4i_nand_erase(nand, &opts);
 		printf("%s\n", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;

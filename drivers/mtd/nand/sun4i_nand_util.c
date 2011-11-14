@@ -24,6 +24,7 @@ int sun4i_nand_read(nand_info_t *nand, loff_t offset, size_t *length,
 
 	nSectNum   = (unsigned int)(offset / 512);
 	nSectorCnt = (unsigned int )(*length / 512);
+	printf("sun4i nand read: start %x size %x\n", nSectNum, nSectorCnt);
 	return NAND_LogicRead(nSectNum, nSectorCnt, buffer);
 }
 
@@ -33,5 +34,12 @@ int sun4i_nand_write(nand_info_t *nand, loff_t offset, size_t *length,
 
 	nSectNum   = (unsigned int)(offset / 512);
 	nSectorCnt = (unsigned int )(*length / 512);
+	printf("sun4i nand write: start %x size %x\n", nSectNum, nSectorCnt);
 	return NAND_LogicWrite(nSectNum, nSectorCnt, buffer);
+}
+
+int sun4i_nand_erase(nand_info_t *meminfo, const nand_erase_options_t *opts){
+
+	return 0;
+
 }
