@@ -15,7 +15,7 @@ block_dev_desc_t *nand_get_dev(int dev)
 {
 	nand_blk_dev.dev = dev;
 	nand_blk_dev.lba = sun4i_nand_getpart_size(dev);
-	
+
 	return ((block_dev_desc_t *) & nand_blk_dev);
 }
 
@@ -39,22 +39,42 @@ unsigned long  nand_write_uboot(int dev_num, unsigned long start, unsigned long 
 	return 0;
 }
 
-int nand_erase_uboot(int dev_num)
+int nand_erase_uboot(char *dev_part)
 {
-	int start =  sun4i_nand_getpart_offset(dev_num);
-	int size  =  sun4i_nand_getpart_size(dev_num);
+	int start;
+	int size;
 	char *tmp_buf;
 	int total_size;
 	int pre_ratio, this_ratio;
+	int dev_num;
+	char partname[12];
+
+	if((*dev_part >= '0') && (*dev_part <= '9'))
+	{
+		dev_num = simple_strtoul(dev_part, 0, 10);
+		start =  sun4i_nand_getpart_offset(dev_num);
+		size  =  sun4i_nand_getpart_size(dev_num);
+		sun4i_nand_getpart_name(dev_num, &partname[0]);
+	}
+	else
+	{
+		start =  sun4i_nand_getpart_offset_byname(dev_part);
+		size  =  sun4i_nand_getpart_size_byname(dev_part);
+		strncpy(partname, dev_part, 12);
+	}
 
 	if(start < 0)
 	{
+		printf("error: unknown part name\n");
 		return -1;
 	}
 	if(!size)
 	{
+		printf("error: part size is zero\n");
 		return -1;
 	}
+	printf("part name = %s\n", partname);
+	printf("part size = %d\n", size);
 	pre_ratio  = 0;
 	this_ratio = 0;
 	tmp_buf = malloc(32 * 1024);
@@ -80,6 +100,7 @@ int nand_erase_uboot(int dev_num)
 	printf("\b\b\b\b%3d%%", 100);
 	puts("\n");
 	free(tmp_buf);
+	LML_FlushPageCache();
 
 	return 0;
 }
@@ -200,7 +221,7 @@ int NAND_PhyInit(void)
 {
 	int ret;
 
-    ret = PHY_Init();
+	ret = PHY_Init();
 	if (ret)
 	{
 		OSAL_printf("NB1 : nand phy init fail\n");
@@ -301,6 +322,7 @@ int NAND_Init(void)
 
 	OSAL_printf("NB1 : enter NFB_Init\n");
 
+	//while((*(volatile __u32 *)0) != 0);
 	result = NAND_PhyInit();
 	if (result < 0)
 	{

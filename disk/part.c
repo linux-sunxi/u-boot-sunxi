@@ -40,7 +40,8 @@
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
      defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
+     defined(CONFIG_SYSTEMACE) ) || \
+     defined(CONFIG_CMD_FAT)
 
 struct block_drvr {
 	char *name;
@@ -68,6 +69,9 @@ static const struct block_drvr block_drvr[] = {
 #endif
 #if defined(CONFIG_CMD_MG_DISK)
 	{ .name = "mgd", .get_dev = mg_disk_get_dev, },
+#endif
+#if defined(CONFIG_CMD_FAT)
+	{ .name = "nand", .get_dev = nand_get_dev, },
 #endif
 	{ },
 };

@@ -34,7 +34,7 @@
 /*
  * Convert a string to lowercase.
  */
-static void downcase (char *str)
+void downcase (char *str)
 {
 	while (*str != '\0') {
 		TOLOWER(*str);
@@ -42,9 +42,9 @@ static void downcase (char *str)
 	}
 }
 
-static block_dev_desc_t *cur_dev = NULL;
+block_dev_desc_t *cur_dev = NULL;
 
-static unsigned long part_offset = 0;
+unsigned long part_offset = 0;
 
 static int cur_part = 1;
 
@@ -53,17 +53,25 @@ static int cur_part = 1;
 #define DOS_FS_TYPE_OFFSET	0x36
 #define DOS_FS32_TYPE_OFFSET	0x52
 
-static int disk_read (__u32 startblock, __u32 getsize, __u8 * bufptr)
+/*
+ * Extract the full long filename starting at 'retdent' (which is really
+ * a slot) into 'l_name'. If successful also copy the real directory entry
+ * into 'retdent'
+ * Return 0 on success, -1 otherwise.
+ */
+int disk_read (__u32 startblock, __u32 getsize, __u8 * bufptr)
 {
 	if (cur_dev == NULL)
 		return -1;
 
 	startblock += part_offset;
 
-	if (cur_dev->block_read) {
+	if (cur_dev->block_read) 
+	{
 		return cur_dev->block_read(cur_dev->dev, startblock, getsize,
 					   (unsigned long *) bufptr);
 	}
+	
 	return -1;
 }
 
@@ -149,7 +157,7 @@ static int dirdelim (char *str)
 /*
  * Extract zero terminated short name from a directory entry.
  */
-static void get_name (dir_entry *dirent, char *s_name)
+void get_name (dir_entry *dirent, char *s_name)
 {
 	char *ptr;
 
@@ -178,7 +186,7 @@ static void get_name (dir_entry *dirent, char *s_name)
  * Get the entry at index 'entry' in a FAT (12/16/32) table.
  * On failure 0x00 is returned.
  */
-static __u32 get_fatent (fsdata *mydata, __u32 entry)
+__u32 get_fatent (fsdata *mydata, __u32 entry)
 {
 	__u32 bufnum;
 	__u32 off16, offset;
@@ -275,8 +283,7 @@ static __u32 get_fatent (fsdata *mydata, __u32 entry)
  * Read at most 'size' bytes from the specified cluster into 'buffer'.
  * Return 0 on success, -1 otherwise.
  */
-static int
-get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
+int get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
 	     unsigned long size)
 {
 	__u32 idx = 0;
@@ -317,8 +324,7 @@ get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
  * into 'buffer'.
  * Return the number of bytes read or -1 on fatal errors.
  */
-static long
-get_contents (fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
+long get_contents (fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 	      unsigned long maxsize)
 {
 	unsigned long filesize = FAT2CPU32(dentptr->size), gotsize = 0;
@@ -398,7 +404,7 @@ getit:
  * starting at l_name[*idx].
  * Return 1 if terminator (zero byte) is found, 0 otherwise.
  */
-static int slot2str (dir_slot *slotptr, char *l_name, int *idx)
+int slot2str (dir_slot *slotptr, char *l_name, int *idx)
 {
 	int j;
 
@@ -433,8 +439,7 @@ static int slot2str (dir_slot *slotptr, char *l_name, int *idx)
 __attribute__ ((__aligned__ (__alignof__ (dir_entry))))
 __u8 get_vfatname_block[MAX_CLUSTSIZE];
 
-static int
-get_vfatname (fsdata *mydata, int curclust, __u8 *cluster,
+int get_vfatname (fsdata *mydata, int curclust, __u8 *cluster,
 	      dir_entry *retdent, char *l_name)
 {
 	dir_entry *realdent;
@@ -518,7 +523,7 @@ get_vfatname (fsdata *mydata, int curclust, __u8 *cluster,
 }
 
 /* Calculate short name checksum */
-static __u8 mkcksum (const char *str)
+__u8 mkcksum (const char *str)
 {
 	int i;
 
@@ -699,8 +704,7 @@ static dir_entry *get_dentfromdir (fsdata *mydata, int startsect,
 /*
  * Read boot sector and volume info from a FAT filesystem
  */
-static int
-read_bootsectandvi (boot_sector *bs, volume_info *volinfo, int *fatsize)
+int read_bootsectandvi (boot_sector *bs, volume_info *volinfo, int *fatsize)
 {
 	__u8 block[FS_BLOCK_SIZE];
 
@@ -1162,3 +1166,5 @@ long file_fat_read (const char *filename, void *buffer, unsigned long maxsize)
 	printf("reading %s\n", filename);
 	return do_fat_read(filename, buffer, maxsize, LS_NO);
 }
+
+

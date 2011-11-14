@@ -103,11 +103,44 @@ int sun4i_nand_getpart_size(int part_index)
 	return mbr->array[part_index].lenlo;
 }
 
+int sun4i_nand_getpart_offset_byname(const char *part_name)
+{
+	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
+	int			i;
+
+	for(i=0;i<mbr->PartCount;i++)
+	{
+		if(!strcmp(part_name, mbr->array[i].name))
+		{
+			return mbr->array[i].addrlo;
+		}
+	}
+
+	return -1;
+}
+
+int sun4i_nand_getpart_size_byname(const char *part_name)
+{
+	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
+	int			i;
+
+	for(i=0;i<mbr->PartCount;i++)
+	{
+		if(!strcmp(part_name, mbr->array[i].name))
+		{
+			return mbr->array[i].lenlo;
+		}
+	}
+
+	return -1;
+}
+
 int sun4i_nand_scan_partition(void)
 {
    int i, part_index = 0;
    MBR    *mbr;
 
+//	while((*(volatile __u32 *)0) != 0);
    NAND_LogicRead(0, MBR_SIZE >> 9 , BOOTFSMBR_buf);
 
    mbr = (MBR*)BOOTFSMBR_buf;

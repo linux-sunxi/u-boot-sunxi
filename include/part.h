@@ -107,6 +107,9 @@ block_dev_desc_t* mmc_get_dev(int dev);
 block_dev_desc_t* systemace_get_dev(int dev);
 block_dev_desc_t* mg_disk_get_dev(int dev);
 
+block_dev_desc_t* nand_get_dev(int dev);
+
+
 /* disk/part.c */
 int get_partition_info (block_dev_desc_t * dev_desc, int part, disk_partition_t *info);
 void print_part (block_dev_desc_t *dev_desc);
