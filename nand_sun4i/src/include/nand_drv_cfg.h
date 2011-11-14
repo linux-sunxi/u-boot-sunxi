@@ -65,7 +65,7 @@
 #endif
 
 //define the max value of the count of the log block in a zone, the recommended value is 8
-#define MAX_LOG_BLK_CNT                     (8)
+#define MAX_LOG_BLK_CNT                     (16)
 
 //define the frequency of the doing wear-levelling
 #define WEAR_LEVELLING_FREQUENCY            (10)
