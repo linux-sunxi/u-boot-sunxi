@@ -27,45 +27,30 @@
 #include <common.h>
 #include <asm/io.h>
 #include <fastboot.h>
+#include <asm/arch/nand_fspart.h>
+#include <asm/arch/nand_bsp.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-
-
 void fastboot_partition_init(void)
 {
-	fastboot_ptentry ptn[4] = {
-		{
-			.name	= "mbr",
-			.start	= 0x00,		/* start sector */
-			.length	= 0x200,	/* 512B */
-			.flags	= 0,
-		},
-		{
-			.name	= "bootfs",
-			.start	= 0x100000,	/* start sector */
-			.length	= 0x100000,	/* 512B */
-			.flags	= 0,
-		},
-		{
-			.name	= "rootfs",
-			.start	= 0x400000,	/* start sector */
-			.length	= 0x400000,	/* 512B */
-			.flags	= 0,
-		},
-		{
-			.name	= "datafs",
-			.start	= 0x800000,	/* start sector */
-			.length	= 0x800000,	/* 512B */
-			.flags	= 0,
-		},
-		/* Rest fastboot can not see */
-	};
+	fastboot_ptentry fb_part;
+	int index,part_total;
 
-	int i;
-	for (i=0; i < 4; i++) {
-		fastboot_flash_add_ptn(&ptn[i]);;
+	printf("--------fastboot partitions--------\n");
+	part_total = sun4i_nand_getpart_num();
+	printf("total partitions:%d\n", part_total);
+	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
+
+	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
+		sun4i_nand_getpart_name(index, &fb_part.name);
+		fb_part.start = sun4i_nand_getpart_offset(index) * 512;
+		fb_part.length = sun4i_nand_getpart_size(index) * 512;
+		fb_part.flags = 0;
+		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
+		fastboot_flash_add_ptn(&fb_part);
 	}
+	printf("-----------------------------------\n");
 }
 
 /* TODO add board specific code here */
@@ -73,10 +58,16 @@ int board_init(void)
 {
 	gd->bd->bi_arch_number = 0x1000;
 	gd->bd->bi_boot_params = 0x50000000;
+	return 0;
+}
+/* Partition init must be after NAND init, so we put the fastboot
+ * partition init here in the board late init.
+ */
+int board_late_init(void)
+{
 	fastboot_partition_init();
 	return 0;
 }
-
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;

@@ -11,18 +11,17 @@ extern int OSAL_printf(const char * str, ...);
 
 static block_dev_desc_t 	nand_blk_dev;
 
-
 block_dev_desc_t *nand_get_dev(int dev)
 {
 	nand_blk_dev.dev = dev;
-	nand_blk_dev.lba = FS_getpart_capacity(dev);
+	nand_blk_dev.lba = sun4i_nand_getpart_size(dev);
 	
 	return ((block_dev_desc_t *) & nand_blk_dev);
 }
 
 unsigned long  nand_read_uboot(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
 {
-	start += FS_getpart_start(dev_num);
+	start += sun4i_nand_getpart_offset(dev_num);
 	if(!NAND_LogicRead((int)start, (int )blkcnt, dst))
 	{
 		return blkcnt;
@@ -32,7 +31,7 @@ unsigned long  nand_read_uboot(int dev_num, unsigned long start, unsigned long b
 
 unsigned long  nand_write_uboot(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
 {
-	start += FS_getpart_start(dev_num);
+	start += sun4i_nand_getpart_offset(dev_num);
 	if(!NAND_LogicWrite((int)start, (int )blkcnt, dst))
 	{
 		return blkcnt;
@@ -42,8 +41,8 @@ unsigned long  nand_write_uboot(int dev_num, unsigned long start, unsigned long 
 
 int nand_erase_uboot(int dev_num)
 {
-	int start =  FS_getpart_start(dev_num);
-	int size  =  FS_getpart_capacity(dev_num);
+	int start =  sun4i_nand_getpart_offset(dev_num);
+	int size  =  sun4i_nand_getpart_size(dev_num);
 	char *tmp_buf;
 	int total_size;
 	int pre_ratio, this_ratio;
@@ -60,7 +59,7 @@ int nand_erase_uboot(int dev_num)
 	this_ratio = 0;
 	tmp_buf = malloc(32 * 1024);
 	memset(tmp_buf, 0xff, 32 * 1024);
-	printf("erase this part:    00%");
+	printf("erase this part:    00%%");
 	total_size = size;
 	while(size >= ((32 * 1024)>>9))
 	{
@@ -101,7 +100,7 @@ int nand_init_uboot(int verbose)
 	nand_blk_dev.block_read = nand_read_uboot;
 	nand_blk_dev.block_write = nand_write_uboot;
 
-	bootfs_scan_part();
+	sun4i_nand_scan_partition();
 	//fat_register_device(&nand_blk_dev, 1);
 	return 0;
 }
@@ -1146,9 +1145,3 @@ int NAND_BadBlockScan(const boot_nand_para_t *nand_param)
 
  	return good_block_ratio;
 }
-
-
-
-
-
-

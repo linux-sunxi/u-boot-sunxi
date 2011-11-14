@@ -152,5 +152,12 @@ extern void  NAND_SetSrcClkName(unsigned int pll_name);
 extern int NAND_SetDrqCbMethod(unsigned int used);
 
 
+int sun4i_nand_scan_partition(void);
+int sun4i_nand_getpart_num(void);
+int sun4i_nand_getpart_offset(int part_index);
+int sun4i_nand_getpart_size(int part_index);
+int sun4i_nand_getpart_name(int index, char *buf);
+
+
 #endif  //ifndef __NAND_LOGIC_H__
 

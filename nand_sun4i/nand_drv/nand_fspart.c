@@ -21,6 +21,7 @@
 #include <common.h>
 #include <asm/arch/nand_fspart.h>
 #include <asm/arch/nand_bsp.h>
+#include <fastboot.h>
 
 typedef struct tag_CRC32_DATA
 {
@@ -28,23 +29,8 @@ typedef struct tag_CRC32_DATA
 	unsigned int CRC_32_Tbl[256];	//用来保存码表
 }CRC32_DATA_t;
 
-char BOOTFSMBR_buf[1024] __attribute__ ((packed));
-/*
-************************************************************************************************************
-*
-*                                             _calc_crc32
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
+char BOOTFSMBR_buf[1024];
+
 static __u32 _calc_crc32(void * buffer, __u32 length)
 {
 	__u32 i, j;
@@ -76,45 +62,24 @@ static __u32 _calc_crc32(void * buffer, __u32 length)
     //return CRC32;
 	return CRC32^0xffffffff;
 }
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int FS_getpart_count(void)
+
+int sun4i_nand_getpart_num(void)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
 	return mbr->PartCount;
 }
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int FS_getpart_start(int part_index)
+
+int sun4i_nand_getpart_name(int index, char *buf)
+{
+	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
+
+	strncpy(buf, (const char *)mbr->array[index].name, 12);
+	return 0;
+
+}
+
+int sun4i_nand_getpart_offset(int part_index)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
@@ -125,23 +90,8 @@ int FS_getpart_start(int part_index)
 
 	return mbr->array[part_index].addrlo;
 }
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int FS_getpart_capacity(int part_index)
+
+int sun4i_nand_getpart_size(int part_index)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
@@ -152,23 +102,8 @@ int FS_getpart_capacity(int part_index)
 
 	return mbr->array[part_index].lenlo;
 }
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int bootfs_scan_part(void)
+
+int sun4i_nand_scan_partition(void)
 {
    int i, part_index = 0;
    MBR    *mbr;
@@ -209,6 +144,3 @@ int bootfs_scan_part(void)
 
 	return part_index;
 }
-
-
-

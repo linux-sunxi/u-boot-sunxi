@@ -63,20 +63,22 @@
 #ifdef CONFIG_FASTBOOT
 
 /* Use do_reset for fastboot's 'reboot' command */
-//extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 /* Use do_nand for fastboot's flash commands */
 #if defined(CONFIG_STORAGE_NAND)
-//extern int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+extern int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[]);
 #elif defined(CONFIG_STORAGE_EMMC)
-//extern int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-//extern env_t *env_ptr;
+extern int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+extern env_t *env_ptr;
 #endif
 /* Use do_setenv and do_saveenv to permenantly save data */
-int do_saveenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-int do_setenv ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_env_set ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 /* Use do_bootm and do_go for fastboot's 'boot' command */
-//int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-//int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+#ifdef CONFIG_CMD_BOOTM
+extern int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+#endif
+extern int do_go (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
 /* Forward decl */
 static int tx_handler(void);
@@ -102,7 +104,9 @@ static unsigned int continue_booting;
 static unsigned int upload_size;
 static unsigned int upload_bytes;
 static unsigned int upload_error;
+#if defined(CONFIG_STORAGE_EMMC)
 static unsigned int mmc_controller_no;
+#endif
 
 /* To support the Android-style naming of flash */
 #define MAX_PTN 16
@@ -117,7 +121,7 @@ static void set_env(char *var, char *val)
 	setenv[1] = var;
 	setenv[2] = val;
 
-	//do_setenv(NULL, 0, 3, setenv);
+	do_env_set(NULL, 0, 3, setenv);
 }
 
 static void save_env(struct fastboot_ptentry *ptn,
@@ -155,7 +159,7 @@ static void save_env(struct fastboot_ptentry *ptn,
 
 	/* This could be a problem is there is an outstanding lock */
 	do_nand(NULL, 0, 4, unlock);
-	//do_saveenv(NULL, 0, 1, saveenv);
+	do_env_save(NULL, 0, 1, saveenv);
 	do_nand(NULL, 0, 4, lock);
 }
 
@@ -188,11 +192,11 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 		
 		sprintf (var, "%s_nand_offset", ptn->name);
 		sprintf (val, "");
-		//do_setenv (NULL, 0, 3, setenv);
+		do_env_set (NULL, 0, 3, setenv);
 
 		sprintf (var, "%s_nand_size", ptn->name);
 		sprintf (val, "");
-		//do_setenv (NULL, 0, 3, setenv);
+		do_env_set (NULL, 0, 3, setenv);
 	}
 	else
 	{
@@ -203,7 +207,7 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 
 		printf ("%s %s %s\n", setenv[0], setenv[1], setenv[2]);
 		
-		//do_setenv (NULL, 0, 3, setenv);
+		do_env_set (NULL, 0, 3, setenv);
 
 		sprintf (var, "%s_nand_size", ptn->name);
 
@@ -211,7 +215,7 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 
 		printf ("%s %s %s\n", setenv[0], setenv[1], setenv[2]);
 
-		//do_setenv (NULL, 0, 3, setenv);
+		do_env_set (NULL, 0, 3, setenv);
 	}
 
 
@@ -250,7 +254,7 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 		do_nand (NULL, 0, 4, unlock);
 	}
 
-	//do_saveenv (NULL, 0, 1, saveenv);
+	do_env_save (NULL, 0, 1, saveenv);
 	
 	if (env_ptn)
 	{
@@ -893,6 +897,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 			if(ptn == 0) 
 			{
+				printf("FAIL: partition does not exist\n");
 				sprintf(response, "FAILpartition does not exist");
 			}
 			else
@@ -928,6 +933,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 
 				if (status)
 				{
+					printf("FAIL: failed to erase partition\n");
 					sprintf(response,"FAILfailed to erase partition");
 				} 
 				else 
@@ -941,12 +947,13 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			struct fastboot_ptentry *ptn;
 
 			/* Save the MMC controller number */
-			mmc_controller_no = CFG_FASTBOOT_MMC_NO;
+			mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
 
 			/* Find the partition and erase it */
 			ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 
 			if (ptn == 0) {
+				printf("FAIL: partition doesn't exist\n");
 				sprintf(response, "FAIL: partition doesn't exist");
 			} else {
 				/* Call MMC erase function here */
@@ -1008,7 +1015,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			{
 				/* set download_size to 0 because this is an error */
 				download_size = 0;
-				sprintf(response, "FAILdata too large");
+				sprintf(response, "FAILdata too large, larger than buffer");
 			}
 			else
 			{
@@ -1160,7 +1167,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				struct fastboot_ptentry *ptn;
 
 				/* Save the MMC controller number */
-				mmc_controller_no = CFG_FASTBOOT_MMC_NO;
+				mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
 
 				/* Next is the partition name */
 				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
@@ -1744,6 +1751,8 @@ void fastboot_flash_dump_ptn(void)
 fastboot_ptentry *fastboot_flash_find_ptn(const char *name)
 {
     unsigned int n;
+
+	printf("find ptn: %s\n", name);
     
     for(n = 0; n < pcount; n++) {
 	    /* Make sure a substring is not accepted */

@@ -37,6 +37,7 @@
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
+#define BOARD_LATE_INIT				/* init the fastboot partitions */
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
 #if 0
@@ -101,10 +102,10 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
 #define CONFIG_FASTBOOT
-#define FASTBOOT_TRANSFER_BUFFER		0x44000000
-
 #define CONFIG_STORAGE_NAND
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	64 << 20 /* 64M */	
+#define FASTBOOT_TRANSFER_BUFFER		0x40000000
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+
 /*
  * Hardware drivers
  */
