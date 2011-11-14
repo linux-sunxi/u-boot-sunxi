@@ -109,3 +109,8 @@ void s_init(void)
 	clock_init();
 	gpio_init();
 }
+
+void reset_cpu(ulong addr)
+{
+	sunxi_reset();
+}

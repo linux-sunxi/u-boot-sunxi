@@ -26,12 +26,13 @@
 
 #include <asm/arch/cpu.h>
 
-#define SUNXI_SWRESET 0X00000000 
+#define SUNXI_WDOG_CTL    0x01C20C90
+#define SUNXI_WDOG_MODE   0x01C20C94
 
-.globl reset_cpu
-reset_cpu:
-	ldr r1, =SUNXI_SWRESET
-	mov r3, #0x2
+.globl sunxi_reset
+sunxi_reset:
+	ldr r1, =SUNXI_WDOG_MODE
+	mov r3, #0x3
 	str r3, [r1]
 	mov r0, r0
 _loop_forever:
