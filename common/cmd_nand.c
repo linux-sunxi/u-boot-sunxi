@@ -563,7 +563,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				return -1;
 			}
 		}
-		ret = sun4i_nand_erase(nand, &opts);
+		ret = sun4i_nand_erase_opts(nand, &opts);
 		printf("%s\n", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;
@@ -614,7 +614,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 					mem[i] = 0;
 				}
 #endif				
-				ret = sun4i_nand_read(nand, off, &rwsize,
+				ret = sun4i_nand_read_opts(nand, off, &rwsize,
 							 (u_char *)addr);
 #if CONFIG_TEST				
 				int j;
@@ -632,7 +632,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 					mem[i] = i;
 				}
 #endif				
-				ret = sun4i_nand_write(nand, off, &rwsize,
+				ret = sun4i_nand_write_opts(nand, off, &rwsize,
 							  (u_char *)addr, 0);
 			}
 #ifdef CONFIG_CMD_NAND_TRIMFFS

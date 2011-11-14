@@ -43,7 +43,7 @@ void fastboot_partition_init(void)
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
 
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
-		sun4i_nand_getpart_name(index, &fb_part.name);
+		sun4i_nand_getpart_name(index, &fb_part.name[0]);
 		fb_part.start = sun4i_nand_getpart_offset(index) * 512;
 		fb_part.length = sun4i_nand_getpart_size(index) * 512;
 		fb_part.flags = 0;
