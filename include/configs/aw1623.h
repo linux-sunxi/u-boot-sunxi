@@ -165,9 +165,15 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-#define CONFIG_ENV_IS_IN_NAND_SUN4I	/* we store env in one partition of our nand */
+#define CONFIG_ENV_IS_IN_NAND_SUN4I	    /* we store env in one partition of our nand */
+#define CONFIG_SUNXI_ENV_PARTITION		"environment"		/* the partition name */
+/*------------------------------------------------------------------------
+ * we save the environment in a nand partition, the partition name is defined
+ * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
+ * if not, below CONFIG_ENV_ADDR and CONFIG_ENV_SIZE will be where to store env.
+ * */
 #define CONFIG_ENV_ADDR				(256 << 20)
-#define CONFIG_ENV_SIZE				(1 << 10)	/* 128 KiB */
+#define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
