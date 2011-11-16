@@ -165,7 +165,7 @@
 								  "fbmem=32M@0x5a000000 loglevel=9;\0"
 
 #define CONFIG_BOOTDELAY	3
-#define CONFIG_BOOTCOMMAND	"fastboot 1;"
+#define CONFIG_BOOTCOMMAND	"fastboot 1;fatload nand 0 40008000 linux/bImage;go 40008000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
