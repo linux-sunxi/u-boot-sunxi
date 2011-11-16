@@ -212,7 +212,6 @@ endif
 OBJS := $(addprefix $(obj),$(OBJS))
 
 LIBS  = lib/libgeneric.o
-LIBS += nand_sun4i/libnand_sun4i.o
 LIBS += lib/lzma/liblzma.o
 LIBS += lib/lzo/liblzo.o
 LIBS += lib/zlib/libz.o
@@ -292,6 +291,10 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 ifeq ($(SOC),s5pc2xx)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
+endif
+
+ifeq ($(SOC),sunxi)
+LIBS += nand_sun4i/libnand_sun4i.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
