@@ -103,25 +103,8 @@
 
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
-#define FASTBOOT_TRANSFER_BUFFER		0x40000000
+#define FASTBOOT_TRANSFER_BUFFER		0x41000000
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
-
-/*
- * Hardware drivers
- */
-
-/*
- * NS16550 Configuration
- */
-
-/*
- * select serial console configuration
- */
-
-
-/* allow to overwrite serial and ethaddr */
-
-
 
 /*
  * Miscellaneous configurable options
@@ -167,6 +150,7 @@
 
 #define CONFIG_ENV_IS_IN_NAND_SUN4I	    /* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION		"environment"		/* the partition name */
+
 /*------------------------------------------------------------------------
  * we save the environment in a nand partition, the partition name is defined
  * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
@@ -176,6 +160,15 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_EXTRA_ENV_SETTINGS \
-									"loadaddr=0x4A000000\0"
+#define CONFIG_EXTRA_ENV_SETTINGS "bootargs=console=ttyS0,115200 " \
+                                  "root=/dev/nandb init=/init rw " \
+								  "fbmem=32M@0x5a000000 loglevel=9;\0"
+
+#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTCOMMAND	"fastboot 1;"
+#define CONFIG_SYS_BOOT_GET_CMDLINE
+#define CONFIG_AUTO_COMPLETE
+
+#define CONFIG_CMD_FAT			/* with this we can access bootfs in nand */
+
 #endif /* __CONFIG_H */

@@ -1098,9 +1098,11 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					 * Check if the user sent a bootargs down.
 					 * If not, do not override what is already there
 					 */
-					if (strlen ((char *) &fb_hdr->cmdline[0]))
+					if (strlen ((char *) &fb_hdr->cmdline[0])) {
+						printf("Image has cmdline:");
+						printf("%s\n", &fb_hdr->cmdline[0]);
 						set_env ("bootargs", (char *) &fb_hdr->cmdline[0]);
-
+					}
 					do_bootm (NULL, 0, 2, bootm);
 				} else {
 					/* Raw image, maybe another uboot */
