@@ -135,6 +135,28 @@ int sun4i_nand_getpart_size_byname(const char *part_name)
 	return -1;
 }
 
+/* get the partition info, offset and size
+ * input: partition name
+ * output: part_offset and part_size (in byte)
+ */
+int sun4i_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, loff_t *part_size)
+{
+	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
+	int			i;
+
+	for(i=0;i<mbr->PartCount;i++)
+	{
+		if(!strcmp(part_name, (const char *)mbr->array[i].name))
+		{
+			*part_offset = mbr->array[i].addrlo * 512;
+			*part_size = mbr->array[i].lenlo * 512;
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
 int sun4i_nand_scan_partition(void)
 {
    int i, part_index = 0;

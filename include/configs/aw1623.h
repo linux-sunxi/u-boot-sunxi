@@ -123,7 +123,7 @@
 /* memtest works on */
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + 256<<20)	/* 256M */
-#define CONFIG_SYS_LOAD_ADDR		0x4A0000000					/* default load address */
+#define CONFIG_SYS_LOAD_ADDR		0x50000000					/* default load address */
 
 #define CONFIG_SYS_HZ				1000
 
@@ -164,8 +164,8 @@
                                   "root=/dev/nandb init=/init rw " \
 								  "fbmem=32M@0x5a000000 loglevel=9;\0"
 
-#define CONFIG_BOOTDELAY	3
-#define CONFIG_BOOTCOMMAND	"fastboot 1;fatload nand 0 40008000 linux/bImage;go 40008000"
+#define CONFIG_BOOTDELAY	1
+#define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;bootm 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 

@@ -159,6 +159,9 @@ int sun4i_nand_getpart_num(void);
 int sun4i_nand_getpart_offset(int part_index);
 int sun4i_nand_getpart_size(int part_index);
 int sun4i_nand_getpart_name(int index, char *buf);
+int sun4i_nand_getpart_offset_byname(const char *part_name);
+int sun4i_nand_getpart_size_byname(const char *part_name);
+int sun4i_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, loff_t *part_size);
 
 int NAND_Init(void);
 int sun4i_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length, u_char *buffer, int flags);
