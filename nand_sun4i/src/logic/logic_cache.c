@@ -38,22 +38,22 @@
 typedef struct
 {
 	__u8	*data;
-	uint	size;
+	__u32	size;
 
-	uint	hit_page;
-	uint   secbitmap;
+	__u32	hit_page;
+	__u32   secbitmap;
 
-	uint	access_count;
+	__u32	access_count;
 }__nand_cache_t;
 
-uint g_w_access_cnt;
+__u32 g_w_access_cnt;
 
 __nand_cache_t nand_w_cache[N_NAND_W_CACHE];
 __nand_cache_t nand_r_cache;
 
-uint _get_valid_bits(uint secbitmap)
+__u32 _get_valid_bits(__u32 secbitmap)
 {
-	uint validbit = 0;
+	__u32 validbit = 0;
 
 	while(secbitmap)
 	{
@@ -65,9 +65,9 @@ uint _get_valid_bits(uint secbitmap)
 	return validbit;
 }
 
-uint _get_first_valid_bit(uint secbitmap)
+__u32 _get_first_valid_bit(__u32 secbitmap)
 {
-	uint firstbit = 0;
+	__u32 firstbit = 0;
 
 	while(!(secbitmap & 0x1))
 	{
@@ -78,9 +78,9 @@ uint _get_first_valid_bit(uint secbitmap)
 	return firstbit;
 }
 
-int NAND_CacheFlush(void)
+__s32 NAND_CacheFlush(void)
 {
-	uint	i;
+	__u32	i;
 
 	for(i = 0; i < N_NAND_W_CACHE; i++)
 	{
@@ -107,11 +107,11 @@ int NAND_CacheFlush(void)
 
 }
 
-void _get_data_from_cache(uint blk, uint nblk, void *buf)
+void _get_data_from_cache(__u32 blk, __u32 nblk, void *buf)
 {
-	uint i;
-	uint sec;
-	uint page,SecBitmap,SecWithinPage;
+	__u32 i;
+	__u32 sec;
+	__u32 page,SecBitmap,SecWithinPage;
 
 	for(sec = blk; sec < blk + nblk; sec++)
 	{
@@ -129,9 +129,9 @@ void _get_data_from_cache(uint blk, uint nblk, void *buf)
 	}
 }
 
-void _get_one_page(uint page,uint SecBitmap,__u8 *data)
+void _get_one_page(__u32 page,__u32 SecBitmap,__u8 *data)
 {
-	uint i;
+	__u32 i;					
 	__u8 *tmp = data;
 
 	if(page == nand_r_cache.hit_page)
@@ -170,11 +170,11 @@ void _get_one_page(uint page,uint SecBitmap,__u8 *data)
 	SecBitmap = 0;
 }
 
-int NAND_CacheRead(uint blk, uint nblk, void *buf)
+__s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf)
 {
-	uint	nSector,StartSec;
-	uint	page;
-	uint	SecBitmap,SecWithinPage;
+	__u32	nSector,StartSec;
+	__u32	page;
+	__u32	SecBitmap,SecWithinPage;
 	__u8 	*pdata;
 
 	/*flush page cache*/
@@ -222,7 +222,7 @@ int NAND_CacheRead(uint blk, uint nblk, void *buf)
 
 }
 
-int _fill_nand_cache(uint page, uint secbitmap, __u8 *pdata)
+__s32 _fill_nand_cache(__u32 page, __u32 secbitmap, __u8 *pdata)
 {
 	__u8	hit;
 	__u8	i;
@@ -260,7 +260,7 @@ int _fill_nand_cache(uint page, uint secbitmap, __u8 *pdata)
 
 		if (pos == 0xff)
 		{
-			uint access_cnt = nand_w_cache[0].access_count;
+			__u32 access_cnt = nand_w_cache[0].access_count;
 			pos = 0;
 
 			for (i = 1; i < N_NAND_W_CACHE; i++)
@@ -299,12 +299,12 @@ int _fill_nand_cache(uint page, uint secbitmap, __u8 *pdata)
 }
 
 #if 0
-int NAND_CacheWrite(uint blk, uint nblk, void *buf)
+__s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf)
 {
-	uint	nSector,StartSec;
-	uint	page;
-	uint	SecBitmap,SecWithinPage;
-	uint	i;
+	__u32	nSector,StartSec;
+	__u32	page;
+	__u32	SecBitmap,SecWithinPage;
+	__u32	i;
 	__u8 	*pdata;
 
 	nSector 	= nblk;
@@ -366,7 +366,7 @@ int NAND_CacheWrite(uint blk, uint nblk, void *buf)
 }
 #endif
 
-int NAND_CacheWrite(uint blk, uint nblk, void *buf)
+__s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf)
 {
       /*disable read cache with current page*/
 	nand_r_cache.hit_page = 0xffffffff;
@@ -379,9 +379,9 @@ int NAND_CacheWrite(uint blk, uint nblk, void *buf)
 }
 
 
-int NAND_CacheOpen(void)
+__s32 NAND_CacheOpen(void)
 {
-	uint i;
+	__u32 i;
 
 	g_w_access_cnt = 0;
 
@@ -403,9 +403,9 @@ int NAND_CacheOpen(void)
 	return 0;
 }
 
-int NAND_CacheClose(void)
+__s32 NAND_CacheClose(void)
 {
-	uint i;
+	__u32 i;
 
 	NAND_CacheFlush();
 

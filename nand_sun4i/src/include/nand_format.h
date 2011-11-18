@@ -38,10 +38,10 @@
 //define the structure for a zone detail information
 struct __ScanZoneInfo_t
 {
-    unsigned short   nDataBlkCnt;                //the count of data blocks in a zone
-    unsigned short   nFreeBlkCnt;                //the count of free blocks in a zone
-    unsigned short   nFreeBlkIndex;              //the index of the free blocks in a zone
-    unsigned short   Reserved;                   //reserved for 32bit aligned
+    __u16   nDataBlkCnt;                //the count of data blocks in a zone
+    __u16   nFreeBlkCnt;                //the count of free blocks in a zone
+    __u16   nFreeBlkIndex;              //the index of the free blocks in a zone
+    __u16   Reserved;                   //reserved for 32bit aligned
     struct __SuperPhyBlkType_t ZoneTbl[BLOCK_CNT_OF_ZONE];  //the zone table buffer
 	struct __LogBlkType_t LogBlkTbl[MAX_LOG_BLK_CNT];       //the log block mapping table buffer
 };
@@ -50,21 +50,21 @@ struct __ScanZoneInfo_t
 //define the structure for a nand flash die detail information
 struct __ScanDieInfo_t
 {
-    unsigned char    nDie;                       //the number of the die in the nand flash storage system
-    unsigned char    TblBitmap;                  //the bitmap that mark the block mapping table status in a die
-    unsigned short   nBadCnt;                    //the count of the bad block in a nand die
-    unsigned short   nFreeCnt;                   //the count of the free block in a nand die
-    unsigned short   nFreeIndex;                 //the free block allocate index
-    unsigned short   *pPhyBlk;                   //the pointer to the physical block information buffer of a whole die
+    __u8    nDie;                       //the number of the die in the nand flash storage system
+    __u8    TblBitmap;                  //the bitmap that mark the block mapping table status in a die
+    __u16   nBadCnt;                    //the count of the bad block in a nand die
+    __u16   nFreeCnt;                   //the count of the free block in a nand die
+    __u16   nFreeIndex;                 //the free block allocate index
+    __u16   *pPhyBlk;                   //the pointer to the physical block information buffer of a whole die
     struct __ScanZoneInfo_t *ZoneInfo;  //the pointer to the zone table detail information of the whole die
 };
 
 //define the first super block used for block mapping, the front used for boot
 typedef struct _blk_for_boot1_t
 {
-	unsigned int blk_size; //unit by k
-	unsigned int blks_boot0;
-	unsigned int blks_boot1;
+	__u32 blk_size; //unit by k
+	__u32 blks_boot0;
+	__u32 blks_boot1;
 }blk_for_boot1_t;
 
 //define the max value of the default position of the block mapping table
@@ -121,7 +121,7 @@ typedef struct _blk_for_boot1_t
 
 //define the return value of format error when we should try format again
 #define RET_FORMAT_TRY_AGAIN        (-2)
-
+	
 /*
 ************************************************************************************************************************
 *                                   FORMAT NAND FLASH DISK MODULE INIT
@@ -135,7 +135,7 @@ typedef struct _blk_for_boot1_t
 *               < 0     format module init failed.
 ************************************************************************************************************************
 */
-int FMT_Init(void);
+__s32 FMT_Init(void);
 
 
 /*
@@ -151,7 +151,7 @@ int FMT_Init(void);
 *               < 0     format module exit failed.
 ************************************************************************************************************************
 */
-int FMT_Exit(void);
+__s32 FMT_Exit(void);
 
 
 /*
@@ -171,7 +171,7 @@ int FMT_Exit(void);
 *             information has some error, need repair it. If find none mapping information, create it!
 ************************************************************************************************************************
 */
-int FMT_FormatNand(void);
+__s32 FMT_FormatNand(void);
 
 
 #endif  //ifndef __NAND_FORMAT_H__

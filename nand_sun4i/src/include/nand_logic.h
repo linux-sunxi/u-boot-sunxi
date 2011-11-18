@@ -153,7 +153,7 @@
 *               = -1    init failed.
 ************************************************************************************************************************
 */
-int LML_Init(void);
+__s32 LML_Init(void);
 
 
 /*
@@ -169,7 +169,7 @@ int LML_Init(void);
 *               = -1    exit failed.
 ************************************************************************************************************************
 */
-int LML_Exit(void);
+__s32 LML_Exit(void);
 
 
 /*
@@ -187,7 +187,7 @@ int LML_Exit(void);
 *               = -1    read failed.
 ************************************************************************************************************************
 */
-int LML_Read(unsigned int nLba, unsigned int nLength, void* pBuf);
+__s32 LML_Read(__u32 nLba, __u32 nLength, void* pBuf);
 
 
 /*
@@ -205,7 +205,7 @@ int LML_Read(unsigned int nLba, unsigned int nLength, void* pBuf);
 *               = -1    write failed.
 ************************************************************************************************************************
 */
-int LML_Write(unsigned int nLba, unsigned int nLength, void* pBuf);
+__s32 LML_Write(__u32 nLba, __u32 nLength, void* pBuf);
 
 
 /*
@@ -221,7 +221,7 @@ int LML_Write(unsigned int nLba, unsigned int nLength, void* pBuf);
 *               = -1    flush failed.
 ************************************************************************************************************************
 */
-int LML_FlushPageCache(void);
+__s32 LML_FlushPageCache(void);
 
 
 /*
@@ -240,7 +240,7 @@ int LML_FlushPageCache(void);
 *               < 0     read failed.
 ************************************************************************************************************************
 */
-int LML_PageRead(unsigned int nPage, unsigned int nBitmap, void* pBuf);
+__s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf);
 
 
 /*
@@ -259,7 +259,7 @@ int LML_PageRead(unsigned int nPage, unsigned int nBitmap, void* pBuf);
 *               < 0     write failed.
 ************************************************************************************************************************
 */
-int LML_PageWrite(unsigned int nPage, unsigned int nBitmap, void* pBuf);
+__s32 LML_PageWrite(__u32 nPage, __u32 nBitmap, void* pBuf);
 
 
 /*
@@ -281,7 +281,7 @@ int LML_PageWrite(unsigned int nPage, unsigned int nBitmap, void* pBuf);
 *             read out and write to another physical blcok.
 ************************************************************************************************************************
 */
-int LML_ReadReclaim(unsigned int nPage);
+__s32 LML_ReadReclaim(__u32 nPage);
 
 
 /*
@@ -301,7 +301,7 @@ int LML_ReadReclaim(unsigned int nPage);
 *             millions of erase cycles to ervery physical block.
 ************************************************************************************************************************
 */
-int LML_WearLevelling(void);
+__s32 LML_WearLevelling(void);
 
 
 /*
@@ -320,7 +320,7 @@ int LML_WearLevelling(void);
 *               = -1    calculate failed.
 ************************************************************************************************************************
 */
-int LML_CalPhyPar(struct __PhysicOpPara_t *pPhyPar, unsigned int nZone, unsigned int nBlock, unsigned int nPage);
+__s32 LML_CalPhyPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage);
 
 
 /*
@@ -339,7 +339,7 @@ int LML_CalPhyPar(struct __PhysicOpPara_t *pPhyPar, unsigned int nZone, unsigned
 *               = -1    do bad block manage failed.
 ************************************************************************************************************************
 */
-int LML_BadBlkManage(struct __SuperPhyBlkType_t *pBadBlk, unsigned int nZoneNum, unsigned int nErrPage, struct __SuperPhyBlkType_t *pNewBlk);
+__s32 LML_BadBlkManage(struct __SuperPhyBlkType_t *pBadBlk, __u32 nZoneNum, __u32 nErrPage, struct __SuperPhyBlkType_t *pNewBlk);
 
 
 /*
@@ -358,7 +358,7 @@ int LML_BadBlkManage(struct __SuperPhyBlkType_t *pBadBlk, unsigned int nZoneNum,
 *               = -1    do bad block manage failed.
 ************************************************************************************************************************
 */
-int LML_MergeLogBlk(unsigned int nMode, unsigned int nLogicBlk);
+__s32 LML_MergeLogBlk(__u32 nMode, __u32 nLogicBlk);
 
 /*
 ************************************************************************************************************************
@@ -374,7 +374,7 @@ int LML_MergeLogBlk(unsigned int nMode, unsigned int nLogicBlk);
 *               =-1     super block erase failed.
 ************************************************************************************************************************
 */
-int LML_SuperBlkErase(unsigned int nZone, unsigned int nSuperBlk);
+__s32 LML_SuperBlkErase(__u32 nZone, __u32 nSuperBlk);
 
 
 /*
@@ -394,7 +394,7 @@ int LML_SuperBlkErase(unsigned int nZone, unsigned int nSuperBlk);
 *               < 0     calcualte parameter failed.
 ************************************************************************************************************************
 */
-int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, unsigned int nZone, unsigned int nBlock, unsigned int nPage);
+__s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage);
 
 
 /*
@@ -410,7 +410,7 @@ int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, unsigned int nZone, 
 *               = -1    init failed.
 ************************************************************************************************************************
 */
-int BMM_InitMapTblCache(void);
+__s32 BMM_InitMapTblCache(void);
 
 
 /*
@@ -426,7 +426,7 @@ int BMM_InitMapTblCache(void);
 *               = -1    exit failed.
 ************************************************************************************************************************
 */
-int BMM_ExitMapTblCache(void);
+__s32 BMM_ExitMapTblCache(void);
 
 
 /*
@@ -442,7 +442,7 @@ int BMM_ExitMapTblCache(void);
 *               = -1    switch failed.
 ************************************************************************************************************************
 */
-int BMM_SwitchMapTbl(unsigned int nZone);
+__s32 BMM_SwitchMapTbl(__u32 nZone);
 
 
 /*
@@ -458,7 +458,7 @@ int BMM_SwitchMapTbl(unsigned int nZone);
 *               = -1    write failed.
 ************************************************************************************************************************
 */
-int BMM_WriteBackAllMapTbl(void);
+__s32 BMM_WriteBackAllMapTbl(void);
 
 
 /*
@@ -474,7 +474,7 @@ int BMM_WriteBackAllMapTbl(void);
 *               = -1    set dirty flag failed.
 ************************************************************************************************************************
 */
-int BMM_SetDirtyFlag(void);
+__s32 BMM_SetDirtyFlag(void);
 
 
 /*
@@ -504,7 +504,7 @@ void BMM_CalAccessCount(void);
 *               = -1        init page mapping table cache failed.
 ************************************************************************************************************************
 */
-int PMM_InitMapTblCache(void);
+__s32 PMM_InitMapTblCache(void);
 
 
 /*
@@ -520,7 +520,7 @@ int PMM_InitMapTblCache(void);
 *               = -1        exit page mapping table cache failed.
 ************************************************************************************************************************
 */
-int PMM_ExitMapTblCache(void);
+__s32 PMM_ExitMapTblCache(void);
 
 
 /*
@@ -536,7 +536,7 @@ int PMM_ExitMapTblCache(void);
 *               = -1    switch table failed.
 ************************************************************************************************************************
 */
-int PMM_SwitchMapTbl(unsigned int nLogBlkPst);
+__s32 PMM_SwitchMapTbl(__u32 nLogBlkPst);
 
 
 /*
@@ -552,29 +552,29 @@ int PMM_SwitchMapTbl(unsigned int nLogBlkPst);
 */
 void PMM_CalAccessCount(void);
 
-int BMM_GetDataBlk(unsigned int nBlk, struct __SuperPhyBlkType_t *pDataBlk);
-int BMM_SetDataBlk(unsigned int nBlk, struct __SuperPhyBlkType_t *pDataBlk);
-int BMM_GetFreeBlk(unsigned int nType, struct __SuperPhyBlkType_t *pFreeBlk);
-int BMM_SetFreeBlk(struct __SuperPhyBlkType_t *pFreeBlk);
-int BMM_GetLogBlk(unsigned int nLogicBlk, struct __LogBlkType_t *pLogBlk);
-int BMM_SetLogBlk(unsigned int nLogicBlk, struct __LogBlkType_t *pLogBlk);
-unsigned int PMM_GetLogPage(unsigned int nBlk, unsigned int nPage, unsigned char nMode);
+__s32 BMM_GetDataBlk(__u32 nBlk, struct __SuperPhyBlkType_t *pDataBlk);
+__s32 BMM_SetDataBlk(__u32 nBlk, struct __SuperPhyBlkType_t *pDataBlk);
+__s32 BMM_GetFreeBlk(__u32 nType, struct __SuperPhyBlkType_t *pFreeBlk);
+__s32 BMM_SetFreeBlk(struct __SuperPhyBlkType_t *pFreeBlk);
+__s32 BMM_GetLogBlk(__u32 nLogicBlk, struct __LogBlkType_t *pLogBlk);
+__s32 BMM_SetLogBlk(__u32 nLogicBlk, struct __LogBlkType_t *pLogBlk);
+__u32 PMM_GetLogPage(__u32 nBlk, __u32 nPage, __u8 nMode);
 void PMM_ClearCurMapTbl(void);
-unsigned int PMM_GetCurMapPage(unsigned short nLogicalPage);
-void PMM_SetCurMapPage(unsigned short nLogicalPage,unsigned short nPhysicPage);
-int LML_VirtualBlkErase(unsigned int nZone, unsigned int nSuperBlk);
-int LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage);
-int LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage);
+__u32 PMM_GetCurMapPage(__u16 nLogicalPage);
+void PMM_SetCurMapPage(__u16 nLogicalPage,__u16 nPhysicPage);
+__s32 LML_VirtualBlkErase(__u32 nZone, __u32 nSuperBlk);
+__s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage);
+__s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage);
 
-int NAND_CacheFlush(void);
-int NAND_CacheRead(unsigned int blk, unsigned int nblk, void *buf);
-int NAND_CacheWrite(unsigned int blk, unsigned int nblk, void *buf);
-int NAND_CacheOpen(void);
-int NAND_CacheClose(void);
+__s32 NAND_CacheFlush(void);
+__s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf);
+__s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf);
+__s32 NAND_CacheOpen(void);
+__s32 NAND_CacheClose(void);
 
 
 // 2010-12-04 modified
-unsigned int NAND_GetDiskSize(void);
+__u32 NAND_GetDiskSize(void);
 
 
 #endif  //ifndef __NAND_LOGIC_H__

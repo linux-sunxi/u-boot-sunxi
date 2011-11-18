@@ -20,14 +20,14 @@
 
 struct __NandStorageInfo_t  NandStorageInfo;
 struct __NandPageCachePool_t PageCachePool;
-uint RetryCount[8];
+__u32 RetryCount[8];
 __u16 random_seed[128];
 
 /**************************************************************************
 ************************* add one cmd to cmd list******************************
 ****************************************************************************/
-void _add_cmd_list(NFC_CMD_LIST *cmd,uint value,uint addr_cycle,__u8 *addr,__u8 data_fetch_flag,
-					__u8 main_data_fetch,uint bytecnt,__u8 wait_rb_flag)
+void _add_cmd_list(NFC_CMD_LIST *cmd,__u32 value,__u32 addr_cycle,__u8 *addr,__u8 data_fetch_flag,
+					__u8 main_data_fetch,__u32 bytecnt,__u8 wait_rb_flag)
 {
 	cmd->addr = addr;
 	cmd->addr_cycle = addr_cycle;
@@ -42,10 +42,10 @@ void _add_cmd_list(NFC_CMD_LIST *cmd,uint value,uint addr_cycle,__u8 *addr,__u8 
 /****************************************************************************
 *********************translate (block + page+ sector) into 5 bytes addr***************
 *****************************************************************************/
-void _cal_addr_in_chip(uint block, uint page, uint sector,__u8 *addr, __u8 cycle)
+void _cal_addr_in_chip(__u32 block, __u32 page, __u32 sector,__u8 *addr, __u8 cycle)
 {
-	uint row;
-	uint column;
+	__u32 row;
+	__u32 column;
 
 	column = 512 * sector;
 	row = block * PAGE_CNT_OF_PHY_BLK + page;
@@ -85,7 +85,7 @@ void _cal_addr_in_chip(uint block, uint page, uint sector,__u8 *addr, __u8 cycle
 
 
 #if 0
-__u8 _cal_real_chip(uint global_bank)
+__u8 _cal_real_chip(__u32 global_bank)
 {
 	__u8 chip;
 	__u8 i,cnt;
@@ -109,7 +109,7 @@ __u8 _cal_real_chip(uint global_bank)
 }
 #endif
 
-__u8 _cal_real_chip(uint global_bank)
+__u8 _cal_real_chip(__u32 global_bank)
 {
 	__u8 chip = 0;
 
@@ -205,7 +205,7 @@ __u8 _cal_real_chip(uint global_bank)
 	return 0xff;
 }
 
-__u8 _cal_real_rb(uint chip)
+__u8 _cal_real_rb(__u32 chip)
 {
 	__u8 rb;
 
@@ -253,11 +253,11 @@ __u8 _cal_real_rb(uint chip)
 /*******************************************************************
 **********************get status**************************************
 ********************************************************************/
-int _read_status(uint cmd_value, uint nBank)
+__s32 _read_status(__u32 cmd_value, __u32 nBank)
 {
 	/*get status*/
 	__u8 addr[5];
-	uint addr_cycle;
+	__u32 addr_cycle;
 	NFC_CMD_LIST cmd_list;
 
 	addr_cycle = 0;
@@ -279,10 +279,10 @@ int _read_status(uint cmd_value, uint nBank)
 /********************************************************************
 ***************************wait rb ready*******************************
 *********************************************************************/
-int _wait_rb_ready(uint chip)
+__s32 _wait_rb_ready(__u32 chip)
 {
-	int timeout = 0xffff;
-	uint rb;
+	__s32 timeout = 0xffff;
+	__u32 rb;
 
 
       rb = _cal_real_rb(chip);
@@ -434,27 +434,27 @@ void _random_seed_init()
 
 }
 
-uint _cal_random_seed(uint page)
+__u32 _cal_random_seed(__u32 page)
 {
-	uint randomseed;
+	__u32 randomseed;
 
 	randomseed = random_seed[page%128];
 
 	return randomseed;
 }
 
-int _read_single_page(struct boot_physical_param *readop,__u8 dma_wait_mode)
+__s32 _read_single_page(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
-	int ret;
-	uint k = 0;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 k = 0;
+	__u32 rb;
+	__u32 random_seed;
 
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i;
+	__u32 list_len,i;
 
 	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	/*create cmd list*/
@@ -583,10 +583,10 @@ int _read_single_page(struct boot_physical_param *readop,__u8 dma_wait_mode)
 *                   = -1    initial failed.
 ************************************************************************************************************************
 */
-int PHY_Init(void)
+__s32 PHY_Init(void)
 {
-    int ret;
-    uint i;
+    __s32 ret;
+    __u32 i;
 	NFC_INIT_INFO nand_info;
     //init RetryCount
     for(i=0; i<8; i++)
@@ -607,9 +607,9 @@ int PHY_Init(void)
 	return ret;
 }
 
-int PHY_GetDefaultParam(uint bank)
+__s32 PHY_GetDefaultParam(__u32 bank)
 {
-	uint chip = 0;
+	__u32 chip = 0;
 	__u8 default_value[16];
 
     chip = _cal_real_chip(bank);
@@ -622,9 +622,9 @@ int PHY_GetDefaultParam(uint bank)
     return 0;
 }
 
-int PHY_SetDefaultParam(uint bank)
+__s32 PHY_SetDefaultParam(__u32 bank)
 {
-	uint chip = 0;
+	__u32 chip = 0;
 	__u8 default_value[16];
 	__u8 temp_value[16];
 
@@ -639,7 +639,7 @@ int PHY_SetDefaultParam(uint bank)
     return 0;
 }
 
-int PHY_ChangeMode(__u8 serial_mode)
+__s32 PHY_ChangeMode(__u8 serial_mode)
 {
 
 	NFC_INIT_INFO nand_info;
@@ -698,9 +698,9 @@ int PHY_ChangeMode(__u8 serial_mode)
 *                   = -1    exit failed.
 ************************************************************************************************************************
 */
-int PHY_Exit(void)
+__s32 PHY_Exit(void)
 {
-    uint i = 0;
+    __u32 i = 0;
 
 	if (PageCachePool.PageCache0){
 		FREE(PageCachePool.PageCache0,SECTOR_CNT_OF_SUPER_PAGE * 512);
@@ -745,10 +745,10 @@ int PHY_Exit(void)
 *               = -1    reset nand chip failed.
 ************************************************************************************************************************
 */
-int  PHY_ResetChip(uint nChip)
+__s32  PHY_ResetChip(__u32 nChip)
 {
-	int ret;
-	int timeout = 0xffff;
+	__s32 ret;
+	__s32 timeout = 0xffff;
 
 
 	NFC_CMD_LIST cmd;
@@ -793,9 +793,9 @@ int  PHY_ResetChip(uint nChip)
 ************************************************************************************************************************
 */
 
-int  PHY_ReadNandId(int nChip, void *pChipID)
+__s32  PHY_ReadNandId(__s32 nChip, void *pChipID)
 {
-	int ret;
+	__s32 ret;
 
 
 	NFC_CMD_LIST cmd;
@@ -812,10 +812,10 @@ int  PHY_ReadNandId(int nChip, void *pChipID)
 	return ret;
 }
 
-int  PHY_ReadNandUniqueId(int bank, void *pChipID)
+__s32  PHY_ReadNandUniqueId(__s32 bank, void *pChipID)
 {
-	int ret, err_flag;
-	uint i, j,nChip, nRb;
+	__s32 ret, err_flag;
+	__u32 i, j,nChip, nRb;
 	__u8 *temp_id;
 
 
@@ -894,10 +894,10 @@ int  PHY_ReadNandUniqueId(int bank, void *pChipID)
 *             = -1      check status failed.
 ************************************************************************************************************************
 */
-int  PHY_CheckWp(uint nChip)
+__s32  PHY_CheckWp(__u32 nChip)
 {
-	int status;
-	uint rb;
+	__s32 status;
+	__u32 rb;
 
 
 	rb = _cal_real_rb(nChip);
@@ -930,7 +930,7 @@ void _do_irq(void)
 }
 
 
-int PHY_SimpleRead (struct boot_physical_param *readop)
+__s32 PHY_SimpleRead (struct boot_physical_param *readop)
 {
 	//if (_read_single_page(readop,0) < 0)
 	//	return FAIL;
@@ -960,13 +960,13 @@ int PHY_SimpleRead (struct boot_physical_param *readop)
 *               = -1    synch nand flash failed.
 ************************************************************************************************************************
 */
-int PHY_SynchBank(uint nBank, uint bMode)
+__s32 PHY_SynchBank(__u32 nBank, __u32 bMode)
 {
-	int ret,status;
-	uint chip;
-	uint rb;
-	uint cmd_value;
-	int timeout = 0xffff;
+	__s32 ret,status;
+	__u32 chip;
+	__u32 rb;
+	__u32 cmd_value;
+	__s32 timeout = 0xffff;
 
 	ret = 0;
 	/*get chip no*/

@@ -17,28 +17,28 @@
 #include "../include/nand_ndfc.h"
 #include "../include/nand_reg.h"
 
-extern  uint RetryCount[8];
-extern void _add_cmd_list(NFC_CMD_LIST *cmd,uint value,uint addr_cycle,__u8 *addr,__u8 data_fetch_flag,
-	__u8 main_data_fetch,uint bytecnt,__u8 wait_rb_flag);
-extern void _cal_addr_in_chip(uint block, uint page, uint sector,__u8 *addr, __u8 cycle);
-extern int _read_status(uint cmd_value, uint nBank);
-extern int _write_signle_page (struct boot_physical_param *writeop,uint program1,uint program2,__u8 dma_wait_mode, __u8 rb_wait_mode);
-extern int _read_single_page(struct boot_physical_param * readop,__u8 dma_wait_mode);
+extern  __u32 RetryCount[8];
+extern void _add_cmd_list(NFC_CMD_LIST *cmd,__u32 value,__u32 addr_cycle,__u8 *addr,__u8 data_fetch_flag,
+	__u8 main_data_fetch,__u32 bytecnt,__u8 wait_rb_flag);
+extern void _cal_addr_in_chip(__u32 block, __u32 page, __u32 sector,__u8 *addr, __u8 cycle);
+extern __s32 _read_status(__u32 cmd_value, __u32 nBank);
+extern __s32 _write_signle_page (struct boot_physical_param *writeop,__u32 program1,__u32 program2,__u8 dma_wait_mode, __u8 rb_wait_mode);
+extern __s32 _read_single_page(struct boot_physical_param * readop,__u8 dma_wait_mode);
 extern void _pending_dma_irq_sem(void);
-extern int _wait_rb_ready(uint rb);
-extern __u8 _cal_real_chip(uint global_bank);
-extern __u8 _cal_real_rb(uint chip);
-extern uint _cal_random_seed(uint page);
+extern __s32 _wait_rb_ready(__u32 rb);
+extern __u8 _cal_real_chip(__u32 global_bank);
+extern __u8 _cal_real_rb(__u32 chip);
+extern __u32 _cal_random_seed(__u32 page);
 
 
 /**********************************************************************
 ***********************translate block in bank into baock in chip**************
 ***********************************************************************/
-uint _cal_block_in_chip(uint global_bank, uint super_blk_within_bank)
+__u32 _cal_block_in_chip(__u32 global_bank, __u32 super_blk_within_bank)
 {
-	uint blk_within_chip;
-	uint single_blk_within_bank;
-	uint bank_base;
+	__u32 blk_within_chip;
+	__u32 single_blk_within_bank;
+	__u32 bank_base;
 
 	/*translate block 0 within  bank into blcok number within chip*/
 	bank_base = global_bank%BNK_CNT_OF_CHIP*BLOCK_CNT_OF_DIE;
@@ -72,17 +72,17 @@ uint _cal_block_in_chip(uint global_bank, uint super_blk_within_bank)
 *               = -1    erase physical block failed.
 ************************************************************************************************************************
 */
-int _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mode)
+__s32 _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
-	int ret;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 rb;
+	__u32 random_seed;
 
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i;
+	__u32 list_len,i;
 
 	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	/*create cmd list*/
@@ -148,17 +148,17 @@ int _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mode)
 	return ret;
 }
 
-int _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode)
+__s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
-	int ret;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 rb;
+	__u32 random_seed;
 
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i;
+	__u32 list_len,i;
 
 	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	/*create cmd list*/
@@ -240,24 +240,24 @@ int _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode)
 */
 
 
-int PHY_SimpleRead_Seq (struct boot_physical_param *readop)
+__s32 PHY_SimpleRead_Seq (struct boot_physical_param *readop)
 {
 	return(_read_single_page_seq(readop,0));
 }
-int PHY_SimpleRead_1K (struct boot_physical_param *readop)
+__s32 PHY_SimpleRead_1K (struct boot_physical_param *readop)
 {
 	return(_read_single_page_1K(readop,0));
 }
 
 
-int  PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr)
+__s32  PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr)
 {
-	uint chip;
-	uint rb;
+	__u32 chip;
+	__u32 rb;
 	__u8 addr[4][5];
-	int ret;
-	uint plane_cnt,i,list_len;
-	uint block_in_chip;
+	__s32 ret;
+	__u32 plane_cnt,i,list_len;
+	__u32 block_in_chip;
 	NFC_CMD_LIST cmd_list[8];
 
 	/*get chip no*/
@@ -300,17 +300,17 @@ int  PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr)
 	return ret;
 }
 
-int _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
+__s32 _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
-       int ret;
-	uint  k;
-	uint rb;
-	uint random_seed;
+       __s32 ret;
+	__u32  k;
+	__u32 rb;
+	__u32 random_seed;
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i;
+	__u32 list_len,i;
 	__u8 *data_buf;
 
 	data_buf = PageCachePool.TmpPageCache;
@@ -443,15 +443,15 @@ int _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 /*********************************************************************
 **************************two plane read operation***********************
 ***********************************************************************/
-int _two_plane_read(struct __PhysicOpPara_t *pPageAdr,__u8 dma_wait_mode)
+__s32 _two_plane_read(struct __PhysicOpPara_t *pPageAdr,__u8 dma_wait_mode)
 {
 	__u8 addr[2][5];
-	int ret;
-	uint chip;
-	uint rb;
-	uint list_len,i,plane_cnt;
-	uint bitmap_in_single_page;
-	uint block_in_chip;
+	__s32 ret;
+	__u32 chip;
+	__u32 rb;
+	__u32 list_len,i,plane_cnt;
+	__u32 bitmap_in_single_page;
+	__u32 block_in_chip;
 
 	NFC_CMD_LIST cmd_list[8];
 	struct boot_physical_param readop;
@@ -524,13 +524,13 @@ int _two_plane_read(struct __PhysicOpPara_t *pPageAdr,__u8 dma_wait_mode)
 *               < 0     read physical page failed.
 ************************************************************************************************************************
 */
-int  PHY_PageRead(struct __PhysicOpPara_t *pPageAdr)
+__s32  PHY_PageRead(struct __PhysicOpPara_t *pPageAdr)
 {
-	int ret;
-	uint chip;
-	uint block_in_chip;
-	uint plane_cnt,i;
-	uint bitmap_in_single_page;
+	__s32 ret;
+	__u32 chip;
+	__u32 block_in_chip;
+	__u32 plane_cnt,i;
+	__u32 bitmap_in_single_page;
 	struct boot_physical_param readop;
 
 	/*create cmd list*/
@@ -600,12 +600,12 @@ PHY_PageRead_exit:
 }
 
 
-void _cal_addr_in_chip_for_spare(uint block, uint page, uint sector,__u8 *addr, __u8 cycle)
+void _cal_addr_in_chip_for_spare(__u32 block, __u32 page, __u32 sector,__u8 *addr, __u8 cycle)
 {
-	uint row;
-	uint column;
+	__u32 row;
+	__u32 column;
 	#if 0
-	uint ecc_size;
+	__u32 ecc_size;
 
 	if(NandStorageInfo.EccMode == 0)
 	  ecc_size = 32;
@@ -655,18 +655,18 @@ void _cal_addr_in_chip_for_spare(uint block, uint page, uint sector,__u8 *addr, 
 
 
 
-int _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_mode)
+__s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
 	__u8 sparebuf[4*2] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	__u8 addr1[2] __attribute__ ((aligned));
 	__u8 addr2[2] __attribute__ ((aligned));
-	uint column;
-	uint list_len,i,j, k;
-	uint rb;
-	int ret, ret1 ;
-	uint ecc_size;
-	int random_seed;
+	__u32 column;
+	__u32 list_len,i,j, k;
+	__u32 rb;
+	__s32 ret, ret1 ;
+	__u32 ecc_size;
+	__s32 random_seed;
 	NFC_CMD_LIST cmd_list[4];
 
 	if(NandStorageInfo.EccMode == 0)
@@ -829,13 +829,13 @@ int _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_mod
 
 
 
-int  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr)
+__s32  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr)
 {
-	int ret;
-	uint chip;
-	uint block_in_chip;
-	uint plane_cnt,i;
-	uint bitmap_in_single_page;
+	__s32 ret;
+	__u32 chip;
+	__u32 block_in_chip;
+	__u32 plane_cnt,i;
+	__u32 bitmap_in_single_page;
 	struct boot_physical_param readop;
 
 
@@ -901,7 +901,7 @@ int  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr)
 void PHY_FreePageCheck(struct __PhysicOpPara_t  *pPageAdr)
 {
 	__u8 oob[8];
-	uint i;
+	__u32 i;
 
 	struct __PhysicOpPara_t  param = *pPageAdr;
 	param.MDataPtr = (__u8 *)MALLOC(1024);
@@ -937,13 +937,13 @@ void PHY_FreePageCheck(struct __PhysicOpPara_t  *pPageAdr)
 *               < 0     page write failed.
 ************************************************************************************************************************
 */
-int  PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr)
+__s32  PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr)
 {
-	int ret;
-	uint chip;
-	uint block_in_chip;
-	uint plane_cnt,i;
-	uint program1,program2;
+	__s32 ret;
+	__u32 chip;
+	__u32 block_in_chip;
+	__u32 plane_cnt,i;
+	__u32 program1,program2;
 	struct boot_physical_param writeop;
 
 	//PHY_FreePageCheck(pPageAdr);
@@ -1001,14 +1001,14 @@ int  PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr)
 	return ret;
 }
 
-int _single_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
+__s32 _single_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
 {
 	__u8 addr[5];
-	int ret;
-	uint chip;
-	uint rb;
-	uint src_block_in_chip,dst_block_in_chip;
-	uint list_len,i,addr_cycle;
+	__s32 ret;
+	__u32 chip;
+	__u32 rb;
+	__u32 src_block_in_chip,dst_block_in_chip;
+	__u32 list_len,i,addr_cycle;
 	NFC_CMD_LIST cmd_list[8];
 
 	/*get chip no*/
@@ -1062,15 +1062,15 @@ int _single_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t
 	return ret;
 }
 
-int _multi_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
+__s32 _multi_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
 {
 	__u8 addr[2][5];
-	int ret;
-	uint chip;
-	uint rb;
-	uint src_block_in_chip,dst_block_in_chip;
-	uint list_len,i,addr_cycle,plane_cnt;
-	uint program1,program2;
+	__s32 ret;
+	__u32 chip;
+	__u32 rb;
+	__u32 src_block_in_chip,dst_block_in_chip;
+	__u32 list_len,i,addr_cycle,plane_cnt;
+	__u32 program1,program2;
 	NFC_CMD_LIST cmd_list[8];
 
 	/*get chip no*/
@@ -1165,9 +1165,9 @@ int _multi_copy_back(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t 
 *               = -1        page copy-back failed.
 ************************************************************************************************************************
 */
-int  PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
+__s32  PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage)
 {
-	int ret;
+	__s32 ret;
 
 	if ( (!SUPPORT_PAGE_COPYBACK) || ((pSrcPage->PageNum + pDstPage->PageNum) & 0x1) ){
 	/*cant not use copyback*/

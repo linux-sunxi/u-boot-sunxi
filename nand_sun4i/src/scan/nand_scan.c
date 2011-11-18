@@ -49,14 +49,14 @@ extern struct __NandPhyInfoPar_t DefaultNandTbl;
 extern struct __NandPhyInfoPar_t SpansionNandTbl;
 
 
-uint NAND_GetValidBlkRatio(void)
+__u32 NAND_GetValidBlkRatio(void)
 {
     return NandStorageInfo.ValidBlkRatio;
 }
 
-int NAND_SetValidBlkRatio(uint ValidBlkRatio)
+__s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio)
 {
-    uint cpu_sr = 0;
+    __u32 cpu_sr = 0;
 
     OSAL_IrqLock(&cpu_sr);
     NandStorageInfo.ValidBlkRatio = (__u16)ValidBlkRatio;
@@ -66,14 +66,14 @@ int NAND_SetValidBlkRatio(uint ValidBlkRatio)
 
 }
 
-uint NAND_GetFrequencePar(void)
+__u32 NAND_GetFrequencePar(void)
 {
     return NandStorageInfo.FrequencePar;
 }
 
-int NAND_SetFrequencePar(uint FrequencePar)
+__s32 NAND_SetFrequencePar(__u32 FrequencePar)
 {
-    uint cpu_sr = 0;
+    __u32 cpu_sr = 0;
 
     OSAL_IrqLock(&cpu_sr);
     NandStorageInfo.FrequencePar = (__u8)FrequencePar;
@@ -83,9 +83,9 @@ int NAND_SetFrequencePar(uint FrequencePar)
 
 }
 
-uint NAND_GetNandVersion(void)
+__u32 NAND_GetNandVersion(void)
 {
-    uint nand_version;
+    __u32 nand_version;
 
 	nand_version = 0;
 	nand_version |= 0xff;
@@ -96,9 +96,9 @@ uint NAND_GetNandVersion(void)
 	return nand_version;
 }
 
-int NAND_GetParam(boot_nand_para_t * nand_param)
+__s32 NAND_GetParam(boot_nand_para_t * nand_param)
 {
-	uint i;
+	__u32 i;
 
 	nand_param->ChipCnt            =   NandStorageInfo.ChipCnt           ;
 	nand_param->ChipConnectInfo    =   NandStorageInfo.ChipConnectInfo   ;
@@ -126,7 +126,7 @@ int NAND_GetParam(boot_nand_para_t * nand_param)
 	return 0;
 }
 
-int NAND_GetFlashInfo(boot_flash_info_t *param)
+__s32 NAND_GetFlashInfo(boot_flash_info_t *param)
 {
 	param->chip_cnt	 		= NandStorageInfo.ChipCnt;
 	param->blk_cnt_per_chip = NandStorageInfo.BlkCntPerDie * NandStorageInfo.DieCntPerChip;
@@ -151,9 +151,9 @@ int NAND_GetFlashInfo(boot_flash_info_t *param)
 *               < 0     Generate failed, can't create the parameter in a table.
 ************************************************************************************************************************
 */
-int _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
+__s32 _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 {
-    uint tmpVar;
+    __u32 tmpVar;
     struct __NandPhyInfoPar_t *tmpNandArchi = &DefaultNandTbl;
 
     //check the nand flash manufacture
@@ -213,7 +213,7 @@ int _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
     tmpNandArchi->PageCntPerBlk = ((1<<((pNandID[3]>>4) & 0x03)) * 64 * 2) / tmpNandArchi->SectCntPerPage;
 
     //parse the physical block count of a die
-    tmpNandArchi->BlkCntPerDie = (((uint)(tmpVar * 1024 * 1024 / 8)) /  \
+    tmpNandArchi->BlkCntPerDie = (((__u32)(tmpVar * 1024 * 1024 / 8)) /  \
         ((1<<((pNandID[3]>>4) & 0x03)) * 64)) / tmpNandArchi->DieCntPerChip;
 
     //parse the bad block flag position, normaly, first page for SLC nand, last page for MLC nand flash
@@ -270,9 +270,9 @@ int _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 *               < 0     search failed, can't find the parameter in the table.
 ************************************************************************************************************************
 */
-int _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
+__s32 _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 {
-    int i=0, j=0;
+    __s32 i=0, j=0;
     struct __NandPhyInfoPar_t *tmpNandManu;
 
     //analyze the manufacture of the nand flash
@@ -359,9 +359,9 @@ int _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 *               < 0     analyze failed, can't recognize or some other error.
 ************************************************************************************************************************
 */
-int  SCN_AnalyzeNandSystem(void)
+__s32  SCN_AnalyzeNandSystem(void)
 {
-    int i,result;
+    __s32 i,result;
     __u8  tmpChipID[8];
 	__u8  uniqueID[32];
     struct __NandPhyInfoPar_t tmpNandPhyInfo;
@@ -489,10 +489,10 @@ int  SCN_AnalyzeNandSystem(void)
      for(i=1; i<MAX_CHIP_SELECT_CNT; i++)
     {
         //reset current nand flash chip
-        PHY_ResetChip((uint)i);
+        PHY_ResetChip((__u32)i);
 
         //read the nand chip ID from current nand flash chip
-        PHY_ReadNandId((uint)i, tmpChipID);
+        PHY_ReadNandId((__u32)i, tmpChipID);
         //check if the nand flash id same as the boot chip
         if((tmpChipID[0] == NandStorageInfo.NandChipId[0]) && (tmpChipID[1] == NandStorageInfo.NandChipId[1])
             && (tmpChipID[2] == NandStorageInfo.NandChipId[2]) && (tmpChipID[3] == NandStorageInfo.NandChipId[3]))

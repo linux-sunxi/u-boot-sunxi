@@ -20,7 +20,7 @@
 
 extern struct __NandDriverGlobal_t     NandDriverInfo;
 
-int _copy_page0(uint SrcBlk,__u16 SrcDataPage,uint DstBlk,__u8 SeqPlus)
+__s32 _copy_page0(__u32 SrcBlk,__u16 SrcDataPage,__u32 DstBlk,__u8 SeqPlus)
 {
     __u8 seq;
     __u16 LogicInfo;
@@ -71,7 +71,7 @@ int _copy_page0(uint SrcBlk,__u16 SrcDataPage,uint DstBlk,__u8 SeqPlus)
 * \note         this function was called when log block is in order,that is to say physical
 *             page number is same with logical page number.
 **/
-int  _log2data_swap_merge(uint nlogical)
+__s32  _log2data_swap_merge(__u32 nlogical)
 {
     __u16 LastUsedPage,SuperPage;
     struct __SuperPhyBlkType_t DataBlk;
@@ -136,7 +136,7 @@ int  _log2data_swap_merge(uint nlogical)
 * \return      sucess or failed.
 * \note         this function was called when log block is full, and valid pages is less than half of one block.
 **/
-int  _free2log_move_merge(uint nlogical)
+__s32  _free2log_move_merge(__u32 nlogical)
 {
     __u8 bank;
     __u16 LastUsedPage,SuperPage;
@@ -325,12 +325,12 @@ int  _free2log_move_merge(uint nlogical)
 * \return      sucess or failed.
 * \note         this function was called when log block is not suit for swap or move.
 **/
-int  _free2data_simple_merge(uint nlogical)
+__s32  _free2data_simple_merge(__u32 nlogical)
 {
     __u8 InData;
     __u16 SuperPage;
     __u16 SrcPage,DstPage;
-    uint SrcBlk,DstBlk;
+    __u32 SrcBlk,DstBlk;
     struct __SuperPhyBlkType_t DataBlk;
     struct __SuperPhyBlkType_t FreeBlk;
     struct __LogBlkType_t LogBlk;
@@ -427,10 +427,10 @@ int  _free2data_simple_merge(uint nlogical)
 
 }
 
-void _get_page_map_tbl_info(uint nlogical,__u8 *InOrder, __u16 *nValidPage)
+void _get_page_map_tbl_info(__u32 nlogical,__u8 *InOrder, __u16 *nValidPage)
 {
     __u16 LastUsedPage,PhysicPage;
-    uint i;
+    __u32 i;
     struct __LogBlkType_t  LogBlk;
 
     *InOrder = 1;
@@ -467,7 +467,7 @@ void _get_page_map_tbl_info(uint nlogical,__u8 *InOrder, __u16 *nValidPage)
 *               = -1    do bad block manage failed.
 ************************************************************************************************************************
 */
-int LML_MergeLogBlk(uint nMode, uint nlogical)
+__s32 LML_MergeLogBlk(__u32 nMode, __u32 nlogical)
 {
     __u8 InOrder;
     __u16 nValidPage;

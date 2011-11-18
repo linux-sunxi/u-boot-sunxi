@@ -52,13 +52,13 @@ extern struct __NandDriverGlobal_t     NandDriverInfo;
 *             millions of erase cycles to ervery physical block.
 ************************************************************************************************************************
 */
-int LML_WearLevelling(void)
+__s32 LML_WearLevelling(void)
 {
     #if CFG_SUPPORT_WEAR_LEVELLING
 
-    int   i, result;
+    __s32   i, result;
 
-    uint   tmpLogicBlk;
+    __u32   tmpLogicBlk;
     __u16   tmpLowEc = 0xffff;
     struct __SuperPhyBlkType_t tmpFreeBlk, tmpDataBlk;
     struct __NandUserData_t tmpSpare[2];

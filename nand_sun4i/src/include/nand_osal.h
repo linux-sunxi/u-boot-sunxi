@@ -17,25 +17,27 @@
 
 #include "nand_oal.h"
 
-extern unsigned int NAND_RequestDMA  	(unsigned int dmatype);
-extern int  		NAND_ReleaseDMA  	(unsigned int hDma);
-extern int  		NAND_SettingDMA		(unsigned int hDMA, void * pArg);
-extern int  		NAND_StartDMA		(unsigned int hDMA, unsigned int saddr, unsigned int daddr, unsigned int bytes);
-extern int  		NAND_RestartDMA		(unsigned int hDma);
-extern int  		NAND_StopDMA		(unsigned int hDma);
-extern unsigned int  NAND_QueryDmaStat	(unsigned int hDma);
-extern unsigned int  NAND_QueryDmaChannelNo(unsigned int hDma);
+#define  __hdle  unsigned int
+
+extern __hdle NAND_RequestDMA  (__u32 dmatype);
+extern __s32  NAND_ReleaseDMA  (__hdle hDma);
+extern __s32  NAND_SettingDMA(__hdle hDMA, void * pArg);
+extern __s32  NAND_StartDMA(__hdle hDMA, __u32 saddr, __u32 daddr, __u32 bytes);
+extern __s32  NAND_RestartDMA(__hdle hDma);
+extern __s32  NAND_StopDMA(__hdle hDma);
+extern __u32  NAND_QueryDmaStat(__hdle hDma);
+extern __u32  NAND_QueryDmaChannelNo(__hdle hDma);
 extern void   		NAND_WaitDmaFinish	(void);
 
 extern void   		NAND_GetPin			(void);
 extern void   		NAND_ReleasePin		(void);
-extern int  		NAND_SetClock		(unsigned int nand_max_clock);
-extern void   		NAND_SetSrcClkName	(unsigned int pll_name);
+extern __s32  NAND_SetClock(__u32 nand_max_clock);
+extern void   NAND_SetSrcClkName(__u32 pll_name);
 
 extern void   		NAND_OpenAHBClock	(void);
 extern void   		NAND_CloseAHBClock	(void);
 
-extern int 			NAND_SetDrqCbMethod	(unsigned int used);
+extern __s32 NAND_SetDrqCbMethod(__u32 used);
 
 #endif
 

@@ -54,9 +54,9 @@ extern struct __NandDriverGlobal_t     NandDriverInfo;
 *             read out and write to another physical blcok.
 ************************************************************************************************************************
 */
-int LML_ReadReclaim(uint nPage)
+__s32 LML_ReadReclaim(__u32 nPage)
 {
-    int   result;
+    __s32   result;
 
     #if CFG_SUPPORT_READ_RECLAIM
 

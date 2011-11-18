@@ -59,10 +59,10 @@ extern struct __NandPageCachePool_t PageCachePool;
 #define SECTOR_CNT_OF_SUPER_PAGE            (NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie)
 
 //define the sector bitmap for a single page
-#define FULL_BITMAP_OF_SINGLE_PAGE          ((unsigned int)((1<<SECTOR_CNT_OF_SINGLE_PAGE) - 1))
+#define FULL_BITMAP_OF_SINGLE_PAGE          ((__u32)((1<<SECTOR_CNT_OF_SINGLE_PAGE) - 1))
 
 //define the sector bitmap for a super page, the sector count of a super page may be equal to 32
-#define FULL_BITMAP_OF_SUPER_PAGE           ((unsigned int)((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | ((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
+#define FULL_BITMAP_OF_SUPER_PAGE           ((__u32)((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | ((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
 
 //define the block number offset for the multi-plane operation
 #define MULTI_PLANE_BLOCK_OFFSET            (NandStorageInfo.OptPhyOpPar.MultiPlaneBlockOffset)
@@ -169,8 +169,8 @@ extern struct __NandPageCachePool_t PageCachePool;
 *                   = -1    initiate failed.
 ************************************************************************************************************************
 */
-int PHY_Init(void);
-int PHY_ChangeMode(unsigned char serial_mode);
+__s32 PHY_Init(void);
+__s32 PHY_ChangeMode(__u8 serial_mode);
 
 /*
 ************************************************************************************************************************
@@ -185,7 +185,7 @@ int PHY_ChangeMode(unsigned char serial_mode);
 *                   = -1    exit failed.
 ************************************************************************************************************************
 */
-int PHY_Exit(void);
+__s32 PHY_Exit(void);
 
 
 /*
@@ -201,7 +201,7 @@ int PHY_Exit(void);
 *               = -1    reset nand chip failed.
 ************************************************************************************************************************
 */
-int PHY_ResetChip(unsigned int nChip);
+__s32 PHY_ResetChip(__u32 nChip);
 
 
 /*
@@ -218,8 +218,8 @@ int PHY_ResetChip(unsigned int nChip);
 *               = -1    read chip ID failed.
 ************************************************************************************************************************
 */
-int PHY_ReadNandId(int nChip, void *pChipID);
-int PHY_ReadNandUniqueId(int bank, void *pChipID);
+__s32 PHY_ReadNandId(__s32 nChip, void *pChipID);
+__s32 PHY_ReadNandUniqueId(__s32 bank, void *pChipID);
 
 
 /*
@@ -236,7 +236,7 @@ int PHY_ReadNandUniqueId(int bank, void *pChipID);
 *             = -1      check status failed.
 ************************************************************************************************************************
 */
-int PHY_CheckWp(unsigned int nChip);
+__s32 PHY_CheckWp(__u32 nChip);
 
 
 /*
@@ -252,7 +252,7 @@ int PHY_CheckWp(unsigned int nChip);
 *               = -1    erase physical block failed.
 ************************************************************************************************************************
 */
-int PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr);
+__s32 PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr);
 
 
 /*
@@ -269,10 +269,10 @@ int PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr);
 *               < 0     read physical page failed.
 ************************************************************************************************************************
 */
-int PHY_PageRead(struct __PhysicOpPara_t *pPageAdr);
+__s32 PHY_PageRead(struct __PhysicOpPara_t *pPageAdr);
 
 
-int  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr);
+__s32  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr);
 
 /*
 ************************************************************************************************************************
@@ -288,7 +288,7 @@ int  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr);
 *               < 0     page write failed.
 ************************************************************************************************************************
 */
-int PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr);
+__s32 PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr);
 
 
 /*
@@ -305,7 +305,7 @@ int PHY_PageWrite(struct __PhysicOpPara_t  *pPageAdr);
 *               = -1        page copy-back failed.
 ************************************************************************************************************************
 */
-int PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage);
+__s32 PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t *pDstPage);
 
 
 /*
@@ -328,11 +328,11 @@ int PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara_t 
 *               = -1    synch nand flash failed.
 ************************************************************************************************************************
 */
-int PHY_SynchBank(unsigned int nBank, unsigned int bMode);
+__s32 PHY_SynchBank(__u32 nBank, __u32 bMode);
 
 
-int PHY_GetDefaultParam(unsigned int bank);
-int PHY_SetDefaultParam(unsigned int bank);
+__s32 PHY_GetDefaultParam(__u32 bank);
+__s32 PHY_SetDefaultParam(__u32 bank);
 
 #endif  //ifnedf __NAND_PHYSIC_H__
 

@@ -63,10 +63,10 @@ static struct __LogicCtlPar_t LogicalCtl;
 *               < 0     calcualte sector parameter failed.
 ************************************************************************************************************************
 */
-static int _CalculateSectPar(uint nSectNum, uint nSectCnt, struct __GlobalLogicPageType_t *pHeadPage,
-                                    uint *pMidPageCnt, struct __GlobalLogicPageType_t *pTailPage)
+static __s32 _CalculateSectPar(__u32 nSectNum, __u32 nSectCnt, struct __GlobalLogicPageType_t *pHeadPage,
+                                    __u32 *pMidPageCnt, struct __GlobalLogicPageType_t *pTailPage)
 {
-    uint   tmpSectCnt, tmpBitmap;
+    __u32   tmpSectCnt, tmpBitmap;
 
     LOGICCTL_DBG("[LOGICCTL_DBG]: Calculate logical sectors parameter, Lba:0x%x, Cnt:0x%x\n", nSectNum, nSectCnt);
 
@@ -133,9 +133,9 @@ static int _CalculateSectPar(uint nSectNum, uint nSectCnt, struct __GlobalLogicP
 *               < 0     calcualte page parameter failed.
 ************************************************************************************************************************
 */
-static int _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, uint nPage, uint nBitmap)
+static __s32 _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, __u32 nPage, __u32 nBitmap)
 {
-    uint   tmpPage, tmpBlk, tmpZone;
+    __u32   tmpPage, tmpBlk, tmpZone;
 
     tmpPage = nPage % PAGE_CNT_OF_LOGIC_BLK;
     tmpBlk = nPage / PAGE_CNT_OF_LOGIC_BLK;
@@ -169,9 +169,9 @@ static int _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, uint nPa
 *               < 0     update page data failed.
 ************************************************************************************************************************
 */
-static int _UpdateReadPageData(uint nSectBitmap, void * pBuf)
+static __s32 _UpdateReadPageData(__u32 nSectBitmap, void * pBuf)
 {
-    int   i;
+    __s32   i;
     __u8    *tmpSrc = LML_WRITE_PAGE_CACHE, *tmpDst = pBuf;
 
     for(i=0; i<SECTOR_CNT_OF_LOGIC_PAGE; i++)
@@ -204,9 +204,9 @@ static int _UpdateReadPageData(uint nSectBitmap, void * pBuf)
 *               < 0     merge page data failed.
 ************************************************************************************************************************
 */
-static int _MergeCachePageData(uint nPage, uint nBitmap, __u8 *pBuf)
+static __s32 _MergeCachePageData(__u32 nPage, __u32 nBitmap, __u8 *pBuf)
 {
-    int   i;
+    __s32   i;
     __u8    *tmpSrc = pBuf, *tmpDst = LML_WRITE_PAGE_CACHE;
 
     //check if the cache page is valid
@@ -249,10 +249,10 @@ static int _MergeCachePageData(uint nPage, uint nBitmap, __u8 *pBuf)
 *               < 0     write page cache failed.
 ************************************************************************************************************************
 */
-static int _WritePageCacheToNand(void)
+static __s32 _WritePageCacheToNand(void)
 {
-    int   result = 0;
-    uint   tmpPage, tmpBitmap;
+    __s32   result = 0;
+    __u32   tmpPage, tmpBitmap;
     __u8    *tmpBuf;
 
     tmpPage = CachePage.LogicPageNum;
@@ -306,11 +306,11 @@ static int _WritePageCacheToNand(void)
 ************************************************************************************************************************
 */
 #if(0)
-int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock, uint nPage)
+__s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage)
 {
 
 
-    uint   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
+    __u32   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
 
     LOGICCTL_DBG("[LOGICCTL_DBG] Calculate the physical operation parameters.\n"
                  "         ZoneNum:0x%x, BlockNum:0x%x, PageNum: 0x%x\n", nZone, nBlock, nPage);
@@ -372,11 +372,11 @@ int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBl
     return 0;
 }
 #elif(1)
-int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock, uint nPage)
+__s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage)
 {
 
 
-    uint   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
+    __u32   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
 
     LOGICCTL_DBG("[LOGICCTL_DBG] Calculate the physical operation parameters.\n"
                  "         ZoneNum:0x%x, BlockNum:0x%x, PageNum: 0x%x\n", nZone, nBlock, nPage);
@@ -460,10 +460,10 @@ int LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBl
 *               < 0     read page data failed.
 ************************************************************************************************************************
 */
-int LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
+__s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
 {
-    int i, result;
-    uint tmpBitmap;
+    __s32 i, result;
+    __u32 tmpBitmap;
     __u8  *tmpSpare, *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -550,10 +550,10 @@ int LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
 *               < 0     write page data failed.
 ************************************************************************************************************************
 */
-int LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
+__s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
 {
-    int i, result;
-    uint tmpBitmap;
+    __s32 i, result;
+    __u32 tmpBitmap;
     __u8  *tmpSpare, *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -634,9 +634,9 @@ int LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
 *               =-1     super block erase failed.
 ************************************************************************************************************************
 */
-int LML_VirtualBlkErase(uint nZone, uint nSuperBlk)
+__s32 LML_VirtualBlkErase(__u32 nZone, __u32 nSuperBlk)
 {
-    int i, result = 0;
+    __s32 i, result = 0;
     struct __PhysicOpPara_t tmpPhyBlk;
 
     #if CFG_SUPPORT_WEAR_LEVELLING
@@ -685,9 +685,9 @@ int LML_VirtualBlkErase(uint nZone, uint nSuperBlk)
 *               = -1    close page failed.
 ************************************************************************************************************************
 */
-static int _CloseWritePage(void)
+static __s32 _CloseWritePage(void)
 {
-    int result;
+    __s32 result;
     struct __PhysicOpPara_t tmpPage;
     struct __LogBlkType_t tmpLogBlk;
 
@@ -744,10 +744,10 @@ static int _CloseWritePage(void)
 *               < 0     read failed.
 ************************************************************************************************************************
 */
-int LML_PageRead(uint nPage, uint nBitmap, void* pBuf)
+__s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf)
 {
-    int result;
-    uint tmpSuperBlk, tmpSuperPage;
+    __s32 result;
+    __u32 tmpSuperBlk, tmpSuperPage;
     struct __LogicPageType_t tmpLogicPage;
     struct __PhysicOpPara_t tmpPhyPage;
     struct __LogBlkType_t tmpLogBlk;
@@ -862,9 +862,9 @@ int LML_PageRead(uint nPage, uint nBitmap, void* pBuf)
 *               < 0     write failed.
 ************************************************************************************************************************
 */
-int LML_PageWrite(uint nPage, uint nBitmap, void* pBuf)
+__s32 LML_PageWrite(__u32 nPage, __u32 nBitmap, void* pBuf)
 {
-    int result;
+    __s32 result;
     struct __LogicPageType_t tmpLogicPage;
     struct __PhysicOpPara_t tmpPhyPage;
     struct __NandUserData_t tmpSpare[2];
@@ -1072,9 +1072,9 @@ __TRY_WRITE_PHYSIC_PAGE:
 *               = -1    flush failed.
 ************************************************************************************************************************
 */
-int LML_FlushPageCache(void)
+__s32 LML_FlushPageCache(void)
 {
-    int   result;
+    __s32   result;
 
     result = _WritePageCacheToNand();
     if(result < 0)
@@ -1109,10 +1109,10 @@ int LML_FlushPageCache(void)
 *               = -1    read failed.
 ************************************************************************************************************************
 */
-int LML_Read(uint nSectNum, uint nSectorCnt, void* pBuf)
+__s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 {
-    int   i, result;
-    uint   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
+    __s32   i, result;
+    __u32   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
     __u8    *tmpBuf;
     struct __GlobalLogicPageType_t tmpHeadPage, tmpTailPage;
 
@@ -1232,10 +1232,10 @@ void echo_write_data (uint nSectNum, uint nSectorCnt, void* pBuf)
 *               = -1    write failed.
 ************************************************************************************************************************
 */
-int LML_Write(uint nSectNum, uint nSectorCnt, void* pBuf)
+__s32 LML_Write(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 {
-    int   i, result;
-    uint   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
+    __s32   i, result;
+    __u32   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
     __u8    *tmpBuf;
     struct __GlobalLogicPageType_t tmpHeadPage, tmpTailPage;
 
@@ -1340,9 +1340,9 @@ int LML_Write(uint nSectNum, uint nSectorCnt, void* pBuf)
 *               = -1    init failed.
 ************************************************************************************************************************
 */
-int LML_Init(void)
+__s32 LML_Init(void)
 {
-    int   result;
+    __s32   result;
 
     CachePage.LogicPageNum = 0xffffffff;
     CachePage.SectorBitmap = 0x00000000;
@@ -1404,7 +1404,7 @@ int LML_Init(void)
 *               = -1    exit failed.
 ************************************************************************************************************************
 */
-int LML_Exit(void)
+__s32 LML_Exit(void)
 {
      //flush page cache to nand flash
     LML_FlushPageCache();
@@ -1422,9 +1422,9 @@ int LML_Exit(void)
 }
 
 // 2010-12-04 modified
-uint NAND_GetDiskSize(void)
+__u32 NAND_GetDiskSize(void)
 {
-    uint disksize;
+    __u32 disksize;
 
     disksize = (SECTOR_CNT_OF_SINGLE_PAGE * PAGE_CNT_OF_PHY_BLK * BLOCK_CNT_OF_DIE * \
             DIE_CNT_OF_CHIP * NandStorageInfo.ChipCnt  / 1024 * DATA_BLK_CNT_OF_ZONE);

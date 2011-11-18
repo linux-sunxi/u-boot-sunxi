@@ -37,8 +37,8 @@
 #define NFC_WRITE_RAM_B(ram,data)  	(*((volatile __u8 *)(ram)) = (data))
 #define NFC_READ_RAM_HW(ram)   		(*((volatile __u16 *)(ram)))
 #define NFC_WRITE_RAM_HW(ram,data) 	(*((volatile __u16 *)(ram)) = (data))
-#define NFC_READ_RAM_W(ram)   		(*((volatile uint *)(ram)))
-#define NFC_WRITE_RAM_W(ram,data) 	(*((volatile uint *)(ram)) = (data))
+#define NFC_READ_RAM_W(ram)   		(*((volatile __u32 *)(ram)))
+#define NFC_WRITE_RAM_W(ram,data) 	(*((volatile __u32 *)(ram)) = (data))
 
 #define NFC_READ_REG(reg)   		(reg)
 #define NFC_WRITE_REG(reg,data) 	(reg) = (data)
@@ -49,19 +49,19 @@
 #define NFC_IS_SDRAM(addr)			( ((addr >= DRAM_BASE))&&(addr < SRAM_BASE)?1:0)
 #endif
 
-extern uint NAND_RequestDMA  (uint dmatype);
-extern int  NAND_ReleaseDMA  (uint hDma);
-extern int NAND_SettingDMA(uint hDMA, void * pArg);
-extern int NAND_StartDMA(uint hDMA, uint saddr, uint daddr, uint bytes);
-extern int NAND_RestartDMA(uint hDma);
-extern int NAND_StopDMA(uint hDma);
-extern uint NAND_QueryDmaStat(uint hDma);
-extern uint NAND_QueryDmaChannelNo(uint hDma);
+extern __hdle NAND_RequestDMA  (__u32 dmatype);
+extern __s32  NAND_ReleaseDMA  (__hdle hDma);
+extern __s32 NAND_SettingDMA(__hdle hDMA, void * pArg);
+extern __s32 NAND_StartDMA(__hdle hDMA, __u32 saddr, __u32 daddr, __u32 bytes);
+extern __s32 NAND_RestartDMA(__hdle hDma);
+extern __s32 NAND_StopDMA(__hdle hDma);
+extern __u32 NAND_QueryDmaStat(__hdle hDma);
+extern __u32 NAND_QueryDmaChannelNo(__hdle hDma);
 extern void NAND_GetPin(void);
 extern void NAND_ReleasePin(void);
-extern uint NAND_GetCmuClk(void);
+extern __u32 NAND_GetCmuClk(void);
 
-extern int  NAND_SetClock(uint nand_max_clock);
+extern __s32  NAND_SetClock(__u32 nand_max_clock);
 
 
 #endif	/* _NFC_I_H_ */

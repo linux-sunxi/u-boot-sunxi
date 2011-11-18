@@ -51,9 +51,9 @@ extern struct __NandDriverGlobal_t     NandDriverInfo;
 *               = -1    restore data failed.
 ************************************************************************************************************************
 */
-static int _RestorePageData(struct __SuperPhyBlkType_t *pBadBlk, uint nZoneNum, uint nErrPage, struct __SuperPhyBlkType_t *pNewBlk)
+static __s32 _RestorePageData(struct __SuperPhyBlkType_t *pBadBlk, __u32 nZoneNum, __u32 nErrPage, struct __SuperPhyBlkType_t *pNewBlk)
 {
-    int i, result;
+    __s32 i, result;
     struct __PhysicOpPara_t tmpSrcPage, tmpDstPage;
 
     //set sector bitmap and buffer pointer for copy nand flash page
@@ -95,10 +95,10 @@ static int _RestorePageData(struct __SuperPhyBlkType_t *pBadBlk, uint nZoneNum, 
 *               = -1    mark bad block failed.
 ************************************************************************************************************************
 */
-static int _MarkBadBlk(struct __SuperPhyBlkType_t *pBadBlk, uint nZoneNum)
+static __s32 _MarkBadBlk(struct __SuperPhyBlkType_t *pBadBlk, __u32 nZoneNum)
 {
-    int   i;
-	int   ret;
+    __s32   i;
+	__s32   ret;
     struct __PhysicOpPara_t tmpPage;
     struct __NandUserData_t tmpSpare[2];
 
@@ -152,9 +152,9 @@ static int _MarkBadBlk(struct __SuperPhyBlkType_t *pBadBlk, uint nZoneNum)
 *               = -1    do bad block manage failed.
 ************************************************************************************************************************
 */
-int LML_BadBlkManage(struct __SuperPhyBlkType_t *pBadBlk, uint nZoneNum, uint nErrPage, struct __SuperPhyBlkType_t *pNewBlk)
+__s32 LML_BadBlkManage(struct __SuperPhyBlkType_t *pBadBlk, __u32 nZoneNum, __u32 nErrPage, struct __SuperPhyBlkType_t *pNewBlk)
 {
-    int   result;
+    __s32   result;
     struct __SuperPhyBlkType_t tmpFreeBlk;
     struct __SuperPhyBlkType_t tmpBadBlk;
 

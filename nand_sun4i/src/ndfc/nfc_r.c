@@ -11,11 +11,11 @@
 **********************************************************************************/
 #include "nfc_i.h"
 
-uint nand_reg_address = 0;
+__u32 nand_reg_address = 0;
 
-uint 	pagesize;
-uint 	dma_hdle;
-volatile uint irq_value;
+__u32 	pagesize;
+__hdle 	dma_hdle;
+volatile __u32 irq_value;
 
 
 __u8 read_retry_reg_adr[READ_RETRY_MAX_REG_NUM];
@@ -27,9 +27,9 @@ __u8 read_retry_reg_num;
 
 
 /*******************wait nfc********************************************/
-int _wait_cmdfifo_free(void)
+__s32 _wait_cmdfifo_free(void)
 {
-	int timeout = 0xffff;
+	__s32 timeout = 0xffff;
 
 	while ( (timeout--) && (NFC_READ_REG(NFC_REG_ST) & NFC_CMD_FIFO_STATUS) );
 	if (timeout <= 0)
@@ -37,9 +37,9 @@ int _wait_cmdfifo_free(void)
 	return 0;
 }
 
-int _wait_cmd_finish(void)
+__s32 _wait_cmd_finish(void)
 {
-	int timeout = 0xffff;
+	__s32 timeout = 0xffff;
 	while( (timeout--) && !(NFC_READ_REG(NFC_REG_ST) & NFC_CMD_INT_FLAG) );
 	if (timeout <= 0)
 		return -ERR_TIMEOUT;
@@ -48,7 +48,7 @@ int _wait_cmd_finish(void)
 	return 0;
 }
 
-void _dma_config_start(uint rw, uint src_addr, uint dst_addr, uint len)
+void _dma_config_start(__u32 rw, __u32 src_addr, __u32 dst_addr, __u32 len)
 {
 	__dma_setting_t   dma_param;
 
@@ -100,9 +100,9 @@ void _dma_config_start(uint rw, uint src_addr, uint dst_addr, uint len)
 }
 
 
-int _wait_dma_end(void)
+__s32 _wait_dma_end(void)
 {
-	int timeout = 0xffff;
+	__s32 timeout = 0xffff;
 
 	while( (timeout--) && ( NAND_QueryDmaStat(dma_hdle)) );
 	if (timeout <= 0)
@@ -111,11 +111,11 @@ int _wait_dma_end(void)
 	return 0;
 }
 
-int _reset(void)
+__s32 _reset(void)
 {
-	uint cfg;
+	__u32 cfg;
 
-	int timeout = 0xffff;
+	__s32 timeout = 0xffff;
 
 	/*reset NFC*/
 	cfg = NFC_READ_REG(NFC_REG_CTL);
@@ -130,12 +130,12 @@ int _reset(void)
 }
 
 /***************ecc function*****************************************/
-int _check_ecc(uint eblock_cnt)
+__s32 _check_ecc(__u32 eblock_cnt)
 {
-	uint i;
-	uint ecc_mode;
-	uint max_ecc_bit_cnt = 16;
-	uint cfg;
+	__u32 i;
+	__u32 ecc_mode;
+	__u32 max_ecc_bit_cnt = 16;
+	__u32 cfg;
 	__u8 ecc_cnt[16];
 
 	ecc_mode = (NFC_READ_REG(NFC_REG_ECC_CTL)>>12)&0xf;
@@ -202,14 +202,14 @@ int _check_ecc(uint eblock_cnt)
 
 void _disable_ecc(void)
 {
-	uint cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
+	__u32 cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
 	cfg &= ( (~NFC_ECC_EN)&0xffffffff );
 	NFC_WRITE_REG(NFC_REG_ECC_CTL, cfg);
 }
 
-void _enable_ecc(uint pipline)
+void _enable_ecc(__u32 pipline)
 {
-	uint cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
+	__u32 cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
 	if (pipline ==1 )
 		cfg |= NFC_ECC_PIPELINE;
 	else
@@ -233,9 +233,9 @@ void _enable_ecc(uint pipline)
 
 void _set_addr(__u8 *addr, __u8 cnt)
 {
-	uint i;
-	uint addr_low = 0;
-	uint addr_high = 0;
+	__u32 i;
+	__u32 addr_low = 0;
+	__u32 addr_high = 0;
 
 	for (i = 0; i < cnt; i++){
 		if (i < 4)
@@ -248,13 +248,13 @@ void _set_addr(__u8 *addr, __u8 cnt)
 	NFC_WRITE_REG(NFC_REG_ADDR_HIGH, addr_high);
 }
 
-int _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma_wait_mode)
+__s32 _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma_wait_mode)
 {
-	int ret,ret1;
-	int i;
-	uint cfg;
+	__s32 ret,ret1;
+	__s32 i;
+	__u32 cfg;
 	NFC_CMD_LIST *cur_cmd,*read_addr_cmd;
-	uint read_data_cmd,random_read_cmd0,random_read_cmd1;
+	__u32 read_data_cmd,random_read_cmd0,random_read_cmd1;
 
 	ret = 0;
 	read_addr_cmd = rcmd;
@@ -276,7 +276,7 @@ int _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma
 //	/*sram*/
 //	else
 //		attr = 0x2800293;
-	_dma_config_start(0, NAFC_REGS_BASE + NFC_REG_o_IO_DATA, (uint)mainbuf, pagesize);
+	_dma_config_start(0, NAFC_REGS_BASE + NFC_REG_o_IO_DATA, (__u32)mainbuf, pagesize);
 
 	/*wait cmd fifo free*/
 	ret = _wait_cmdfifo_free();
@@ -306,7 +306,7 @@ int _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma
 	//cfg |= 0x1<<25;
 	cfg |= ( (read_addr_cmd->addr_cycle - 1) << 16);
 	cfg |= (NFC_SEND_ADR | NFC_DATA_TRANS | NFC_SEND_CMD1 | NFC_SEND_CMD2 | NFC_WAIT_FLAG | NFC_DATA_SWAP_METHOD);
-	cfg |= ((uint)0x2 << 30);//page command
+	cfg |= ((__u32)0x2 << 30);//page command
 
 	if (pagesize/1024 == 1)
 		cfg |= NFC_SEQ;
@@ -326,7 +326,7 @@ int _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma
 	}
 	/*get user data*/
 	for (i = 0; i < pagesize/1024;  i++){
-		*(((uint*) sparebuf)+i) = NFC_READ_REG(NFC_REG_USER_DATA(i));
+		*(((__u32*) sparebuf)+i) = NFC_READ_REG(NFC_REG_USER_DATA(i));
 	}
 
 	/*ecc check and disable ecc*/
@@ -343,10 +343,10 @@ int _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 dma
 	return ret;
 }
 
-int _read_in_normal_mode(NFC_CMD_LIST  *rcmd, __u8 *mainbuf, __u8 *sparebuf,__u8 dma_wait_mode)
+__s32 _read_in_normal_mode(NFC_CMD_LIST  *rcmd, __u8 *mainbuf, __u8 *sparebuf,__u8 dma_wait_mode)
 {
-	int ret,ret1;
-	uint cfg;
+	__s32 ret,ret1;
+	__u32 cfg;
 	NFC_CMD_LIST *cur_cmd;
 
 	ret = 0;
@@ -380,7 +380,7 @@ int _read_in_normal_mode(NFC_CMD_LIST  *rcmd, __u8 *mainbuf, __u8 *sparebuf,__u8
 //				/*sram*/
 //				else
 //					attr = 0x2800293;
-				_dma_config_start(0, NAFC_REGS_BASE + NFC_REG_o_IO_DATA, (uint)mainbuf, 1024);
+				_dma_config_start(0, NAFC_REGS_BASE + NFC_REG_o_IO_DATA, (__u32)mainbuf, 1024);
 
 				cfg |= NFC_DATA_SWAP_METHOD;
 
@@ -425,7 +425,7 @@ int _read_in_normal_mode(NFC_CMD_LIST  *rcmd, __u8 *mainbuf, __u8 *sparebuf,__u8
 			if (ret1)
 				return ret1;
 
-			*((uint *)sparebuf) = NFC_READ_REG(NFC_REG_USER_DATA(0));
+			*((__u32 *)sparebuf) = NFC_READ_REG(NFC_REG_USER_DATA(0));
 			/*ecc check and disable ecc*/
 			ret |= _check_ecc(1);
 
@@ -461,10 +461,11 @@ int _read_in_normal_mode(NFC_CMD_LIST  *rcmd, __u8 *mainbuf, __u8 *sparebuf,__u8
 * Notes		:  if align page data required£¬page command mode is used., if the commands do
 			   not fetch data£¬ecc is not neccesary.
 ********************************************************************************/
-int NFC_Read(NFC_CMD_LIST  *rcmd, void *mainbuf, void *sparebuf, __u8 dma_wait_mode,__u8 page_mode )
+__s32 NFC_Read(NFC_CMD_LIST  *rcmd, void *mainbuf, void *sparebuf, __u8 dma_wait_mode,__u8 page_mode )
 {
 
-	int ret ;
+	__s32 ret ;
+
 
 	if (page_mode){
 		ret = _read_in_page_mode(rcmd, mainbuf,sparebuf, dma_wait_mode);
@@ -485,10 +486,10 @@ int NFC_Read(NFC_CMD_LIST  *rcmd, void *mainbuf, void *sparebuf, __u8 dma_wait_m
 
 
 /*finish the comand list */
-int nfc_set_cmd_register(NFC_CMD_LIST *cmd)
+__s32 nfc_set_cmd_register(NFC_CMD_LIST *cmd)
 {
-	uint cfg;
-	int ret;
+	__u32 cfg;
+	__s32 ret;
 
 	NFC_CMD_LIST *cur_cmd = cmd;
 	while(cur_cmd != NULL){
@@ -529,12 +530,12 @@ int nfc_set_cmd_register(NFC_CMD_LIST *cmd)
 
 
 /*
-uint NFC_CalRandomSeed(uint row_adr)
+__u32 NFC_CalRandomSeed(__u32 row_adr)
 {
 
-	uint random_seed, random_key, random_seed_temp;
-	uint index;
-	uint rotate_bit_num;
+	__u32 random_seed, random_key, random_seed_temp;
+	__u32 index;
+	__u32 rotate_bit_num;
 
 	index = row_adr&0x7;
 	random_key = predefined_random_value[index];
@@ -549,9 +550,9 @@ uint NFC_CalRandomSeed(uint row_adr)
 }
 */
 
-int NFC_SetRandomSeed(uint random_seed)
+__s32 NFC_SetRandomSeed(__u32 random_seed)
 {
-	uint cfg;
+	__u32 cfg;
 
 
 	  cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
@@ -562,9 +563,9 @@ int NFC_SetRandomSeed(uint random_seed)
 	return 0;
 }
 
-int NFC_RandomEnable(void)
+__s32 NFC_RandomEnable(void)
 {
-	uint cfg;
+	__u32 cfg;
 
 
 	cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
@@ -575,9 +576,9 @@ int NFC_RandomEnable(void)
 	return 0;
 }
 
-int NFC_RandomDisable(void)
+__s32 NFC_RandomDisable(void)
 {
-	uint cfg;
+	__u32 cfg;
 
 
 	cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
@@ -600,10 +601,11 @@ int NFC_RandomDisable(void)
 			  -1 = fail.
 * Notes		:
 ********************************************************************************/
-int NFC_GetId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
+__s32 NFC_GetId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
 {
-	uint i;
-	int ret;
+	__u32 i;
+	__s32 ret;
+
 
 	ret = nfc_set_cmd_register(idcmd);
 	if (ret){
@@ -623,10 +625,11 @@ int NFC_GetId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
 	return ret;
 }
 
-int NFC_GetUniqueId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
+__s32 NFC_GetUniqueId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
 {
-	uint i;
-	int ret;
+	__u32 i;
+	__s32 ret;
+
 
 	ret = nfc_set_cmd_register(idcmd);
 	if (ret){
@@ -655,9 +658,9 @@ int NFC_GetUniqueId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
 * Returns		: status result
 * Notes		: some cmd must be sent with addr.
 ********************************************************************************/
-int NFC_GetStatus(NFC_CMD_LIST  *scmd)
+__s32 NFC_GetStatus(NFC_CMD_LIST  *scmd)
 {
-	int ret;
+	__s32 ret;
 
 	ret = nfc_set_cmd_register(scmd);
 	if (ret){
@@ -685,10 +688,11 @@ int NFC_GetStatus(NFC_CMD_LIST  *scmd)
 * Returns		: sucess or fail
 * Notes		:
 ********************************************************************************/
-int NFC_ResetChip(NFC_CMD_LIST *reset_cmd)
+__s32 NFC_ResetChip(NFC_CMD_LIST *reset_cmd)
 
 {
-	int ret;
+	__s32 ret;
+
 
 	ret = nfc_set_cmd_register(reset_cmd);
 	if (ret){
@@ -710,9 +714,9 @@ int NFC_ResetChip(NFC_CMD_LIST *reset_cmd)
 * Returns		: 0 = sucess -1 = fail
 * Notes		:
 ********************************************************************************/
-int NFC_SelectChip( uint chip)
+__s32 NFC_SelectChip( __u32 chip)
 {
-	uint cfg;
+	__u32 cfg;
 
 
   cfg = NFC_READ_REG(NFC_REG_CTL);
@@ -733,9 +737,9 @@ int NFC_SelectChip( uint chip)
 * Returns		: 0 = sucess -1 = fail
 * Notes		:
 ********************************************************************************/
-int NFC_SelectRb( uint rb)
+__s32 NFC_SelectRb( __u32 rb)
 {
-	int cfg;
+	__s32 cfg;
 
 
 	  cfg = NFC_READ_REG(NFC_REG_CTL);
@@ -751,7 +755,7 @@ int NFC_SelectRb( uint rb)
 
 
 
-int NFC_DeSelectChip( uint chip)
+__s32 NFC_DeSelectChip( __u32 chip)
 {
 
 
@@ -761,7 +765,7 @@ int NFC_DeSelectChip( uint chip)
 	return 0;
 }
 
-int NFC_DeSelectRb( uint rb)
+__s32 NFC_DeSelectRb( __u32 rb)
 {
 
 
@@ -782,10 +786,10 @@ int NFC_DeSelectRb( uint rb)
 * Notes		:
 ********************************************************************************/
 
-int NFC_CheckRbReady( uint rb)
+__s32 NFC_CheckRbReady( __u32 rb)
 {
-	int ret;
-	uint cfg = NFC_READ_REG(NFC_REG_ST);
+	__s32 ret;
+	__u32 cfg = NFC_READ_REG(NFC_REG_ST);
 
 
 	cfg &= (NFC_RB_STATE0 << (rb & 0x3));
@@ -807,9 +811,9 @@ int NFC_CheckRbReady( uint rb)
 * Returns		: 0 = sucess -1 = fail
 * Notes		: NFC must be reset before seial access mode changes.
 ********************************************************************************/
-int NFC_ChangMode(NFC_INIT_INFO *nand_info )
+__s32 NFC_ChangMode(NFC_INIT_INFO *nand_info )
 {
-	uint cfg;
+	__u32 cfg;
 
 	pagesize = nand_info->pagesize * 512;
 
@@ -847,9 +851,9 @@ int NFC_ChangMode(NFC_INIT_INFO *nand_info )
 	return 0;
 }
 
-int NFC_SetEccMode(__u8 ecc_mode)
+__s32 NFC_SetEccMode(__u8 ecc_mode)
 {
-    uint cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
+    __u32 cfg = NFC_READ_REG(NFC_REG_ECC_CTL);
 
 
     cfg &=	((~NFC_ECC_MODE)&0xffffffff);
@@ -868,9 +872,9 @@ int NFC_SetEccMode(__u8 ecc_mode)
 * Returns		: 0 = sucess -1 = fail
 * Notes		: .
 ********************************************************************************/
-int NFC_Init(NFC_INIT_INFO *nand_info )
+__s32 NFC_Init(NFC_INIT_INFO *nand_info )
 {
-	int ret;
+	__s32 ret;
 
     //SET NAND FLASH GPIO
     NAND_GetPin();
@@ -908,7 +912,7 @@ int NFC_Init(NFC_INIT_INFO *nand_info )
 ********************************************************************************/
 void NFC_Exit( void )
 {
-	uint cfg;
+	__u32 cfg;
 	/*disable NFC*/
 	cfg = NFC_READ_REG(NFC_REG_CTL);
 	cfg &= ( (~NFC_EN) & 0xffffffff);
@@ -934,10 +938,10 @@ void NFC_Exit( void )
 * Notes		:
 ********************************************************************************/
 
-uint NFC_QueryINT( void )
+__u32 NFC_QueryINT( void )
 {
 	__u16 i;
-	uint cfg;
+	__u32 cfg;
 
 	cfg = NFC_READ_REG(NFC_REG_INT);
 	for (i = 0; i < 6; i++)
@@ -971,12 +975,12 @@ void NFC_DisableInt(__u8 minor_int)
 }
 #endif
 
-int _read_retry_get_param(__u8 *para)
+__s32 _read_retry_get_param(__u8 *para)
 {
-	uint i;
-	uint cfg;
-	int ret = 0;
-
+	__u32 i;
+	__u32 cfg;
+	__s32 ret = 0;
+	
 	for(i=0; i<read_retry_reg_num; i++)
 	{
 
@@ -1012,11 +1016,11 @@ int _read_retry_get_param(__u8 *para)
 
 }
 
-int _read_retry_set_param(__u8 *para)
+__s32 _read_retry_set_param(__u8 *para)
 {
-	uint i;
-	uint cfg;
-	int ret = 0;
+	__u32 i;
+	__u32 cfg;
+	__s32 ret = 0;
 	__u8 temp_param[4];
 
 	for(i=0; i<read_retry_reg_num; i++)
@@ -1078,10 +1082,10 @@ int _read_retry_set_param(__u8 *para)
 
 
 //for offset from defaul value
-int NFC_ReadRetry(uint chip, uint retry_count, uint read_retry_type)
+__s32 NFC_ReadRetry(__u32 chip, __u32 retry_count, __u32 read_retry_type)
 {
-    uint i;
-    int ret;
+    __u32 i;
+    __s32 ret;
     __s16 temp_val;
     __u8 param[READ_RETRY_MAX_REG_NUM];
 
@@ -1132,9 +1136,9 @@ int NFC_ReadRetry(uint chip, uint retry_count, uint read_retry_type)
 	return ret;
 }
 
-int NFC_ReadRetryInit(uint read_retry_type)
+__s32 NFC_ReadRetryInit(__u32 read_retry_type)
 {
-	uint i,j;
+	__u32 i,j;
 	__s16 para0[6][4] = {	{0x00,  0x06,  0x0A,  0x06},
     						{0x00, -0x03, -0x07, -0x08},
     						{0x00, -0x06, -0x0D, -0x0F},
@@ -1194,10 +1198,10 @@ int NFC_ReadRetryInit(uint read_retry_type)
 	return 0;
 }
 
-int NFC_GetDefaultParam(uint chip,__u8* default_value, uint read_retry_type)
+__s32 NFC_GetDefaultParam(__u32 chip,__u8* default_value, __u32 read_retry_type)
 {
-    int ret;
-    uint i;
+    __s32 ret; 
+    __u32 i; 
 
     ret = _read_retry_get_param(&read_retry_default_val[chip][0]);
     for(i=0; i<READ_RETRY_MAX_REG_NUM; i++)
@@ -1209,10 +1213,10 @@ int NFC_GetDefaultParam(uint chip,__u8* default_value, uint read_retry_type)
 
 }
 
-int NFC_SetDefaultParam(uint chip,__u8* default_value,uint read_retry_type)
+__s32 NFC_SetDefaultParam(__u32 chip,__u8* default_value,__u32 read_retry_type)
 {
-    int ret;
-    uint i;
+    __s32 ret; 
+    __u32 i; 
 
     for(i=0; i<READ_RETRY_MAX_REG_NUM; i++)
     {
@@ -1223,7 +1227,7 @@ int NFC_SetDefaultParam(uint chip,__u8* default_value,uint read_retry_type)
 	return ret;
 }
 
-int NFC_ReadRetryExit(uint read_retry_type)
+__s32 NFC_ReadRetryExit(__u32 read_retry_type)
 {
 
 	return 0;

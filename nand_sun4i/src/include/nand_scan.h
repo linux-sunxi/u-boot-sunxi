@@ -64,15 +64,15 @@
 *               < 0     analyze failed, can't recognize or some other error.
 ************************************************************************************************************************
 */
-int  SCN_AnalyzeNandSystem(void);
+__s32  SCN_AnalyzeNandSystem(void);
 
-unsigned int NAND_GetValidBlkRatio(void);
-int NAND_SetValidBlkRatio(unsigned int ValidBlkRatio);
-unsigned int NAND_GetFrequencePar(void);
-int NAND_SetFrequencePar(unsigned int FrequencePar);
-unsigned int NAND_GetNandVersion(void);
-int NAND_GetParam(boot_nand_para_t * nand_param);
-//int NAND_GetFlashInfo(struct boot_flash_info *param);
-//int NAND_GetConnectInfo(boot_nand_info_t * info);
+__u32 NAND_GetValidBlkRatio(void);
+__s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio);
+__u32 NAND_GetFrequencePar(void);
+__s32 NAND_SetFrequencePar(__u32 FrequencePar);
+__u32 NAND_GetNandVersion(void);
+__s32 NAND_GetParam(boot_nand_para_t * nand_param);
+//__s32 NAND_GetFlashInfo(struct boot_flash_info *param);
+//__s32 NAND_GetConnectInfo(boot_nand_info_t * info);
 
 #endif  //ifndef __NAND_SCAN_H__

@@ -46,9 +46,9 @@ extern struct __NandDriverGlobal_t     NandDriverInfo;
 *Return     : none.
 ************************************************************************************************************************
 */
-static void _CalLogAccessCnt(uint nLogPst)
+static void _CalLogAccessCnt(__u32 nLogPst)
 {
-    int   i;
+    __s32   i;
 
     if(LOG_ACCESS_TIMER == 0xffff)
     {
@@ -83,7 +83,7 @@ static void _CalLogAccessCnt(uint nLogPst)
 *               =-1    get data block failed.
 ************************************************************************************************************************
 */
-int BMM_GetDataBlk(uint nBlk, struct __SuperPhyBlkType_t *pDataBlk)
+__s32 BMM_GetDataBlk(__u32 nBlk, struct __SuperPhyBlkType_t *pDataBlk)
 {
     if(nBlk > DATA_BLK_CNT_OF_ZONE)
     {
@@ -115,7 +115,7 @@ int BMM_GetDataBlk(uint nBlk, struct __SuperPhyBlkType_t *pDataBlk)
 *               =-1    set data block failed.
 ************************************************************************************************************************
 */
-int BMM_SetDataBlk(uint nBlk, struct __SuperPhyBlkType_t *pDataBlk)
+__s32 BMM_SetDataBlk(__u32 nBlk, struct __SuperPhyBlkType_t *pDataBlk)
 {
     if(nBlk > DATA_BLK_CNT_OF_ZONE)
     {
@@ -149,11 +149,11 @@ int BMM_SetDataBlk(uint nBlk, struct __SuperPhyBlkType_t *pDataBlk)
 *               =-1     get free block failed.
 ************************************************************************************************************************
 */
-int BMM_GetFreeBlk(uint nType, struct __SuperPhyBlkType_t *pFreeBlk)
+__s32 BMM_GetFreeBlk(__u32 nType, struct __SuperPhyBlkType_t *pFreeBlk)
 {
-    int   i, tmpFreePst = -1;
+    __s32   i, tmpFreePst = -1;
     __u16   tmpItem = LAST_FREE_BLK_PST + 1;
-    uint   tmpEraseCnt;
+    __u32   tmpEraseCnt;
 
     if(nType == LOWEST_EC_TYPE)
     {
@@ -220,9 +220,9 @@ int BMM_GetFreeBlk(uint nType, struct __SuperPhyBlkType_t *pFreeBlk)
 *               =-1     set free block failed.
 ************************************************************************************************************************
 */
-int BMM_SetFreeBlk(struct __SuperPhyBlkType_t *pFreeBlk)
+__s32 BMM_SetFreeBlk(struct __SuperPhyBlkType_t *pFreeBlk)
 {
-    int   i;
+    __s32   i;
 
     for(i=0; i<FREE_BLK_CNT_OF_ZONE; i++)
     {
@@ -253,9 +253,9 @@ int BMM_SetFreeBlk(struct __SuperPhyBlkType_t *pFreeBlk)
 *               = -1    there is no such log block;
 ************************************************************************************************************************
 */
-static int _GetLogBlkPst(uint nBlk)
+static __s32 _GetLogBlkPst(__u32 nBlk)
 {
-    int   i, tmpPst = -1;
+    __s32   i, tmpPst = -1;
 
     for(i=0; i<LOG_BLK_CNT_OF_ZONE; i++)
     {
@@ -288,9 +288,9 @@ static int _GetLogBlkPst(uint nBlk)
 *             else, return -1
 ************************************************************************************************************************
 */
-int BMM_GetLogBlk(uint nLogicBlk, struct __LogBlkType_t *pLogBlk)
+__s32 BMM_GetLogBlk(__u32 nLogicBlk, struct __LogBlkType_t *pLogBlk)
 {
-    int   tmpLogPst;
+    __s32   tmpLogPst;
 
     tmpLogPst = _GetLogBlkPst(nLogicBlk);
     if(tmpLogPst < 0)
@@ -337,9 +337,9 @@ int BMM_GetLogBlk(uint nLogicBlk, struct __LogBlkType_t *pLogBlk)
 *               < 0     set log block failed.
 ************************************************************************************************************************
 */
-int BMM_SetLogBlk(uint nLogicBlk, struct __LogBlkType_t *pLogBlk)
+__s32 BMM_SetLogBlk(__u32 nLogicBlk, struct __LogBlkType_t *pLogBlk)
 {
-    int   tmpLogPst;
+    __s32   tmpLogPst;
 
     tmpLogPst = _GetLogBlkPst(nLogicBlk);
     if(tmpLogPst < 0)
@@ -374,9 +374,9 @@ int BMM_SetLogBlk(uint nLogicBlk, struct __LogBlkType_t *pLogBlk)
 *               =-1     create new log block failed.
 ************************************************************************************************************************
 */
-static int _CreateNewLogBlk(uint nBlk, uint *pLogPst)
+static __s32 _CreateNewLogBlk(__u32 nBlk, __u32 *pLogPst)
 {
-    int   i, result, tmpPst=-1;
+    __s32   i, result, tmpPst=-1;
     __u16   tmpLogAccessAge = 0xffff;
     struct __SuperPhyBlkType_t tmpFreeBlk;
     struct __PhysicOpPara_t tmpPhyPage;
@@ -529,9 +529,9 @@ __CHECK_LOGICAL_INFO_OF_DATA_BLOCK:
 *               =-1     get log page for write failed.
 ************************************************************************************************************************
 */
-static int _GetLogPageForWrite(uint nBlk, uint nPage, __u16 *pLogPage, uint *pLogPst)
+static __s32 _GetLogPageForWrite(__u32 nBlk, __u32 nPage, __u16 *pLogPage, __u32 *pLogPst)
 {
-    int   result, tmpLogPst;
+    __s32   result, tmpLogPst;
     __u16   tmpPage;
     struct __PhysicOpPara_t tmpPhyPage;
     struct __NandUserData_t tmpSpare[2];
@@ -540,7 +540,7 @@ static int _GetLogPageForWrite(uint nBlk, uint nPage, __u16 *pLogPage, uint *pLo
     if(tmpLogPst < 0)
     {
         //get log block position failed, there is no such log block, need create a new one
-        result = _CreateNewLogBlk(nBlk, (uint *)&tmpLogPst);
+        result = _CreateNewLogBlk(nBlk, (__u32 *)&tmpLogPst);
         if(result < 0)
         {
             MAPPING_ERR("[MAPPING_ERR] Create new log block failed!\n", result);
@@ -669,9 +669,9 @@ __CHECK_WRITE_LOGICAL_INFO_OF_LOG_BLOCK:
 *             except there is no enough valid blocks.
 ************************************************************************************************************************
 */
-uint PMM_GetLogPage(uint nBlk, uint nPage, __u8 nMode)
+__u32 PMM_GetLogPage(__u32 nBlk, __u32 nPage, __u8 nMode)
 {
-    int   result, tmpLogPst;
+    __s32   result, tmpLogPst;
     __u16   tmpPage;
 
     if(nMode == 'r')
@@ -696,7 +696,7 @@ uint PMM_GetLogPage(uint nBlk, uint nPage, __u8 nMode)
         return PAGE_MAP_TBL[nPage].PhyPageNum;
     }
 
-    result = _GetLogPageForWrite(nBlk, nPage, &tmpPage, (uint *)&tmpLogPst);
+    result = _GetLogPageForWrite(nBlk, nPage, &tmpPage, (__u32 *)&tmpLogPst);
     if(result < 0)
     {
         //get log page for write failed
@@ -717,7 +717,7 @@ uint PMM_GetLogPage(uint nBlk, uint nPage, __u8 nMode)
         }
 
         //try to get log page for write again
-        result = _GetLogPageForWrite(nBlk, nPage, &tmpPage, (uint *)&tmpLogPst);
+        result = _GetLogPageForWrite(nBlk, nPage, &tmpPage, (__u32 *)&tmpLogPst);
         if(result < 0)
         {
             //get log page for write failed
@@ -757,7 +757,7 @@ void PMM_ClearCurMapTbl(void)
 	PAGE_MAP_CACHE->DirtyFlag = 0x0;
 }
 
-uint PMM_GetCurMapPage(__u16 nLogicalPage)
+__u32 PMM_GetCurMapPage(__u16 nLogicalPage)
 {
 	return PAGE_MAP_TBL[nLogicalPage].PhyPageNum;
 }

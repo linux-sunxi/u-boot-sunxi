@@ -19,10 +19,10 @@ extern struct __NandDriverGlobal_t     NandDriverInfo;
 struct __BlkMapTblCachePool_t BlkMapTblCachePool;
 struct __PageMapTblCachePool_t PageMapTblCachePool;
 
-void dump(void *buf, uint len , __u8 nbyte,__u8 linelen)
+void dump(void *buf, __u32 len , __u8 nbyte,__u8 linelen)
 {
-	uint i;
-	uint tmplen = len/nbyte;
+	__u32 i;
+	__u32 tmplen = len/nbyte;
 
 	PRINT("/********************************************/\n");
 
@@ -33,7 +33,7 @@ void dump(void *buf, uint len , __u8 nbyte,__u8 linelen)
 		else if (nbyte == 2)
 			PRINT("%x  ",((__u16 *)buf)[i]);
 		else if (nbyte == 4)
-			PRINT("%x  ",((uint *)buf)[i]);
+			PRINT("%x  ",((__u32 *)buf)[i]);
 		else
 			break;
 
@@ -57,10 +57,10 @@ void dump(void *buf, uint len , __u8 nbyte,__u8 linelen)
 *Return     : table checksum;
 ************************************************************************************************************************
 */
-static uint _GetTblCheckSum(uint *pTblBuf, uint nLength)
+static __u32 _GetTblCheckSum(__u32 *pTblBuf, __u32 nLength)
 {
-    uint   i;
-    uint   tmpCheckSum = 0;
+    __u32   i;
+    __u32   tmpCheckSum = 0;
 
     for(i= 0; i<nLength; i++)
     {
@@ -84,9 +84,9 @@ static uint _GetTblCheckSum(uint *pTblBuf, uint nLength)
 *               = -1        init page mapping table cache failed.
 ************************************************************************************************************************
 */
-int PMM_InitMapTblCache(void)
+__s32 PMM_InitMapTblCache(void)
 {
-    uint   i;
+    __u32   i;
 
     PAGE_MAP_CACHE_POOL = &PageMapTblCachePool;
 
@@ -121,7 +121,7 @@ int PMM_InitMapTblCache(void)
 */
 static void _CalPageTblAccessCount(void)
 {
-    uint   i;
+    __u32   i;
 
     for(i=0; i<PAGE_MAP_TBL_CACHE_CNT; i++)
     {
@@ -145,9 +145,9 @@ static void _CalPageTblAccessCount(void)
 *               = -1        exit page mapping table cache failed.
 ************************************************************************************************************************
 */
-int PMM_ExitMapTblCache(void)
+__s32 PMM_ExitMapTblCache(void)
 {
-    uint   i;
+    __u32   i;
 
     for (i = 0; i<PAGE_MAP_TBL_CACHE_CNT; i++)
     {
@@ -159,9 +159,9 @@ int PMM_ExitMapTblCache(void)
 
 
 /*the page map table in the cahce pool? cahce hit?*/
-static int _page_map_tbl_cache_hit(uint nLogBlkPst)
+static __s32 _page_map_tbl_cache_hit(__u32 nLogBlkPst)
 {
-    uint i;
+    __u32 i;
 
     for(i=0; i<PAGE_MAP_TBL_CACHE_CNT; i++)
     {
@@ -179,9 +179,9 @@ static int _page_map_tbl_cache_hit(uint nLogBlkPst)
 }
 
 /*find post cache, clear cache or LRU cache */
-static uint _find_page_tbl_post_location(void)
+static __u32 _find_page_tbl_post_location(void)
 {
-    uint   i, location = 0;
+    __u32   i, location = 0;
     __u16   access_cnt;
 
     /*try to find clear cache*/
@@ -211,10 +211,10 @@ static uint _find_page_tbl_post_location(void)
 
 }
 
-static int _write_back_page_map_tbl(uint nLogBlkPst)
+static __s32 _write_back_page_map_tbl(__u32 nLogBlkPst)
 {
     __u16 TablePage;
-    uint TableBlk;
+    __u32 TableBlk;
     struct  __NandUserData_t  UserData[2];
     struct  __PhysicOpPara_t  param;
     struct  __SuperPhyBlkType_t BadBlk,NewBlk;
@@ -248,20 +248,20 @@ rewrite:
 
 	if(PAGE_CNT_OF_SUPER_BLK >= 512)
 	{
-		uint page;
+		__u32 page;
 
 		for(page = 0; page < PAGE_CNT_OF_SUPER_BLK; page++)
 			*((__u16 *)LML_PROCESS_TBL_BUF + page) = PAGE_MAP_TBL[page].PhyPageNum;
-
-		((uint *)LML_PROCESS_TBL_BUF)[511] = \
-        	_GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*2/(sizeof (uint)));
+		
+		((__u32 *)LML_PROCESS_TBL_BUF)[511] = \
+        	_GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*2/(sizeof (__u32)));
 	}
 
 	else
 	{
 		MEMCPY(LML_PROCESS_TBL_BUF, PAGE_MAP_TBL,PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t));
-    	((uint *)LML_PROCESS_TBL_BUF)[511] = \
-        	_GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/(sizeof (uint)));
+    	((__u32 *)LML_PROCESS_TBL_BUF)[511] = \
+        	_GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/(sizeof (__u32)));
 	}
 
     param.MDataPtr = LML_PROCESS_TBL_BUF;
@@ -290,11 +290,11 @@ rewrite:
 
 }
 
-static int _rebuild_page_map_tbl(uint nLogBlkPst)
+static __s32 _rebuild_page_map_tbl(__u32 nLogBlkPst)
 {
-    int ret;
+    __s32 ret;
     __u16 TablePage;
-    uint TableBlk;
+    __u32 TableBlk;
     __u16 logicpagenum;
     //__u8  status;
     struct  __NandUserData_t  UserData[2];
@@ -333,11 +333,11 @@ static int _rebuild_page_map_tbl(uint nLogBlkPst)
 	return NAND_OP_TRUE;
 }
 
-static int _read_page_map_tbl(uint nLogBlkPst)
+static __s32 _read_page_map_tbl(__u32 nLogBlkPst)
 {
-    int ret;
+    __s32 ret;
     __u16 TablePage;
-    uint TableBlk, checksum;
+    __u32 TableBlk, checksum;
     __u16 logicpagenum;
     __u8  status;
     struct  __NandUserData_t  UserData[2];
@@ -364,19 +364,19 @@ static int _read_page_map_tbl(uint nLogBlkPst)
 
 	if(PAGE_CNT_OF_SUPER_BLK >= 512)
 	{
-		checksum = _GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF,  \
-                	PAGE_CNT_OF_SUPER_BLK*2/sizeof(uint));
+		checksum = _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF,  \
+                	PAGE_CNT_OF_SUPER_BLK*2/sizeof(__u32));
 	}
 	else
 	{
-		checksum = _GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF,  \
-                	PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/sizeof(uint));
+		checksum = _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF,  \
+                	PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/sizeof(__u32));
 	}
 
     status = UserData[0].PageStatus;
     logicpagenum = UserData[0].LogicPageNum;
 
-    if((ret < 0) || (status != 0xaa) || (logicpagenum != 0xffff) || (checksum != ((uint *)LML_PROCESS_TBL_BUF)[511]))
+    if((ret < 0) || (status != 0xaa) || (logicpagenum != 0xffff) || (checksum != ((__u32 *)LML_PROCESS_TBL_BUF)[511]))
     {
         if(NAND_OP_TRUE != _rebuild_page_map_tbl(nLogBlkPst))
         {
@@ -388,7 +388,7 @@ static int _read_page_map_tbl(uint nLogBlkPst)
     {
     	if(PAGE_CNT_OF_SUPER_BLK >= 512)
     	{
-			uint page;
+			__u32 page;
 
 			for(page = 0; page < PAGE_CNT_OF_SUPER_BLK; page++)
 				PAGE_MAP_TBL[page].PhyPageNum = *((__u16 *)LML_PROCESS_TBL_BUF + page);
@@ -402,7 +402,7 @@ static int _read_page_map_tbl(uint nLogBlkPst)
 
 
 /*post current zone map table in cache*/
-static int _page_map_tbl_cache_post(uint nLogBlkPst)
+static __s32 _page_map_tbl_cache_post(__u32 nLogBlkPst)
 {
     __u8 poisition;
     __u8 i;
@@ -469,9 +469,9 @@ static int _page_map_tbl_cache_post(uint nLogBlkPst)
 *               = -1    switch table failed.
 ************************************************************************************************************************
 */
-int PMM_SwitchMapTbl(uint nLogBlkPst)
+__s32 PMM_SwitchMapTbl(__u32 nLogBlkPst)
 {
-    int   result = NAND_OP_TRUE;
+    __s32   result = NAND_OP_TRUE;
     if (NAND_OP_TRUE !=_page_map_tbl_cache_hit(nLogBlkPst))
     {
         result = (_page_map_tbl_cache_post(nLogBlkPst));
@@ -496,9 +496,9 @@ int PMM_SwitchMapTbl(uint nLogBlkPst)
 *               = -1    init failed.
 ************************************************************************************************************************
 */
-int BMM_InitMapTblCache(void)
+__s32 BMM_InitMapTblCache(void)
 {
-    uint i;
+    __u32 i;
 
     BLK_MAP_CACHE_POOL = &BlkMapTblCachePool;
 
@@ -557,7 +557,7 @@ int BMM_InitMapTblCache(void)
 */
 static void _CalBlkTblAccessCount(void)
 {
-    uint   i;
+    __u32   i;
 
     for (i=0; i<BLOCK_MAP_TBL_CACHE_CNT; i++)
     {
@@ -581,9 +581,9 @@ static void _CalBlkTblAccessCount(void)
 *               = -1    exit failed.
 ************************************************************************************************************************
 */
-int BMM_ExitMapTblCache(void)
+__s32 BMM_ExitMapTblCache(void)
 {
-    uint i;
+    __u32 i;
 
     for (i=0; i<BLOCK_MAP_TBL_CACHE_CNT; i++)
     {
@@ -596,9 +596,9 @@ int BMM_ExitMapTblCache(void)
 }
 
 /*the zone table in the cahce pool? cahce hit?*/
-static int _blk_map_tbl_cache_hit(uint nZone)
+static __s32 _blk_map_tbl_cache_hit(__u32 nZone)
 {
-    uint i;
+    __u32 i;
 
     for (i = 0; i < BLOCK_MAP_TBL_CACHE_CNT; i++){
         if (BLK_MAP_CACHE_POOL->BlkMapTblCachePool[i].ZoneNum == nZone){
@@ -612,9 +612,9 @@ static int _blk_map_tbl_cache_hit(uint nZone)
 }
 
 /*find post cache, clear cache or LRU cache */
-static uint _find_blk_tbl_post_location(void)
+static __u32 _find_blk_tbl_post_location(void)
 {
-    uint i;
+    __u32 i;
     __u8 location;
     __u16 access_cnt ;
 
@@ -643,9 +643,9 @@ static uint _find_blk_tbl_post_location(void)
 
 }
 
-static int _write_back_all_page_map_tbl(__u8 nZone)
+static __s32 _write_back_all_page_map_tbl(__u8 nZone)
 {
-    uint i;
+    __u32 i;
 
     for(i=0; i<PAGE_MAP_TBL_CACHE_CNT; i++)
     {
@@ -668,10 +668,10 @@ static int _write_back_all_page_map_tbl(__u8 nZone)
 
 
 /*write block map table to flash*/
-static int _write_back_block_map_tbl(__u8 nZone)
+static __s32 _write_back_block_map_tbl(__u8 nZone)
 {
-    int TablePage;
-    uint TableBlk;
+    __s32 TablePage;
+    __u32 TableBlk;
     struct  __NandUserData_t  UserData[2];
     struct  __PhysicOpPara_t  param;
     struct __SuperPhyBlkType_t BadBlk,NewBlk;
@@ -705,8 +705,8 @@ static int _write_back_block_map_tbl(__u8 nZone)
     TablePage += 4;
 
     //calculate checksum for data block table and free block table
-    ((uint *)DATA_BLK_TBL)[1023] = \
-        _GetTblCheckSum((uint *)DATA_BLK_TBL, (DATA_BLK_CNT_OF_ZONE + FREE_BLK_CNT_OF_ZONE));
+    ((__u32 *)DATA_BLK_TBL)[1023] = \
+        _GetTblCheckSum((__u32 *)DATA_BLK_TBL, (DATA_BLK_CNT_OF_ZONE + FREE_BLK_CNT_OF_ZONE));
     //clear full page data
     MEMSET(LML_PROCESS_TBL_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * SECTOR_SIZE);
 
@@ -762,8 +762,8 @@ rewrite:
     MEMSET(LML_PROCESS_TBL_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * SECTOR_SIZE);
     MEMCPY(LML_PROCESS_TBL_BUF,LOG_BLK_TBL,LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t));
     /*cal checksum*/
-    ((uint *)LML_PROCESS_TBL_BUF)[511] = \
-        _GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(uint));
+    ((__u32 *)LML_PROCESS_TBL_BUF)[511] = \
+        _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(__u32));
     LML_CalculatePhyOpPar(&param, nZone, TableBlk, TablePage);
     LML_VirtualPageWrite(&param);
     if(NAND_OP_TRUE !=  PHY_SynchBank(param.BankNum, SYNC_CHIP_MODE))
@@ -787,10 +787,10 @@ rewrite:
 }
 
 /* fetch block map table from flash */
-static int _read_block_map_tbl(__u8 nZone)
+static __s32 _read_block_map_tbl(__u8 nZone)
 {
-    int TablePage;
-    uint TableBlk;
+    __s32 TablePage;
+    __u32 TableBlk;
     struct  __PhysicOpPara_t  param;
 
     /*set table block number and table page number*/
@@ -821,8 +821,8 @@ static int _read_block_map_tbl(__u8 nZone)
     }
 
     MEMCPY(&DATA_BLK_TBL[512],LML_PROCESS_TBL_BUF,2048);
-    if(((uint *)DATA_BLK_TBL)[1023] != \
-        _GetTblCheckSum((uint *)DATA_BLK_TBL,(DATA_BLK_CNT_OF_ZONE+FREE_BLK_CNT_OF_ZONE)))
+    if(((__u32 *)DATA_BLK_TBL)[1023] != \
+        _GetTblCheckSum((__u32 *)DATA_BLK_TBL,(DATA_BLK_CNT_OF_ZONE+FREE_BLK_CNT_OF_ZONE)))
     {
     	MAPPING_ERR("_read_block_map_tbl : read data block map table checksum err\n");
 		dump((void*)DATA_BLK_TBL,1024*4,4,8);
@@ -837,8 +837,8 @@ static int _read_block_map_tbl(__u8 nZone)
         MAPPING_ERR("_read_block_map_tbl : read block map table2 err\n");
         return NAND_OP_FALSE;
     }
-    if (((uint *)LML_PROCESS_TBL_BUF)[511] != \
-        _GetTblCheckSum((uint *)LML_PROCESS_TBL_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(uint)))
+    if (((__u32 *)LML_PROCESS_TBL_BUF)[511] != \
+        _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(__u32)))
     {
     	MAPPING_ERR("_read_block_map_tbl : read log block table checksum err\n");
 		dump((void*)LML_PROCESS_TBL_BUF,512*8,2,8);
@@ -850,7 +850,7 @@ static int _read_block_map_tbl(__u8 nZone)
 }
 
 /*post current zone map table in cache*/
-static int _blk_map_tbl_cache_post(uint nZone)
+static __s32 _blk_map_tbl_cache_post(__u32 nZone)
 {
     __u8 poisition;
 
@@ -890,9 +890,9 @@ static int _blk_map_tbl_cache_post(uint nZone)
 *               = -1    switch failed.
 ************************************************************************************************************************
 */
-int BMM_SwitchMapTbl(uint nZone)
+__s32 BMM_SwitchMapTbl(__u32 nZone)
 {
-    int   result = NAND_OP_TRUE;
+    __s32   result = NAND_OP_TRUE;
 
     if(NAND_OP_TRUE != _blk_map_tbl_cache_hit(nZone))
     {
@@ -919,7 +919,7 @@ int BMM_SwitchMapTbl(uint nZone)
 *               = -1    write failed.
 ************************************************************************************************************************
 */
-int BMM_WriteBackAllMapTbl(void)
+__s32 BMM_WriteBackAllMapTbl(void)
 {
      __u8 i;
 
@@ -944,10 +944,10 @@ int BMM_WriteBackAllMapTbl(void)
         return NAND_OP_TRUE;
 }
 
-static int _write_dirty_flag(__u8 nZone)
+static __s32 _write_dirty_flag(__u8 nZone)
 {
-    int TablePage;
-    uint TableBlk;
+    __s32 TablePage;
+    __u32 TableBlk;
     struct  __PhysicOpPara_t  param;
     struct  __NandUserData_t  UserData[2];
 
@@ -984,7 +984,7 @@ static int _write_dirty_flag(__u8 nZone)
 *               = -1    set dirty flag failed.
 ************************************************************************************************************************
 */
-int BMM_SetDirtyFlag(void)
+__s32 BMM_SetDirtyFlag(void)
 {
     if (0 == BLK_MAP_CACHE->DirtyFlag){
        _write_dirty_flag(CUR_MAP_ZONE);

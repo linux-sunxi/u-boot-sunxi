@@ -17,30 +17,30 @@
 #include "../include/nand_ndfc.h"
 #include "../include/nand_reg.h"
 
-extern int _read_status(uint cmd_value, uint nBank);
-extern void _add_cmd_list(NFC_CMD_LIST *cmd,uint value,uint addr_cycle,__u8 *addr,__u8 data_fetch_flag,
-					__u8 main_data_fetch,uint bytecnt,__u8 wait_rb_flag);
-extern __u8 _cal_real_chip(uint global_bank);
-extern __u8 _cal_real_rb(uint chip);
-extern void _cal_addr_in_chip(uint block, uint page, uint sector,__u8 *addr, __u8 cycle);
+extern __s32 _read_status(__u32 cmd_value, __u32 nBank);
+extern void _add_cmd_list(NFC_CMD_LIST *cmd,__u32 value,__u32 addr_cycle,__u8 *addr,__u8 data_fetch_flag,
+					__u8 main_data_fetch,__u32 bytecnt,__u8 wait_rb_flag);
+extern __u8 _cal_real_chip(__u32 global_bank);
+extern __u8 _cal_real_rb(__u32 chip);
+extern void _cal_addr_in_chip(__u32 block, __u32 page, __u32 sector,__u8 *addr, __u8 cycle);
 extern void _pending_dma_irq_sem(void);
 extern void _pending_rb_irq_sem(void);
-extern uint _cal_random_seed(uint page);
+extern __u32 _cal_random_seed(__u32 page);
 
 /***************************************************************************
 *************************write one align single page data**************************
 ****************************************************************************/
 
-int _write_signle_page (struct boot_physical_param *writeop,uint program1,uint program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
+__s32 _write_signle_page (struct boot_physical_param *writeop,__u32 program1,__u32 program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
 {
-	int ret;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 rb;
+	__u32 random_seed;
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i,addr_cycle;
+	__u32 list_len,i,addr_cycle;
 
 	MEMSET(sparebuf, 0xff, SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	if (writeop->oobbuf){
@@ -86,16 +86,16 @@ int _write_signle_page (struct boot_physical_param *writeop,uint program1,uint p
 
 }
 
-int _write_signle_page_seq (struct boot_physical_param *writeop,uint program1,uint program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
+__s32 _write_signle_page_seq (struct boot_physical_param *writeop,__u32 program1,__u32 program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
 {
-	int ret;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 rb;
+	__u32 random_seed;
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i,addr_cycle;
+	__u32 list_len,i,addr_cycle;
 
 	MEMSET(sparebuf, 0xff, SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	if (writeop->oobbuf){
@@ -142,16 +142,16 @@ int _write_signle_page_seq (struct boot_physical_param *writeop,uint program1,ui
 
 }
 
-int _write_signle_page_1K (struct boot_physical_param *writeop,uint program1,uint program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
+__s32 _write_signle_page_1K (struct boot_physical_param *writeop,__u32 program1,__u32 program2,__u8 dma_wait_mode, __u8 rb_wait_mode )
 {
-	int ret;
-	uint rb;
-	uint random_seed;
+	__s32 ret;
+	__u32 rb;
+	__u32 random_seed;
 	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i,addr_cycle;
+	__u32 list_len,i,addr_cycle;
 
 	MEMSET(sparebuf, 0xff, SECTOR_CNT_OF_SINGLE_PAGE * 4);
 	if (writeop->oobbuf){
@@ -198,13 +198,13 @@ int _write_signle_page_1K (struct boot_physical_param *writeop,uint program1,uin
 
 }
 
-int _erase_single_block(struct boot_physical_param *eraseop)
+__s32 _erase_single_block(struct boot_physical_param *eraseop)
 {
-	int ret;
-	uint rb;
+	__s32 ret;
+	__u32 rb;
 	__u8 addr[5];
 	NFC_CMD_LIST cmd_list[4];
-	uint list_len,i;
+	__u32 list_len,i;
 
 	/*create cmd list*/
 	/*the cammand have no corresponding feature if IGNORE was set, */
@@ -225,12 +225,12 @@ int _erase_single_block(struct boot_physical_param *eraseop)
 	NFC_DeSelectRb(rb);
 	return ret;
 }
-int PHY_SimpleWrite (struct boot_physical_param *writeop)
+__s32 PHY_SimpleWrite (struct boot_physical_param *writeop)
 {
-	int status;
-	uint rb;
+	__s32 status;
+	__u32 rb;
 
-	int ret;
+	__s32 ret;
 
 	ret = _write_signle_page(writeop,0x80,0x10,0,0);
 	if (ret)
@@ -255,12 +255,12 @@ int PHY_SimpleWrite (struct boot_physical_param *writeop)
 	return ret;
 }
 
-int PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
+__s32 PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 {
-	int status;
-	uint rb;
+	__s32 status;
+	__u32 rb;
 
-	int ret;
+	__s32 ret;
 
 	ret = _write_signle_page_seq(writeop,0x80,0x10,0,0);
 	if (ret)
@@ -285,12 +285,12 @@ int PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 	return ret;
 }
 
-int PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
+__s32 PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
 {
-	int status;
-	uint rb;
+	__s32 status;
+	__u32 rb;
 
-	int ret;
+	__s32 ret;
 
 	ret = _write_signle_page_1K(writeop,0x80,0x10,0,0);
 	if (ret)
@@ -315,11 +315,11 @@ int PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
 	return ret;
 }
 //#pragma arm section code="PHY_SimpleErase"
-int PHY_SimpleErase (struct boot_physical_param *eraseop )
+__s32 PHY_SimpleErase (struct boot_physical_param *eraseop )
 {
-	int status;
-	int ret;
-	uint rb;
+	__s32 status;
+	__s32 ret;
+	__u32 rb;
 
 
 	ret = _erase_single_block(eraseop);

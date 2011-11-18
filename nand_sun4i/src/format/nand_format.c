@@ -47,8 +47,8 @@ extern  struct __NandPageCachePool_t    PageCachePool;
 
 
 //define some local variable
-static uint DieCntOfNand = 0;          //the count of dies in a nand chip
-static uint SuperBlkCntOfDie = 0;      //the count of the super blocks in a Die
+static __u32 DieCntOfNand = 0;          //the count of dies in a nand chip
+static __u32 SuperBlkCntOfDie = 0;      //the count of the super blocks in a Die
 
 blk_for_boot1_t blks_array[ ] = {
 	{ 16,  4, 16 },
@@ -58,7 +58,7 @@ blk_for_boot1_t blks_array[ ] = {
 	{ 512, 4, 3 },
 	{ 0xffffffff,   4, 3 },
 };
-uint DIE0_FIRST_BLK_NUM;
+__u32 DIE0_FIRST_BLK_NUM;
 
 /*
 ************************************************************************************************************************
@@ -78,11 +78,11 @@ uint DIE0_FIRST_BLK_NUM;
 ************************************************************************************************************************
 */
 #if(0)
-int _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock, uint nPage)
+__s32 _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage)
 {
 
 
-    uint   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
+    __u32   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
 
 //    FORMAT_DBG("[FORMAT_DBG] Calculate the physical operation parameters.\n"
 //               "             ZoneNum:0x%x, BlockNum:0x%x, PageNum: 0x%x\n", nZone, nBlock, nPage);
@@ -144,11 +144,11 @@ int _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock
     return 0;
 }
 #elif(1)
-int _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock, uint nPage)
+__s32 _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage)
 {
 
 
-    uint   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
+    __u32   tmpDieNum, tmpBnkNum, tmpBlkNum, tmpPageNum;
 
 //    FORMAT_DBG("[FORMAT_DBG] Calculate the physical operation parameters.\n"
 //               "             ZoneNum:0x%x, BlockNum:0x%x, PageNum: 0x%x\n", nZone, nBlock, nPage);
@@ -233,9 +233,9 @@ int _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, uint nZone, uint nBlock
 *               < 0     read page data failed.
 ************************************************************************************************************************
 */
-static int _VirtualPageRead(uint nDieNum, uint nBlkNum, uint nPage, uint SectBitmap, void *pBuf, void *pSpare)
+static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 SectBitmap, void *pBuf, void *pSpare)
 {
-    int i, result;
+    __s32 i, result;
     __u8  *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -343,9 +343,9 @@ static int _VirtualPageRead(uint nDieNum, uint nBlkNum, uint nPage, uint SectBit
 *               < 0     write page data failed.
 ************************************************************************************************************************
 */
-static int _VirtualPageWrite(uint nDieNum, uint nBlkNum, uint nPage, uint SectBitmap, void *pBuf, void *pSpare)
+static __s32 _VirtualPageWrite(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 SectBitmap, void *pBuf, void *pSpare)
 {
-    int i, result;
+    __s32 i, result;
     __u8  *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -437,9 +437,9 @@ static int _VirtualPageWrite(uint nDieNum, uint nBlkNum, uint nPage, uint SectBi
 *               < 0     virtual block erase failed.
 ************************************************************************************************************************
 */
-static int _VirtualBlockErase(uint nDieNum, uint nBlkNum)
+static __s32 _VirtualBlockErase(__u32 nDieNum, __u32 nBlkNum)
 {
-    int i, result = 0;
+    __s32 i, result = 0;
     struct __PhysicOpPara_t tmpPhyBlk;
 
     //erase every block belonged to different banks
@@ -481,9 +481,9 @@ static int _VirtualBlockErase(uint nDieNum, uint nBlkNum)
 *               < 0     copy block data failed.
 ************************************************************************************************************************
 */
-static int _VirtualBlockCopy(uint nDieNum, uint nSrcBlk, uint nDstBlk)
+static __s32 _VirtualBlockCopy(__u32 nDieNum, __u32 nSrcBlk, __u32 nDstBlk)
 {
-    int i, result = 0;
+    __s32 i, result = 0;
     struct __PhysicOpPara_t tmpSrcBlk, tmpDstBlk;
 
     //copy every page from source block to destination block
@@ -524,9 +524,9 @@ static int _VirtualBlockCopy(uint nDieNum, uint nSrcBlk, uint nDstBlk)
 *             return 0 always.
 ************************************************************************************************************************
 */
-static int _WriteBadBlkFlag(uint nDieNum, uint nBlock)
+static __s32 _WriteBadBlkFlag(__u32 nDieNum, __u32 nBlock)
 {
-    int   i;
+    __s32   i;
     struct __NandUserData_t tmpSpare[2];
 
     //set bad block flag to the spare data write to nand flash
@@ -617,9 +617,9 @@ static void _DumpDieInfo(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     get free block failed.
 ************************************************************************************************************************
 */
-static int _GetFreeBlkFromDieInfo(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _GetFreeBlkFromDieInfo(struct __ScanDieInfo_t *pDieInfo)
 {
-    int   i, tmpFreeBlk;
+    __s32   i, tmpFreeBlk;
 
     tmpFreeBlk = -1;
 
@@ -656,9 +656,9 @@ static int _GetFreeBlkFromDieInfo(struct __ScanDieInfo_t *pDieInfo)
 *Return     : the number of the zone which has least blocks;
 ************************************************************************************************************************
 */
-static int _LeastBlkCntZone(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _LeastBlkCntZone(struct __ScanDieInfo_t *pDieInfo)
 {
-    int i, tmpZone, tmpBlkCnt, tmpLeastCntBlkZone = 0, tmpLeastBlkCnt = 0xffff;
+    __s32 i, tmpZone, tmpBlkCnt, tmpLeastCntBlkZone = 0, tmpLeastBlkCnt = 0xffff;
     struct __LogBlkType_t *tmpLogBlkTbl;
 
     for(tmpZone=0; tmpZone<ZONE_CNT_OF_DIE; tmpZone++)
@@ -707,9 +707,9 @@ static int _LeastBlkCntZone(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     merge failed.
 ************************************************************************************************************************
 */
-static int _MergeDataBlkToFreeBlk(struct __ScanDieInfo_t *pDieInfo, uint nDataBlk, uint nFreeBlk)
+static __s32 _MergeDataBlkToFreeBlk(struct __ScanDieInfo_t *pDieInfo, __u32 nDataBlk, __u32 nFreeBlk)
 {
-    int result;
+    __s32 result;
 
     //copy the data in the data block to the free block
     result = _VirtualBlockCopy(pDieInfo->nDie, nDataBlk, nFreeBlk);
@@ -754,12 +754,12 @@ static int _MergeDataBlkToFreeBlk(struct __ScanDieInfo_t *pDieInfo, uint nDataBl
 *               < 0     look for the last group failed.
 ************************************************************************************************************************
 */
-static uint _SearchBlkTblPst(uint nDieNum, uint nBlock)
+static __u32 _SearchBlkTblPst(__u32 nDieNum, __u32 nBlock)
 {
     struct __NandUserData_t tmpSpare;
 
-    int   tmpLowPage, tmpHighPage, tmpMidPage;
-    uint   tmpPage;
+    __s32   tmpLowPage, tmpHighPage, tmpMidPage;
+    __u32   tmpPage;
 
     //use bisearch algorithm to look for the last group of the block mapping table in the super block
     tmpLowPage = 0;
@@ -806,16 +806,16 @@ static uint _SearchBlkTblPst(uint nDieNum, uint nBlock)
 *               <  0    look for the last used page failed.
 ************************************************************************************************************************
 */
-static int _GetLastUsedPage(uint nDieNum, uint nBlock)
+static __s32 _GetLastUsedPage(__u32 nDieNum, __u32 nBlock)
 {
-    int   tmpLowPage, tmpHighPage, tmpMidPage, tmpPage, tmpUsedPage = 0;
+    __s32   tmpLowPage, tmpHighPage, tmpMidPage, tmpPage, tmpUsedPage = 0;
     struct __NandUserData_t tmpSpare;
 
     //use bisearch algorithm to look for the last page in the used page group
 
 #if(CFG_SUPPORT_ALIGN_NAND_BNK)
 
-    uint   tmpBnkNum;
+    __u32   tmpBnkNum;
     __u8    tmpPageStatus;
 
     tmpLowPage = 0;
@@ -899,11 +899,11 @@ static int _GetLastUsedPage(uint nDieNum, uint nBlock)
 *Return     : table checksum;
 ************************************************************************************************************************
 */
-static uint _CalCheckSum(uint *pTblBuf, uint nLength)
+static __u32 _CalCheckSum(__u32 *pTblBuf, __u32 nLength)
 {
-    int i;
-    uint tmpCheckSum = 0;
-    uint *tmpItem = pTblBuf;
+    __s32 i;
+    __u32 tmpCheckSum = 0;
+    __u32 *tmpItem = pTblBuf;
 
     for(i=0; i<nLength; i++)
     {
@@ -928,10 +928,10 @@ static uint _CalCheckSum(uint *pTblBuf, uint nLength)
 *               < 0     get logical information failed.
 ************************************************************************************************************************
 */
-static int _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
 {
-    uint   tmpBlkNum, tmpBnkNum, tmpPage, tmpBadFlag;
-    int   i;
+    __u32   tmpBlkNum, tmpBnkNum, tmpPage, tmpBadFlag;
+    __s32   i;
     __s16   tmpPageNum[4];
     __u16   tmpLogicInfo;
     struct  __NandUserData_t tmpSpare[2];
@@ -1035,7 +1035,7 @@ static int _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
 *Return     : the log age of the physical block;
 ************************************************************************************************************************
 */
-static __u8 _GetLogAge(uint nDie, __u16 nPhyBlk)
+static __u8 _GetLogAge(__u32 nDie, __u16 nPhyBlk)
 {
     __u8    tmpLogAge;
     struct __NandUserData_t tmpSpareData;
@@ -1068,14 +1068,14 @@ static __u8 _GetLogAge(uint nDie, __u16 nPhyBlk)
 *               < 0     fill block failed.
 ************************************************************************************************************************
 */
-static int _FillBlkToZoneTbl(struct __ScanDieInfo_t *pDieInfo, __u16 nLogicInfo, __u16 nPhyBlk, uint *pEraseBlk)
+static __s32 _FillBlkToZoneTbl(struct __ScanDieInfo_t *pDieInfo, __u16 nLogicInfo, __u16 nPhyBlk, __u32 *pEraseBlk)
 {
-    int   i, tmpLogPst;
-    uint   tmpZone, tmpLogicBlk;
+    __s32   i, tmpLogPst;
+    __u32   tmpZone, tmpLogicBlk;
     __u16   tmpDataBlk, tmpLogBlk, tmpNewBlk;
     //__u8    tmpAgeData, tmpAgeLog, tmpAgeNew;
     __u8    tmpAgeData, tmpAgeNew;
-    int   tmpLastPageOfData, tmpLastPageOfLog, tmpLastPageOfNew;
+    __s32   tmpLastPageOfData, tmpLastPageOfLog, tmpLastPageOfNew;
     struct __SuperPhyBlkType_t *tmpSuperBlk;
 
     tmpZone = GET_LOGIC_INFO_ZONE(nLogicInfo);
@@ -1289,10 +1289,10 @@ static int _FillBlkToZoneTbl(struct __ScanDieInfo_t *pDieInfo, __u16 nLogicInfo,
 *               < 0     get block failed.
 ************************************************************************************************************************
 */
-static int _GetNewTableBlk(struct __ScanDieInfo_t *pDieInfo, uint nZone)
+static __s32 _GetNewTableBlk(struct __ScanDieInfo_t *pDieInfo, __u32 nZone)
 {
-    int   i, tmpBlk, tmpFreeBlk, tmpStartBlk, result;
-    int   tmpValidTblBlk, tmpInvalidTblBlk, tmpValidTblFreeBlk;
+    __s32   i, tmpBlk, tmpFreeBlk, tmpStartBlk, result;
+    __s32   tmpValidTblBlk, tmpInvalidTblBlk, tmpValidTblFreeBlk;
 
     if(pDieInfo->nDie == 0)
     {
@@ -1490,9 +1490,9 @@ static int _GetNewTableBlk(struct __ScanDieInfo_t *pDieInfo, uint nZone)
 *               < 0     get mapping table block failed.
 ************************************************************************************************************************
 */
-static int _GetMapTblBlock(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _GetMapTblBlock(struct __ScanDieInfo_t *pDieInfo)
 {
-    int   i, result, tmpTryGet;
+    __s32   i, result, tmpTryGet;
 
     for(i=0; i<ZONE_CNT_OF_DIE; i++)
     {
@@ -1557,10 +1557,10 @@ static int _GetMapTblBlock(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     kick free block failed.
 ************************************************************************************************************************
 */
-static int _KickValidTblBlk(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _KickValidTblBlk(struct __ScanDieInfo_t *pDieInfo)
 {
-    int   i, j;
-    uint   tmpTblBlk, tmpTblPage;
+    __s32   i, j;
+    __u32   tmpTblBlk, tmpTblPage;
     __u16   tmpPhyBlk;
 
     for(i=0; i<ZONE_CNT_OF_DIE; i++)
@@ -1619,10 +1619,10 @@ static int _KickValidTblBlk(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     repair log block table failed.
 ************************************************************************************************************************
 */
-static int _RepairLogBlkTbl(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _RepairLogBlkTbl(struct __ScanDieInfo_t *pDieInfo)
 {
 
-    int i, tmpZone, tmpLastUsedPage;
+    __s32 i, tmpZone, tmpLastUsedPage;
     struct __LogBlkType_t *tmpLogTbl;
 
     for(tmpZone=0; tmpZone<ZONE_CNT_OF_DIE; tmpZone++)
@@ -1667,9 +1667,9 @@ static int _RepairLogBlkTbl(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     distribute free block failed.
 ************************************************************************************************************************
 */
-static int _DistributeFreeBlk(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _DistributeFreeBlk(struct __ScanDieInfo_t *pDieInfo)
 {
-    int   i, tmpZone, tmpFreeBlk;
+    __s32   i, tmpZone, tmpFreeBlk;
 
     struct __SuperPhyBlkType_t *tmpZoneTbl;
 
@@ -1772,11 +1772,11 @@ static int _DistributeFreeBlk(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     fill block mapping table failed.
 ************************************************************************************************************************
 */
-static int _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
 {
     __u16   tmpLogicInfo;
-    uint   tmpPhyBlk, tmpBlkErase;
-    int   result;
+    __u32   tmpPhyBlk, tmpBlkErase;
+    __s32   result;
 
     //calculte the first block is used in the die
     if(pDieInfo->nDie == 0)
@@ -1987,9 +1987,9 @@ static int _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     write block mapping table failed.
 ************************************************************************************************************************
 */
-static int _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
 {
-    int   i, tmpZone, tmpTblBlk, tmpTblPage, tmpGlobzone, result;
+    __s32   i, tmpZone, tmpTblBlk, tmpTblPage, tmpGlobzone, result;
     struct __NandUserData_t tmpSpare[2];
     struct __SuperPhyBlkType_t *tmpDataBlk;
     struct __LogBlkType_t *tmpLogBlk;
@@ -2063,12 +2063,12 @@ static int _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
         tmpSpare[1].PageStatus = 0x55;
 
         //set table data checksum for data block table
-        result = _CalCheckSum((uint *)tmpDataBlk, BLOCK_CNT_OF_ZONE - 1);
-        *(uint *)&tmpDataBlk[BLOCK_CNT_OF_ZONE - 1] = (uint)result;
+        result = _CalCheckSum((__u32 *)tmpDataBlk, BLOCK_CNT_OF_ZONE - 1);
+        *(__u32 *)&tmpDataBlk[BLOCK_CNT_OF_ZONE - 1] = (__u32)result;
 
         //write data block table to nand flash
         MEMSET(FORMAT_PAGE_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * SECTOR_SIZE);
-        MEMCPY(FORMAT_PAGE_BUF, (uint *)tmpDataBlk, SECTOR_SIZE * 4);
+        MEMCPY(FORMAT_PAGE_BUF, (__u32 *)tmpDataBlk, SECTOR_SIZE * 4);
 
 
         result = _VirtualPageWrite(pDieInfo->nDie, tmpTblBlk, tmpTblPage + DATA_TBL_OFFSET, \
@@ -2083,7 +2083,7 @@ static int _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
         }
 
 
-        MEMCPY(FORMAT_PAGE_BUF, (uint *)&tmpDataBlk[BLOCK_CNT_OF_ZONE / 2], SECTOR_SIZE * 4);
+        MEMCPY(FORMAT_PAGE_BUF, (__u32 *)&tmpDataBlk[BLOCK_CNT_OF_ZONE / 2], SECTOR_SIZE * 4);
         result = _VirtualPageWrite(pDieInfo->nDie, tmpTblBlk, tmpTblPage + DATA_TBL_OFFSET + 1, \
                             FULL_BITMAP_OF_SUPER_PAGE, FORMAT_PAGE_BUF, (void *)tmpSpare);
         if(result < 0)
@@ -2097,10 +2097,10 @@ static int _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
 
         //process log block table data
         MEMSET(FORMAT_PAGE_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * SECTOR_SIZE);
-        MEMCPY(FORMAT_PAGE_BUF, (uint *)tmpLogBlk, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t));
+        MEMCPY(FORMAT_PAGE_BUF, (__u32 *)tmpLogBlk, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t));
         //set table data checksum for log block table
-        result = _CalCheckSum((uint *)FORMAT_PAGE_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(uint));
-        ((uint*)FORMAT_PAGE_BUF)[511] = (uint)result;
+        result = _CalCheckSum((__u32 *)FORMAT_PAGE_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(__u32));
+        ((__u32*)FORMAT_PAGE_BUF)[511] = (__u32)result;
         result = _VirtualPageWrite(pDieInfo->nDie, tmpTblBlk, tmpTblPage + LOG_TBL_OFFSET, \
                             FULL_BITMAP_OF_SUPER_PAGE, FORMAT_PAGE_BUF, (void *)tmpSpare);
         if(result < 0)
@@ -2134,10 +2134,10 @@ static int _WriteBlkMapTbl(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     search zone table failed.
 ************************************************************************************************************************
 */
-static int _SearchZoneTbls(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _SearchZoneTbls(struct __ScanDieInfo_t *pDieInfo)
 {
-    uint   tmpSuperBlk, tmpZoneInDie, tmpPage, tmpVar;
-    int   result;
+    __u32   tmpSuperBlk, tmpZoneInDie, tmpPage, tmpVar;
+    __s32   result;
     struct  __NandUserData_t tmpSpareData[2];
     struct  __SuperPhyBlkType_t *tmpDataBlkTbl;
 
@@ -2224,8 +2224,8 @@ static int _SearchZoneTbls(struct __ScanDieInfo_t *pDieInfo)
         _VirtualPageRead(pDieInfo->nDie, tmpSuperBlk, tmpPage+DATA_TBL_OFFSET+1, DATA_TABLE_BITMAP, FORMAT_PAGE_BUF, NULL);
         MEMCPY(&tmpDataBlkTbl[BLOCK_CNT_OF_ZONE / 2], FORMAT_PAGE_BUF, SECTOR_SIZE * 4);
         //calculate the data block table data checksum
-        tmpVar = _CalCheckSum((uint *)tmpDataBlkTbl, BLOCK_CNT_OF_ZONE - 1);
-        if(tmpVar != ((uint *)tmpDataBlkTbl)[BLOCK_CNT_OF_ZONE - 1])
+        tmpVar = _CalCheckSum((__u32 *)tmpDataBlkTbl, BLOCK_CNT_OF_ZONE - 1);
+        if(tmpVar != ((__u32 *)tmpDataBlkTbl)[BLOCK_CNT_OF_ZONE - 1])
         {
             //the checksum of the data block table is invalid
             FORMAT_DBG("[FORMAT_DBG] Find the table block %d for zone 0x%x of die 0x%x,"
@@ -2240,8 +2240,8 @@ static int _SearchZoneTbls(struct __ScanDieInfo_t *pDieInfo)
         //check the log block table data, the size of the log block table is only 0.5k byte
         _VirtualPageRead(pDieInfo->nDie, tmpSuperBlk, tmpPage+LOG_TBL_OFFSET, LOG_TABLE_BITMAP, FORMAT_PAGE_BUF, NULL);
         //calcluate the log block table data checksum
-        tmpVar = _CalCheckSum((uint *)FORMAT_PAGE_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(uint));
-        if(tmpVar != ((uint *)FORMAT_PAGE_BUF)[511])
+        tmpVar = _CalCheckSum((__u32 *)FORMAT_PAGE_BUF, LOG_BLK_CNT_OF_ZONE*sizeof(struct __LogBlkType_t)/sizeof(__u32));
+        if(tmpVar != ((__u32 *)FORMAT_PAGE_BUF)[511])
         {
             //the checksum of the log block table is invalid
             FORMAT_DBG("[FORMAT_DBG] Find the table block for zone 0x%x of die 0x%x,"
@@ -2285,9 +2285,9 @@ static int _SearchZoneTbls(struct __ScanDieInfo_t *pDieInfo)
 *               < 0     rebuild zone tables failed.
 ************************************************************************************************************************
 */
-static int _RebuildZoneTbls(struct __ScanDieInfo_t *pDieInfo)
+static __s32 _RebuildZoneTbls(struct __ScanDieInfo_t *pDieInfo)
 {
-    int i, result;
+    __s32 i, result;
 
     //request buffer for get the logical information of every physical block in the die
     pDieInfo->pPhyBlk = (__u16 *)MALLOC(SuperBlkCntOfDie * sizeof(__u16));
@@ -2317,7 +2317,7 @@ static int _RebuildZoneTbls(struct __ScanDieInfo_t *pDieInfo)
         pDieInfo->ZoneInfo[i].nDataBlkCnt = 0;
         pDieInfo->ZoneInfo[i].nFreeBlkCnt = 0;
         pDieInfo->ZoneInfo[i].nFreeBlkIndex = 0;
-        MEMSET(pDieInfo->ZoneInfo[i].ZoneTbl, 0xff, BLOCK_CNT_OF_ZONE * sizeof(uint));
+        MEMSET(pDieInfo->ZoneInfo[i].ZoneTbl, 0xff, BLOCK_CNT_OF_ZONE * sizeof(__u32));
         MEMSET(pDieInfo->ZoneInfo[i].LogBlkTbl, 0xff, MAX_LOG_BLK_CNT * sizeof(struct __LogBlkType_t));
     }
 
@@ -2406,10 +2406,10 @@ static int _RebuildZoneTbls(struct __ScanDieInfo_t *pDieInfo)
 ************************************************************************************************************************
 */
 #if(0)
-int FMT_Init(void)
+__s32 FMT_Init(void)
 {
-    int i;
-	uint TmpBlkSize;
+    __s32 i;
+	__u32 TmpBlkSize;
 
 	DIE0_FIRST_BLK_NUM = 0;
 	/*get block number for boot*/
@@ -2468,10 +2468,10 @@ int FMT_Init(void)
     return 0;
 }
 #elif(1)
-int FMT_Init(void)
+__s32 FMT_Init(void)
 {
-    int i;
-	uint TmpBlkSize;
+    __s32 i;
+	__u32 TmpBlkSize;
 
 	DIE0_FIRST_BLK_NUM = 0;
 	/*get block number for boot*/
@@ -2550,7 +2550,7 @@ int FMT_Init(void)
 *               < 0     format module exit failed.
 ************************************************************************************************************************
 */
-int FMT_Exit(void)
+__s32 FMT_Exit(void)
 {
     //release memory resource
 
@@ -2575,9 +2575,9 @@ int FMT_Exit(void)
 *             information has some error, need repair it. If find none mapping information, create it!
 ************************************************************************************************************************
 */
-int FMT_FormatNand(void)
+__s32 FMT_FormatNand(void)
 {
-    int tmpDie, result, tmpTryAgain;
+    __s32 tmpDie, result, tmpTryAgain;
     struct __ScanDieInfo_t tmpDieInfo;
 
 	result = 0;
