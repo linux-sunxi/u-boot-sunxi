@@ -29,6 +29,7 @@
 #include <fdt.h>
 #include <libfdt.h>
 #include <fdt_support.h>
+#include <fastboot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -153,6 +154,56 @@ int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
 	announce_and_cleanup();
 
 	kernel_entry(0, machid, bd->bi_boot_params);
+	/* does not return */
+
+	return 1;
+}
+
+/* Boot android style linux kernel */
+int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
+{
+	ulong initrd_start, initrd_end;
+	void (*kernel_entry)(int zero, int arch, uint params);
+	bd_t *bd = gd->bd;
+
+	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);
+
+	initrd_start = hdr->ramdisk_addr;
+	initrd_end = initrd_start + hdr->ramdisk_size;
+
+#if defined (CONFIG_SETUP_MEMORY_TAGS)
+	setup_start_tag (bd);
+#ifdef CONFIG_SERIAL_TAG
+	setup_serial_tag (&params);
+#endif
+#ifdef CONFIG_REVISION_TAG
+	setup_revision_tag (&params);
+#endif
+#ifdef CONFIG_SETUP_MEMORY_TAGS
+	/*----------------------------------------------------------------------
+	 * We don't need to set memory tags, since kernel will squash_mem_tags()
+	 * in arch/arm/kernel/setup.c. If we set memory tags, kernel will print
+	 * "Ignoring unrecognised tag 0x00000000" at boot time.
+	 *----------------------------------------------------------------------*/
+	/* setup_memory_tags (bd); */
+#endif
+#ifdef CONFIG_CMDLINE_TAG
+	setup_commandline_tag (bd, (char *)hdr->cmdline);
+#endif
+#ifdef CONFIG_INITRD_TAG
+	if (hdr->ramdisk_size)
+		setup_initrd_tag (bd, initrd_start, initrd_end);
+#endif
+#if defined (CONFIG_VFD) || defined (CONFIG_LCD)
+	setup_videolfb_tag ((gd_t *) gd);
+#endif
+	setup_end_tag (bd);
+#endif
+
+	/* we assume that the kernel is in place */
+	announce_and_cleanup();
+
+	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);
 	/* does not return */
 
 	return 1;

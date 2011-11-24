@@ -161,14 +161,15 @@
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_EXTRA_ENV_SETTINGS "bootargs=console=ttyS0,115200 " \
-                                  "root=/dev/nandb init=/init rw " \
+                                  "init=/init rw " \
 								  "fbmem=32M@0x5a000000 loglevel=9;\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;bootm 50000000"
+#define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
 #define CONFIG_CMD_FAT			/* with this we can access bootfs in nand */
+#define CONFIG_CMD_BOOTA		/* boot android image */
 
 #endif /* __CONFIG_H */
