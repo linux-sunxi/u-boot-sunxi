@@ -50,7 +50,7 @@
 #define CONFIG_DISPLAY_BOARDINFO
 
 /* Clock Defines */
-
+#define MMU_BASE_ADDRESS			0x20000
 
 /* Serial & console */
 #define CONFIG_SYS_NS16550
