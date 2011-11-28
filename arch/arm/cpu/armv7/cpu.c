@@ -80,3 +80,10 @@ int cleanup_before_linux(void)
 
 	return 0;
 }
+
+int arch_cpu_init (void)
+{
+	mmu_create(MMU_BASE_ADDRESS);
+
+	return 0;
+}

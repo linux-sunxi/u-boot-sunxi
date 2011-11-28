@@ -145,6 +145,17 @@ int NAND_SettingDMA(unsigned int hDMA, void * arg)
 */
 int NAND_StartDMA(unsigned int hDMA, unsigned int saddr, unsigned int daddr, unsigned int bytes)
 {
+	if(saddr == 0x01c03030)//read
+	{
+		//cleanflushDcache rx_addr, virtual address
+		flush_cache((void *)daddr, bytes);
+	}
+	else //write
+	{
+		flush_cache((void *)saddr, bytes);
+	}
+
+
     return DMA_Start(hDMA, saddr, daddr, bytes);
 }
 

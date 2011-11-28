@@ -26,9 +26,9 @@
 #include <asm/armv7.h>
 #include <asm/utils.h>
 
-#define ARMV7_DCACHE_INVAL_ALL		1
+#define ARMV7_DCACHE_INVAL_ALL			1
 #define ARMV7_DCACHE_CLEAN_INVAL_ALL	2
-#define ARMV7_DCACHE_INVAL_RANGE	3
+#define ARMV7_DCACHE_INVAL_RANGE		3
 #define ARMV7_DCACHE_CLEAN_INVAL_RANGE	4
 
 #ifndef CONFIG_SYS_DCACHE_OFF
@@ -266,6 +266,10 @@ void flush_dcache_all(void)
 	v7_outer_cache_flush_all();
 }
 
+void flush_icache_all(void)
+{
+	asm volatile ("mcr p15, 0, %0, c7, c5, 0" : : "r" (0));
+}
 /*
  * Invalidates range in all levels of D-cache/unified cache used:
  * Affects the range [start, stop - 1]
