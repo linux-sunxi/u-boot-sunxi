@@ -149,7 +149,7 @@
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
 #define CONFIG_ENV_IS_IN_NAND_SUN4I	    /* we store env in one partition of our nand */
-#define CONFIG_SUNXI_ENV_PARTITION		"environment"		/* the partition name */
+#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
 /*------------------------------------------------------------------------
  * we save the environment in a nand partition, the partition name is defined
