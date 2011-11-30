@@ -23,8 +23,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#include <stdio.h>
 
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -35,10 +35,12 @@
 #include <config.h>
 #include <environment.h>
 
+extern uint32_t crc32 (uint32_t, const unsigned char *, uint);
+
 int main(int argc, char * argv[])
 {
 	int fin, fout;
-	int i;
+	int i, ret;
 	env_t env;
 
 	size_t len = 0;
@@ -93,8 +95,14 @@ int main(int argc, char * argv[])
 #ifdef DEBUG
 	printf("env.crc:%x\n", env.crc);
 #endif	
-	write(fout, &env, CONFIG_ENV_SIZE);
+	ret = write(fout, &env, CONFIG_ENV_SIZE);
+
+	if(ret < 1) {
+		printf("Write error, create env image failed\n");
+	}
 
 	close(fin);
 	close(fout);
+
+	return 0;
 }
