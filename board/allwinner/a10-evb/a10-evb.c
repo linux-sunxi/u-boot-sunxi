@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Configuration settings for the Allwinner A10-evb board.
+ * Some board init for the Allwinner A10-evb board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -39,7 +39,7 @@ void fastboot_partition_init(void)
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sun4i_nand_getpart_num();
-	printf("total partitions:%d\n", part_total);
+	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
 
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
@@ -60,6 +60,7 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x400;
 	return 0;
 }
+
 /* Partition init must be after NAND init, so we put the fastboot
  * partition init here in the board late init.
  */
@@ -83,7 +84,7 @@ int dram_init(void)
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	printf("Board:\tA10-EVB\n");
+	puts("Board: A10-EVB\n");
 	return 0;
 }
 #endif

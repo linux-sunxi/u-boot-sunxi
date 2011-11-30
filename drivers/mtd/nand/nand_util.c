@@ -693,8 +693,3 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 
 	return 0;
 }
-
-
-
-
-

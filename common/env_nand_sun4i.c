@@ -101,7 +101,9 @@ int saveenv(void)
  */
 int env_init(void)
 {
+#ifdef DEBUG
 	printf("env init\n");
+#endif
 	/* use default */
 	gd->env_addr = (ulong)&default_environment[0];
 	gd->env_valid = 1;

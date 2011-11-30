@@ -197,8 +197,6 @@ static int arg_off(const char *arg, int *idx, loff_t *off, loff_t *maxsize)
 		return -1;
 	}
 	
-//	printf("---------size:%lld, off:%lld, idx:%d", (unsigned int)(nand_info[*idx].size), *off, *idx);
-
 	*maxsize = (unsigned int)(nand_info[*idx].size) - *off;
 	return 0;
 }
@@ -390,9 +388,7 @@ static void nand_print_info(int idx)
 	printf("%s, sector size %u KiB\n",
 	       nand->name, nand->erasesize >> 10);
 }
-#if CONFIG_TEST	
-int mem[1024];
-#endif
+
 int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	int i, ret = 0;
@@ -621,30 +617,11 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		s = strchr(cmd, '.');
 		if (!s || !strcmp(s, ".jffs2") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
-			if (read){
-#if CONFIG_TEST				
-				for(i = 0; i < 1024; i++){
-					mem[i] = 0;
-				}
-#endif				
+			if (read) {
 				ret = sun4i_nand_read_opts(nand, off, &rwsize,
 							 (u_char *)addr);
-#if CONFIG_TEST				
-				int j;
-				for(j = 0; j < 1024; j++){
-					if(mem[j] != j){
-						printf("******************mem:%d j:%d \n", mem[j], j);
-					}
-					printf("mem:%d ", mem[j]);
-				}
-#endif				
 			}
-			else{
-#if CONFIG_TEST				
-				for(i = 0; i < 1024; i++){
-					mem[i] = i;
-				}
-#endif				
+			else {
 				ret = sun4i_nand_write_opts(nand, off, &rwsize,
 							  (u_char *)addr, 0);
 			}

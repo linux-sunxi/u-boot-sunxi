@@ -383,7 +383,8 @@ void *OSAL_io_remap(unsigned int base_addr, unsigned int size)
 */
 int OSAL_printf(const char * str, ...)
 {
+#ifdef DEBUG
     printf(str);
-
+#endif
     return 0;
 }
