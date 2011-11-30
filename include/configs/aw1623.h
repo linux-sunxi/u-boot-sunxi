@@ -172,5 +172,6 @@
 #define CONFIG_CMD_FAT			/* with this we can access bootfs in nand */
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
+#define CONFIG_CMD_BOOTD		/* boot the default command */
 
 #endif /* __CONFIG_H */

@@ -159,7 +159,7 @@ int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
 	return 1;
 }
 
-/* Boot android style linux kernel */
+/* Boot android style linux kernel and ramdisk */
 int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 {
 	ulong initrd_start, initrd_end;
@@ -167,6 +167,10 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	bd_t *bd = gd->bd;
 
 	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);
+
+#ifdef CONFIG_CMDLINE_TAG
+	char *commandline = getenv ("bootargs");
+#endif
 
 	initrd_start = hdr->ramdisk_addr;
 	initrd_end = initrd_start + hdr->ramdisk_size;
@@ -188,7 +192,11 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	/* setup_memory_tags (bd); */
 #endif
 #ifdef CONFIG_CMDLINE_TAG
-	setup_commandline_tag (bd, (char *)hdr->cmdline);
+	if(strlen(hdr->cmdline)) {
+		setup_commandline_tag (bd, (char *)hdr->cmdline);
+	} else {
+		setup_commandline_tag (bd, commandline);
+	}
 #endif
 #ifdef CONFIG_INITRD_TAG
 	if (hdr->ramdisk_size)
