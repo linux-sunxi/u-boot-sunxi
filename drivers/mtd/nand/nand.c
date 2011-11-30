@@ -72,8 +72,10 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			mtd->name = NULL;
 	} else {
 		mtd->name = NULL;
-		mtd->size = NAND_GetDiskSize()* 512;//Disksize unit is sector(512b) , 
-//		printf("mtd->size:%llu \n", mtd->size);
+		mtd->size = NAND_GetDiskSize()* 512;    /* NAND_GetDiskSize returns sectors */
+#ifdef DEBUG
+		printf("mtd->size:%llu \n", mtd->size);
+#endif
 	}
 }
 

@@ -128,34 +128,34 @@
 //==============================================================================
 
 //define if need print the physic operation module debug message
-#define PHY_DBG_MESSAGE_ON                  (1)
+#define PHY_DBG_MESSAGE_ON                  (0)
 
 //define if need print the physic operation module error message
-#define PHY_ERR_MESSAGE_ON                  (1)
+#define PHY_ERR_MESSAGE_ON                  (0)
 
 //define if need print the nand hardware scan module debug message
-#define SCAN_DBG_MESSAGE_ON                 (1)
+#define SCAN_DBG_MESSAGE_ON                 (0)
 
 //define if need print the nand hardware scan module error message
-#define SCAN_ERR_MESSAGE_ON                 (1)
+#define SCAN_ERR_MESSAGE_ON                 (0)
 
 //define if need print the nand disk format module debug message
-#define FORMAT_DBG_MESSAGE_ON               (1)
+#define FORMAT_DBG_MESSAGE_ON               (0)
 
 //define if need print the nand disk format module error message
-#define FORMAT_ERR_MESSAGE_ON               (1)
+#define FORMAT_ERR_MESSAGE_ON               (0)
 
 //define if need print the mapping manage module debug message
 #define MAPPING_DBG_MESSAGE_ON              (0)
 
 //define if need print the mapping manage module error message
-#define MAPPING_ERR_MESSAGE_ON              (1)
+#define MAPPING_ERR_MESSAGE_ON              (0)
 
 //define if need print the logic control layer debug message
 #define LOGICCTL_DBG_MESSAGE_ON             (0)
 
 //define if need print the logic control layer error message
-#define LOGICCTL_ERR_MESSAGE_ON             (1)
+#define LOGICCTL_ERR_MESSAGE_ON             (0)
 
 
 #if PHY_DBG_MESSAGE_ON

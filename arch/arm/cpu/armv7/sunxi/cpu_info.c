@@ -26,13 +26,10 @@
 #include <common.h>
 #include <asm/io.h>
 
-
-
-
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
-	printf("hello sunxi cpu info\n");
+	puts("CPU:   A10\n");
 
 	return 0;
 }
