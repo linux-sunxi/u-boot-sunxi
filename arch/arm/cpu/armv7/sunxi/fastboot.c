@@ -27,7 +27,7 @@
 #include <usbdevice.h>
 #include <fastboot.h>
 
-#if defined(CONFIG_FASTBOOT)
+#ifdef CONFIG_FASTBOOT
 
 #include  "usbc_sun4i/usb_bsp.h"
 
@@ -1749,6 +1749,6 @@ int fastboot_init(struct cmd_fastboot_interface *interface)
     return 0;
 }
 
-#endif  //#if defined(CONFIG_FASTBOOT)
+#endif /* CONFIG_FASTBOOT */
 
 
