@@ -39,8 +39,10 @@ extern uint32_t crc32 (uint32_t, const unsigned char *, uint);
 
 int main(int argc, char * argv[])
 {
-	int fin, fout;
-	int i, ret;
+	int fin, fout,fout2;
+	int i, j,ret,count= -1,flag=0,line=0,pop=0;
+	char tmp[ENV_SIZE];
+	
 	env_t env;
 
 	size_t len = 0;
@@ -65,12 +67,38 @@ int main(int argc, char * argv[])
 		perror("can not create file");
 		return -1;
 	}
-
+	/* take the file size */
 	len = lseek(fin, 0, SEEK_END);
+	
+	lseek(fin, 0, SEEK_SET);
+	if( read(fin, env.data, len) < 0 ) {
+		printf("read failed");
+		return -1;
+	}
+	for (i=0;i<len;i++){
+		if(env.data[i] == '#'){
+		flag=1;
+	
+		}
+		if(env.data[i] == '\n'){
+		flag=0;
+		
+	
+		}
+		if(flag == 0 )tmp[count++]=env.data[i];
+	
+	}
+
+	memset(env.data,0,len);
+	
+	
+	
 #ifdef DEBUG
 	printf("len: %d\n", len);
 #endif
 
+
+/*
 	if(len > ENV_SIZE)
 	{
 		printf("Warning: %s length is larger than CONFIG_ENV_SIZE\n", argv[1]);
@@ -83,13 +111,28 @@ int main(int argc, char * argv[])
 		printf("read failed");
 		return -1;
 	}
+	
+*/
 #ifdef DEBUG
 	printf("buf:\n%s\n", env.data);
 #endif
-	for(i = 0; i < ENV_SIZE; i++) {
-		if(env.data[i] == '\n')
-			env.data[i] = '\0';
+	for(i = 0,j = 0; i < ENV_SIZE; i++ ,j++) {
+		
+		if(tmp[i] == '\n'){
+		env.data[j] = '\0';
+	
+		}
+		else  env.data[j] =tmp[i] ;
+		
+		if ((tmp[i] == '\n') && (tmp[i-1] == '\n'))
+		{
+			j--;
+		}
 	}
+	
+
+	
+	
 	
 	env.crc = crc32(0, env.data, ENV_SIZE);
 #ifdef DEBUG
