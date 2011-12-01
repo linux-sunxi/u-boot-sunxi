@@ -39,7 +39,7 @@ int sun4i_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
 	unsigned int nSectNum,  nSectorCnt;
 
 	nSectNum   = (unsigned int)(offset / 512);
-	nSectorCnt = (unsigned int )(*length / 512);
+	nSectorCnt = (unsigned int)(*length / 512);
 #ifdef DEBUG
 	printf("sun4i nand read: start sector %x counts %x\n", nSectNum, nSectorCnt);
 #endif
@@ -52,7 +52,7 @@ int sun4i_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
 	unsigned int nSectNum,  nSectorCnt;
 
 	nSectNum   = (unsigned int)(offset / 512);
-	nSectorCnt = (unsigned int )(*length / 512);
+	nSectorCnt = (unsigned int)(*length / 512);
 #ifdef DEBUG
 	printf("sun4i nand write: start sector %x counts %x\n", nSectNum, nSectorCnt);
 #endif

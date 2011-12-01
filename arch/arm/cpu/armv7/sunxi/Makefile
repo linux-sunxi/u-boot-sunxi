@@ -33,6 +33,7 @@ COBJS	+= cpu_info.o
 COBJS	+= board.o
 COBJS	+= gpio.o
 COBJS	+= fastboot.o
+COBJS	+= sparse.o
 COBJS	+= usbc_sun4i/usbc.o \
            usbc_sun4i/usbc_dev.o \
            usbc_sun4i/usbc_host.o \

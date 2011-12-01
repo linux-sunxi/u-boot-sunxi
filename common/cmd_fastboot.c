@@ -59,6 +59,7 @@
 #include <nand.h>
 #include <fastboot.h>
 #include <environment.h>
+#include <sparse.h>
 
 #ifdef CONFIG_FASTBOOT
 
@@ -1148,13 +1149,29 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 							sprintf(response, "OKAY");
 						}
 					} else {
-						/* Normal case */
-						if (write_to_ptn(ptn)) {
-							printf("flashing '%s' failed\n", ptn->name);
-							sprintf(response, "FAILfailed to flash partition");
-						} else {
-							printf("partition '%s' flashed\n", ptn->name);
-							sprintf(response, "OKAY");
+							/* Check if we have sparse compressed image */
+							if ( ((sparse_header_t *)interface.transfer_buffer)->magic
+									== SPARSE_HEADER_MAGIC) {
+								printf("fastboot: %s is in sparse format\n", ptn->name);
+								if (!do_unsparse(interface.transfer_buffer,
+										ptn->start,
+										ptn->length,
+										NULL)) {
+									printf("Writing sparsed: '%s' DONE!\n", ptn->name);
+									sprintf(response, "OKAY");
+								} else {
+									printf("Writing sparsed '%s' FAILED!\n", ptn->name);
+									sprintf(response, "FAIL: Sparsed Write");
+								}
+							} else {
+							/* Normal image: no sparse */
+							if (write_to_ptn(ptn)) {
+								printf("flashing '%s' failed\n", ptn->name);
+								sprintf(response, "FAILfailed to flash partition");
+							} else {
+								printf("partition '%s' flashed\n", ptn->name);
+								sprintf(response, "OKAY");
+							}
 						}
 					}
 				}
