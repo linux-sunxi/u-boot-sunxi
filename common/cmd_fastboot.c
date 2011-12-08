@@ -767,8 +767,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				}
 				fastboot_tx_status(response, strlen(response));
 
-				printf ("\ndownloading of %d bytes finished\n",
-					download_bytes);
+				printf ("\ndownloading of %d MB finished\n",
+					download_bytes >> 20);
 
 #if defined(CONFIG_STORAGE_NAND)
 				/* Pad to block length
@@ -811,14 +811,9 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				/* Some feeback that the
 				   download is happening */
 				if (download_error)
-					printf("X");
+					printf("X\n");
 				else
-					printf(".");
-				if (0 == (download_bytes %
-					  (80 * 16 *
-					   interface.nand_block_size)))
-					printf("\n");
-				
+					printf("downloading %d MB ...\r", download_bytes >> 20);
 			}
 		}
 		else
@@ -1005,7 +1000,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			/* Reset error */
 			download_error = 0;
 
-			printf ("Starting download of %d bytes\n", download_size);
+			printf ("Starting download of %d MB\n", download_size >> 20);
 
 			if (0 == download_size)
 			{
