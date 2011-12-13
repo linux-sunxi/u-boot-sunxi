@@ -29,7 +29,7 @@
 
 #ifdef CONFIG_FASTBOOT
 
-#include  "usbc_sun4i/usb_bsp.h"
+#include  "usb/usb_bsp.h"
 
 //-----------------------------------------------------------------------------
 //   ∫Í∂®“Â
