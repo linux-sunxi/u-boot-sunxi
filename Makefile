@@ -294,7 +294,7 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
 ifeq ($(SOC),sunxi)
-LIBS += nand_sun4i/libnand_sun4i.o
+LIBS += nand_sunxi/libsunxi-nand.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
