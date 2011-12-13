@@ -756,6 +756,11 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				   Keep download_bytes because it will be
 				   used in the next possible flashing command */
 				download_size = 0;
+				/* The download buffer and cmd buffer is the same one
+				   since the partition name ends without a trailing 0 byte
+				   we need to clear the buffer after download finished
+				   for the next possible command. */
+				memset(buffer, 0, transfer_size);
 
 				if (download_error) {
 					/* There was an earlier error */
@@ -770,6 +775,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				printf ("\ndownloading of %d MB finished\n",
 					download_bytes >> 20);
 
+#if 0 /* We don't need to pad */
 #if defined(CONFIG_STORAGE_NAND)
 				/* Pad to block length
 				   In most cases, padding the download to be
@@ -801,6 +807,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					}
 				}
 #endif
+#endif /* #if 0 */
 			}
 
 			/* Provide some feedback */
