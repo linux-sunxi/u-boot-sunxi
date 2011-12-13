@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Configuration settings for the Allwinner A10-evb board.
+ * Configuration settings for the Allwinner A12-evb board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -33,7 +33,7 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN4I				/* which is sun4i */
-#define CONFIG_A10_EVB				/* working with A10-EVB board */
+#define CONFIG_A12_EVB				/* working with A10-EVB board */
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
@@ -119,7 +119,7 @@
 #define CONFIG_SYS_LONGHELP				/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"sun4i#"
+#define CONFIG_SYS_PROMPT		"sun5i#"
 #define CONFIG_SYS_CBSIZE	256			/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384			/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16			/* max number of command args */
@@ -172,7 +172,7 @@
 								  "fbmem=32M@0x5a000000 loglevel=9;\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;boota 50000000"
+#define CONFIG_BOOTCOMMAND	"nand read 42000000 kernel;boota 42000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 

@@ -166,7 +166,7 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size)
 		return ret;
 
 	return 0;
-#elif defined CONFIG_NAND_SUN4I
+#elif defined CONFIG_NAND_SUNXI
 	int ret;
 
 	*idx = 0;
