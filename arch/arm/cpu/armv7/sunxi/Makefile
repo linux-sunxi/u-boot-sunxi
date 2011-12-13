@@ -34,10 +34,10 @@ COBJS	+= board.o
 COBJS	+= gpio.o
 COBJS	+= fastboot.o
 COBJS	+= sparse.o
-COBJS	+= usbc_sun4i/usbc.o \
-           usbc_sun4i/usbc_dev.o \
-           usbc_sun4i/usbc_host.o \
-           usbc_sun4i/usbc_phy.o
+COBJS	+= usb/usbc.o \
+           usb/usbc_dev.o \
+           usb/usbc_host.o \
+           usb/usbc_phy.o
 
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
