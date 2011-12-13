@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)libnand_sun4i.o
+LIB	= $(obj)libsunxi-nand.o
 
 COBJS	:= ./nand_drv/nand_for_uboot.o  		\
 		   ./nand_drv/nand_osal_uboot.o 		\
