@@ -38,14 +38,14 @@ void fastboot_partition_init(void)
 	int index,part_total;
 
 	printf("--------fastboot partitions--------\n");
-	part_total = sun4i_nand_getpart_num();
+	part_total = sunxi_nand_getpart_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
 
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
-		sun4i_nand_getpart_name(index, &fb_part.name[0]);
-		fb_part.start = sun4i_nand_getpart_offset(index) * 512;
-		fb_part.length = sun4i_nand_getpart_size(index) * 512;
+		sunxi_nand_getpart_name(index, &fb_part.name[0]);
+		fb_part.start = sunxi_nand_getpart_offset(index) * 512;
+		fb_part.length = sunxi_nand_getpart_size(index) * 512;
 		fb_part.flags = 0;
 		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
 		fastboot_flash_add_ptn(&fb_part);

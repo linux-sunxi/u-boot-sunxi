@@ -41,10 +41,10 @@ size_t env_size = (size_t)CONFIG_ENV_SIZE;
 
 extern uchar default_environment[];
 
-extern int sun4i_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
+extern int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
 			u_char *buffer, int flags);
 
-extern int sun4i_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
+extern int sunxi_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
 			u_char *buffer, int flags);
 
 uchar env_get_char_spec(int index)
@@ -57,19 +57,19 @@ void env_relocate_spec(void)
 	char buf[CONFIG_ENV_SIZE];
 	unsigned int tmp;
 
-	tmp = sun4i_nand_getpart_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
+	tmp = sunxi_nand_getpart_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
 	if( tmp != -1) {
 		env_offset = (loff_t) (tmp * 512);
 	}
 
-	tmp = sun4i_nand_getpart_size_byname(CONFIG_SUNXI_ENV_PARTITION);
+	tmp = sunxi_nand_getpart_size_byname(CONFIG_SUNXI_ENV_PARTITION);
 	if( tmp != -1) {
 		env_size = (size_t) (tmp * 512);
 		if(env_size > CONFIG_ENV_SIZE)
 			env_size = CONFIG_ENV_SIZE;
 	}
 
-	sun4i_nand_read_opts(&nand_info[0], env_offset, &env_size, buf, 0);
+	sunxi_nand_read_opts(&nand_info[0], env_offset, &env_size, buf, 0);
 	env_import(buf, 1);
 }
 
@@ -91,7 +91,7 @@ int saveenv(void)
 	}
 	env_new.crc   = crc32(0, env_new.data, ENV_SIZE);
 
-	return sun4i_nand_write_opts(&nand_info[0], (loff_t)env_offset, &env_size,
+	return sunxi_nand_write_opts(&nand_info[0], (loff_t)env_offset, &env_size,
 			(u_char *)&env_new, 0);
 }
 

@@ -112,6 +112,6 @@ void s_init(void)
 
 void reset_cpu(ulong addr)
 {
-	sun4i_nand_flush_opts();
+	sunxi_nand_flush_opts();
 	sunxi_reset();
 }
