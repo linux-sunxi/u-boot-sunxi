@@ -81,6 +81,14 @@ int dram_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_GENERIC_MMC
+int board_mmc_init(bd_t *bis)
+{
+	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
