@@ -30,7 +30,6 @@
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 
-
 void watchdog_init()
 {
 	struct sunxi_wdog *wdog =
@@ -57,7 +56,7 @@ void clock_init()
 	sdelay(0x4000);
 	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
-#ifdef SUN5I
+#ifdef CONFIG_SUN5I
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
 #endif
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */

@@ -1,67 +1,42 @@
 /*
- * allwinenr's mmc driver for u-boot
- * author: Aaron<leafy.myeh@allwinnertech.com>
- * date: 2011-12-8 15:29:03
+ * (C) Copyright 2007-2011
+ * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
+ * Aaron <leafy.myeh@allwinnertech.com>
+ *
+ * MMC driver for allwinner sunxi platform.
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/cpu.h>
+#include <asm/arch/mmc.h>
 #include <mmc.h>
 
-//#define SUNXI_MMCDBG
-
-#define SUNXI_SDMMC0_BASE	0x01C0F000
-#define SUNXI_SDMMC1_BASE	0x01C10000
-#define SUNXI_SDMMC2_BASE	0x01C11000
-#define SUNXI_SDMMC3_BASE	0x01C12000
-
-struct sw_mmc {
-	unsigned int 	 gctrl;			//(0x00) SMC Global Control Register
-	unsigned int 	 clkcr;         //(0x04) SMC Clock Control Register
-	unsigned int 	 timeout;       //(0x08) SMC Time Out Register
-	unsigned int 	 width;         //(0x0C) SMC Bus Width Register
-	unsigned int 	 blksz;         //(0x10) SMC Block Size Register
-	unsigned int 	 bytecnt;        //(0x14) SMC Byte Count Register
-	unsigned int 	 cmd;           //(0x18) SMC Command Register
-	unsigned int 	 arg;           //(0x1C) SMC Argument Register
-	unsigned int 	 resp0;         //(0x20) SMC Response Register 0
-	unsigned int 	 resp1;         //(0x24) SMC Response Register 1
-	unsigned int 	 resp2;         //(0x28) SMC Response Register 2
-	unsigned int 	 resp3;         //(0x2C) SMC Response Register 3
-	unsigned int 	 imask;         //(0x30) SMC Interrupt Mask Register
-	unsigned int 	 mint;          //(0x34) SMC Masked Interrupt Status Register
-	unsigned int 	 rint;          //(0x38) SMC Raw Interrupt Status Register
-	unsigned int 	 status;        //(0x3C) SMC Status Register
-	unsigned int 	 ftrglevel;     //(0x40) SMC FIFO Threshold Watermark Register
-	unsigned int 	 funcsel;       //(0x44) SMC Function Select Register
-	unsigned int 	 cbcr;          //(0x48) SMC CIU Byte Count Register
-	unsigned int 	 bbcr;          //(0x4C) SMC BIU Byte Count Register
-	unsigned int 	 dbgc;          //(0x50) SMC Debug Enable Register
-//	unsigned int 	 res0[11];		//(0x54~0x7c)
-//	unsigned int 	 dmac;          //(0x80) SMC IDMAC Control Register
-//	unsigned int 	 dlba;          //(0x84) SMC IDMAC Descriptor List Base Address Register
-//	unsigned int 	 idst;          //(0x88) SMC IDMAC Status Register
-//	unsigned int 	 idie;          //(0x8C) SMC IDMAC Interrupt Enable Register
-//	unsigned int 	 chda;          //(0x90)
-//	unsigned int 	 cbda;          //(0x94)
-//	unsigned int 	 res0[26];		//(0x98~0xff)
-//	unsigned int 	 fifo;          //(0x100) SMC FIFO Access Address
-};
-
-struct swmmc_host {
-	struct sw_mmc *reg;
-	unsigned mmc_no;
-	unsigned hclkbase;
-	unsigned mclkbase;
-	unsigned database;
-	unsigned fatal_err;
-};
+#undef SUNXI_MMCDBG
 
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
+
 static void dumphex32(char* name, char* base, int len)
 {
 	__u32 i;
@@ -75,7 +50,8 @@ static void dumphex32(char* name, char* base, int len)
 	}
 	printf("\n");
 }
-static void dumpmmcreg(struct sw_mmc *reg)
+
+static void dumpmmcreg(struct sunxi_mmc *reg)
 {
 	printf("gctrl     0x%08x\n", reg->gctrl     );
 	printf("clkcr     0x%08x\n", reg->clkcr     );
@@ -100,34 +76,45 @@ static void dumpmmcreg(struct sw_mmc *reg)
 #define MMCDBG(fmt...)
 #define dumphex32(fmt...)
 #define dumpmmcreg(fmt...)
-#endif
+#endif /* SUNXI_MMCDBG */
+
+struct sunxi_mmc_host {
+	struct sunxi_mmc *reg;
+	unsigned mmc_no;
+	unsigned hclkbase;
+	unsigned mclkbase;
+	unsigned database;
+	unsigned fatal_err;
+};
+
 /* support 4 mmc hosts */
 struct mmc mmc_dev[4];
-struct swmmc_host mmc_host[4];
+struct sunxi_mmc_host mmc_host[4];
 
-static int swmmc_res_init(int sdc_no)
+static int sunxi_mmc_res_init(int sdc_no)
 {
-	struct swmmc_host* mmchost = &mmc_host[sdc_no];
+	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
 	MMCDBG("init mmc %d resource\n", sdc_no);
 	switch (sdc_no) {
 		case 0:
-			mmchost->reg = (struct sw_mmc *)SUNXI_SDMMC0_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC0_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC0_SCLK_CFG;
 			break;
 		case 1:
-			mmchost->reg = (struct sw_mmc *)SUNXI_SDMMC1_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC1_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC1_SCLK_CFG;
 			break;
 		case 2:
-			mmchost->reg = (struct sw_mmc *)SUNXI_SDMMC2_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC2_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC2_SCLK_CFG;
 			break;
 		case 3:
-			mmchost->reg = (struct sw_mmc *)SUNXI_SDMMC3_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC3_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC3_SCLK_CFG;
 			break;
 		default:
-			MMCDBG("Wrong mmc number %d\n", sdc_no);
+			printf("Wrong mmc number %d\n", sdc_no);
+			break;
 	}
 	mmchost->hclkbase = SUNXI_CCM_AHB_GATING0;
 	mmchost->database = (unsigned int)mmchost->reg + 0x100;
@@ -136,10 +123,10 @@ static int swmmc_res_init(int sdc_no)
 	return 0;
 }
 
-static int swmmc_clk_io_on(int sdc_no)
+static int sunxi_mmc_clk_io_on(int sdc_no)
 {
 	unsigned int rval;
-	struct swmmc_host* mmchost = &mmc_host[sdc_no];
+	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
 	static struct sunxi_gpio *gpio_c =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
 	static struct sunxi_gpio *gpio_f =
@@ -153,10 +140,10 @@ static int swmmc_clk_io_on(int sdc_no)
 	static struct sunxi_gpio *gpio_i =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
 	MMCDBG("init mmc %d clock and io\n", sdc_no);
-	//config io
+	/* config gpio */
 	switch (sdc_no) {
         case 0:
-            //D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5
+            /* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
             writel(0x222222, &gpio_f->cfg[0]);
             writel(0x555, &gpio_f->pull[0]);
             writel(0x555, &gpio_f->drv[0]);
@@ -164,12 +151,12 @@ static int swmmc_clk_io_on(int sdc_no)
 
         case 1:
             #if 0
-            //PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4
+            /* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
             writel(0x444444, &gpio_g->cfg[0]);
             writel(0x555, &gpio_g->pull[0]);
             writel(0x555, &gpio_g->drv[0]);
             #else
-            //PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5
+            /* PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5 */
             writel(0x55<<24, &gpio_h->cfg[2]);
             writel(0x5555, &gpio_h->cfg[3]);
             writel(0x555<<12, &gpio_h->pull[1]);
@@ -178,7 +165,7 @@ static int swmmc_clk_io_on(int sdc_no)
             break;
 
         case 2:
-            //CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11
+            /* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
             writel(0x33<<24, &gpio_c->cfg[0]);
             writel(0x3333, &gpio_c->cfg[1]);
             writel(0x555<<12, &gpio_c->pull[0]);
@@ -186,7 +173,7 @@ static int swmmc_clk_io_on(int sdc_no)
             break;
 
         case 3:
-            //PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2
+            /* PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2 */
             writel(0x2222<<16, &gpio_i->cfg[0]);
             writel(0x22, &gpio_i->cfg[1]);
             writel(0x555<<8, &gpio_i->pull[0]);
@@ -197,7 +184,7 @@ static int swmmc_clk_io_on(int sdc_no)
             return -1;
 	}
 
-	//config clock
+	/* config clock */
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
@@ -211,7 +198,7 @@ static int swmmc_clk_io_on(int sdc_no)
 
 static int mmc_update_clk(struct mmc *mmc)
 {
-	struct swmmc_host* mmchost = (struct swmmc_host *)mmc->priv;
+	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int cmd;
 	unsigned timeout = 0xfffff;
 
@@ -227,7 +214,7 @@ static int mmc_update_clk(struct mmc *mmc)
 
 static int mmc_config_clock(struct mmc *mmc, unsigned div)
 {
-	struct swmmc_host* mmchost = (struct swmmc_host *)mmc->priv;
+	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned rval = readl(&mmchost->reg->clkcr);
 
 	/*
@@ -256,7 +243,7 @@ static int mmc_config_clock(struct mmc *mmc, unsigned div)
 
 static void mmc_set_ios(struct mmc *mmc)
 {
-	struct swmmc_host* mmchost = (struct swmmc_host *)mmc->priv;
+	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int clkdiv = 0;
 
 	MMCDBG("set ios: bus_width: %x, clock: %d\n", mmc->bus_width, mmc->clock);
@@ -280,8 +267,8 @@ static void mmc_set_ios(struct mmc *mmc)
 
 static int mmc_core_init(struct mmc *mmc)
 {
-	struct swmmc_host* mmchost = (struct swmmc_host *)mmc->priv;
-	/* reset controller */
+	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	/* Reset controller */
 	writel(0x7, &mmchost->reg->gctrl);
 	return 0;
 }
@@ -289,7 +276,7 @@ static int mmc_core_init(struct mmc *mmc)
 static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
-	struct swmmc_host* mmchost = (struct swmmc_host *)mmc->priv;
+	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int cmdval = 0x80000000;
 	signed int timeout = 0;
 	unsigned int error = 0;
@@ -445,14 +432,14 @@ out:
 		return 0;
 }
 
-static int swmmc_init(int sdc_no)
+int sunxi_mmc_init(int sdc_no)
 {
 	struct mmc *mmc;
 
-	printf(" mmc initialize %d\n", sdc_no);
+	//printf(" mmc initialize %d\n", sdc_no);
 
 	memset(&mmc_dev[sdc_no], 0, sizeof(struct mmc));
-	memset(&mmc_host[sdc_no], 0, sizeof(struct swmmc_host));
+	memset(&mmc_host[sdc_no], 0, sizeof(struct sunxi_mmc_host));
 	mmc = &mmc_dev[sdc_no];
 
 	sprintf(mmc->name, "Allwinner SD/MMC");
@@ -468,17 +455,10 @@ static int swmmc_init(int sdc_no)
 	mmc->f_min = 400000;
 	mmc->f_max = 25000000;
 
-	swmmc_res_init(sdc_no);
-	swmmc_clk_io_on(sdc_no);
+	sunxi_mmc_res_init(sdc_no);
+	sunxi_mmc_clk_io_on(sdc_no);
 
 	mmc_register(mmc);
 
-	return 0;
-}
-
-int board_mmc_init(bd_t *bis)
-{
-	swmmc_init(0);
-//	swmmc_init(1);
 	return 0;
 }
