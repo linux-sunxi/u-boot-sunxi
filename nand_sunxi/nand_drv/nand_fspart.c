@@ -63,14 +63,14 @@ static __u32 _calc_crc32(void * buffer, __u32 length)
 	return CRC32^0xffffffff;
 }
 
-int sun4i_nand_getpart_num(void)
+int sunxi_nand_getpart_num(void)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
 	return mbr->PartCount;
 }
 
-int sun4i_nand_getpart_name(int index, char *buf)
+int sunxi_nand_getpart_name(int index, char *buf)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
@@ -79,7 +79,7 @@ int sun4i_nand_getpart_name(int index, char *buf)
 
 }
 
-int sun4i_nand_getpart_offset(int part_index)
+int sunxi_nand_getpart_offset(int part_index)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
@@ -91,7 +91,7 @@ int sun4i_nand_getpart_offset(int part_index)
 	return mbr->array[part_index].addrlo;
 }
 
-int sun4i_nand_getpart_size(int part_index)
+int sunxi_nand_getpart_size(int part_index)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 
@@ -103,7 +103,7 @@ int sun4i_nand_getpart_size(int part_index)
 	return mbr->array[part_index].lenlo;
 }
 
-int sun4i_nand_getpart_offset_byname(const char *part_name)
+int sunxi_nand_getpart_offset_byname(const char *part_name)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 	int			i;
@@ -119,7 +119,7 @@ int sun4i_nand_getpart_offset_byname(const char *part_name)
 	return -1;
 }
 
-int sun4i_nand_getpart_size_byname(const char *part_name)
+int sunxi_nand_getpart_size_byname(const char *part_name)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 	int			i;
@@ -139,7 +139,7 @@ int sun4i_nand_getpart_size_byname(const char *part_name)
  * input: partition name
  * output: part_offset and part_size (in byte)
  */
-int sun4i_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, loff_t *part_size)
+int sunxi_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, loff_t *part_size)
 {
 	MBR        *mbr  = (MBR*)BOOTFSMBR_buf;
 	int			i;
@@ -157,7 +157,7 @@ int sun4i_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, l
 	return -1;
 }
 
-int sun4i_nand_scan_partition(void)
+int sunxi_nand_scan_partition(void)
 {
    int i, part_index = 0;
    MBR    *mbr;

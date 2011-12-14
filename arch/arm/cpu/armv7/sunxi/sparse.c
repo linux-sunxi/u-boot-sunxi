@@ -161,7 +161,7 @@ u8 do_unsparse(unsigned char *source, u32 offset, u32 partition_size, char *slot
 {
 	unsigned mmcc = simple_strtoul(slot_no, NULL, 16);
 #if defined(CONFIG_STORAGE_NAND)
-	if (_unsparse(source, offset, partition_size, mmcc, sun4i_nand_write_opts))
+	if (_unsparse(source, offset, partition_size, mmcc, sunxi_nand_write_opts))
 		return 1;
 #elif defined(CONFIG_STORAGE_EMMC)
 	if (_unsparse(source, offset, partition_size, mmcc, mmc_write))

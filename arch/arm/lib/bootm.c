@@ -192,7 +192,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	/* setup_memory_tags (bd); */
 #endif
 #ifdef CONFIG_CMDLINE_TAG
-	if(strlen(hdr->cmdline)) {
+	if(strlen((const char *)hdr->cmdline)) {
 		setup_commandline_tag (bd, (char *)hdr->cmdline);
 	} else {
 		setup_commandline_tag (bd, commandline);

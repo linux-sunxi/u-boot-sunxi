@@ -170,7 +170,7 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size)
 	int ret;
 
 	*idx = 0;
-	ret = sun4i_nand_getpart_info_byname(partname, off, size);
+	ret = sunxi_nand_getpart_info_byname(partname, off, size);
 
 	if(ret) {
 		printf("Can not find partition \'%s\'\n", partname);
@@ -572,7 +572,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				return -1;
 			}
 		}
-		ret = sun4i_nand_erase_opts(nand, &opts);
+		ret = sunxi_nand_erase_opts(nand, &opts);
 		printf("%s\n", ret ? "ERROR" : "OK");
 
 		return ret == 0 ? 0 : 1;
@@ -618,11 +618,11 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		if (!s || !strcmp(s, ".jffs2") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
 			if (read) {
-				ret = sun4i_nand_read_opts(nand, off, &rwsize,
+				ret = sunxi_nand_read_opts(nand, off, &rwsize,
 							 (u_char *)addr);
 			}
 			else {
-				ret = sun4i_nand_write_opts(nand, off, &rwsize,
+				ret = sunxi_nand_write_opts(nand, off, &rwsize,
 							  (u_char *)addr, 0);
 			}
 #ifdef CONFIG_CMD_NAND_TRIMFFS
