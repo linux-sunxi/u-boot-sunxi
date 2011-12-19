@@ -97,19 +97,19 @@ static int sunxi_mmc_res_init(int sdc_no)
 	MMCDBG("init mmc %d resource\n", sdc_no);
 	switch (sdc_no) {
 		case 0:
-			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC0_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC0_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC0_SCLK_CFG;
 			break;
 		case 1:
-			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC1_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC1_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC1_SCLK_CFG;
 			break;
 		case 2:
-			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC2_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC2_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC2_SCLK_CFG;
 			break;
 		case 3:
-			mmchost->reg = (struct sunxi_mmc *)SUNXI_SDMMC3_BASE;
+			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC3_BASE;
 			mmchost->mclkbase = SUNXI_CCM_MMC3_SCLK_CFG;
 			break;
 		default:
