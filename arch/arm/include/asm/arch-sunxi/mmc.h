@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Aaron <leafy.myeh@allwinnertech.com>
  *
- * MMC driver for allwinner sunxi platform.
+ * MMC register definition for allwinner sunxi platform.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,11 +26,6 @@
 
 #ifndef _SUNXI_MMC_H
 #define _SUNXI_MMC_H
-
-#define SUNXI_SDMMC0_BASE	0x01C0F000
-#define SUNXI_SDMMC1_BASE	0x01C10000
-#define SUNXI_SDMMC2_BASE	0x01C11000
-#define SUNXI_SDMMC3_BASE	0x01C12000
 
 struct sunxi_mmc {
 	unsigned int 	 gctrl;			//(0x00) SMC Global Control Register
