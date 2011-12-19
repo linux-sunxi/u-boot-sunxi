@@ -28,37 +28,37 @@
 #define _SUNXI_MMC_H
 
 struct sunxi_mmc {
-	unsigned int 	 gctrl;			//(0x00) SMC Global Control Register
-	unsigned int 	 clkcr;         //(0x04) SMC Clock Control Register
-	unsigned int 	 timeout;       //(0x08) SMC Time Out Register
-	unsigned int 	 width;         //(0x0C) SMC Bus Width Register
-	unsigned int 	 blksz;         //(0x10) SMC Block Size Register
-	unsigned int 	 bytecnt;       //(0x14) SMC Byte Count Register
-	unsigned int 	 cmd;           //(0x18) SMC Command Register
-	unsigned int 	 arg;           //(0x1C) SMC Argument Register
-	unsigned int 	 resp0;         //(0x20) SMC Response Register 0
-	unsigned int 	 resp1;         //(0x24) SMC Response Register 1
-	unsigned int 	 resp2;         //(0x28) SMC Response Register 2
-	unsigned int 	 resp3;         //(0x2C) SMC Response Register 3
-	unsigned int 	 imask;         //(0x30) SMC Interrupt Mask Register
-	unsigned int 	 mint;          //(0x34) SMC Masked Interrupt Status Register
-	unsigned int 	 rint;          //(0x38) SMC Raw Interrupt Status Register
-	unsigned int 	 status;        //(0x3C) SMC Status Register
-	unsigned int 	 ftrglevel;     //(0x40) SMC FIFO Threshold Watermark Register
-	unsigned int 	 funcsel;       //(0x44) SMC Function Select Register
-	unsigned int 	 cbcr;          //(0x48) SMC CIU Byte Count Register
-	unsigned int 	 bbcr;          //(0x4C) SMC BIU Byte Count Register
-	unsigned int 	 dbgc;          //(0x50) SMC Debug Enable Register
+	u32 gctrl;         //(0x00) SMC Global Control Register
+	u32 clkcr;         //(0x04) SMC Clock Control Register
+	u32 timeout;       //(0x08) SMC Time Out Register
+	u32 width;         //(0x0C) SMC Bus Width Register
+	u32 blksz;         //(0x10) SMC Block Size Register
+	u32 bytecnt;       //(0x14) SMC Byte Count Register
+	u32 cmd;           //(0x18) SMC Command Register
+	u32 arg;           //(0x1C) SMC Argument Register
+	u32 resp0;         //(0x20) SMC Response Register 0
+	u32 resp1;         //(0x24) SMC Response Register 1
+	u32 resp2;         //(0x28) SMC Response Register 2
+	u32 resp3;         //(0x2C) SMC Response Register 3
+	u32 imask;         //(0x30) SMC Interrupt Mask Register
+	u32 mint;          //(0x34) SMC Masked Interrupt Status Register
+	u32 rint;          //(0x38) SMC Raw Interrupt Status Register
+	u32 status;        //(0x3C) SMC Status Register
+	u32 ftrglevel;     //(0x40) SMC FIFO Threshold Watermark Register
+	u32 funcsel;       //(0x44) SMC Function Select Register
+	u32 cbcr;          //(0x48) SMC CIU Byte Count Register
+	u32 bbcr;          //(0x4C) SMC BIU Byte Count Register
+	u32 dbgc;          //(0x50) SMC Debug Enable Register
 #if 0
-	unsigned int 	 res0[11];		//(0x54~0x7c)
-	unsigned int 	 dmac;          //(0x80) SMC IDMAC Control Register
-	unsigned int 	 dlba;          //(0x84) SMC IDMAC Descriptor List Base Address Register
-	unsigned int 	 idst;          //(0x88) SMC IDMAC Status Register
-	unsigned int 	 idie;          //(0x8C) SMC IDMAC Interrupt Enable Register
-	unsigned int 	 chda;          //(0x90)
-	unsigned int 	 cbda;          //(0x94)
-	unsigned int 	 res0[26];		//(0x98~0xff)
-	unsigned int 	 fifo;          //(0x100) SMC FIFO Access Address
+	u32 res0[11];      //(0x54~0x7c)
+	u32 dmac;          //(0x80) SMC IDMAC Control Register
+	u32 dlba;          //(0x84) SMC IDMAC Descriptor List Base Address Register
+	u32 idst;          //(0x88) SMC IDMAC Status Register
+	u32 idie;          //(0x8C) SMC IDMAC Interrupt Enable Register
+	u32 chda;          //(0x90)
+	u32 cbda;          //(0x94)
+	u32 res0[26];      //(0x98~0xff)
+	u32 fifo;          //(0x100) SMC FIFO Access Address
 #endif
 };
 
