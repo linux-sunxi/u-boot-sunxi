@@ -65,6 +65,8 @@ int check_android_misc() {
 			return 0;
 		}
 	}
+
+	return 0;
 }
 
 /* TODO add board specific code here */
@@ -88,12 +90,14 @@ int board_late_init(void)
 
 	if(sunxi_check_fastboot(key)) {
 		puts("Fastboot key pressed\n");
-		setenv("bootcmd", "fastboot");
+		/* set boot cmd to boot fastboot */
+		setenv("bootcmd", "run setargs boot_fastboot");
 	}
 
 	if(sunxi_check_recovery(key)) {
 		puts("Recovery key pressed\n");
-		setenv("bootcmd", "boota recovery");
+		/* set boot cmd to boot recovery */
+		setenv("bootcmd", "run setargs boot_recovery");
 	}
 
 	if(check_android_misc()) {
