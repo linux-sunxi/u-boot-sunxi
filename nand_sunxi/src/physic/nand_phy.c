@@ -83,21 +83,21 @@ __s32 _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mod
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i;
-
-	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
+	
+	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);	
 	/*create cmd list*/
 	/*samll block*/
-	if (SECTOR_CNT_OF_SINGLE_PAGE == 1){
+	if (SECTOR_CNT_OF_SINGLE_PAGE == 1){		
 		_cal_addr_in_chip(readop->block,readop->page,0,addr,4);
 		_add_cmd_list(cmd_list,0x00,4,addr,NFC_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_WAIT_RB);
 	}
 	/*large block*/
 	else{
-		/*the cammand have no corresponding feature if IGNORE was set, */
+		/*the cammand have no corresponding feature if IGNORE was set, */		
 		_cal_addr_in_chip(readop->block,readop->page,0,addr,5);
 		_add_cmd_list(cmd_list,0x00,5,addr,NFC_NO_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_NO_WAIT_RB);
-
-	}
+		
+	}	
 	_add_cmd_list(cmd_list + 1,0x05,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
 	_add_cmd_list(cmd_list + 2,0xe0,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
 	_add_cmd_list(cmd_list + 3,0x30,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
@@ -110,12 +110,12 @@ __s32 _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mod
 	ret = _wait_rb_ready(readop->chip);
 	if (ret)
 		return ret;
-
+	
 	rb = _cal_real_rb(readop->chip);
 	NFC_SelectChip(readop->chip);
 	NFC_SelectRb(rb);
 
-	if(SUPPORT_RANDOM)
+	if(1)
 	{
 		//random_seed = _cal_random_seed(readop->page);
 		random_seed = 0x4a80;
@@ -130,50 +130,49 @@ __s32 _read_single_page_seq(struct boot_physical_param *readop,__u8 dma_wait_mod
 	{
 		ret = NFC_Read_Seq(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
 	}
+		
 
-
-
-
+	
+	
 	if (dma_wait_mode)
 		_pending_dma_irq_sem();
-
+	
 	if (readop->oobbuf){
 		MEMCPY(readop->oobbuf,sparebuf, 2 * 4);
 	}
 
 	NFC_DeSelectChip(readop->chip);
 	NFC_DeSelectRb(rb);
-
+	
 	//FREE(sparebuf);
 	return ret;
 }
+
 
 __s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
 	__s32 ret;
 	__u32 rb;
 	__u32 random_seed;
-
-	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i;
-
-	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
+	
+	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);	
 	/*create cmd list*/
 	/*samll block*/
-	if (SECTOR_CNT_OF_SINGLE_PAGE == 1){
+	if (SECTOR_CNT_OF_SINGLE_PAGE == 1){		
 		_cal_addr_in_chip(readop->block,readop->page,0,addr,4);
 		_add_cmd_list(cmd_list,0x00,4,addr,NFC_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_WAIT_RB);
 	}
 	/*large block*/
 	else{
-		/*the cammand have no corresponding feature if IGNORE was set, */
+		/*the cammand have no corresponding feature if IGNORE was set, */		
 		_cal_addr_in_chip(readop->block,readop->page,0,addr,5);
 		_add_cmd_list(cmd_list,0x00,5,addr,NFC_NO_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_NO_WAIT_RB);
-
-	}
+		
+	}	
 	_add_cmd_list(cmd_list + 1,0x05,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
 	_add_cmd_list(cmd_list + 2,0xe0,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
 	_add_cmd_list(cmd_list + 3,0x30,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
@@ -186,7 +185,7 @@ __s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode
 	ret = _wait_rb_ready(readop->chip);
 	if (ret)
 		return ret;
-
+	
 	rb = _cal_real_rb(readop->chip);
 	NFC_SelectChip(readop->chip);
 	NFC_SelectRb(rb);
@@ -202,14 +201,214 @@ __s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode
 		NFC_RandomDisable();
 		if(ret)
 			ret = NFC_Read_1K(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
-
+		
 	}
 	else
 	{
 		ret = NFC_Read_1K(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
 	}
 
+	
+	
+	if (dma_wait_mode)
+		_pending_dma_irq_sem();
+	
+	if (readop->oobbuf){
+		MEMCPY(readop->oobbuf,sparebuf, 2 * 4);
+	}
 
+	NFC_DeSelectChip(readop->chip);
+	NFC_DeSelectRb(rb);
+	
+	//FREE(sparebuf);
+	return ret;
+}
+
+__s32 _read_single_page_spare(struct boot_physical_param *readop,__u8 dma_wait_mode)
+{
+	__s32 ret;
+	__u32 k = 0;
+	__u32 rb;
+	__u32 random_seed;
+	__u8 sparebuf[4*16] __attribute__ ((aligned));
+	__u8 default_value[16];
+	__u8 addr[5] __attribute__ ((aligned));
+	NFC_CMD_LIST cmd_list[4];
+	__u32 list_len,i;
+	__u32 free_page_flag = 0;
+
+	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);
+	/*create cmd list*/
+	/*samll block*/
+	if (SECTOR_CNT_OF_SINGLE_PAGE == 1){
+		_cal_addr_in_chip(readop->block,readop->page,0,addr,4);
+		_add_cmd_list(cmd_list,0x00,4,addr,NFC_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_WAIT_RB);
+	}
+	/*large block*/
+	else{
+		/*the cammand have no corresponding feature if IGNORE was set, */
+		_cal_addr_in_chip(readop->block,readop->page,0,addr,5);
+		_add_cmd_list(cmd_list,0x00,5,addr,NFC_NO_DATA_FETCH,NFC_IGNORE,NFC_IGNORE,NFC_NO_WAIT_RB);
+
+	}
+	_add_cmd_list(cmd_list + 1,0x05,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+	_add_cmd_list(cmd_list + 2,0xe0,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+	_add_cmd_list(cmd_list + 3,0x30,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE,NFC_IGNORE);
+	list_len = 4;
+	for(i = 0; i < list_len - 1; i++){
+		cmd_list[i].next = &(cmd_list[i+1]);
+	}
+
+	/*wait rb ready*/
+	ret = _wait_rb_ready(readop->chip);
+	if (ret)
+		return ret;
+
+	rb = _cal_real_rb(readop->chip);
+	NFC_SelectChip(readop->chip);
+	NFC_SelectRb(rb);
+
+    if(SUPPORT_READ_RETRY)  
+    {
+        if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x30))  //toshiba & samsung mode
+            RetryCount[readop->chip] = 0;
+            
+        for( k = 0; k<READ_RETRY_CYCLE+1;k++)
+		{
+			if(RetryCount[readop->chip]==(READ_RETRY_CYCLE+1))
+				RetryCount[readop->chip] = 0;
+
+			if(k>0)
+			{
+			    if(NFC_ReadRetry(readop->chip,RetryCount[readop->chip],READ_RETRY_TYPE))
+			    {
+			        PHY_ERR("[Read_single_page_spare] NFC_ReadRetry fail \n");
+			        return -1;
+			    }
+			}
+
+			if(SUPPORT_RANDOM)
+			{
+				random_seed = _cal_random_seed(readop->page);
+				NFC_SetRandomSeed(random_seed);
+				NFC_RandomEnable();
+				free_page_flag = 0;
+				ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+				if(readop->page == 0)
+				{
+					if((sparebuf[4*i] == 0x0a)&&(sparebuf[4*i+1] == 0x53)&&(sparebuf[4*i+2] == 0xb8)&&(sparebuf[4*i+3] == 0xc2))
+						free_page_flag = 1;
+
+				}
+				else if((readop->page%128) == 127)
+				{
+					if((sparebuf[4*i] == 0x32)&&(sparebuf[4*i+1] == 0x43)&&(sparebuf[4*i+2] == 0xaa)&&(sparebuf[4*i+3] == 0x4e))
+						free_page_flag = 1;
+		
+				}
+
+				if(free_page_flag)
+				{
+					ret = 0;
+					sparebuf[4*i] = 0xff;
+					sparebuf[4*i+1] = 0xff;
+					sparebuf[4*i+2] = 0xff;
+					sparebuf[4*i+3] = 0xff;
+				}
+				NFC_RandomDisable();
+				if(ret == -ERR_ECC)
+					ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+				
+				
+				
+				/**************************************************************************************  
+				* 1. add by Neil, from v2.09
+				* 2. if spare area is all 0xff in random disable mode, it means the page is a clear page
+				* 3. because in toshiba 24nm nand, too many clear pages are not all 0xff
+				***************************************************************************************/
+				if((ret == -ERR_ECC)&&(sparebuf[0]==0xff)&&(sparebuf[1]==0xff)&&(sparebuf[2]==0xff)&&(sparebuf[3]==0xff)&&(sparebuf[4]==0xff)&&(sparebuf[5]==0xff)&&(sparebuf[6]==0xff)&&(sparebuf[7]==0xff))
+				{
+					//PHY_DBG("[Read_single_page_spare] find not all 0xff clear page!  chip = %d, block = %d, page = %d\n", readop->chip, readop->block, readop->page);
+					ret = 0;
+				}
+				
+			}
+			else
+			{
+				ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+			}
+
+			if((ret != -ERR_ECC)||(k==READ_RETRY_CYCLE))
+			{
+			    if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x20))  //toshiba mode
+			    {
+    			    //exit toshiba readretry
+    				PHY_ResetChip(readop->chip);
+			    }
+			    else if((READ_RETRY_MODE>=0x20)&&(READ_RETRY_MODE<0x30))   //samsung mode
+			    {
+			        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
+			    } 
+			    
+				break;
+			}
+
+			RetryCount[readop->chip]++;    				    				
+		}
+
+    	if(k>0)
+    	{
+    		PHY_DBG("[Read_single_page_spare] NFC_ReadRetry %d cycles, chip = %d, block = %d, page = %d, RetryCount = %d  \n", k ,readop->chip,readop->block, readop->page, RetryCount[readop->chip]);
+    		if(ret == -ERR_ECC)
+    		    PHY_DBG("ecc error!\n");
+    		PHY_DBG("spare buf: %x, %x, %x, %x, %x, %x, %x, %x\n", sparebuf[0],sparebuf[1],sparebuf[2],sparebuf[3],sparebuf[4],sparebuf[5],sparebuf[6],sparebuf[7]);
+    	}
+    	
+    	if(ret == ECC_LIMIT)
+    		ret = 0;
+        
+        
+    }
+    else 
+    {
+		if(SUPPORT_RANDOM)
+        {
+			random_seed = _cal_random_seed(readop->page);
+			NFC_SetRandomSeed(random_seed);
+			NFC_RandomEnable();
+			free_page_flag = 0;
+			ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+			if(readop->page == 0)
+			{
+				if((sparebuf[4*i] == 0x0a)&&(sparebuf[4*i+1] == 0x53)&&(sparebuf[4*i+2] == 0xb8)&&(sparebuf[4*i+3] == 0xc2))
+					free_page_flag = 1;
+
+			}
+			else if((readop->page%128) == 127)
+			{
+				if((sparebuf[4*i] == 0x32)&&(sparebuf[4*i+1] == 0x43)&&(sparebuf[4*i+2] == 0xaa)&&(sparebuf[4*i+3] == 0x4e))
+					free_page_flag = 1;
+	
+			}
+
+			if(free_page_flag)
+			{
+				ret = 0;
+				sparebuf[4*i] = 0xff;
+				sparebuf[4*i+1] = 0xff;
+				sparebuf[4*i+2] = 0xff;
+				sparebuf[4*i+3] = 0xff;
+			}
+			NFC_RandomDisable();
+			if(ret == -ERR_ECC)
+				ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+		}
+		else
+		{
+			ret = NFC_Read_Spare(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+		}	
+
+    }
 
 	if (dma_wait_mode)
 		_pending_dma_irq_sem();
@@ -306,8 +505,8 @@ __s32 _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 	__u32  k;
 	__u32 rb;
 	__u32 random_seed;
-	//__u8 *sparebuf;
 	__u8 sparebuf[4*16] __attribute__ ((aligned));
+	__u8 default_value[16];
 	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i;
@@ -349,6 +548,9 @@ __s32 _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 
     if(SUPPORT_READ_RETRY)
     {
+    	if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x30))  //toshiba & samsung mode
+            RetryCount[readop->chip] = 0;
+    	
         for( k = 0; k<(READ_RETRY_CYCLE+1);k++)
 		{
 			if(RetryCount[readop->chip]==(READ_RETRY_CYCLE+1))
@@ -372,6 +574,17 @@ __s32 _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 				NFC_RandomDisable();
 				if(ret == -ERR_ECC)
 					ret = NFC_Read(cmd_list, data_buf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
+				
+					/**************************************************************************************  
+					* 1. add by Neil, from v2.09
+					* 2. if spare area is all 0xff in random disable mode, it means the page is a clear page
+					* 3. because in toshiba 24nm nand, too many clear pages are not all 0xff
+					***************************************************************************************/
+					if((ret == -ERR_ECC)&&(sparebuf[0]==0xff)&&(sparebuf[1]==0xff)&&(sparebuf[2]==0xff)&&(sparebuf[3]==0xff)&&(sparebuf[4]==0xff)&&(sparebuf[5]==0xff)&&(sparebuf[6]==0xff)&&(sparebuf[7]==0xff))
+					{
+						//PHY_DBG("[Read_sectors] find not all 0xff clear page!  chip = %d, block = %d, page = %d\n", readop->chip, readop->block, readop->page);
+						ret = 0;
+					}
 			}
 			else
 			{
@@ -380,19 +593,34 @@ __s32 _read_sectors(struct boot_physical_param *readop,__u8 dma_wait_mode)
 
 			if((ret != -ERR_ECC)||(k==(READ_RETRY_CYCLE)))
 			{
+			    if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x20))  //toshiba mode
+			    {
+    			    //exit toshiba readretry
+    				PHY_ResetChip(readop->chip);
+			    } 
+			    else if((READ_RETRY_MODE>=0x20)&&(READ_RETRY_MODE<0x30))   //samsung mode
+			    {
+			        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
+			    }
+			    
 				break;
 			}
 
 			 RetryCount[readop->chip]++;
-
-
+				
+				
 		}
-
-	if(k>0)
-		PHY_DBG("[Read_sectors] NFC_ReadRetry %d cycles, chip = %d, RetryCount = %d  \n", k ,readop->chip,RetryCount[readop->chip]);
-
-	if(ret == ECC_LIMIT)
-		ret =0;
+         
+        if(k>0)
+    	{
+    		PHY_DBG("[Read_sectors] NFC_ReadRetry %d cycles, chip = %d, block = %d, page = %d, RetryCount = %d  \n", k ,readop->chip,readop->block, readop->page, RetryCount[readop->chip]);
+    		if(ret == -ERR_ECC)
+    		    PHY_DBG("ecc error!\n");
+    		PHY_DBG("spare buf: %x, %x, %x, %x, %x, %x, %x, %x\n", sparebuf[0],sparebuf[1],sparebuf[2],sparebuf[3],sparebuf[4],sparebuf[5],sparebuf[6],sparebuf[7]);
+    	}
+    	
+	    if(ret == ECC_LIMIT)
+		    ret =0;
 
     }
     else
@@ -658,13 +886,14 @@ void _cal_addr_in_chip_for_spare(__u32 block, __u32 page, __u32 sector,__u8 *add
 __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_mode)
 {
 	__u8 sparebuf[4*2] __attribute__ ((aligned));
+	__u8 default_value[16];
 	__u8 addr[5] __attribute__ ((aligned));
 	__u8 addr1[2] __attribute__ ((aligned));
 	__u8 addr2[2] __attribute__ ((aligned));
 	__u32 column;
 	__u32 list_len,i,j, k;
 	__u32 rb;
-	__s32 ret, ret1 ;
+	__s32 ret, ret1 , free_page_flag, read_retry_exit_flag;
 	__u32 ecc_size;
 	__s32 random_seed;
 	NFC_CMD_LIST cmd_list[4];
@@ -680,9 +909,13 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 	else
 	  ecc_size = 32;
 
+	for(i=0; i<8; i++)
+		sparebuf[i] = 0x3e;
+
 	ret = 0;
 	ret1 = 0;
-
+	read_retry_exit_flag = 0;
+	
 	_cal_addr_in_chip(readop->block,readop->page, 0, addr, 5);
 	_add_cmd_list(cmd_list,0x00,5,addr, NFC_NO_DATA_FETCH,NFC_IGNORE,NFC_IGNORE, NFC_IGNORE);
 	if (SUPPORT_MULTI_READ){
@@ -714,14 +947,6 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 	list_len = 4;
 	for (i = 0; i < 2; i++){
 		if (readop->sectorbitmap & (1 << i)){
-			#if 0
-			/*get main data addr*/
-			_cal_addr_in_chip_for_spare(0,0,i<<1,addr1,2);
-			/*get spare data addr*/
-			column = (1024 + ecc_size)*i +1024;
-			addr2[0] = column & 0xff;
-			addr2[1] = (column >> 8) & 0xff;
-			#endif
 
 			/*get main data addr*/
 			_cal_addr_in_chip_for_spare(0,0,i<<1,addr1,2);
@@ -743,7 +968,10 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 
 	        if(SUPPORT_READ_RETRY)
 	        {
-	            for( k = 0; k<(READ_RETRY_CYCLE+1);k++)
+                if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x30))  //toshiba & samsung mode
+                    RetryCount[readop->chip] = 0;
+                    
+                for( k = 0; k<(READ_RETRY_CYCLE+1);k++)
 	    		{
 	    			if(RetryCount[readop->chip]==(READ_RETRY_CYCLE+1))
 	    				RetryCount[readop->chip] = 0;
@@ -762,33 +990,77 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 	    				random_seed = _cal_random_seed(readop->page);
 	    				NFC_SetRandomSeed(random_seed);
 	    				NFC_RandomEnable();
+	    				free_page_flag = 0;
 	    				ret1 = NFC_Read(cmd_list, (__u8 *)(readop->mainbuf)+i*1024,sparebuf+4*i, dma_wait_mode , NFC_NORMAL_MODE);
+	    				if(readop->page == 0)
+    					{
+    						if((sparebuf[4*i] == 0x0a)&&(sparebuf[4*i+1] == 0x53)&&(sparebuf[4*i+2] == 0xb8)&&(sparebuf[4*i+3] == 0xc2))
+    							free_page_flag = 1;
+    
+    					}
+    					else if((readop->page%128) == 127)
+    					{
+    						if((sparebuf[4*i] == 0x32)&&(sparebuf[4*i+1] == 0x43)&&(sparebuf[4*i+2] == 0xaa)&&(sparebuf[4*i+3] == 0x4e))
+    							free_page_flag = 1;
+    			
+    					}
+    
+    					if(free_page_flag)
+    					{
+    						ret1 = 0;
+    						sparebuf[4*i] = 0xff;
+    						sparebuf[4*i+1] = 0xff;
+    						sparebuf[4*i+2] = 0xff;
+    						sparebuf[4*i+3] = 0xff;
+    					}
 	    				NFC_RandomDisable();
 	    				if(ret1 == -ERR_ECC)
 	    					ret1 = NFC_Read(cmd_list, (__u8 *)(readop->mainbuf)+i*1024,sparebuf+4*i, dma_wait_mode , NFC_NORMAL_MODE);
+	    				
+	    			    	/**************************************************************************************  
+							* 1. add by Neil, from v2.09
+							* 2. if spare area is all 0xff in random disable mode, it means the page is a clear page
+							* 3. because in toshiba 24nm nand, too many clear pages are not all 0xff
+							***************************************************************************************/
+							if((ret1 == -ERR_ECC)&&(sparebuf[4*i]==0xff)&&(sparebuf[4*i+1]==0xff)&&(sparebuf[4*i+2]==0xff)&&(sparebuf[4*i+3]==0xff))
+							{
+								//PHY_DBG("[Read_sectors_for_spare] find not all 0xff clear page!  chip = %d, block = %d, page = %d\n, i = %d", readop->chip, readop->block, readop->page, i);
+								ret1 = 0;
+							}
 	    			}
 	    			else
 	    			{
 	    				ret1 = NFC_Read(cmd_list, (__u8 *)(readop->mainbuf)+i*1024,sparebuf+4*i, dma_wait_mode , NFC_NORMAL_MODE);
 	    			}
 
-
-
-	    			if((ret != -ERR_ECC)||(k==(READ_RETRY_CYCLE)))
+	    			if((ret1 != -ERR_ECC)||(k==(READ_RETRY_CYCLE)))
 	    			{
+	    			    if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x20))  //toshiba mode
+	    			    {
+    	    			    //exit toshiba readretry
+    	    			    read_retry_exit_flag = 1;
+	    			    }
+	    			    else if((READ_RETRY_MODE>=0x20)&&(READ_RETRY_MODE<0x30))   //samsung mode
+        			    {
+        			        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
+        			    }
+	    			    
 	    				break;
 	    			}
-
-	    			 RetryCount[readop->chip]++;
-
-
+	    
+	    			RetryCount[readop->chip]++;	
 	    		}
 
-			if(k>0)
-				PHY_DBG("[Read_sectors_for_spare] NFC_ReadRetry %d cycles, chip = %d, RetryCount = %d  \n", k ,readop->chip,RetryCount[readop->chip]);
-
-			if(ret1 == ECC_LIMIT)
-				ret1 = 0;
+    		    if(k>0)
+            	{
+            		PHY_DBG("[Read_sectors_for_spare] NFC_ReadRetry %d cycles, chip = %d, block = %d, page = %d, RetryCount = %d, i=%d  \n", k ,readop->chip,readop->block, readop->page, RetryCount[readop->chip], i);
+            		if(ret1 == -ERR_ECC)
+            		    PHY_DBG("ecc error!\n");
+            		PHY_DBG("spare buf: %x, %x, %x, %x\n", sparebuf[4*i],sparebuf[4*i+1],sparebuf[4*i+2],sparebuf[4*i+3]);
+            	}
+            	
+    			if(ret1 == ECC_LIMIT)
+    				ret1 = 0;
 	        }
 	        else
 	        {
@@ -797,7 +1069,29 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 	    			random_seed = _cal_random_seed(readop->page);
 	    			NFC_SetRandomSeed(random_seed);
 	    			NFC_RandomEnable();
+					free_page_flag = 0;
 	    			ret1 = NFC_Read(cmd_list, (__u8 *)(readop->mainbuf)+i*1024,sparebuf+4*i, dma_wait_mode , NFC_NORMAL_MODE);
+					if(readop->page == 0)
+					{
+						if((sparebuf[4*i] == 0x0a)&&(sparebuf[4*i+1] == 0x53)&&(sparebuf[4*i+2] == 0xb8)&&(sparebuf[4*i+3] == 0xc2))
+							free_page_flag = 1;
+
+					}
+					else if((readop->page%128) == 127)
+					{
+						if((sparebuf[4*i] == 0x32)&&(sparebuf[4*i+1] == 0x43)&&(sparebuf[4*i+2] == 0xaa)&&(sparebuf[4*i+3] == 0x4e))
+							free_page_flag = 1;
+			
+					}
+
+					if(free_page_flag)
+					{
+						ret1 = 0;
+						sparebuf[4*i] = 0xff;
+						sparebuf[4*i+1] = 0xff;
+						sparebuf[4*i+2] = 0xff;
+						sparebuf[4*i+3] = 0xff;
+					}
 	    			NFC_RandomDisable();
 	    			if(ret1 == -ERR_ECC)
 	    				ret1 = NFC_Read(cmd_list, (__u8 *)(readop->mainbuf)+i*1024,sparebuf+4*i, dma_wait_mode , NFC_NORMAL_MODE);
@@ -821,6 +1115,10 @@ __s32 _read_sectors_for_spare(struct boot_physical_param *readop,__u8 dma_wait_m
 		}
 
 	}
+	
+	if(read_retry_exit_flag)
+	    PHY_ResetChip(readop->chip);
+	    
 	NFC_DeSelectChip(readop->chip);
 	NFC_DeSelectRb(rb);
 
@@ -878,15 +1176,15 @@ __s32  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr)
 				ret |= _read_single_page(&readop,SUPPORT_DMA_IRQ);
 			else
 			/*not align page , normal mode*/
-				ret |= _read_sectors_for_spare(&readop,SUPPORT_DMA_IRQ);
-		}
+				ret |= _read_single_page_spare(&readop,SUPPORT_DMA_IRQ);
+		}				
 	}
-
+	
 	if (ret == -ERR_TIMEOUT)
-		PHY_ERR("PHY_PageRead : read timeout\n");
+		PHY_ERR("PHY_PageReadSpare : read timeout\n");
 	if (ret == -ERR_ECC)
-	{
-		PHY_ERR("PHY_PageRead : too much ecc err,bank %x block %x,page %x \n",pPageAdr->BankNum,pPageAdr->BlkNum,
+	{	
+		PHY_ERR("PHY_PageReadSpare : too much ecc err,bank %x block %x,page %x \n",pPageAdr->BankNum,pPageAdr->BlkNum,
 					pPageAdr->PageNum);
 		ret = 0;
 	}
@@ -1181,7 +1479,7 @@ __s32  PHY_PageCopyback(struct __PhysicOpPara_t *pSrcPage, struct __PhysicOpPara
 			ret = 0;
 
 		if (ret < 0){
-			PHY_ERR("PHY_PageCopyback : read src page 0x%x fail \n", pSrcPage);
+
 			goto PHY_PageCopyback_exit;
 		}
 		ret = PHY_PageWrite(pDstPage);

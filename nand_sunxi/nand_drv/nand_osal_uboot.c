@@ -145,6 +145,16 @@ int NAND_SettingDMA(unsigned int hDMA, void * arg)
 */
 int NAND_StartDMA(unsigned int hDMA, unsigned int saddr, unsigned int daddr, unsigned int bytes)
 {
+    if((saddr & 0x01c03000) == 0x01c03000)
+    {
+        //这是读操作，读的时候刷新目的地址，原则就是刷新DRAM(SRAM)
+        flush_cache(daddr, bytes);
+    }
+    else
+    {
+    	//这是写操作，写的时候刷新源地址，原则就是刷新DRAM(SRAM)
+        flush_cache(saddr, bytes);
+    }
     return DMA_Start(hDMA, saddr, daddr, bytes);
 }
 
@@ -315,7 +325,24 @@ int NAND_SetClock(unsigned int nand_max_clock)
 	return 0;
 }
 
+__s32 NAND_GetClock(void)
+{
+	__u32 cmu_clk;
+	__u32 cfg;
+	__u32 nand_max_clock, nand_clk_divid_ratio;
 
+	/*set nand clock*/
+    cmu_clk = NAND_GetCmuClk( );
+
+    /*set nand clock gate on*/
+	cfg = *(volatile __u32 *)(CCMU_REGS_BASE + 0x80);
+    nand_clk_divid_ratio = ((cfg)&0xf) +1;
+    nand_max_clock = cmu_clk/(2*nand_clk_divid_ratio);
+
+    return nand_max_clock;
+
+
+}
 
 void   NAND_GetPin(void)
 {

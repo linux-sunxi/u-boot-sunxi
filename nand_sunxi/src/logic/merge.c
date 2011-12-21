@@ -144,11 +144,9 @@ __s32  _free2log_move_merge(__u32 nlogical)
     struct __SuperPhyBlkType_t FreeBlk;
     struct __LogBlkType_t LogBlk;
     struct __PhysicOpPara_t SrcParam,DstParam;
-
-#if (!CFG_SUPPORT_ALIGN_NAND_BNK)
 	struct __NandUserData_t UserData[2];
-#endif
 
+		
     /*init info of log block , and get one free block */
     BMM_GetLogBlk(nlogical, &LogBlk);
     if (NAND_OP_TRUE != BMM_GetFreeBlk(LOWEST_EC_TYPE, &FreeBlk))
@@ -158,39 +156,65 @@ __s32  _free2log_move_merge(__u32 nlogical)
     SrcParam.SDataPtr = DstParam.SDataPtr = NULL;
     SrcParam.SectBitmap = DstParam.SectBitmap = FULL_BITMAP_OF_SUPER_PAGE;
 
-#if (CFG_SUPPORT_ALIGN_NAND_BNK)
-
-    redo:
-    /*copy data bank by bank, for copy-back using*/
-    LastUsedPage = 0;
-    for (bank = 0; bank < INTERLEAVE_BANK_CNT; bank++)
+    if(SUPPORT_ALIGN_NAND_BNK)
     {
-        DstPage = bank;
-        for (SuperPage  = bank; SuperPage < PAGE_CNT_OF_SUPER_BLK; SuperPage+= INTERLEAVE_BANK_CNT)
+        redo:
+        /*copy data bank by bank, for copy-back using*/
+        LastUsedPage = 0;
+        for (bank = 0; bank < INTERLEAVE_BANK_CNT; bank++)
         {
-            SrcPage = PMM_GetCurMapPage(SuperPage);
-            if (SrcPage != 0xffff)
+            DstPage = bank;
+            for (SuperPage  = bank; SuperPage < PAGE_CNT_OF_SUPER_BLK; SuperPage+= INTERLEAVE_BANK_CNT)
             {
-            	  /*set source and destinate address*/
-		 		LML_CalculatePhyOpPar(&SrcParam,CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum, SrcPage);
-               	LML_CalculatePhyOpPar(&DstParam,CUR_MAP_ZONE, FreeBlk.PhyBlkNum, DstPage);
-                if (DstPage == 0)
+                SrcPage = PMM_GetCurMapPage(SuperPage);
+                if (SrcPage != 0xffff)
                 {
-                    if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,SrcPage,FreeBlk.PhyBlkNum,0))
+                	  /*set source and destinate address*/
+    		 		LML_CalculatePhyOpPar(&SrcParam,CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum, SrcPage);
+                   	LML_CalculatePhyOpPar(&DstParam,CUR_MAP_ZONE, FreeBlk.PhyBlkNum, DstPage);
+                    if (DstPage == 0)
                     {
-                        LOGICCTL_ERR("move merge : copy page 0 err1\n");
-                        return NAND_OP_FALSE;
+                        if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,SrcPage,FreeBlk.PhyBlkNum,0))
+                        {
+                            LOGICCTL_ERR("move merge : copy page 0 err1\n");
+                            return NAND_OP_FALSE;
+                        }
                     }
+                    else
+                    {                    
+                        if (NAND_OP_TRUE != PHY_PageCopyback(&SrcParam,&DstParam))
+                        {
+                            LOGICCTL_ERR("move merge : copy back err\n");
+                            return NAND_OP_FALSE;
+                        }
+                    }
+    
+                    if (NAND_OP_TRUE !=  PHY_SynchBank(DstParam.BankNum, SYNC_BANK_MODE))
+                    {
+                        struct __SuperPhyBlkType_t SubBlk;
+                        if (NAND_OP_TRUE != LML_BadBlkManage(&FreeBlk,CUR_MAP_ZONE,0,&SubBlk))
+                        {
+                            LOGICCTL_ERR("move merge : bad block manage err after copy back\n");
+                            return NAND_OP_FALSE;
+                        }
+                        FreeBlk = SubBlk;
+                        goto redo;
+                    }
+    
+                    PMM_SetCurMapPage(SuperPage,DstPage);
+                    DstPage += INTERLEAVE_BANK_CNT;
                 }
-                else
+            }
+    
+            /*if bank 0 is empty, need write mange info in page 0*/
+            if ((bank == 0) && (DstPage == 0))
+            {
+                if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,0,FreeBlk.PhyBlkNum,0))
                 {
-                    if (NAND_OP_TRUE != PHY_PageCopyback(&SrcParam,&DstParam))
-                    {
-                        LOGICCTL_ERR("move merge : copy back err\n");
-                        return NAND_OP_FALSE;
-                    }
+                    LOGICCTL_ERR("move merge : copy page 0 err2\n");
+                    return NAND_OP_FALSE;
                 }
-
+    			LML_CalculatePhyOpPar(&DstParam, CUR_MAP_ZONE, FreeBlk.PhyBlkNum, 0);
                 if (NAND_OP_TRUE !=  PHY_SynchBank(DstParam.BankNum, SYNC_BANK_MODE))
                 {
                     struct __SuperPhyBlkType_t SubBlk;
@@ -202,94 +226,70 @@ __s32  _free2log_move_merge(__u32 nlogical)
                     FreeBlk = SubBlk;
                     goto redo;
                 }
-
-                PMM_SetCurMapPage(SuperPage,DstPage);
-                DstPage += INTERLEAVE_BANK_CNT;
+            }
+    
+            /*reset LastUsedPage*/
+            if ((DstPage - INTERLEAVE_BANK_CNT) > LastUsedPage)
+            {
+                LastUsedPage = DstPage - INTERLEAVE_BANK_CNT;
             }
         }
-
-        /*if bank 0 is empty, need write mange info in page 0*/
-        if ((bank == 0) && (DstPage == 0))
-        {
-            if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,0,FreeBlk.PhyBlkNum,0))
-            {
-                LOGICCTL_ERR("move merge : copy page 0 err2\n");
-                return NAND_OP_FALSE;
-            }
-			LML_CalculatePhyOpPar(&DstParam, CUR_MAP_ZONE, FreeBlk.PhyBlkNum, 0);
-            if (NAND_OP_TRUE !=  PHY_SynchBank(DstParam.BankNum, SYNC_BANK_MODE))
-            {
-                struct __SuperPhyBlkType_t SubBlk;
-                if (NAND_OP_TRUE != LML_BadBlkManage(&FreeBlk,CUR_MAP_ZONE,0,&SubBlk))
+    }	
+    else
+    {
+    	/*copy data page by page*/
+    	DstPage = 0;
+        LastUsedPage = 0;
+    	for (SuperPage = 0; SuperPage < PAGE_CNT_OF_LOGIC_BLK; SuperPage++)
+    	{
+    		SrcPage = PMM_GetCurMapPage(SuperPage);
+    		if (SrcPage != 0xffff)
+    		{
+    			/*set source and destinate address*/
+    		 	LML_CalculatePhyOpPar(&SrcParam,CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum, SrcPage);
+                LML_CalculatePhyOpPar(&DstParam,CUR_MAP_ZONE, FreeBlk.PhyBlkNum, DstPage);
+    			if (0 == DstPage)
+    			{
+    				if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,SrcPage,FreeBlk.PhyBlkNum,0))
+                    {
+                         LOGICCTL_ERR("move merge : copy page 0 err1\n");
+                         return NAND_OP_FALSE;
+                    }
+    			}
+    			else
+    			{
+    				SrcParam.MDataPtr = DstParam.MDataPtr = LML_TEMP_BUF;
+    				SrcParam.SDataPtr = DstParam.SDataPtr = (void *)&UserData;
+        			MEMSET((void *)&UserData,0xff,sizeof(struct __NandUserData_t) * 2);
+    				SrcParam.SectBitmap = DstParam.SectBitmap = FULL_BITMAP_OF_SUPER_PAGE;
+    				if (LML_VirtualPageRead(&SrcParam) < 0){
+           				 LOGICCTL_ERR("move merge : read main data err\n");
+            			 return NAND_OP_FALSE;
+        			}
+        			
+       				if (NAND_OP_TRUE != LML_VirtualPageWrite(&DstParam)){
+            			LOGICCTL_ERR("move merge : write err\n");
+            			return NAND_OP_FALSE;
+        			}
+    			}
+    			if (NAND_OP_TRUE !=  PHY_SynchBank(DstParam.BankNum, SYNC_BANK_MODE))
                 {
-                    LOGICCTL_ERR("move merge : bad block manage err after copy back\n");
-                    return NAND_OP_FALSE;
-                }
-                FreeBlk = SubBlk;
-                goto redo;
-            }
-        }
-
-        /*reset LastUsedPage*/
-        if ((DstPage - INTERLEAVE_BANK_CNT) > LastUsedPage)
-        {
-            LastUsedPage = DstPage - INTERLEAVE_BANK_CNT;
-        }
+                	struct __SuperPhyBlkType_t SubBlk;
+                    if (NAND_OP_TRUE != LML_BadBlkManage(&FreeBlk,CUR_MAP_ZONE,LastUsedPage,&SubBlk))
+                    {
+                        LOGICCTL_ERR("move merge : bad block manage err after copy back\n");
+                    	return NAND_OP_FALSE;
+    				}
+    				FreeBlk = SubBlk;
+    				SuperPage -= 1;
+    			}
+    			PMM_SetCurMapPage(SuperPage,DstPage);
+    			LastUsedPage = DstPage;
+    			DstPage++;				
+    		}
+    	}
+    	
     }
-
-#else
-	/*copy data page by page*/
-	DstPage = 0;
-	for (SuperPage = 0; SuperPage < PAGE_CNT_OF_LOGIC_BLK; SuperPage++)
-	{
-		SrcPage = PMM_GetCurMapPage(SuperPage);
-		if (SrcPage != 0xffff)
-		{
-			/*set source and destinate address*/
-		 	LML_CalculatePhyOpPar(&SrcParam,CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum, SrcPage);
-            LML_CalculatePhyOpPar(&DstParam,CUR_MAP_ZONE, FreeBlk.PhyBlkNum, DstPage);
-			if (0 == DstPage)
-			{
-				if ( NAND_OP_FALSE == _copy_page0(LogBlk.PhyBlk.PhyBlkNum,SrcPage,FreeBlk.PhyBlkNum,0))
-                {
-                     LOGICCTL_ERR("move merge : copy page 0 err1\n");
-                     return NAND_OP_FALSE;
-                }
-			}
-			else
-			{
-				SrcParam.MDataPtr = DstParam.MDataPtr = LML_TEMP_BUF;
-				SrcParam.SDataPtr = DstParam.SDataPtr = (void *)&UserData;
-    			MEMSET((void *)&UserData,0xff,sizeof(struct __NandUserData_t) * 2);
-				SrcParam.SectBitmap = DstParam.SectBitmap = FULL_BITMAP_OF_SUPER_PAGE;
-				if (LML_VirtualPageRead(&SrcParam) < 0){
-       				 LOGICCTL_ERR("move merge : read main data err\n");
-        			 return NAND_OP_FALSE;
-    			}
-
-   				if (NAND_OP_TRUE != LML_VirtualPageWrite(&DstParam)){
-        			LOGICCTL_ERR("move merge : write err\n");
-        			return NAND_OP_FALSE;
-    			}
-			}
-			if (NAND_OP_TRUE !=  PHY_SynchBank(DstParam.BankNum, SYNC_BANK_MODE))
-            {
-            	struct __SuperPhyBlkType_t SubBlk;
-                if (NAND_OP_TRUE != LML_BadBlkManage(&FreeBlk,CUR_MAP_ZONE,LastUsedPage,&SubBlk))
-                {
-                    LOGICCTL_ERR("move merge : bad block manage err after copy back\n");
-                	return NAND_OP_FALSE;
-				}
-				FreeBlk = SubBlk;
-				SuperPage -= 1;
-			}
-			PMM_SetCurMapPage(SuperPage,DstPage);
-			LastUsedPage = DstPage;
-			DstPage++;
-		}
-	}
-
-#endif
 
     /*erase log block*/
     if(NAND_OP_TRUE != LML_VirtualBlkErase(CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum))

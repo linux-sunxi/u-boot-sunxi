@@ -813,75 +813,77 @@ static __s32 _GetLastUsedPage(__u32 nDieNum, __u32 nBlock)
 
     //use bisearch algorithm to look for the last page in the used page group
 
-#if(CFG_SUPPORT_ALIGN_NAND_BNK)
-
-    __u32   tmpBnkNum;
-    __u8    tmpPageStatus;
-
-    tmpLowPage = 0;
-    tmpHighPage = PAGE_CNT_OF_PHY_BLK - 1;
-
-    while(tmpLowPage <= tmpHighPage)
+    if(SUPPORT_ALIGN_NAND_BNK)
     {
-        tmpPageStatus = FREE_PAGE_MARK;
-        tmpMidPage = (tmpLowPage + tmpHighPage) / 2;
-
-        //if support bank align, there may be some free pages in the used page group
-        for(tmpBnkNum=0; tmpBnkNum<INTERLEAVE_BANK_CNT; tmpBnkNum++)
+        __u32   tmpBnkNum;
+        __u8    tmpPageStatus;
+    
+        tmpLowPage = 0;
+        tmpHighPage = PAGE_CNT_OF_PHY_BLK - 1;
+    
+        while(tmpLowPage <= tmpHighPage)
         {
-            //read pages to check if the page is free
-            tmpPage = tmpMidPage * INTERLEAVE_BANK_CNT + tmpBnkNum;
-            _VirtualPageRead(nDieNum, nBlock, tmpPage, 0x3, FORMAT_PAGE_BUF, (void *)&tmpSpare);
-
+            tmpPageStatus = FREE_PAGE_MARK;
+            tmpMidPage = (tmpLowPage + tmpHighPage) / 2;
+    
+            //if support bank align, there may be some free pages in the used page group
+            for(tmpBnkNum=0; tmpBnkNum<INTERLEAVE_BANK_CNT; tmpBnkNum++)
+            {
+                //read pages to check if the page is free
+                tmpPage = tmpMidPage * INTERLEAVE_BANK_CNT + tmpBnkNum;
+                _VirtualPageRead(nDieNum, nBlock, tmpPage, 0x3, FORMAT_PAGE_BUF, (void *)&tmpSpare);
+    
+                if((tmpSpare.PageStatus == FREE_PAGE_MARK) && (tmpSpare.LogicPageNum == 0xffff))
+                {
+                    //current page is a free page
+                    continue;
+                }
+    
+                tmpPageStatus &= DATA_PAGE_MARK;
+                tmpUsedPage = tmpPage;
+            }
+    
+            if(tmpPageStatus == FREE_PAGE_MARK)
+            {
+                //look for the last table group in the front pages
+                tmpHighPage = tmpMidPage - 1;
+            }
+            else
+            {
+                //look for the last table group in the hind pages
+                tmpLowPage = tmpMidPage + 1;
+            }
+        }
+    
+    }
+    else
+    {
+    
+        tmpLowPage = 0;
+        tmpHighPage = PAGE_CNT_OF_SUPER_BLK - 1;
+    
+        while(tmpLowPage <= tmpHighPage)
+        {
+            tmpMidPage = (tmpLowPage + tmpHighPage) / 2;
+    
+            //get the spare area data of the page to check if the page is free
+            _VirtualPageRead(nDieNum, nBlock, tmpMidPage, 0x3, FORMAT_PAGE_BUF, (void *)&tmpSpare);
+            tmpUsedPage = tmpMidPage;
+                
             if((tmpSpare.PageStatus == FREE_PAGE_MARK) && (tmpSpare.LogicPageNum == 0xffff))
             {
-                //current page is a free page
-                continue;
+     		    //look for the last table group in the front pages
+                tmpHighPage = tmpMidPage - 1;
+                //tmpUsedPage = tmpMidPage;
             }
-
-            tmpPageStatus &= DATA_PAGE_MARK;
-            tmpUsedPage = tmpPage;
+            else
+            {
+                //look for the last table group in the hind pages
+                tmpLowPage = tmpMidPage + 1;
+            }
         }
-
-        if(tmpPageStatus == FREE_PAGE_MARK)
-        {
-            //look for the last table group in the front pages
-            tmpHighPage = tmpMidPage - 1;
-        }
-        else
-        {
-            //look for the last table group in the hind pages
-            tmpLowPage = tmpMidPage + 1;
-        }
+    
     }
-
-
-#else
-
-    tmpLowPage = 0;
-    tmpHighPage = PAGE_CNT_OF_SUPER_BLK - 1;
-
-    while(tmpLowPage <= tmpHighPage)
-    {
-        tmpMidPage = (tmpLowPage + tmpHighPage) / 2;
-
-        //get the spare area data of the page to check if the page is free
-        _VirtualPageRead(nDieNum, nBlock, tmpMidPage, 0x3, FORMAT_PAGE_BUF, (void *)&tmpSpare);
-
-        if((tmpSpare.PageStatus == FREE_PAGE_MARK) && (tmpSpare.LogicPageNum == 0xffff))
-        {
- 		    //look for the last table group in the front pages
-            tmpHighPage = tmpMidPage - 1;
-            tmpUsedPage = tmpMidPage;
-        }
-        else
-        {
-            //look for the last table group in the hind pages
-            tmpLowPage = tmpMidPage + 1;
-        }
-    }
-
-#endif
 
     return tmpUsedPage;
 }
@@ -934,6 +936,7 @@ static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
     __s32   i;
     __s16   tmpPageNum[4];
     __u16   tmpLogicInfo;
+    __u32   spare_bitmap;
     struct  __NandUserData_t tmpSpare[2];
 
 
@@ -989,7 +992,9 @@ static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
 
                 //calculate the number of the page in the super block to get spare data
                 tmpPage = tmpPageNum[i] * INTERLEAVE_BANK_CNT + tmpBnkNum;
-                _VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, LOGIC_INFO_BITMAP, FORMAT_PAGE_BUF, (void *)&tmpSpare);
+                //_VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, LOGIC_INFO_BITMAP, FORMAT_PAGE_BUF, (void *)&tmpSpare);
+                spare_bitmap = (SUPPORT_MULTI_PROGRAM ? (0x3 | (0x3 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x3);
+                _VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, spare_bitmap, FORMAT_PAGE_BUF, (void *)&tmpSpare);
 
 				//check if the block is a bad block
                 if((tmpSpare[0].BadBlkFlag != 0xff) || (SUPPORT_MULTI_PROGRAM && (tmpSpare[1].BadBlkFlag != 0xff)))

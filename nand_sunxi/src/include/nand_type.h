@@ -66,10 +66,11 @@ typedef struct
     __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
     __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
-    __u8        NandChipId[5];                      //the nand chip id of current connecting nand chip
+    __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
 	__u32 		good_block_ratio;					//good block ratio get from hwscan
 	__u32		ReadRetryType;						//the read retry type
+	__u32       DDRType;
 	__u32		Reserved[32];
 }boot_nand_para_t;
 
@@ -98,9 +99,10 @@ struct __NandStorageInfo_t
     __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
     __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
-    __u8        NandChipId[5];                      //the nand chip id of current connecting nand chip
+    __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                         //the ratio of the valid physical blocks, based on 1024
     __u32		ReadRetryType;						//the read retry type
+    __u32       DDRType;
     struct __OptionalPhyOpPar_t OptPhyOpPar;        //the parameters for some optional operation
 };
 
@@ -285,7 +287,7 @@ struct __LogicCtlPar_t
 //define the nand flash physical information parameter type
 struct __NandPhyInfoPar_t
 {
-    __u8        NandID[4];                          //the ID number of the nand flash chip
+    __u8        NandID[8];                          //the ID number of the nand flash chip
     __u8        DieCntPerChip;                      //the count of the Die in one nand flash chip
     __u8        SectCntPerPage;                     //the count of the sectors in one single physical page
     __u16       PageCntPerBlk;                      //the count of the pages in one single physical block
@@ -295,6 +297,7 @@ struct __NandPhyInfoPar_t
     __u16       AccessFreq;                         //the highest access frequence of the nand flash chip, based on MHz
     __u16       EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
     __u32 		ReadRetryType;
+    __u32       DDRType;
     struct __OptionalPhyOpPar_t *OptionOp;          //the pointer point to the optional operation parameter
 };
 
@@ -326,6 +329,7 @@ struct __NandDriverGlobal_t
 #define NAND_RANDOM		        (1<<7)			    // nand flash support RANDOMIZER
 #define NAND_READ_RETRY	        (1<<8)			    //nand falsh support READ RETRY
 #define NAND_READ_UNIQUE_ID	    (1<<9)			    //nand falsh support READ UNIQUE_ID
+#define NAND_PAGE_ADR_NO_SKIP	(1<<10)			    //nand falsh page adr no skip is requiered
 
 
 //define the mask for the nand flash operation status
