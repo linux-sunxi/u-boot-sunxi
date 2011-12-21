@@ -37,7 +37,7 @@ void fastboot_partition_init(void)
 	fastboot_ptentry fb_part;
 	int index,part_total;
 
-	printf("--------fastboot partitions--------\n");
+	puts("--------fastboot partitions--------\n");
 	part_total = sunxi_nand_getpart_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
@@ -50,14 +50,28 @@ void fastboot_partition_init(void)
 		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
 		fastboot_flash_add_ptn(&fb_part);
 	}
-	printf("-----------------------------------\n");
+	puts("-----------------------------------\n");
+}
+
+int check_android_misc() {
+	loff_t misc_offset = 0, misc_size = 0;
+
+	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
+
+	if(!misc_offset || !misc_size) {
+		sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
+		if(!misc_offset || !misc_size) {
+			puts("no misc partition is found\n");
+			return 0;
+		}
+	}
 }
 
 /* TODO add board specific code here */
 int board_init(void)
 {
 	gd->bd->bi_arch_number = 3495;
-	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
+	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 	return 0;
 }
 
@@ -66,9 +80,29 @@ int board_init(void)
  */
 int board_late_init(void)
 {
+	int key = 0;
+
 	fastboot_partition_init();
+
+	key = sunxi_read_key();
+
+	if(sunxi_check_fastboot(key)) {
+		puts("Fastboot key pressed\n");
+		setenv("bootcmd", "fastboot");
+	}
+
+	if(sunxi_check_recovery(key)) {
+		puts("Recovery key pressed\n");
+		setenv("bootcmd", "boota recovery");
+	}
+
+	if(check_android_misc()) {
+		puts("Misc has recovery\n");
+	}
+
 	return 0;
 }
+
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;

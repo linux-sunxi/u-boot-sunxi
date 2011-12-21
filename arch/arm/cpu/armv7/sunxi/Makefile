@@ -32,6 +32,7 @@ COBJS	+= timer.o
 COBJS	+= cpu_info.o
 COBJS	+= board.o
 COBJS	+= gpio.o
+COBJS	+= key.o
 COBJS	+= fastboot.o
 COBJS	+= sparse.o
 COBJS	+= usb/usbc.o \
