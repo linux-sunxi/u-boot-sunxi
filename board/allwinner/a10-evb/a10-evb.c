@@ -29,8 +29,11 @@
 #include <fastboot.h>
 #include <asm/arch/nand_fspart.h>
 #include <asm/arch/nand_bsp.h>
+#include <asm/arch/android_misc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+static struct bootloader_message misc_message;
 
 void fastboot_partition_init(void)
 {
@@ -55,6 +58,7 @@ void fastboot_partition_init(void)
 
 int check_android_misc() {
 	loff_t misc_offset = 0, misc_size = 0;
+	size_t count = sizeof(misc_message);
 
 	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
 
@@ -64,6 +68,20 @@ int check_android_misc() {
 			puts("no misc partition is found\n");
 			return 0;
 		}
+	}
+
+	sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
+			(u_char *)&misc_message, 0);
+
+#ifdef DEBUG
+	printf("misc.command  : %s\n", misc_message.command);
+	printf("misc.status   : %s\n", misc_message.status);
+	printf("misc.recovery : %s\n", misc_message.recovery);
+#endif
+
+	if(!strcmp(misc_message.command, "boot-recovery")) {
+		puts("Misc has recovery, will boot recovery\n");
+		return 1;
 	}
 
 	return 0;
@@ -89,19 +107,21 @@ int board_late_init(void)
 	key = sunxi_read_key();
 
 	if(sunxi_check_fastboot(key)) {
-		puts("Fastboot key pressed\n");
+		puts("Fastboot key pressed, will enter fastboot\n");
 		/* set boot cmd to boot fastboot */
 		setenv("bootcmd", "run setargs boot_fastboot");
 	}
 
 	if(sunxi_check_recovery(key)) {
-		puts("Recovery key pressed\n");
+		puts("Recovery key pressed, will boot recovery\n");
 		/* set boot cmd to boot recovery */
 		setenv("bootcmd", "run setargs boot_recovery");
 	}
 
 	if(check_android_misc()) {
-		puts("Misc has recovery\n");
+		puts("Misc has recovery, will boot recovery\n");
+		/* set boot cmd to boot recovery */
+		setenv("bootcmd", "run setargs boot_recovery");
 	}
 
 	return 0;
