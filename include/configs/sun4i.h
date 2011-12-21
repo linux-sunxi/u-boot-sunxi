@@ -95,6 +95,7 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
+#if 0
 /* mmc config */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
@@ -103,6 +104,8 @@
 #define CONFIG_MMC_SUNXI_SLOT			2		/* which mmc slot to use, could be 0,1,2,3 */
 
 #define CONFIG_DOS_PARTITION
+#endif
+
 /*
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
