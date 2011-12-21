@@ -40,7 +40,7 @@ extern uint32_t crc32 (uint32_t, const unsigned char *, uint);
 int main(int argc, char * argv[])
 {
 	int fin, fout,fout2;
-	int i, j,ret,count= -1,flag=0,line=0,pop=0;
+	int i, j,ret,count= 0,flag=0,line=0,pop=0;
 	char tmp[ENV_SIZE];
 	
 	env_t env;
@@ -85,8 +85,9 @@ int main(int argc, char * argv[])
 		
 	
 		}
-		if(flag == 0 )tmp[count++]=env.data[i];
-	
+		if(flag == 0 ){
+		tmp[count++]=env.data[i];
+	}
 	}
 
 	memset(env.data,0,len);
