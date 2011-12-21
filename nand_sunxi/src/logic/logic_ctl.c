@@ -1367,7 +1367,13 @@ __s32 LML_Init(void)
         LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!");
         return -ERR_MALLOC;
     }
-    NandDriverInfo.PageCachePool->PageCache2 = NULL;
+    //NandDriverInfo.PageCachePool->PageCache2 = NULL;
+     NandDriverInfo.PageCachePool->PageCache2 = (__u8 *)MALLOC(SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
+    if(!NandDriverInfo.PageCachePool->PageCache2)
+    {
+        LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!");
+        return -ERR_MALLOC;
+    }
 
     //request buffer for process spare area data
     MEMSET(LML_SPARE_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * 4);
@@ -1417,6 +1423,7 @@ __s32 LML_Exit(void)
     BMM_ExitMapTblCache();
 
     FREE(NandDriverInfo.PageCachePool->PageCache1,SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
+	FREE(NandDriverInfo.PageCachePool->PageCache2,SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
 
     return 0;
 }

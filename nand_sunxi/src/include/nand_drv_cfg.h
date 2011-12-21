@@ -39,15 +39,11 @@
 //==============================================================================
 
 #define  NAND_VERSION_0                 0x02
-#define  NAND_VERSION_1                 0x06
+#define  NAND_VERSION_1                 0x09
 
 
 //define the max value of the count of chip select
-#if(0)
-  #define MAX_CHIP_SELECT_CNT                 (4)
-#elif(1)
-  #define MAX_CHIP_SELECT_CNT                 (8)
-#endif
+#define MAX_CHIP_SELECT_CNT                 (8)
 
 //define the max value the count of the zone
 #define MAX_ZONE_CNT                        (32)

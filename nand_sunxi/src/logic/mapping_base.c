@@ -559,34 +559,35 @@ static __s32 _GetLogPageForWrite(__u32 nBlk, __u32 nPage, __u16 *pLogPage, __u32
     //need get log page by write mode,
     tmpPage = LOG_BLK_TBL[tmpLogPst].LastUsedPage;
 
-#if CFG_SUPPORT_ALIGN_NAND_BNK
-
-    if(tmpPage == 0xffff)
+    if(SUPPORT_ALIGN_NAND_BNK)
     {
-        //the log block is empty, need get log page in the first page line
-        tmpPage = nPage % INTERLEAVE_BANK_CNT;
-    }
-    else
-    {
-        //need bank align, the log page and the data page should be in the same bank
-        if((nPage % INTERLEAVE_BANK_CNT) > (tmpPage % INTERLEAVE_BANK_CNT))
+        if(tmpPage == 0xffff)
         {
-            //get the log page in the same page line with last used page
-            tmpPage = tmpPage + ((nPage % INTERLEAVE_BANK_CNT) - (tmpPage % INTERLEAVE_BANK_CNT));
+            //the log block is empty, need get log page in the first page line
+            tmpPage = nPage % INTERLEAVE_BANK_CNT;
         }
         else
         {
-            //need get the log page in the next page line of the last used page
-            tmpPage = tmpPage + (nPage % INTERLEAVE_BANK_CNT) + (INTERLEAVE_BANK_CNT - (tmpPage % INTERLEAVE_BANK_CNT));
+            //need bank align, the log page and the data page should be in the same bank
+            if((nPage % INTERLEAVE_BANK_CNT) > (tmpPage % INTERLEAVE_BANK_CNT))
+            {
+                //get the log page in the same page line with last used page
+                tmpPage = tmpPage + ((nPage % INTERLEAVE_BANK_CNT) - (tmpPage % INTERLEAVE_BANK_CNT));
+            }
+            else
+            {
+                //need get the log page in the next page line of the last used page
+                tmpPage = tmpPage + (nPage % INTERLEAVE_BANK_CNT) + (INTERLEAVE_BANK_CNT - (tmpPage % INTERLEAVE_BANK_CNT));
+            }
         }
     }
+    else
+    {
+    
+        //use the page which is the next of the last used page
+        tmpPage = tmpPage + 1;
+    }
 
-#else
-
-    //use the page which is the next of the last used page
-    tmpPage = tmpPage + 1;
-
-#endif
 
 __CHECK_WRITE_LOGICAL_INFO_OF_LOG_BLOCK:
     //check if need write the logical information in the first page of the log block

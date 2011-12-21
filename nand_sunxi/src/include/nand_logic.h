@@ -73,7 +73,7 @@
 //define the buffer for cache data when write loigcal sector
 
 //define the buffer for processing the data of mapping table
-#define LML_PROCESS_TBL_BUF         (NandDriverInfo.PageCachePool->PageCache0)
+#define LML_PROCESS_TBL_BUF         (NandDriverInfo.PageCachePool->PageCache2)
 
 //define the buffer for copy page data or process other data
 #define LML_TEMP_BUF                (NandDriverInfo.PageCachePool->PageCache0)

@@ -32,6 +32,7 @@ extern void   		NAND_WaitDmaFinish	(void);
 extern void   		NAND_GetPin			(void);
 extern void   		NAND_ReleasePin		(void);
 extern __s32  NAND_SetClock(__u32 nand_max_clock);
+extern __s32  NAND_GetClock(void);
 extern void   NAND_SetSrcClkName(__u32 pll_name);
 
 extern void   		NAND_OpenAHBClock	(void);

@@ -31,6 +31,7 @@
 #define READ_RETRY_MAX_TYPE_NUM 5
 #define READ_RETRY_MAX_REG_NUM	4
 #define READ_RETRY_MAX_CYCLE	10
+#define LSB_MODE_MAX_REG_NUM	8
 
 /* define various unit data input or output*/
 #define NFC_READ_RAM_B(ram)    		(*((volatile __u8 *)(ram)))
@@ -40,8 +41,7 @@
 #define NFC_READ_RAM_W(ram)   		(*((volatile __u32 *)(ram)))
 #define NFC_WRITE_RAM_W(ram,data) 	(*((volatile __u32 *)(ram)) = (data))
 
-#define NFC_READ_REG(reg)   		(reg)
-#define NFC_WRITE_REG(reg,data) 	(reg) = (data)
+
 
 #ifdef USE_PHYSICAL_ADDRESS
 #define NFC_IS_SDRAM(addr)			((addr >= DRAM_BASE)?1:0)

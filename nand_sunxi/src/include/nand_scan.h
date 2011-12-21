@@ -45,6 +45,7 @@
 #define ST_NAND                 0x20                //ST nand flash manufacture number
 #define INTEL_NAND              0x89                //Intel nand flash manufacture number
 #define SPANSION_NAND           0x01                //spansion nand flash manufacture number
+#define POWER_NAND              0x92                //power nand flash manufacture number
 
 //==============================================================================
 //  define the function interface for nand storage scan module

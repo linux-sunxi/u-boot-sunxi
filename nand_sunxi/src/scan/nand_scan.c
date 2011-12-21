@@ -47,6 +47,7 @@ extern struct __NandPhyInfoPar_t IntelNandTbl;
 extern struct __NandPhyInfoPar_t StNandTbl;
 extern struct __NandPhyInfoPar_t DefaultNandTbl;
 extern struct __NandPhyInfoPar_t SpansionNandTbl;
+extern struct __NandPhyInfoPar_t PowerNandTbl;
 
 
 __u32 NAND_GetValidBlkRatio(void)
@@ -117,8 +118,9 @@ __s32 NAND_GetParam(boot_nand_para_t * nand_param)
 	nand_param->ValidBlkRatio      =   NandStorageInfo.ValidBlkRatio     ;
 	nand_param->good_block_ratio   =   NandStorageInfo.ValidBlkRatio     ;
 	nand_param->ReadRetryType      =   NandStorageInfo.ReadRetryType     ;
+	nand_param->DDRType            =   NandStorageInfo.DDRType           ;
 
-	for(i =0; i<5; i++)
+	for(i =0; i<8; i++)
 	    nand_param->NandChipId[i]   =   NandStorageInfo.NandChipId[i];
 
 
@@ -135,123 +137,6 @@ __s32 NAND_GetFlashInfo(boot_flash_info_t *param)
 	param->pagewithbadflag  = NandStorageInfo.OptPhyOpPar.BadBlockFlagPosition;
 
 	return 0;
-}
-
-/*
-************************************************************************************************************************
-*                           GENERAGE THE NAND PHYSICAL ARCHITECTURE PARAMETER
-*
-*Description: Generate the nand physical architecture paramter with the nand chip ID.
-*
-*Arguments  : pNandID           the pointer to nand flash chip ID;
-*             pNandArchiInfo    the pointer to nand flash physical architecture parameter.
-*
-*Return     : Generate result;
-*               = 0     Generate successful, create the parameter in a table;
-*               < 0     Generate failed, can't create the parameter in a table.
-************************************************************************************************************************
-*/
-__s32 _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
-{
-    __u32 tmpVar;
-    struct __NandPhyInfoPar_t *tmpNandArchi = &DefaultNandTbl;
-
-    //check the nand flash manufacture
-    if((pNandID[0] != TOSHIBA_NAND) && (pNandID[0] != SAMSUNG_NAND) && (pNandID[0] != TOSHIBA_NAND) \
-        && (pNandID[0] != HYNIX_NAND) && (pNandID[0] != MICRON_NAND) && (pNandID[0] != ST_NAND) \
-        && (pNandID[0] != INTEL_NAND))
-    {
-        //don't recognize the nand manufacture, don't know how to analyze the nand chip ID
-        SCAN_ERR("[SCAN_ERR] Can't recognize the nand flash manufacture[0x%x]!\n", pNandID[0]);
-        return -1;
-    }
-
-    //create the physical architecture parameter in the default nand table
-    tmpNandArchi->NandID[0] = pNandID[0];
-    tmpNandArchi->NandID[1] = pNandID[1];
-    tmpNandArchi->NandID[2] = pNandID[2];
-    tmpNandArchi->NandID[3] = pNandID[3];
-
-    //analyze the chip capacity
-    switch(pNandID[1])
-    {
-        case 0xf1:
-            tmpVar = 1;     //the capacity of the nand chip is 1G bit
-            break;
-
-        case 0xda:
-            tmpVar = 2;     //the capacity of the nand chip is 1G bit
-            break;
-
-        case 0xdc:
-            tmpVar = 4;     //the capacity of the nand chip is 1G bit
-            break;
-
-        case 0xd3:
-            tmpVar = 8;     //the capacity of the nand chip is 1G bit
-            break;
-
-        case 0xd5:
-            tmpVar = 16;    //the capacity of the nand chip is 1G bit
-            break;
-
-        case 0xd7:
-            tmpVar = 32;    //the capacity of the nand chip is 1G bit
-            break;
-
-        default:            //don't recognize the nand chip capacity
-            return -1;
-    }
-
-    //parse the die count of a chip
-    tmpNandArchi->DieCntPerChip = 1<<((pNandID[2]>>0) & 0x03);
-
-    //parse the sector count of a physical page
-    tmpNandArchi->SectCntPerPage = 2<<((pNandID[3]>>0) & 0x03);
-
-    //parse the page count of a physical block
-    tmpNandArchi->PageCntPerBlk = ((1<<((pNandID[3]>>4) & 0x03)) * 64 * 2) / tmpNandArchi->SectCntPerPage;
-
-    //parse the physical block count of a die
-    tmpNandArchi->BlkCntPerDie = (((__u32)(tmpVar * 1024 * 1024 / 8)) /  \
-        ((1<<((pNandID[3]>>4) & 0x03)) * 64)) / tmpNandArchi->DieCntPerChip;
-
-    //parse the bad block flag position, normaly, first page for SLC nand, last page for MLC nand flash
-    if((2<<((pNandID[2]>>2) & 0x03)) > 2)
-    {
-        //current nand flash is MLC type nand flash
-        if((tmpNandArchi->NandID[0] == MICRON_NAND) || (tmpNandArchi->NandID[0] == INTEL_NAND))
-        {
-            //the bad block flag for Micron and Intel MLC nand flash is in first page
-            tmpNandArchi->OptionOp->BadBlockFlagPosition = 0;
-        }
-        else
-        {
-            //default is in the last page
-             tmpNandArchi->OptionOp->BadBlockFlagPosition = 2;
-        }
-    }
-    else
-    {
-        //current nand flash is SLC type nand flash, the bad block flag is in the first page
-        tmpNandArchi->OptionOp->BadBlockFlagPosition = 0;
-    }
-
-    //can't parse if the nand flash support multi-plane or inter-leave ex. operation
-    tmpNandArchi->OperationOpt = 0;
-
-    //set the nand flash access frequence parameter, default is 20MHz
-    tmpNandArchi->AccessFreq = 20;
-
-	//set the nand flash access EccMode, default is bch16
-    tmpNandArchi->EccMode= 0;
-
-    //set the pointer to the physical architectrue parameter for return
-    //pNandArchInfo = tmpNandArchi;
-    MEMCPY(pNandArchInfo,tmpNandArchi,sizeof(struct __NandPhyInfoPar_t));
-
-    //analyze nand physical architecture parameter successful
-    return 0;
 }
 
 
@@ -272,7 +157,9 @@ __s32 _GenNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 */
 __s32 _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
 {
-    __s32 i=0, j=0;
+    __s32 i=0, j=0, k=0;
+    __u32 id_match_tbl[3]={0xffff, 0xffff, 0xffff};  
+    __u32 id_bcnt;
     struct __NandPhyInfoPar_t *tmpNandManu;
 
     //analyze the manufacture of the nand flash
@@ -312,6 +199,12 @@ __s32 _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
         case SPANSION_NAND:
             tmpNandManu = &SpansionNandTbl;
             break;
+            
+       //manufacture is power, search parameter from Spansion nand table
+        case POWER_NAND:
+            tmpNandManu = &PowerNandTbl;
+            break;     
+            
         //manufacture is unknown, search parameter from default nand table
         default:
             tmpNandManu = &DefaultNandTbl;
@@ -321,23 +214,42 @@ __s32 _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
     //search the nand architecture parameter from the given manufacture nand table by nand ID
     while(tmpNandManu[i].NandID[0] != 0xff)
     {
-        for(j=1; j<4; j++)
+        //compare 6 byte id
+        id_bcnt = 1; 
+        for(j=1; j<6; j++)
         {
             //0xff is matching all ID value
             if((pNandID[j] != tmpNandManu[i].NandID[j]) && (tmpNandManu[i].NandID[j] != 0xff))
             break;
+            
+            if(tmpNandManu[i].NandID[j] != 0xff)
+                id_bcnt++;
         }
-
-        if(j==4)
+        
+        if(j == 6)
         {
-           /*4 bytes of the nand chip ID are all matching, search parameter successful*/
-            //pNandArchInfo = tmpNandManu+i;
+             /*4 bytes of the nand chip ID are all matching, search parameter successful*/
+            if(id_bcnt == 4)
+                id_match_tbl[0] = i;
+            else if(id_bcnt == 5)
+                id_match_tbl[1] = i; 
+            else if(id_bcnt == 6)   
+                id_match_tbl[2] = i;
+        }
+        
+        //prepare to search the next table item
+        i++;
+    }
+    
+    for(k=2; k>=0;k--)
+    {
+        
+        if(id_match_tbl[k]!=0xffff)
+        {
+            i= id_match_tbl[k];
             MEMCPY(pNandArchInfo,tmpNandManu+i,sizeof(struct __NandPhyInfoPar_t));
             return 0;
         }
-
-        //prepare to search the next table item
-        i++;
     }
 
     //search nand architecture parameter failed
@@ -399,23 +311,15 @@ __s32  SCN_AnalyzeNandSystem(void)
         SCAN_ERR("[SCAN_ERR] Read chip ID from boot chip failed!\n");
         return -1;
     }
-    SCAN_DBG("[SCAN_DBG] Nand flash chip id is:0x%x 0x%x 0x%x 0x%x\n",
-            tmpChipID[0],tmpChipID[1],tmpChipID[2],tmpChipID[3]);
+    SCAN_DBG("[SCAN_DBG] Nand flash chip id is:0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+            tmpChipID[0],tmpChipID[1],tmpChipID[2],tmpChipID[3], tmpChipID[4],tmpChipID[5]);
 
     //search the nand flash physical architecture parameter by nand ID
     result = _SearchNandArchi(tmpChipID, &tmpNandPhyInfo);
     if(result)
     {
-        //search nand flash physical architecture parameter failed, need generate them by chip ID
-        result = _GenNandArchi(tmpChipID, &tmpNandPhyInfo);
-        if(result)
-        {
-            //Generate nand flash physical archittecture parameter failed
-            SCAN_ERR("[SCAN_ERR] Generate nand physical architecture parameter failed!\n");
-            return -1;
-        }
-
-        SCAN_DBG("[SCAN_DBG] Search nand physical archtecture parameter failed, but generate successful.\n");
+        SCAN_ERR("[SCAN_ERR] search nand physical architecture parameter failed!\n");
+        return -1;
     }
 
     //set the nand flash physical architecture parameter
@@ -432,8 +336,13 @@ __s32  SCN_AnalyzeNandSystem(void)
     NandStorageInfo.NandChipId[1] = tmpNandPhyInfo.NandID[1];
     NandStorageInfo.NandChipId[2] = tmpNandPhyInfo.NandID[2];
     NandStorageInfo.NandChipId[3] = tmpNandPhyInfo.NandID[3];
+    NandStorageInfo.NandChipId[4] = tmpNandPhyInfo.NandID[4];
+    NandStorageInfo.NandChipId[5] = tmpNandPhyInfo.NandID[5];
+    NandStorageInfo.NandChipId[6] = tmpNandPhyInfo.NandID[6];
+    NandStorageInfo.NandChipId[7] = tmpNandPhyInfo.NandID[7];
     NandStorageInfo.ValidBlkRatio = tmpNandPhyInfo.ValidBlkRatio;
 	NandStorageInfo.ReadRetryType = tmpNandPhyInfo.ReadRetryType;
+	NandStorageInfo.DDRType       = tmpNandPhyInfo.DDRType;
     //set the optional operation parameter
     NandStorageInfo.OptPhyOpPar.MultiPlaneReadCmd[0] = tmpNandPhyInfo.OptionOp->MultiPlaneReadCmd[0];
     NandStorageInfo.OptPhyOpPar.MultiPlaneReadCmd[1] = tmpNandPhyInfo.OptionOp->MultiPlaneReadCmd[1];
@@ -472,6 +381,11 @@ __s32  SCN_AnalyzeNandSystem(void)
     {
         NandStorageInfo.OperationOpt &= ~NAND_READ_RETRY;
     }
+    
+    if(!CFG_SUPPORT_ALIGN_NAND_BNK)
+    {
+        NandStorageInfo.OperationOpt |= NAND_PAGE_ADR_NO_SKIP;
+    }
 
     //process the plane count of a die and the bank count of a chip
     if(!SUPPORT_MULTI_PROGRAM)
@@ -495,7 +409,9 @@ __s32  SCN_AnalyzeNandSystem(void)
         PHY_ReadNandId((__u32)i, tmpChipID);
         //check if the nand flash id same as the boot chip
         if((tmpChipID[0] == NandStorageInfo.NandChipId[0]) && (tmpChipID[1] == NandStorageInfo.NandChipId[1])
-            && (tmpChipID[2] == NandStorageInfo.NandChipId[2]) && (tmpChipID[3] == NandStorageInfo.NandChipId[3]))
+            && (tmpChipID[2] == NandStorageInfo.NandChipId[2]) && (tmpChipID[3] == NandStorageInfo.NandChipId[3])
+            && ((tmpChipID[4] == NandStorageInfo.NandChipId[4])||(NandStorageInfo.NandChipId[4]==0xff)) 
+            && ((tmpChipID[5] == NandStorageInfo.NandChipId[5])||(NandStorageInfo.NandChipId[5]==0xff)))
         {
             NandStorageInfo.ChipCnt++;
             NandStorageInfo.ChipConnectInfo |= (1<<i);
@@ -577,6 +493,7 @@ __s32  SCN_AnalyzeNandSystem(void)
 		nand_info.pagesize = SECTOR_CNT_OF_SINGLE_PAGE;
 		nand_info.rb_sel = 1;
 		nand_info.serial_access_mode = 1;
+		nand_info.ddr_type = DDR_TYPE;
 		NFC_ChangMode(&nand_info);
 	}
 
@@ -594,17 +511,14 @@ __s32  SCN_AnalyzeNandSystem(void)
     //print nand flash physical architecture parameter
     SCAN_DBG("\n\n");
     SCAN_DBG("[SCAN_DBG] ==============Nand Architecture Parameter==============\n");
-    SCAN_DBG("[SCAN_DBG]    Nand Chip ID:         0x%x\n",
+    SCAN_DBG("[SCAN_DBG]    Nand Chip ID:         0x%x 0x%x\n",
         (NandStorageInfo.NandChipId[0] << 0) | (NandStorageInfo.NandChipId[1] << 8)
-        | (NandStorageInfo.NandChipId[2] << 16) | (NandStorageInfo.NandChipId[3] << 24));
+        | (NandStorageInfo.NandChipId[2] << 16) | (NandStorageInfo.NandChipId[3] << 24), 
+        (NandStorageInfo.NandChipId[4] << 0) | (NandStorageInfo.NandChipId[5] << 8)
+        | (NandStorageInfo.NandChipId[6] << 16) | (NandStorageInfo.NandChipId[7] << 24));
     SCAN_DBG("[SCAN_DBG]    Nand Chip Count:      0x%x\n", NandStorageInfo.ChipCnt);
     SCAN_DBG("[SCAN_DBG]    Nand Chip Connect:    0x%x\n", NandStorageInfo.ChipConnectInfo);
-	#if (0)
-	SCAN_DBG("[SCAN_DBG]    Nand Rb Count:        0x%x\n", NandStorageInfo.RbCnt);
-	SCAN_DBG("[SCAN_DBG]    Nand Rb Connect:      0x%x\n", NandStorageInfo.RbConnectInfo);
-    #elif (1)
 	SCAN_DBG("[SCAN_DBG]    Nand Rb Connect Mode:      0x%x\n", NandStorageInfo.RbConnectMode);
-	#endif
     SCAN_DBG("[SCAN_DBG]    Sector Count Of Page: 0x%x\n", NandStorageInfo.SectorCntPerPage);
     SCAN_DBG("[SCAN_DBG]    Page Count Of Block:  0x%x\n", NandStorageInfo.PageCntPerPhyBlk);
     SCAN_DBG("[SCAN_DBG]    Block Count Of Die:   0x%x\n", NandStorageInfo.BlkCntPerDie);
@@ -615,6 +529,7 @@ __s32  SCN_AnalyzeNandSystem(void)
     SCAN_DBG("[SCAN_DBG]    Access Frequence:     0x%x\n", NandStorageInfo.FrequencePar);
     SCAN_DBG("[SCAN_DBG]    ECC Mode:             0x%x\n", NandStorageInfo.EccMode);
 	SCAN_DBG("[SCAN_DBG]    Read Retry Type:      0x%x\n", NandStorageInfo.ReadRetryType);
+	SCAN_DBG("[SCAN_DBG]    DDR Type:             0x%x\n", NandStorageInfo.DDRType);
     SCAN_DBG("[SCAN_DBG] =======================================================\n\n");
 
     //print nand flash optional operation parameter
