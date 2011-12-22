@@ -83,12 +83,17 @@ int check_android_misc() {
 		/* there is a recovery command */
 		setenv("bootcmd", "run setargs boot_recovery");
 		puts("Recovery detected, will boot recovery\n");
+		/* android recovery will clean the misc */
 	}
 
 	if(!strcmp(misc_message.command, "boot-fastboot")) {
 		/* there is a fastboot command */
 		setenv("bootcmd", "run setargs boot_fastboot");
 		puts("Fastboot detected, will enter fastboot\n");
+		/* clean the misc partition ourself */
+		memset(&misc_message, 0, sizeof(misc_message));
+		sunxi_nand_write_opts(&nand_info[0], misc_offset, &count,
+			(u_char *)&misc_message, 0);
 	}
 
 	return 0;
