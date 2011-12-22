@@ -109,7 +109,6 @@ void s_init(void)
 	watchdog_init();
 	clock_init();
 	gpio_init();
-	sunxi_key_init();
 }
 
 void reset_cpu(ulong addr)

@@ -80,8 +80,13 @@ int check_android_misc() {
 #endif
 
 	if(!strcmp(misc_message.command, "boot-recovery")) {
-		/* there is a recovery command, return true */
-		return 1;
+		/* there is a recovery command */
+		setenv("bootcmd", "run setargs boot_recovery");
+	}
+
+	if(!strcmp(misc_message.command, "boot-fastboot")) {
+		/* there is a fastboot command */
+		setenv("bootcmd", "run setargs boot_fastboot");
 	}
 
 	return 0;
@@ -100,29 +105,9 @@ int board_init(void)
  */
 int board_late_init(void)
 {
-	int key = 0;
 
 	fastboot_partition_init();
-
-	key = sunxi_read_key();
-
-	if(sunxi_check_fastboot(key)) {
-		puts("Fastboot key pressed, will enter fastboot\n");
-		/* set boot cmd to boot fastboot */
-		setenv("bootcmd", "run setargs boot_fastboot");
-	}
-
-	if(sunxi_check_recovery(key)) {
-		puts("Recovery key pressed, will boot recovery\n");
-		/* set boot cmd to boot recovery */
-		setenv("bootcmd", "run setargs boot_recovery");
-	}
-
-	if(check_android_misc()) {
-		puts("Misc has recovery, will boot recovery\n");
-		/* set boot cmd to boot recovery */
-		setenv("bootcmd", "run setargs boot_recovery");
-	}
+	check_android_misc();
 
 	return 0;
 }
