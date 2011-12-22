@@ -80,7 +80,7 @@ int check_android_misc() {
 #endif
 
 	if(!strcmp(misc_message.command, "boot-recovery")) {
-		puts("Misc has recovery, will boot recovery\n");
+		/* there is a recovery command, return true */
 		return 1;
 	}
 

@@ -171,9 +171,23 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_EXTRA_ENV_SETTINGS "bootargs=console=ttyS0,115200 " \
-                                  "init=/init rw " \
-								  "fbmem=32M@0x5a000000 loglevel=9;\0"
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootdelay=3\0" \
+	"bootcmd=run setargs boot_normal\0" \
+	"console=ttyS0,115200\0" \
+	"nand_root=/dev/nandd\0" \
+	"mmc_root=/dev/mmcblk0p4\0" \
+	"init=/init\0" \
+	"loglevel=8\0" \
+	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel}\0" \
+	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
+	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"boot_fastboot=fastboot\0" \
+	"fastboot_key_value_max=0x2d\0" \
+	"fastboot_key_value_min=0x29\0" \
+	"recovery_key_value_max=0x8\0" \
+	"recovery_key_value_min=0x3\0" \
 
 #define CONFIG_BOOTDELAY	1
 #define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;boota 50000000"

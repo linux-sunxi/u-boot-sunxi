@@ -58,7 +58,9 @@ u32 sunxi_read_key(void) {
 	 read it */
 	if( ints & ADC0_DATA_PENDING) {
 		key = readl(&sunxi_key_base->data0);
+#ifdef DEBUG
 		printf("key pressed, value=0x%x\n", key);
+#endif
 	}
 	/* clear the pending data */
 	writel(ints, &sunxi_key_base->ints);
@@ -78,8 +80,8 @@ u32 sunxi_read_key(void) {
 #endif
 }
 
-/* check if one key is fastboot key*/
-int sunxi_check_fastboot(u32 key) {
+/* check if one key is recovery key*/
+int sunxi_check_recovery(u32 key) {
 	int key_max = 0 , key_min = 0 ;
 
 #ifdef SUNXI_KEY_DEBUG
@@ -103,8 +105,8 @@ int sunxi_check_fastboot(u32 key) {
 	return 0;
 }
 
-/* check if one key is recovery key */
-int sunxi_check_recovery(u32 key) {
+/* check if one key is fastboot key */
+int sunxi_check_fastboot(u32 key) {
 	int key_max = 0 , key_min = 0 ;
 
 #ifdef SUNXI_KEY_DEBUG
@@ -121,7 +123,7 @@ int sunxi_check_recovery(u32 key) {
 #endif
 
 	if(key && key_max && key_min) {
-		if(key < key_max && key > key_min)
+		if(key <= key_max && key >= key_min)
 			return 1;
 	}
 
