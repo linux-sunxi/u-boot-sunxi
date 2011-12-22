@@ -33,7 +33,7 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN4I				/* which is sun4i */
-#define CONFIG_A12_EVB				/* working with A10-EVB board */
+#define CONFIG_A12_EVB				/* working with A12-EVB board */
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
@@ -168,12 +168,22 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_EXTRA_ENV_SETTINGS "bootargs=console=ttyS0,115200 " \
-                                  "init=/init rw " \
-								  "fbmem=32M@0x5a000000 loglevel=9;\0"
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootdelay=3\0" \
+	"bootcmd=run setargs boot_normal\0" \
+	"console=ttyS0,115200\0" \
+	"nand_root=/dev/nandd\0" \
+	"mmc_root=/dev/mmcblk0p4\0" \
+	"init=/init\0" \
+	"loglevel=8\0" \
+	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel}\0" \
+	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
+	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 42000000 kernel;boota 42000000"
+#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
