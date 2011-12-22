@@ -39,21 +39,21 @@
 #define  DMSG_PRINT(stuff...)		printf(stuff)
 #define  DMSG_ERR(...)        		(DMSG_PRINT("WRN:L%d(%s):", __LINE__, __FILE__), DMSG_PRINT(__VA_ARGS__))
 
-#if  1
+#if  0
     #define DMSG_DEBUG        			DMSG_PRINT
 #else
     #define DMSG_DEBUG(...)
 #endif
 
 /* 普通信息打印 */
-#if  1
+#if  0
     #define DMSG_INFO         			DMSG_PRINT
 #else
     #define DMSG_INFO(...)
 #endif
 
 /* 严重警告 */
-#if	1
+#if	0
     #define DMSG_PANIC        			DMSG_ERR
 #else
     #define DMSG_PANIC(...)

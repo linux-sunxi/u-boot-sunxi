@@ -224,7 +224,7 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 	   The environment is assumed to be in a partition named 'enviroment'.
 	   It is very possible that your board stores the enviroment 
 	   someplace else. */
-	env_ptn = fastboot_flash_find_ptn("environment");
+	env_ptn = fastboot_flash_find_ptn("env");
 
 	if (env_ptn)
 	{
@@ -1671,7 +1671,7 @@ int do_fastboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 			/* If we got this far, we are a success */
 			ret = 0;
-			printf("fastboot initialized\n");
+			printf("Fastboot entered\n");
 
 			timeout_endtime = get_ticks();
 			timeout_endtime += timeout_ticks;
