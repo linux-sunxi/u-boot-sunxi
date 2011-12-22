@@ -231,9 +231,9 @@ void dram_init_banksize(void)
 	__attribute__((weak, alias("__dram_init_banksize")));
 
 init_fnc_t *init_sequence[] = {
-#if defined(CONFIG_ARCH_CPU_INIT)
+//#if defined(CONFIG_ARCH_CPU_INIT)
 	arch_cpu_init,		/* basic arch cpu dependent setup */
-#endif
+//#endif
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
 #endif
@@ -280,6 +280,7 @@ void board_init_f(ulong bootflag)
 			hang ();
 		}
 	}
+	gpio_script_init();
 
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
@@ -518,6 +519,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
        mmc_initialize(bd);
 #endif
 
+ 	/* set up exceptions */
+	interrupt_init();
+	/* enable exceptions */
+	enable_interrupts();
+
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();
 	dataflash_print_info();
@@ -552,12 +558,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* miscellaneous platform dependent initialisations */
 	misc_init_r();
 #endif
-
-	 /* set up exceptions */
-	interrupt_init();
-	/* enable exceptions */
-	enable_interrupts();
-
 	/* Perform network card initialisation if necessary */
 #if defined(CONFIG_DRIVER_SMC91111) || defined (CONFIG_DRIVER_LAN91C96)
 	/* XXX: this needs to be moved to board init */

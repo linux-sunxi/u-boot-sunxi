@@ -39,7 +39,11 @@
 
 #define BOARD_LATE_INIT				/* init the fastboot partitions */
 
+#define CONFIG_USE_IRQ				1
+
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
+#define CONFIG_SCRIPT_DATA_BASE     (0x40400000)
+
 #if 0
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
 #endif
@@ -50,7 +54,10 @@
 #define CONFIG_DISPLAY_BOARDINFO
 
 /* Clock Defines */
-#define MMU_BASE_ADDRESS			0x20000
+#define MMU_BASE_ADDRESS			0x8000
+
+#define CONFIG_SUNXI_I2C			1
+#define CONFIG_SUNXI_PMU_209		1
 
 /* Serial & console */
 #define CONFIG_SYS_NS16550
@@ -113,6 +120,11 @@
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+
+#ifdef CONFIG_USE_IRQ
+#define CONFIG_STACKSIZE_IRQ    (4*1024)        /* IRQ stack */
+#define CONFIG_STACKSIZE_FIQ    (4*1024)        /* FIQ stack */
+#endif
 
 /*
  * Miscellaneous configurable options

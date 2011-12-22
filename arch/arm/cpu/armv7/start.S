@@ -197,6 +197,21 @@ relocate_code:
 stack_setup:
 	mov	sp, r4
 
+	add r4, r4, #12
+	add r4, r4, #0x2000
+	mrs r0, cpsr
+    bic r0, r0, #0x1f
+    orr r0, r0, #0x12
+    msr cpsr_c, r0
+	mov sp, r4
+
+	sub r4, r4, #0x2000
+	sub r4, r4, #12
+	mrs r0, cpsr
+    bic r0, r0, #0x1f
+    orr r0, r0, #0x13
+    msr cpsr_c, r0
+
 	adr	r0, _start
 	cmp	r0, r6
 	moveq	r9, #0		/* no relocation. relocation offset(r9) = 0 */
@@ -514,11 +529,23 @@ not_used:
 
 	.align	5
 irq:
+/*
 	get_irq_stack
 	irq_save_user_regs
 	bl	do_irq
 	irq_restore_user_regs
+*/
+	sub     lr, lr, #4
+	stmfd   sp!, {r0-r12, lr}
 
+	mov r0, sp
+	ldr r1, =VECTOR_HANDLER
+	add r1, r1, #24
+	ldr r2, [r1]
+	mov lr, pc
+	mov pc, r2
+
+    ldmfd   sp!, {r0-r12, pc}^
 	.align	5
 fiq:
 	get_fiq_stack

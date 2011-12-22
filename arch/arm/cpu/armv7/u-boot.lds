@@ -34,7 +34,9 @@ SECTIONS
 	. = ALIGN(4);
 	.text	:
 	{
+		__int_vector_start = .;
 		arch/arm/cpu/armv7/start.o	(.text)
+		__int_vector_end = .;
 		*(.text)
 	}
 

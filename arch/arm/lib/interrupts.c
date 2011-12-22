@@ -38,17 +38,75 @@
 #include <common.h>
 #include <asm/proc-armv/ptrace.h>
 
+extern ulong __int_vector_start;
+extern ulong __int_vector_end;
+
+
 DECLARE_GLOBAL_DATA_PTR;
+
+struct arm_vector_handler
+{
+	void   (*m_func)( struct pt_regs 	*regs);
+};
+
+void do_reset_instruction (struct pt_regs *pt_regs);
+void do_undefined_instruction (struct pt_regs *pt_regs);
+void do_software_interrupt (struct pt_regs *pt_regs);
+void do_prefetch_abort (struct pt_regs *pt_regs);
+void do_data_abort (struct pt_regs *pt_regs);
+void do_not_used (struct pt_regs *pt_regs);
+
+void do_irq (struct pt_regs *pt_regs);
+
+void do_fiq (struct pt_regs *pt_regs);
+
+
+struct arm_vector_handler VECTOR_HANDLER[8] = 
+{
+	do_reset_instruction,
+	do_undefined_instruction,
+	do_software_interrupt,
+	do_prefetch_abort,
+	do_data_abort,
+	do_not_used,
+	do_irq,
+	do_fiq
+};
 
 #ifdef CONFIG_USE_IRQ
 int interrupt_init (void)
 {
+	__u8  *dest_addr8, *src_addr8;
+	__u32 *dest_addr, size, dsize;
+	__u32 *src_addr,  i;
 	/*
 	 * setup up stacks if necessary
 	 */
 	IRQ_STACK_START = gd->irq_sp - 4;
 	IRQ_STACK_START_IN = gd->irq_sp + 8;
 	FIQ_STACK_START = IRQ_STACK_START - CONFIG_STACKSIZE_IRQ;
+
+	//move start.o to zero area
+	src_addr = &__int_vector_start;
+	size = &__int_vector_end - &__int_vector_start;
+	dest_addr = 0;
+	dsize= size >> 2;
+	while( dsize-- > 0 )
+	{
+		*dest_addr++ = *src_addr++;
+		*dest_addr++ = *src_addr++;
+		*dest_addr++ = *src_addr++;
+		*dest_addr++ = *src_addr++;
+	}
+
+	dsize = size & ( ( 1 << 2 ) - 1 );
+	src_addr8  = (__u8 *)src_addr;
+	dest_addr8 = (__u8 *)dest_addr;
+	while( dsize--)
+	{
+		*dest_addr8++ = *src_addr8++;
+	}
+
 
 	return arch_interrupt_init();
 }
@@ -109,6 +167,7 @@ void bad_mode (void)
 	reset_cpu (0);
 }
 
+#ifndef CONFIG_USE_IRQ
 void show_regs (struct pt_regs *regs)
 {
 	unsigned long flags;
@@ -145,6 +204,26 @@ void show_regs (struct pt_regs *regs)
 		processor_modes[processor_mode (regs)],
 		thumb_mode (regs) ? " (T)" : "");
 }
+#else
+void show_regs (struct pt_regs *regs)
+{
+	int i;
+
+	for(i=0;i<14;i++)
+	{
+		printf("regs[%d]=%x\n",i,(__u32)regs->uregs[i]);
+	}
+}
+
+#endif
+
+void do_reset_instruction (struct pt_regs *pt_regs)
+{
+	printf ("reset instruction\n");
+	show_regs (pt_regs);
+	bad_mode ();
+}
+
 
 void do_undefined_instruction (struct pt_regs *pt_regs)
 {

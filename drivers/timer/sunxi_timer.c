@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor, Inc.
+ * Copyright 2008 allwill technology, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,7 +22,7 @@
 
 #include <common.h>
 #include <config.h>
-#include <command.h>
+
 
 #define TMRC_REGS_BASE			(0x1c20c00)
 
@@ -42,26 +42,41 @@
 
 static  void  timer_test_func(void *p)
 {
+	CFG_SW_TIMER_INT_STATS |=  1;
+	CFG_SW_TIMER_INT_CTRL  &= ~1;
 	printf("this is timer test\n");
 	printf("delay time = %d\n", (__u32)p);
 	return;
 }
 
-int do_timer_test (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int timer_test(cmd_tbl_t *cmdtp, int argc, char * const argv[])
 {
-	__u32 base_count = 1000;
-	__u32 restart = 0;
+	__u32 reg_val;
+	__s32 base_count;
 
+	reg_val =  (0  << 0)  |            // 不启动TIMER
+               (0  << 1)  |            // 使用单次模式
+               (1  << 2)  |            // 使用高频晶振24M
+               (5  << 4);              // 除频系统32，保证当设置时间是1的时候，触发延时1ms
+    reg_val |= (0  << 0)  |            // 暂时没有start timer
+               (1  << 1)  |              // 自动更新初始值用于计时
+			   (1  << 7);
+	CFG_SW_TIMER0_CTRL = reg_val;
+	base_count = 1000;
 	if(argc > 1)
 	{
 		base_count = simple_strtol(argv[1], NULL, 10);
 	}
-	if(argc > 2)
-	{
-		restart = simple_strtol(argv[2], NULL, 10);
-	}
-	
-	return timer_run(timer_test_func, (void *)base_count, base_count, restart);
+	CFG_SW_TIMER0_COUNT = base_count * (24000 / 32);
+	CFG_SW_TIMER_INT_CTRL |= 1;
+	CFG_SW_TIMER0_CTRL    |= 1;
+
+	irq_install_handler(22, timer_test_func, (void *)base_count);
+}
+
+int timer_run (void *func, int delay_time, int auto_restart)
+{
+
 }
 
 U_BOOT_CMD(
@@ -70,33 +85,4 @@ U_BOOT_CMD(
 	"[on, off]"
 );
 
-int do_interrupts(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
 
-	if (argc != 2)
-		return cmd_usage(cmdtp);
-
-	/* on */
-	if (strncmp(argv[1], "on", 2) == 0)
-		enable_interrupts();
-	else
-		disable_interrupts();
-
-	return 0;
-}
-
-U_BOOT_CMD(
-	interrupts, 5, 0, do_interrupts,
-	"enable or disable interrupts",
-	"[on, off]"
-);
-
-
-///* Implemented in $(CPU)/interrupts.c */
-//int do_irqinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
-//
-//U_BOOT_CMD(
-//	irqinfo,    1,    1,     do_irqinfo,
-//	"print information about IRQs",
-//	""
-//);

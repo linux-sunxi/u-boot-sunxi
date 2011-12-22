@@ -39,7 +39,7 @@ COBJS	+= usb/usbc.o \
            usb/usbc_dev.o \
            usb/usbc_host.o \
            usb/usbc_phy.o
-
+COBJS   += int/intc.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
