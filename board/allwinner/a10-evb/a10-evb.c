@@ -82,11 +82,13 @@ int check_android_misc() {
 	if(!strcmp(misc_message.command, "boot-recovery")) {
 		/* there is a recovery command */
 		setenv("bootcmd", "run setargs boot_recovery");
+		puts("Recovery detected, will boot recovery\n");
 	}
 
 	if(!strcmp(misc_message.command, "boot-fastboot")) {
 		/* there is a fastboot command */
 		setenv("bootcmd", "run setargs boot_fastboot");
+		puts("Fastboot detected, will enter fastboot\n");
 	}
 
 	return 0;
