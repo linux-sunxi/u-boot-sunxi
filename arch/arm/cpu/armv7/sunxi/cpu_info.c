@@ -29,7 +29,7 @@
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
-	puts("CPU:   A10\n");
+	puts("CPU:   SUNXI Family\n");
 
 	return 0;
 }

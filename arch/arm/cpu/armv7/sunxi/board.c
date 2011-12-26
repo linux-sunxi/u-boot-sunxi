@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Configuration settings for the Allwinner A10-evb board.
+ * Some init for sunxi platform.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -30,19 +30,18 @@
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 
-
-void watchdog_init()
+int watchdog_init(void)
 {
 	struct sunxi_wdog *wdog =
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	/* disable watchdog */
 	writel(0, &(wdog->mode));
+
+	return 0;
 }
 
-void clock_init()
+int clock_init(void)
 {
-	ulong clock;
-
 	/* set clock source to OSC24M */
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, CPU_CLK_SRC_OSC24M);		/* CPU_CLK_SRC_SEL [17:16] */
 
@@ -57,7 +56,7 @@ void clock_init()
 	sdelay(0x4000);
 	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
-#ifdef SUN5I
+#ifdef CONFIG_SUN5I
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
 #endif
 	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
@@ -86,6 +85,8 @@ void clock_init()
 	sr32(SUNXI_CCM_NAND_SCLK_CFG, 31, 1, CLK_GATE_OPEN);
 	/* open clock for nand */
 	sr32(SUNXI_CCM_AHB_GATING0, 13, 1, CLK_GATE_OPEN);
+
+	return 0;
 }
 
 void gpio_init()
@@ -112,6 +113,6 @@ void s_init(void)
 
 void reset_cpu(ulong addr)
 {
-	sun4i_nand_flush_opts();
+	sunxi_nand_flush_opts();
 	sunxi_reset();
 }

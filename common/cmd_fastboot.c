@@ -224,7 +224,7 @@ static void save_block_values(struct fastboot_ptentry *ptn,
 	   The environment is assumed to be in a partition named 'enviroment'.
 	   It is very possible that your board stores the enviroment 
 	   someplace else. */
-	env_ptn = fastboot_flash_find_ptn("environment");
+	env_ptn = fastboot_flash_find_ptn("env");
 
 	if (env_ptn)
 	{
@@ -756,6 +756,11 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				   Keep download_bytes because it will be
 				   used in the next possible flashing command */
 				download_size = 0;
+				/* The download buffer and cmd buffer is the same one
+				   since the partition name ends without a trailing 0 byte
+				   we need to clear the buffer after download finished
+				   for the next possible command. */
+				memset(buffer, 0, transfer_size);
 
 				if (download_error) {
 					/* There was an earlier error */
@@ -767,9 +772,10 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				}
 				fastboot_tx_status(response, strlen(response));
 
-				printf ("\ndownloading of %d bytes finished\n",
-					download_bytes);
+				printf ("\ndownloading of %d MB finished\n",
+					download_bytes >> 20);
 
+#if 0 /* We don't need to pad */
 #if defined(CONFIG_STORAGE_NAND)
 				/* Pad to block length
 				   In most cases, padding the download to be
@@ -801,6 +807,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					}
 				}
 #endif
+#endif /* #if 0 */
 			}
 
 			/* Provide some feedback */
@@ -811,14 +818,9 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				/* Some feeback that the
 				   download is happening */
 				if (download_error)
-					printf("X");
+					printf("X\n");
 				else
-					printf(".");
-				if (0 == (download_bytes %
-					  (80 * 16 *
-					   interface.nand_block_size)))
-					printf("\n");
-				
+					printf("downloading %d MB ...\r", download_bytes >> 20);
 			}
 		}
 		else
@@ -1005,7 +1007,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			/* Reset error */
 			download_error = 0;
 
-			printf ("Starting download of %d bytes\n", download_size);
+			printf ("Starting download of %d MB\n", download_size >> 20);
 
 			if (0 == download_size)
 			{
@@ -1669,7 +1671,7 @@ int do_fastboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 			/* If we got this far, we are a success */
 			ret = 0;
-			printf("fastboot initialized\n");
+			printf("Fastboot entered\n");
 
 			timeout_endtime = get_ticks();
 			timeout_endtime += timeout_ticks;
