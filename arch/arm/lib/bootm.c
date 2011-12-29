@@ -208,6 +208,9 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	setup_end_tag (bd);
 #endif
 
+	/* nand exit */
+	NAND_Exit();
+
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
 
