@@ -92,7 +92,7 @@ int board_mmc_init(bd_t *bis)
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	puts("Board: A12-EVB\n");
+	puts("Board: A13-EVB\n");
 	return 0;
 }
 #endif

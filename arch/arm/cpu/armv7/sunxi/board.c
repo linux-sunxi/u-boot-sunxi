@@ -107,8 +107,10 @@ void gpio_init()
 void s_init(void)
 {
 	watchdog_init();
+#if 0 /* disable for a13 now, a13 need config */
 	clock_init();
 	gpio_init();
+#endif
 }
 
 void reset_cpu(ulong addr)
