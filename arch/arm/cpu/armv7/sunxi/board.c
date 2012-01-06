@@ -121,6 +121,6 @@ void reset_cpu(ulong addr)
 void enable_caches(void)
 {
 	/* Enable D-cache. I-cache is already enabled in start.S */
-	dcache_enable();
+	/* dcache_enable(); */
 }
 #endif
