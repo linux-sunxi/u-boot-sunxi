@@ -173,16 +173,18 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_normal\0" \
+	"bootcmd=run boot_normal\0" \
 	"console=ttyS0,115200\0" \
-	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"nand_root=/dev/nandb\0" \
+	"nand_root=/dev/nandf\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
 	"setargs=setenv bootargs console=${console} root=${nand_root}" \
 	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"setargs_recovery=setenv bootargs console=${console} root=${nand_root_recovery}" \
+	"init=${init} loglevel=${loglevel}\0" \
+	"boot_normal=run setargs_normal;fatload nand 0 50000000 linux/uimage;bootm 50000000\0" \
+	"boot_recovery=boot_recovery=run setargs_recovery;fatload nand 0 50000000 linux/uimage;bootm 50000000\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
