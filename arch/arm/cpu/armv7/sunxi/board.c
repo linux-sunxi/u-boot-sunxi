@@ -29,6 +29,8 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
+#include <asm/arch/key.h>
+#include <asm/arch/sys_proto.h>
 
 int watchdog_init(void)
 {
@@ -107,6 +109,7 @@ void gpio_init()
 void s_init(void)
 {
 	watchdog_init();
+	sunxi_key_init();
 	clock_init();
 	gpio_init();
 }
