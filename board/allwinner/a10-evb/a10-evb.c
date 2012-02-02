@@ -30,6 +30,7 @@
 #include <asm/arch/nand_fspart.h>
 #include <asm/arch/nand_bsp.h>
 #include <asm/arch/android_misc.h>
+#include <asm/arch/gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
