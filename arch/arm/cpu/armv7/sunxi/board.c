@@ -32,6 +32,31 @@
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
 
+/* The sunxi internal brom will try to loader external bootloader
+ * from mmc0, nannd flash, mmc2.
+ * We check where we boot from by checking the config
+ * of the gpio pin.
+ */
+sunxi_boot_type_t boot_from(void) {
+
+	u32 cfg;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
+	if( cfg == SUNXI_GPC7_SDC2_CLK )
+		return SUNXI_BOOT_TYPE_MMC2;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
+	if( cfg == SUNXI_GPC2_NCLE )
+		return SUNXI_BOOT_TYPE_NAND;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
+	if( cfg == SUNXI_GPF2_SDC0_CLK )
+		return SUNXI_BOOT_TYPE_MMC2;
+
+	/* if we are here, something goes wrong */
+	return SUNXI_BOOT_TYPE_NULL;
+}
+
 int watchdog_init(void)
 {
 	struct sunxi_wdog *wdog =
@@ -91,7 +116,7 @@ int clock_init(void)
 	return 0;
 }
 
-void gpio_init()
+int gpio_init(void)
 {
 	u32 i;
 	static struct sunxi_gpio *gpio_c =
@@ -103,6 +128,8 @@ void gpio_init()
 	}
 	writel(0x55555555, &gpio_c->drv[0]);
 	writel(0x15555, &gpio_c->drv[1]);
+
+	return 0;
 }
 
 /* do some early init */
