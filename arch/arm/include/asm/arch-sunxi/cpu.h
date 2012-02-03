@@ -25,7 +25,6 @@
 #ifndef _SUNXI_CPU_H
 #define _SUNXI_CPU_H
 
-
 #define SUNXI_SRAM_A1_BASE			0X00000000
 #define SUNXI_SRAM_A1_SIZE			(16 * 1024)		/* 16k */
 
@@ -88,20 +87,8 @@
 #define SUNXI_SID_BASE				0X01C23800
 #define SUNXI_SJTAG_BASE			0X01C23C00
 
-
-
-
 #define SUNXI_TP_BASE				0X01C25000
 #define SUNXI_PMU_BASE				0X01C25400
-
-
-
-
-
-
-
-
-
 
 #define SUNXI_UART0_BASE			0X01C28000
 #define SUNXI_UART1_BASE			0X01C28400
@@ -122,8 +109,6 @@
 
 #define SUNXI_SCR_BASE				0X01C2C400
 
-
-
 #define SUNXI_GPS_BASE				0X01C30000
 #define SUNXI_MALI400_BASE			0X01C40000
 
@@ -142,9 +127,17 @@
 
 #define SUNXI_BROM_BASE				0XFFFF0000		/* 32K */
 
+#ifndef __ASSEMBLY__
+/* boot type */
+typedef enum {
+	SUNXI_BOOT_TYPE_NULL,
+	SUNXI_BOOT_TYPE_MMC0,
+	SUNXI_BOOT_TYPE_NAND,
+	SUNXI_BOOT_TYPE_MMC2,
+	SUNXI_BOOT_TYPE_SPI
+} sunxi_boot_type_t;
 
-
-#define SUNXI_GET_BITS(value, start_bit, bits_num) ( (value >> start_bit) & \
-													((1 << bits_num) - 1) )
+sunxi_boot_type_t get_boot_type(void);
+#endif /* __ASSEMBLY__ */
 
 #endif /* _CPU_H */

@@ -34,7 +34,20 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static struct bootloader_message misc_message;
+static sunxi_boot_type_t boot_type;
+
+int save_boot_type(void) {
+
+	boot_type = boot_from();
+	printf("boot type: %d\n", boot_type);
+
+	return 0;
+}
+
+sunxi_boot_type_t get_boot_type(void) {
+
+	return boot_type;
+}
 
 void fastboot_partition_init(void)
 {
@@ -56,6 +69,8 @@ void fastboot_partition_init(void)
 	}
 	puts("-----------------------------------\n");
 }
+
+static struct bootloader_message misc_message;
 
 int check_android_misc() {
 	loff_t misc_offset = 0, misc_size = 0;
@@ -105,6 +120,8 @@ int board_init(void)
 {
 	gd->bd->bi_arch_number = 3495;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
+
+	save_boot_type();
 	return 0;
 }
 
