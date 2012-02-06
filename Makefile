@@ -293,10 +293,6 @@ ifeq ($(SOC),s5pc2xx)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
-ifeq ($(SOC),sunxi)
-LIBS += nand_sunxi/libsunxi-nand.o
-endif
-
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
 .PHONY : $(LIBS) $(TIMESTAMP_FILE)
 

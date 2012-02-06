@@ -24,7 +24,7 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)libfat.o
 
 AOBJS	=
-COBJS-$(CONFIG_CMD_FAT)	:= fat.o fat_write.o
+COBJS-$(CONFIG_CMD_FAT)	:= fat.o
 
 ifndef CONFIG_SPL_BUILD
 COBJS-$(CONFIG_CMD_FAT)	+= file.o

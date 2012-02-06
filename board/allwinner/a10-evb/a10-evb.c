@@ -55,14 +55,14 @@ void fastboot_partition_init(void)
 	int index,part_total;
 
 	puts("--------fastboot partitions--------\n");
-	part_total = sunxi_nand_getpart_num();
+	//TODO part_total = sunxi_nand_getpart_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
 
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
-		sunxi_nand_getpart_name(index, &fb_part.name[0]);
-		fb_part.start = sunxi_nand_getpart_offset(index) * 512;
-		fb_part.length = sunxi_nand_getpart_size(index) * 512;
+		//TODO sunxi_nand_getpart_name(index, &fb_part.name[0]);
+		//TODO fb_part.start = sunxi_nand_getpart_offset(index) * 512;
+		//TODO fb_part.length = sunxi_nand_getpart_size(index) * 512;
 		fb_part.flags = 0;
 		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
 		fastboot_flash_add_ptn(&fb_part);
@@ -76,18 +76,18 @@ int check_android_misc() {
 	loff_t misc_offset = 0, misc_size = 0;
 	size_t count = sizeof(misc_message);
 
-	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
+	//TODO sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
 
 	if(!misc_offset || !misc_size) {
-		sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
+		//TODO sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
 		if(!misc_offset || !misc_size) {
 			puts("no misc partition is found\n");
 			return 0;
 		}
 	}
 
-	sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
-			(u_char *)&misc_message, 0);
+	//TODO sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
+	//		(u_char *)&misc_message, 0);
 
 #ifdef DEBUG
 	printf("misc.command  : %s\n", misc_message.command);
@@ -108,8 +108,8 @@ int check_android_misc() {
 		puts("Fastboot detected, will enter fastboot\n");
 		/* clean the misc partition ourself */
 		memset(&misc_message, 0, sizeof(misc_message));
-		sunxi_nand_write_opts(&nand_info[0], misc_offset, &count,
-			(u_char *)&misc_message, 0);
+		//TODO sunxi_nand_write_opts(&nand_info[0], misc_offset, &count,
+		//	(u_char *)&misc_message, 0);
 	}
 
 	return 0;
