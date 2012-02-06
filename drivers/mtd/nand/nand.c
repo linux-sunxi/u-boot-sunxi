@@ -72,11 +72,9 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			mtd->name = NULL;
 	} else {
 		mtd->name = NULL;
-		mtd->size = NAND_GetDiskSize()* 512;    /* NAND_GetDiskSize returns sectors */
-#ifdef DEBUG
-		printf("mtd->size:%llu \n", mtd->size);
-#endif
+		mtd->size = 0;
 	}
+
 }
 
 void nand_init(void)
@@ -85,7 +83,7 @@ void nand_init(void)
 	unsigned int size = 0;
 	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++) {
 		nand_init_chip(&nand_info[i], &nand_chip[i], base_address[i]);
-		size += (unsigned int)nand_info[i].size / 1024;
+		size += nand_info[i].size / 1024;
 		if (nand_curr_device == -1)
 			nand_curr_device = i;
 	}

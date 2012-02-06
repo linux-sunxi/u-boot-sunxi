@@ -34,8 +34,6 @@
 #define VFAT_MAXLEN_BYTES	256 /* Maximum LFN buffer in bytes */
 #define VFAT_MAXSEQ		9   /* Up to 9 of 13 2-byte UTF-16 entries */
 #define LINEAR_PREFETCH_SIZE	(SECTOR_SIZE*2) /* Prefetch buffer size */
-#define PREFETCH_BLOCKS		2
-
 
 #define SECTOR_SIZE FS_BLOCK_SIZE
 
@@ -108,9 +106,6 @@
 #endif
 
 #define TOLOWER(c)	if((c) >= 'A' && (c) <= 'Z'){(c)+=('a' - 'A');}
-#define TOUPPER(c)	if ((c) >= 'a' && (c) <= 'z') \
-				(c) -= ('a' - 'A');
-
 #define START(dent)	(FAT2CPU16((dent)->start) \
 			+ (mydata->fatsize != 32 ? 0 : \
 			  (FAT2CPU16((dent)->starthi) << 16)))
@@ -221,5 +216,4 @@ long file_fat_read(const char *filename, void *buffer, unsigned long maxsize);
 const char *file_getfsname(int idx);
 int fat_register_device(block_dev_desc_t *dev_desc, int part_no);
 
-int file_fat_write(const char *filename, void *buffer, unsigned long maxsize);
 #endif /* _FAT_H_ */

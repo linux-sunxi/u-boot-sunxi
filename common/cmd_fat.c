@@ -98,70 +98,6 @@ U_BOOT_CMD(
 	"      to address 'addr' from dos filesystem"
 );
 
-
-int do_fat_fsdown (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	long size;
-	unsigned long offset;
-	unsigned long count;
-	char buf [12];
-	block_dev_desc_t *dev_desc=NULL;
-	int dev=0;
-	int part=1;
-	char *ep;
-
-	if (argc < 6) {
-		printf( "usage: fatdown <interface> <dev[:part]> "
-			"<addr> <filename> <bytes>\n");
-		return 1;
-	}
-
-	dev = (int)simple_strtoul(argv[2], &ep, 16);
-	dev_desc = get_dev(argv[1],dev);
-	if (dev_desc == NULL) {
-		puts("\n** Invalid boot device **\n");
-		return 1;
-	}
-	if (*ep) {
-		if (*ep != ':') {
-			puts("\n** Invalid boot device, use `dev[:part]' **\n");
-			return 1;
-		}
-		part = (int)simple_strtoul(++ep, NULL, 16);
-	}
-	if (fat_register_device(dev_desc,part)!=0) {
-		printf("\n** Unable to use %s %d:%d for fatload **\n",
-			argv[1], dev, part);
-		return 1;
-	}
-	offset = simple_strtoul(argv[3], NULL, 16);
-	count = simple_strtoul(argv[5], NULL, 16);
-	size = file_fat_write(argv[4], (unsigned char *)offset, count);
-
-	if(size<0) {
-		printf("\n** Unable to write \"%s\" from %s %d:%d **\n",
-			argv[4], argv[1], dev, part);
-		return 1;
-	}
-
-	printf("\n%ld bytes write\n", count);
-
-	sprintf(buf, "%lX", size);
-	setenv("filesize", buf);
-
-	return 0;
-}
-
-
-U_BOOT_CMD(
-	fatdown,	6,	0,	do_fat_fsdown,
-	"download data to a dos filesystem",
-	"<interface> <dev[:part]>  <addr> <filename> bytes\n"
-	"    - download data 'filename' to 'dev' on 'interface'\n"
-	"      at address 'addr' to dos filesystem"
-);
-
-
 int do_fat_ls (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *filename = "/";
@@ -248,6 +184,3 @@ U_BOOT_CMD(
 	"<interface> <dev[:part]>\n"
 	"    - print information about filesystem from 'dev' on 'interface'"
 );
-
-
-

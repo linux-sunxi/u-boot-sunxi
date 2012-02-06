@@ -81,12 +81,15 @@
 
 //#define CONFIG_SYS_MONITOR_BASE	0x00000000
 
+#if 0
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
+#endif
+
 #define CONFIG_CMD_MEMORY
 #define CONFIG_SUNXI_DMA
 
@@ -113,7 +116,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
 #define CONFIG_FASTBOOT
-#define CONFIG_STORAGE_NAND
+//#define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
 
@@ -159,8 +162,9 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
-#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
+//#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
+//#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
+#define CONFIG_ENV_IS_NOWHERE
 
 /*------------------------------------------------------------------------
  * we save the environment in a nand partition, the partition name is defined
