@@ -29,8 +29,6 @@
 #include <mmc.h>
 #include <nand.h>
 
-#include <asm/arch/nand_bsp.h>
-
 #define SPARSE_HEADER_MAJOR_VER 1
 
 #if 0

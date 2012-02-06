@@ -35,6 +35,7 @@ COBJS	+= gpio.o
 COBJS	+= key.o
 COBJS	+= fastboot.o
 COBJS	+= sparse.o
+COBJS	+= partition.o
 COBJS	+= usb/usbc.o \
            usb/usbc_dev.o \
            usb/usbc_host.o \

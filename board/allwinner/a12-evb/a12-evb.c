@@ -27,8 +27,6 @@
 #include <common.h>
 #include <asm/io.h>
 #include <fastboot.h>
-#include <asm/arch/nand_fspart.h>
-#include <asm/arch/nand_bsp.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
