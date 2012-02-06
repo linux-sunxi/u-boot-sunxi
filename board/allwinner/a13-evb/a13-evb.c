@@ -32,6 +32,21 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static sunxi_boot_type_t boot_type;
+
+int save_boot_type(void) {
+
+	boot_type = boot_from();
+	printf("boot type: %d\n", boot_type);
+
+	return 0;
+}
+
+sunxi_boot_type_t get_boot_type(void) {
+
+	return boot_type;
+}
+
 void fastboot_partition_init(void)
 {
 	fastboot_ptentry fb_part;
