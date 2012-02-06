@@ -69,10 +69,10 @@ extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 #if defined(CONFIG_STORAGE_NAND)
 extern int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[]);
 #elif defined(CONFIG_STORAGE_EMMC)
-extern int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+extern int do_mmcops (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 extern env_t *env_ptr;
 #endif
-/* Use do_setenv and do_saveenv to permenantly save data */
+/* Use do_setenv and do_env_save to permenantly save data */
 extern int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 extern int do_env_set ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 /* Use do_bootm and do_go for fastboot's 'boot' command */
@@ -976,13 +976,13 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				sprintf(start, "0x%x", ptn->start);
 
 				printf("Initializing '%s'\n", ptn->name);
-				if (do_mmc(NULL, 0, 2, mmc_init))
+				if (do_mmcops(NULL, 0, 2, mmc_init))
 					sprintf(response, "FAIL: Init of MMC card");
 				else
 					sprintf(response, "OKAY");
 
 				printf("Erasing '%s'\n", ptn->name);
-				if (do_mmc(NULL, 0, 5, erase)) {
+				if (do_mmcops(NULL, 0, 5, erase)) {
 					printf("Erasing '%s' FAILED!\n", ptn->name);
 					sprintf(response, "FAIL: Erase partition");
 				} else {
@@ -1215,7 +1215,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					}
 					memset(env_ptr->data, 0, ENV_SIZE);
 					memcpy(env_ptr->data, interface.transfer_buffer, download_bytes);
-					do_saveenv(NULL, 0, 1, NULL);
+					do_env_save(NULL, 0, 1, NULL);
 					printf("saveenv to '%s' DONE!\n", ptn->name);
 					sprintf(response, "OKAY");
 				} else {
@@ -1240,14 +1240,14 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					sprintf(length, "0x%x", download_bytes);
 
 					printf("Initializing '%s'\n", ptn->name);
-					if (do_mmc(NULL, 0, 2, mmc_init))
+					if (do_mmcops(NULL, 0, 2, mmc_init))
 						sprintf(response, "FAIL:Init of MMC card");
 					else
 						sprintf(response, "OKAY");
 
 
 					printf("Writing '%s'\n", ptn->name);
-					if (do_mmc(NULL, 0, 6, mmc_write)) {
+					if (do_mmcops(NULL, 0, 6, mmc_write)) {
 						printf("Writing '%s' FAILED!\n", ptn->name);
 						sprintf(response, "FAIL: Write partition");
 					} else {

@@ -27,10 +27,9 @@
 #include <common.h>
 #include <asm/io.h>
 #include <fastboot.h>
-#include <asm/arch/nand_fspart.h>
-#include <asm/arch/nand_bsp.h>
 #include <asm/arch/android_misc.h>
 #include <asm/arch/gpio.h>
+#include <asm/arch/partition.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -39,7 +38,6 @@ static sunxi_boot_type_t boot_type;
 int save_boot_type(void) {
 
 	boot_type = boot_from();
-	printf("boot type: %d\n", boot_type);
 
 	return 0;
 }
