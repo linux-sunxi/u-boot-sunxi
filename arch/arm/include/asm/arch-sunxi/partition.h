@@ -84,4 +84,14 @@ typedef struct tag_download_info
 }
 download_info;
 
+#ifdef CONFIG_STORAGE_EMMC
+/* the phoenix card tools write the image to mmc card
+ * at the offset 20MB(20 * 1024 * 1024)
+ */
+#define SUNXI_MBR_OFFSET_ADDR    (20 * 1024 * 1024)
+#elif defined CONFIG_STORAGE_NAND
+/* in the mbr is at the zero offset of nand */
+#define SUNXI_MBR_OFFSET_ADDR    (0)
+#endif /* CONFIG_STORAGE_EMMC */
+
 #endif /* _SUNXI_PARTITION_H_ */
