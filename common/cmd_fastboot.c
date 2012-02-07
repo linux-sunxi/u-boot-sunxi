@@ -105,9 +105,6 @@ static unsigned int continue_booting;
 static unsigned int upload_size;
 static unsigned int upload_bytes;
 static unsigned int upload_error;
-#if defined(CONFIG_STORAGE_EMMC)
-static unsigned int mmc_controller_no;
-#endif
 
 /* To support the Android-style naming of flash */
 #define MAX_PTN 16
@@ -949,9 +946,6 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 #elif defined(CONFIG_STORAGE_EMMC)
 			struct fastboot_ptentry *ptn;
 
-			/* Save the MMC controller number */
-			mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
-
 			/* Find the partition and erase it */
 			ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 
@@ -963,26 +957,16 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				char start[32], length[32];
 				char slot_no[32];
 
-				char *erase[5]  = { "mmc", NULL, "erase", NULL, NULL, };
-				char *mmc_init[2] = {"mmcinit", NULL,};
+				char *erase[4]  = { "mmc", "erase", NULL, NULL, };
 
-				mmc_init[1] = slot_no;
-				erase[1] = slot_no;
-				erase[3] = start;
-				erase[4] = length;
+				erase[2] = start;
+				erase[3] = length;
 
-				sprintf(slot_no, "%d", mmc_controller_no);
-				sprintf(length, "0x%x", ptn->length);
-				sprintf(start, "0x%x", ptn->start);
-
-				printf("Initializing '%s'\n", ptn->name);
-				if (do_mmcops(NULL, 0, 2, mmc_init))
-					sprintf(response, "FAIL: Init of MMC card");
-				else
-					sprintf(response, "OKAY");
+				sprintf(length, "0x%x", ptn->length / 512);
+				sprintf(start, "0x%x", ptn->start / 512);
 
 				printf("Erasing '%s'\n", ptn->name);
-				if (do_mmcops(NULL, 0, 5, erase)) {
+				if (do_mmcops(NULL, 0, 4, erase)) {
 					printf("Erasing '%s' FAILED!\n", ptn->name);
 					sprintf(response, "FAIL: Erase partition");
 				} else {
@@ -1187,9 +1171,6 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 
 				struct fastboot_ptentry *ptn;
 
-				/* Save the MMC controller number */
-				mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
-
 				/* Next is the partition name */
 				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 
@@ -1222,32 +1203,20 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				/* Normal case */
 
 					char source[32], dest[32], length[32];
-					char slot_no[32];
 
 					printf("writing to partition '%s'\n", ptn->name);
-					char *mmc_write[6]  = {"mmc", NULL, "write", NULL, NULL, NULL};
-					char *mmc_init[2] = {"mmcinit", NULL,};
+					char *mmc_write[5]  = {"mmc", "write", NULL, NULL, NULL};
 
-					mmc_init[1] = slot_no;
-					mmc_write[1] = slot_no;
-					mmc_write[3] = source;
-					mmc_write[4] = dest;
-					mmc_write[5] = length;
+					mmc_write[2] = source;
+					mmc_write[3] = dest;
+					mmc_write[4] = length;
 
-					sprintf(slot_no, "%d", mmc_controller_no);
 					sprintf(source, "0x%x", interface.transfer_buffer);
-					sprintf(dest, "0x%x", ptn->start);
-					sprintf(length, "0x%x", download_bytes);
-
-					printf("Initializing '%s'\n", ptn->name);
-					if (do_mmcops(NULL, 0, 2, mmc_init))
-						sprintf(response, "FAIL:Init of MMC card");
-					else
-						sprintf(response, "OKAY");
-
+					sprintf(dest, "0x%x", ptn->start / 512);
+					sprintf(length, "0x%x", download_bytes / 512);
 
 					printf("Writing '%s'\n", ptn->name);
-					if (do_mmcops(NULL, 0, 6, mmc_write)) {
+					if (do_mmcops(NULL, 0, 5, mmc_write)) {
 						printf("Writing '%s' FAILED!\n", ptn->name);
 						sprintf(response, "FAIL: Write partition");
 					} else {

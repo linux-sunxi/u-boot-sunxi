@@ -56,14 +56,14 @@ void fastboot_partition_init(void) {
 	puts("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
 	printf("-total partitions:%d-\n", part_total);
-	printf("%-12s    %-12s    %-12s\n", "-name-", "-start-", "-size-");
+	printf("%-12s    %-12s    %-12s\n", "-name-", "-blk-", "-cnt-");
 
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
 		sunxi_partition_get_name(index, &fb_part.name[0]);
 		fb_part.start = sunxi_partition_get_offset(index) + SUNXI_MBR_OFFSET_ADDR;
 		fb_part.length = sunxi_partition_get_size(index);
 		fb_part.flags = 0;
-		printf("%-12s: 0x%-12x  0x%-12x\n", fb_part.name, fb_part.start, fb_part.length);
+		printf("%-12s: 0x%-12x  0x%-12x\n", fb_part.name, fb_part.start / 512, fb_part.length / 512);
 		fastboot_flash_add_ptn(&fb_part);
 	}
 	puts("-----------------------------------\n");
