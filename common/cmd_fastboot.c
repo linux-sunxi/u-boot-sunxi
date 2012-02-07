@@ -962,8 +962,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				erase[2] = start;
 				erase[3] = length;
 
-				sprintf(length, "0x%x", ptn->length / 512);
-				sprintf(start, "0x%x", ptn->start / 512);
+				sprintf(length, "0x%x", ALIGN(ptn->length, 512) / 512);
+				sprintf(start, "0x%x", ALIGN(ptn->start, 512) / 512);
 
 				printf("Erasing '%s'\n", ptn->name);
 				if (do_mmcops(NULL, 0, 4, erase)) {
@@ -1212,8 +1212,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					mmc_write[4] = length;
 
 					sprintf(source, "0x%x", interface.transfer_buffer);
-					sprintf(dest, "0x%x", ptn->start / 512);
-					sprintf(length, "0x%x", download_bytes / 512);
+					sprintf(dest, "0x%x", ALIGN(ptn->start, 512) / 512);
+					sprintf(length, "0x%x", ALIGN(download_bytes, 512) / 512);
 
 					printf("Writing '%s'\n", ptn->name);
 					if (do_mmcops(NULL, 0, 5, mmc_write)) {
