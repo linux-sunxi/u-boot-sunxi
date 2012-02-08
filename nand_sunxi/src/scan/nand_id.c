@@ -234,9 +234,9 @@ struct __NandPhyInfoPar_t SamsungNandTbl[] =
 	{ {0xec, 0xd7, 0x94, 0x76, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     3,       0,        0,     &PhysicArchiPara3 },   // K9GBG08U0A
 	{ {0xec, 0xd7, 0x94, 0x7A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     3,       0,        0,     &PhysicArchiPara3 },   // K9GBG08U0A
 	                                                                                                                                                                                                                                                                                
-	{ {0xec, 0xd7, 0x94, 0x7A, 0x54, 0xc3, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     1,       0,        3,     &PhysicArchiPara3 },   // toogle nand 1.0 
+	{ {0xec, 0xd7, 0x94, 0x7A, 0x54, 0xc3, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     1,       0,        3,     &PhysicArchiPara3 },   // toogle nand 1.0 K9GBGD8U0A
 	{ {0xec, 0xde, 0xa4, 0x7a, 0x68, 0xc4, 0xff, 0xff }, 1,    16,     128,     8192,   0x0588,   974,    30,     4,   0x200e04,     3,     &PhysicArchiPara3 },   // toogle nand 2.0 K9GCGD8U0A
-
+    { {0xec, 0xd7, 0x94, 0x7E, 0x64, 0xc4, 0xff, 0xff }, 1,    16,     128,     4096,   0x0588,   974,    30,     4,   0x200e04,     3,     &PhysicArchiPara3 },   // toogle nand 2.0 K9GCGD8U0B
     //-----------------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,     0,       0,        0,      0                 },   // NULL
 };

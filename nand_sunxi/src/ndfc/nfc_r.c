@@ -518,7 +518,7 @@ __s32 NFC_GetId(NFC_CMD_LIST  *idcmd ,__u8 *idbuf)
 	ret |= _wait_cmd_finish();
 
 	/*get 5 bytes id value*/
-	for (i = 0; i < 5; i++){
+	for (i = 0; i < 6; i++){
 		*(idbuf + i) = NFC_READ_RAM_B(NFC_RAM0_BASE+i);
 	}
 
@@ -1089,12 +1089,7 @@ __s32 NFC_ReadRetry(__u32 chip, __u32 retry_count, __u32 read_retry_type)
         	}
     
     		//fix 0
-    		if(read_retry_mode == 0)
-    		{
-    			if(retry_count == 10)
-        	    	param[1] = 0;
-    		}
-    		else if(read_retry_mode == 1)
+    		if((read_retry_mode == 0)||(read_retry_mode == 1))
     		{
     			if((retry_count >=2)&&(retry_count<=6))
     				param[0] = 0;
