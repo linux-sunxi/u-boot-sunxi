@@ -240,7 +240,6 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 3;
 	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkbase);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
-	printf(">>>>> pll5 %d, mod_clk %d\n", pll5_clk, mmchost->mod_clk);
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
@@ -634,7 +633,7 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->f_min = 400000;
 	mmc->f_max = 52000000;
 
-	mmc_host[sdc_no].pdes = 0x60000000;
+	mmc_host[sdc_no].pdes = 0x50000000;
 	mmc_resource_init(sdc_no);
 	mmc_clk_io_on(sdc_no);
 
