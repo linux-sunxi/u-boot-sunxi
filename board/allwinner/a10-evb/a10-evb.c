@@ -145,7 +145,6 @@ int board_init(void) {
  */
 int board_late_init(void) {
 
-	sunxi_partition_init();
 	fastboot_partition_init();
 	check_android_misc();
 
@@ -168,6 +167,14 @@ int dram_init(void) {
 int board_mmc_init(bd_t *bis) {
 
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+	return 0;
+}
+
+int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
+
+	sunxi_partition_init();
+	*env_addr = SUNXI_MBR_OFFSET_ADDR +
+		sunxi_partition_get_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
 	return 0;
 }
 #endif

@@ -165,9 +165,9 @@
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
 //#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
-//#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
+#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
-#define CONFIG_ENV_ADDR				(16 << 20)  /* 16M */
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
