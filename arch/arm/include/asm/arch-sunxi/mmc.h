@@ -49,7 +49,6 @@ struct sunxi_mmc {
 	u32 cbcr;          /* (0x48) SMC CIU Byte Count Register */
 	u32 bbcr;          /* (0x4C) SMC BIU Byte Count Register */
 	u32 dbgc;          /* (0x50) SMC Debug Enable Register */
-#if 0
 	u32 res0[11];      /* (0x54~0x7c) */
 	u32 dmac;          /* (0x80) SMC IDMAC Control Register */
 	u32 dlba;          /* (0x84) SMC IDMAC Descriptor List Base Address Register */
@@ -57,9 +56,8 @@ struct sunxi_mmc {
 	u32 idie;          /* (0x8C) SMC IDMAC Interrupt Enable Register */
 	u32 chda;          /* (0x90) */
 	u32 cbda;          /* (0x94) */
-	u32 res0[26];      /* (0x98~0xff) */
+	u32 res1[26];      /* (0x98~0xff) */
 	u32 fifo;          /* (0x100) SMC FIFO Access Address */
-#endif
 };
 
 #endif /* _SUNXI_MMC_H */
