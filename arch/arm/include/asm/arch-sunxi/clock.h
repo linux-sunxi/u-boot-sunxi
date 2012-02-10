@@ -148,6 +148,18 @@ struct sunxi_ccm_reg {
 #define APB1_FACTOR_M			0
 #define APB1_FACTOR_N			0
 
+/* pll5(for ddr) bit field */
+#define DDR_CLK_HZ				(120 * 1024 * 1024)
+#define OSC24M_CLK_HZ			(24 * 1024 * 1024)
+
+#define PLL5_FACTOR_N			(DDR_CLK_HZ / OSC24M_CLK_HZ)
+#define PLL5_FACTOR_K			1
+#define PLL5_FACTOR_M			1
+#define PLL5_OUT_DIV_P			1
+#define PLL5_ENABLE				1
+#define DDR_CLK_OUT_ENABLE		1
+#define DDR_CLK_OUT_DISABLE		0
+
 /* clock divide */
 #define CPU_CLK_SRC_OSC24M		1
 #define CPU_CLK_SRC_PLL1		2
@@ -158,7 +170,6 @@ struct sunxi_ccm_reg {
 #define AHB_CLK_SRC_AXI			0
 #endif
 
-
 #define CLK_GATE_OPEN			0x1
 #define CLK_GATE_CLOSE			0x0
 
@@ -167,7 +178,39 @@ struct sunxi_ccm_reg {
 #define NAND_CLK_DIV_N			0
 #define NAND_CLK_DIV_M			0
 
+/* gps clock */
+#define GPS_SCLK_GATING_OFF		0
+#define GPS_RESET				0
 
+/* ahb clock gate bit offset */
+#define AHB_GATE_OFFSET_GPS			26
+#define AHB_GATE_OFFSET_SATA		25
+#define AHB_GATE_OFFSET_PATA		24
+#define AHB_GATE_OFFSET_SPI3		23
+#define AHB_GATE_OFFSET_SPI2		22
+#define AHB_GATE_OFFSET_SPI1		21
+#define AHB_GATE_OFFSET_SPI0		20
+#define AHB_GATE_OFFSET_TS0			18
+#define AHB_GATE_OFFSET_EMAC		17
+#define AHB_GATE_OFFSET_ACE			16
+#define AHB_GATE_OFFSET_SDRAM		14
+#define AHB_GATE_OFFSET_NAND		13
+#define AHB_GATE_OFFSET_MS			12
+#define AHB_GATE_OFFSET_MMC3		11
+#define AHB_GATE_OFFSET_MMC2		10
+#define AHB_GATE_OFFSET_MMC1		9
+#define AHB_GATE_OFFSET_MMC0		8
+#define AHB_GATE_OFFSET_BIST		7
+#define AHB_GATE_OFFSET_DMA			6
+#define AHB_GATE_OFFSET_SS			5
+#define AHB_GATE_OFFSET_USB_OHCI1	4
+#define AHB_GATE_OFFSET_USB_EHCI1	3
+#define AHB_GATE_OFFSET_USB_OHCI0	2
+#define AHB_GATE_OFFSET_USB_EHCI0	1
+#define AHB_GATE_OFFSET_USB			0
 
+#ifndef __ASSEMBLY__
+int clock_init(void);
+#endif
 
 #endif /* _SUNXI_CLOCK_H */
