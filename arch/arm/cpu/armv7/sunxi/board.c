@@ -30,6 +30,7 @@
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/key.h>
+#include <asm/arch/dram.h>
 #include <asm/arch/sys_proto.h>
 
 /* The sunxi internal brom will try to loader external bootloader
@@ -83,11 +84,6 @@ int gpio_init(void) {
 	return 0;
 }
 
-int sdram_init(void) {
-
-	return 0;
-}
-
 u32 get_base(void) {
 
 	u32 val;
@@ -117,7 +113,7 @@ void s_init(void) {
 	gpio_init();
 
 	if (!in_sdram)
-		sdram_init();
+		sunxi_dram_init();
 }
 
 extern int sunxi_reset(void);
