@@ -444,7 +444,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int cmdval = 0x80000000;
 	signed int timeout = 0;
-	unsigned int error = 0;
+	int error = 0;
 	unsigned int status = 0;
 	unsigned int usedma = 0;
 	unsigned int bytecnt = 0;
