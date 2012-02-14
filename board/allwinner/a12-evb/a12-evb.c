@@ -29,6 +29,7 @@
 #include <fastboot.h>
 #include <asm/arch/nand_fspart.h>
 #include <asm/arch/nand_bsp.h>
+#include <asm/arch/android_misc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -50,7 +51,7 @@ sunxi_boot_type_t get_boot_type(void) {
 void fastboot_partition_init(void)
 {
 	fastboot_ptentry fb_part;
-	int index,part_total;
+	int index, part_total;
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_nand_getpart_num();
@@ -66,6 +67,51 @@ void fastboot_partition_init(void)
 		fastboot_flash_add_ptn(&fb_part);
 	}
 	printf("-----------------------------------\n");
+}
+
+static struct bootloader_message misc_message;
+
+int check_android_misc() {
+	loff_t misc_offset = 0, misc_size = 0;
+	size_t count = sizeof(misc_message);
+
+	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
+
+	if(!misc_offset || !misc_size) {
+		sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
+		if(!misc_offset || !misc_size) {
+			puts("no misc partition is found\n");
+			return 0;
+		}
+	}
+
+	sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
+			(u_char *)&misc_message, 0);
+
+#ifdef DEBUG
+	printf("misc.command  : %s\n", misc_message.command);
+	printf("misc.status   : %s\n", misc_message.status);
+	printf("misc.recovery : %s\n", misc_message.recovery);
+#endif
+
+	if(!strcmp(misc_message.command, "boot-recovery")) {
+		/* there is a recovery command */
+		setenv("bootcmd", "run setargs boot_recovery");
+		puts("Recovery detected, will boot recovery\n");
+		/* android recovery will clean the misc */
+	}
+
+	if(!strcmp(misc_message.command, "boot-fastboot")) {
+		/* there is a fastboot command */
+		setenv("bootcmd", "run setargs boot_fastboot");
+		puts("Fastboot detected, will enter fastboot\n");
+		/* clean the misc partition ourself */
+		memset(&misc_message, 0, sizeof(misc_message));
+		sunxi_nand_write_opts(&nand_info[0], misc_offset, &count,
+			(u_char *)&misc_message, 0);
+	}
+
+	return 0;
 }
 
 /* TODO add board specific code here */
@@ -100,6 +146,8 @@ int dram_init(void)
 int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+	check_android_misc();
+
 	return 0;
 }
 #endif
