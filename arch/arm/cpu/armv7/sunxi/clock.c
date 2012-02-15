@@ -50,15 +50,15 @@ int clock_init(void) {
 	/* wait for clock to be stable*/
 	sdelay(0x4000);
 	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
-	sr32(&ccm->pll1_cfg, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
 #ifdef CONFIG_SUN5I
-	sr32(&ccm->pll1_cfg, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
 #endif
-	sr32(&ccm->pll1_cfg, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
-	sr32(&ccm->pll1_cfg, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
 
 	/* change cpu clock source to pll1 */
-	sr32(&ccm->pll1_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
+	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
 	/*
 	 * if the clock source is changed,
 	 * at most wait for 8 present running clock cycles
@@ -111,4 +111,3 @@ int clock_init(void) {
 
 	return 0;
 }
-

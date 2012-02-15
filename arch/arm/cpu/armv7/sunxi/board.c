@@ -96,7 +96,7 @@ u32 get_base(void) {
 
 u32 is_running_in_sdram(void) {
 
-	if (get_base() > 4)
+	if (get_base() >= 4)
 		return 1;	/* in SDRAM */
 
 	return 0;		/* running in SRAM */
