@@ -69,18 +69,18 @@ struct sunxi_ccm_reg {
 	u32 pll2_cfg;             /* 0x08 pll2 control */
 	u32 pll2_tun;             /* 0x0c pll2 tuning */
 	u32 pll3_cfg;             /* 0x10 pll3 control */
-	u8 res0[0x4];
+	u8  res0[0x4];
 	u32 pll4_cfg;             /* 0x18 pll4 control */
-	u32 res1;
+	u8  res1[0x4];
 	u32 pll5_cfg;             /* 0x20 pll5 control */
 	u32 pll5_tun;             /* 0x24 pll5 tuning */
 	u32 pll6_cfg;             /* 0x28 pll6 control */
 	u32 pll6_tun;             /* 0x2c pll6 tuning */
 	u32 pll7_cfg;             /* 0x30 pll7 control */
-	u32 res2;
 	u32 pll1_tun2;            /* 0x34 pll5 tuning2 */
+	u8  res2[0x4];
 	u32 pll5_tun2;            /* 0x3c pll5 tuning2 */
-	u8 res3[0xc];
+	u8  res3[0xc];
 	u32 pll_lock_dbg;         /* 0x4c pll lock time debug */
 	u32 osc24m_cfg;           /* 0x50 osc24m control */
 	u32 cpu_ahb_apb0_cfg;     /* 0x54 cpu,ahb and apb0 divide ratio */
@@ -90,7 +90,7 @@ struct sunxi_ccm_reg {
 	u32 ahb_gate1;            /* 0x64 ahb module clock gating 1 */
 	u32 apb0_gate;            /* 0x68 apb0 module clock gating */
 	u32 apb1_gate;            /* 0x6c apb1 module clock gating */
-	u32 res4[0x10];
+	u8  res4[0x10];
 	u32 nand_sclk_cfg;        /* 0x80 nand sub clock control */
 	u32 ms_sclk_cfg;          /* 0x84 memory stick sub clock control */
 	u32 sd0_clk_cfg;          /* 0x88 sd0 clock control */
@@ -113,7 +113,7 @@ struct sunxi_ccm_reg {
 	u32 usb_clk_cfg;          /* 0xcc */
 	u32 gps_clk_cfg;          /* 0xd0 */
 	u32 spi3_clk_cfg;         /* 0xd4 */
-	u8 res5[0x28];
+	u8  res5[0x28];
 	u32 dram_clk_cfg;         /* 0x100 */
 	u32 be0_clk_cfg;          /* 0x104 */
 	u32 be1_clk_cfg;          /* 0x108 */
@@ -123,7 +123,7 @@ struct sunxi_ccm_reg {
 	u32 lcd0_ch0_clk_cfg;     /* 0x118 */
 	u32 lcd1_ch0_clk_cfg;     /* 0x11c */
 	u32 csi_isp_clk_cfg;      /* 0x120 */
-	u8 res6[0x4];
+	u8  res6[0x4];
 	u32 tvd_clk_reg;          /* 0x128 */
 	u32 lcd0_ch1_clk_cfg;     /* 0x12c */
 	u32 lcd1_ch1_clk_cfg;     /* 0x130 */
