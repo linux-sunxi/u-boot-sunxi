@@ -29,10 +29,13 @@
 #include <fastboot.h>
 #include <asm/arch/nand_fspart.h>
 #include <asm/arch/nand_bsp.h>
+#include <asm/arch/android_misc.h>
+#include <asm/arch/gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 static sunxi_boot_type_t boot_type;
+extern sunxi_boot_type_t boot_from(void);
 
 int save_boot_type(void) {
 

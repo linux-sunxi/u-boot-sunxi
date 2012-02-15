@@ -35,6 +35,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static sunxi_boot_type_t boot_type;
+extern sunxi_boot_type_t boot_from(void);
 
 int save_boot_type(void) {
 
