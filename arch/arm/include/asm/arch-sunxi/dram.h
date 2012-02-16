@@ -39,13 +39,13 @@ struct sunxi_dram_reg {
 	u32 tpr1;       /* 0x18 dram timing parameters register 1 */
 	u32 tpr2;       /* 0x1c dram timing parameters register 2 */
 	u32 gdllcr;     /* 0x20 global dll control register */
-	u8 res0[0x2c];
+	u8  res0[0x28];
 	u32 rslr0;      /* 0x4c rank system latency register */
 	u32 rslr1;      /* 0x50 rank system latency register */
-	u8 res1[0xc];
+	u8 res1[0x8];
 	u32 rdgr0;      /* 0x5c rank dqs gating register */
 	u32 rdgr1;      /* 0x60 rank dqs gating register */
-	u8 res2[0x38];
+	u8  res2[0x34];
 	u32 odtcr;      /* 0x98 odt configuration register */
 	u32 dtr0;       /* 0x9c data training register 0 */
 	u32 dtr1;       /* 0xa0 data training register 1 */
@@ -54,17 +54,17 @@ struct sunxi_dram_reg {
 	u32 zqcr1;      /* 0xac zq control register 1 */
 	u32 zqsr;       /* 0xb0 zq status register */
 	u32 idcr;       /* 0xb4 initializaton delay configure register */
-	u8 res3[0x13c];
+	u8  res3[0x138];
 	u32 mr;         /* 0x1f0 mode register */
-	u32 emr;        /* 0x1f4 mode register */
-	u32 emr2;       /* 0x1f8 mode register */
-	u32 emr3;       /* 0x1fc mode register */
+	u32 emr;        /* 0x1f4 extended mode register */
+	u32 emr2;       /* 0x1f8 extended mode register */
+	u32 emr3;       /* 0x1fc extended mode register */
 	u32 dllctr;     /* 0x200 dll control register */
 	u32 dllcr[4];   /* 0x204 dll control register 0(byte 0) */
 	                /* 0x208 dll control register 1(byte 1) */
 	                /* 0x20c dll control register 2(byte 2) */
 	                /* 0x210 dll control register 3(byte 3) */
-	u8 res4[0x4];
+	u8  res4[0x4];
 	u32 dqtr0;      /* 0x218 dq timing register */
 	u32 dqtr1;      /* 0x21c dq timing register */
 	u32 dqtr2;      /* 0x220 dq timing register */
@@ -72,12 +72,13 @@ struct sunxi_dram_reg {
 	u32 dqstr;      /* 0x228 dqs timing register */
 	u32 dqsbtr;     /* 0x22c dqsb timing register */
 	u32 mcr;        /* 0x230 mode configure register */
+	u8  res[0xc];
 	u32 apr;        /* 0x240 arbiter period register */
 	u32 pldtr;      /* 0x244 priority level data threshold register */
-	u8 res5[0x8];
+	u8  res5[0x8];
 	u32 hpcr[32];   /* 0x250 host port configure register */
-	u8 res6[0xc];
-	u32 csel;        /* 0x2e0 controller select register */
+	u8  res6[0x10];
+	u32 csel;       /* 0x2e0 controller select register */
 
 };
 
