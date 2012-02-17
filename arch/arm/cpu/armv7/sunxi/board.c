@@ -32,6 +32,7 @@
 #include <asm/arch/key.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/early_print.h>
 
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
@@ -70,16 +71,9 @@ int watchdog_init(void) {
 
 int gpio_init(void) {
 
-	u32 i;
-	static struct sunxi_gpio *gpio_c =
-		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-
-	/* set nand controller pin */
-	for(i=0; i < 4; i++) {
-		writel(0x22222222, &gpio_c->cfg[i]);
-	}
-	writel(0x55555555, &gpio_c->drv[0]);
-	writel(0x15555, &gpio_c->drv[1]);
+	/* config uart pin */
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPB22_UART0_TX);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPB23_UART0_RX);
 
 	return 0;
 }
@@ -94,26 +88,34 @@ u32 get_base(void) {
 	return val;
 }
 
-u32 is_running_in_sdram(void) {
+u32 is_running_in_sram(void) {
 
-	if (get_base() >= 4)
-		return 1;	/* in SDRAM */
+	if (get_base() == 0)
+		return 1;	/* in SRAM */
 
-	return 0;		/* running in SRAM */
+	return 0;		/* running in SDRAM */
 }
 
 /* do some early init */
 void s_init(void) {
 
-	int in_sdram = is_running_in_sdram();
+	int in_sram = is_running_in_sram();
+	int stop = 0x55;
 
 	watchdog_init();
 	sunxi_key_init();
 	clock_init();
 	gpio_init();
+	uart0_init();
 
-	if (!in_sdram)
+	if (in_sram) {
+		uart0_putc('s');
+		uart0_putc('r');
+		uart0_putc('a');
+		uart0_putc('m');
+		uart0_putc('\n');
 		sunxi_dram_init();
+	}
 }
 
 extern int sunxi_reset(void);
