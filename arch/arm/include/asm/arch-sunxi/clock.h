@@ -142,6 +142,7 @@ struct sunxi_ccm_reg {
 #define PLL1_FACTOR_K			1
 #define PLL1_FACTOR_M			0
 #define PLL1_FACTOR_P			0
+#define PLL1_ENABLE				1
 
 /* apb1 bit field */
 #define APB1_CLK_SRC_OSC24M		0

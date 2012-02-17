@@ -125,6 +125,9 @@ enum sunxi_gpio_number {
 #define SUNXI_GPA10_UART1_TX    (4)
 #define SUNXI_GPA11_UART1_RX    (4)
 
+#define SUNXI_GPB22_UART0_TX    (2)
+#define SUNXI_GPB23_UART0_RX    (2)
+
 #define SUNXI_GPC2_NCLE         (2)
 #define SUNXI_GPC2_SPI0_CLK     (3)
 

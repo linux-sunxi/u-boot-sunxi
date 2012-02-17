@@ -30,6 +30,7 @@ SOBJS	+= reset.o
 
 COBJS	+= timer.o
 COBJS	+= cpu_info.o
+COBJS	+= early_print.o
 COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o

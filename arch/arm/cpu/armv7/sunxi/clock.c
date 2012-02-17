@@ -24,6 +24,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
 
 int clock_init(void) {
@@ -38,7 +39,7 @@ int clock_init(void) {
  * osc24m
  */
 
-	/* set clock source to OSC24M */
+	/* set cpu clock source to OSC24M */
 	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_OSC24M);		/* CPU_CLK_SRC_SEL [17:16] */
 
 	/* set the pll1 factors, pll1 out = 24MHz*n*k/m/p */
@@ -47,8 +48,6 @@ int clock_init(void) {
 	sr32(&ccm->pll1_cfg, 0, 2, PLL1_FACTOR_M);		/* PLL1_FACTOR_M [1:0] */
 	sr32(&ccm->pll1_cfg, 16, 2, PLL1_FACTOR_P);		/* PLL1_FACTOR_P [17:16] */
 
-	/* wait for clock to be stable*/
-	sdelay(0x4000);
 	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
 	sr32(&ccm->cpu_ahb_apb0_cfg, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
 #ifdef CONFIG_SUN5I
@@ -56,6 +55,10 @@ int clock_init(void) {
 #endif
 	sr32(&ccm->cpu_ahb_apb0_cfg, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
 	sr32(&ccm->cpu_ahb_apb0_cfg, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
+
+	/* enable pll1 */
+	sr32(&ccm->pll1_cfg, 31, 1, PLL1_ENABLE);		/* PLL1_ENABLE [31] */
+	sdelay(0x1000);
 
 	/* change cpu clock source to pll1 */
 	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
@@ -72,7 +75,7 @@ int clock_init(void) {
 	/* open the clock for uart0 */
 	sr32(&ccm->apb1_gate, 16, 1, CLK_GATE_OPEN);
 
-#if 0
+
 	/* ddr clock source is pll5 */
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_DISABLE);
 	sr32(&ccm->pll5_cfg, 0, 2, PLL5_FACTOR_M);
@@ -96,8 +99,6 @@ int clock_init(void) {
 	sdelay(0x1000);
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_OPEN);
 	sdelay(0x1000);
-#endif
-
 
 #if 0
 	/* nand clock source is osc24m */
