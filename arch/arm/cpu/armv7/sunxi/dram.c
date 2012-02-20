@@ -30,81 +30,75 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
-static inline int dram_ddr_reset(struct sunxi_dram_reg *dram) {
+static inline void dram_ddr_reset(struct sunxi_dram_reg *dram) {
 
-	sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
-	sdelay(0x100);
-	sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
 
-	return 0;
+	/* different cpu revision in bit [7:6] */
+	if(readl(SUNXI_CPU_CFG)) {
+		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
+		sdelay(0x100);
+		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
+	} else {
+		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_LOW);
+		sdelay(0x100);
+		sr32(&dram->mcr, 12, 1, SDRAM_RST_PIN_HIGH);
+	}
+
 }
 
-static inline int dram_set_high_speed(struct sunxi_dram_reg *dram) {
+static inline void dram_set_high_speed(struct sunxi_dram_reg *dram) {
 
+	sr32(&dram->mcr, 13, 2, MCR_ENABLE_MODE);
 	sr32(&dram->mcr, 0, 2, MCR_MODE_NORMAL);
 	sr32(&dram->mcr, 2, 2, MCR_DQ_OUT_MODE_HS);
 	sr32(&dram->mcr, 4, 2, MCR_ADDR_OUT_MODE_HS);
 	sr32(&dram->mcr, 6, 2, MCR_DQ_IN_MODE_HS);
 	sr32(&dram->mcr, 8, 3, MCR_DQ_HS_TURNON_DLY);
 	sr32(&dram->mcr, 11, 1, MCR_ADDR_IN_MODE_HS);
-
-	return 0;
 }
 
-static inline int dram_close_clock(struct sunxi_ccm_reg *ccm) {
+static inline void dram_close_clock(struct sunxi_ccm_reg *ccm) {
 
 	sr32(&ccm->dram_clk_cfg, DCLK_OUT_OFFSET, 1, CLK_GATE_CLOSE);
-
-	return 0;
 }
 
-static inline int dram_open_clock(struct sunxi_ccm_reg *ccm) {
+static inline void dram_open_clock(struct sunxi_ccm_reg *ccm) {
 
 	sr32(&ccm->dram_clk_cfg, DCLK_OUT_OFFSET, 1, CLK_GATE_OPEN);
-
-	return 0;
 }
 
-static inline int dram_select_controller(struct sunxi_dram_reg *dram) {
+static inline void dram_select_controller(struct sunxi_dram_reg *dram) {
 
 	/* write magic number to select dram controller */
 	writel(DRAM_CTRL_SELECT_MAGIC, &dram->csel);
-
-	return 0;
 }
 
-static inline int dram_disable_itm(struct sunxi_dram_reg *dram) {
+static inline void dram_disable_itm(struct sunxi_dram_reg *dram) {
 
 	/* disable interface timing module */
 	sr32(&dram->ccr, 28, 1, CCR_INTF_TIMING_DISABLE);
-
-	return 0;
 }
 
-static inline int dram_enable_itm(struct sunxi_dram_reg *dram) {
+static inline void dram_enable_itm(struct sunxi_dram_reg *dram) {
 
 	/* enable interface timing module */
 	sr32(&dram->ccr, 28, 1, CCR_INTF_TIMING_ENABLE);
-
-	return 0;
 }
 
-static inline int dram_enable_dll(struct sunxi_dram_reg *dram, int i) {
+static inline void dram_enable_dll(struct sunxi_dram_reg *dram, int i) {
 
-	sr32(&dram->dllcr[i], 30, 1, DLL_DISABLE);
-	sr32(&dram->dllcr[i], 31, 1, ~DLL_RESET);
+	sr32(&dram->dllcr[i], 31, 1, DLL_DISABLE);
+	sr32(&dram->dllcr[i], 30, 1, ~DLL_RESET);
 	sdelay(0x100);
-	sr32(&dram->dllcr[i], 30, 1, DLL_ENABLE);
-	sr32(&dram->dllcr[i], 31, 1, ~DLL_RESET);
+	sr32(&dram->dllcr[i], 31, 1, DLL_ENABLE);
+	sr32(&dram->dllcr[i], 30, 1, ~DLL_RESET);
 	sdelay(0x1000);
-	sr32(&dram->dllcr[i], 30, 1, DLL_ENABLE);
-	sr32(&dram->dllcr[i], 31, 1, DLL_RESET);
+	sr32(&dram->dllcr[i], 31, 1, DLL_ENABLE);
+	sr32(&dram->dllcr[i], 30, 1, DLL_RESET);
 	sdelay(0x1000);
-
-	return 0;
 }
 
-static inline int dram_config_type(struct sunxi_dram_reg *dram) {
+static inline void dram_config_type(struct sunxi_dram_reg *dram) {
 
 	sr32(&dram->dcr, 0, 1, DCR_TYPE_DDR3);
 	sr32(&dram->dcr, 1, 2, DCR_IO_WIDTH_16);
@@ -113,77 +107,59 @@ static inline int dram_config_type(struct sunxi_dram_reg *dram) {
 	sr32(&dram->dcr, 10, 2, DCR_ONE_RANK);
 	sr32(&dram->dcr, 12, 1, DCR_CMD_ON_ALL_RANKS);
 	sr32(&dram->dcr, 13, 2, DCR_INTERLEAVE_MODE);
-
-	return 0;
 }
 
-static inline int dram_set_odt(struct sunxi_dram_reg *dram) {
+static inline void dram_set_odt(struct sunxi_dram_reg *dram) {
 
 	/* set odt(On Die Termination) impedance divide ratio */
 	sr32(&dram->zqcr0, 20, 8, ZQCR0_IMP_DIV);
-
-	return 0;
 }
 
-static inline int dram_init_chip(struct sunxi_dram_reg *dram) {
+static inline void dram_init_chip(struct sunxi_dram_reg *dram) {
 
 	sr32(&dram->ccr, 31, 1, CCR_INIT_CHIP);
-
-	return 0;
 }
-static inline int dram_wait_init(struct sunxi_dram_reg *dram) {
+static inline void dram_wait_init(struct sunxi_dram_reg *dram) {
 
 	while(readl(&dram->ccr) & (1 << 31)) {};
-
-	return 0;
 }
 
-static inline int dram_set_io_config(struct sunxi_dram_reg *dram) {
+static inline void dram_set_io_config(struct sunxi_dram_reg *dram) {
+
 	writel(0x00cc0000, &dram->iocr);
-
-	return 0;
 }
 
-static inline int dram_set_self_refresh(struct sunxi_dram_reg *dram) {
+static inline void dram_set_self_refresh(struct sunxi_dram_reg *dram) {
 
 	writel(0x0861e776, &dram->drr);
-
-	return 0;
 }
 
-static inline int dram_set_timing(struct sunxi_dram_reg *dram) {
+static inline void dram_set_timing(struct sunxi_dram_reg *dram) {
 
 	writel(0x30926692, &dram->tpr0);
 	writel(0x1090, &dram->tpr1);
 	writel(0x1a0c8, &dram->tpr2);
-
-	return 0;
 }
 
-static inline int dram_set_mode(struct sunxi_dram_reg *dram) {
+static inline void dram_set_mode(struct sunxi_dram_reg *dram) {
 
+	sr32(&dram->mr, 0, 3, MR_BURST_LENGTH);
 	sr32(&dram->mr, 12, 1, MR_POWER_DOWN);
 	sr32(&dram->mr, 4, 3, MR_CAS_LATENCY);
 	sr32(&dram->mr, 9, 3, MR_WRITE_RECOVERY);
-
-	return 0;
 }
 
-static inline int dram_set_emr(struct sunxi_dram_reg *dram) {
+static inline void dram_set_emr(struct sunxi_dram_reg *dram) {
 
 	writel(0, &dram->emr);
 	writel(0, &dram->emr2);
 	writel(0, &dram->emr3);
-
-	return 0;
 }
 
-static inline int dram_set_dqs(struct sunxi_dram_reg *dram) {
+static inline void dram_set_dqs(struct sunxi_dram_reg *dram) {
 
 	sr32(&dram->ccr, 14, 1, DQS_GATE_ON);
 	sr32(&dram->ccr, 17, 1, DQS_DRIFT_COMPENSATION);
-
-	return 0;
 }
 
 static inline int dram_read_pipe(struct sunxi_dram_reg *dram) {
@@ -192,13 +168,14 @@ static inline int dram_read_pipe(struct sunxi_dram_reg *dram) {
 	/* wait data trainning end */
 	while(readl(&dram->csr) & (1 << 30)) {};
 
-	if(readl(&dram->csr) & (1 << 20))
+	if(readl(&dram->csr) & (1 << 20)) {
 		return -1;
+	}
 
 	return 0;
 }
 
-static inline int dram_config_hostport(struct sunxi_dram_reg *dram) {
+static inline void dram_config_hostport(struct sunxi_dram_reg *dram) {
 
 	int i;
 	u32 val_tbl[32] = {
@@ -215,8 +192,6 @@ static inline int dram_config_hostport(struct sunxi_dram_reg *dram) {
 
 	for(i = 0; i < 32; i++)
 		writel(val_tbl[i], &dram->hpcr[i]);
-
-	return 0;
 }
 
 int sunxi_dram_init(void) {
@@ -235,7 +210,6 @@ int sunxi_dram_init(void) {
 	dram_disable_itm(dram);
 	dram_enable_dll(dram, 0);
 	dram_config_type(dram);
-	dram_set_odt(dram);
 
 	dram_open_clock(ccm);
 	sdelay(0x10);
@@ -245,6 +219,8 @@ int sunxi_dram_init(void) {
 	dram_enable_dll(dram, 2);
 	dram_enable_dll(dram, 3);
 	dram_enable_dll(dram, 4);
+
+	dram_set_odt(dram);
 
 	dram_set_io_config(dram);
 	dram_set_self_refresh(dram);
@@ -256,5 +232,9 @@ int sunxi_dram_init(void) {
 	dram_init_chip(dram);
 	dram_wait_init(dram);
 
-	return dram_read_pipe(dram);
+	dram_enable_itm(dram);
+	dram_read_pipe(dram);
+	dram_config_hostport(dram);
+
+	return 0;
 }
