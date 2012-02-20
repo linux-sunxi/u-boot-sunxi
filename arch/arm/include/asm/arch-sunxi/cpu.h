@@ -127,6 +127,8 @@
 
 #define SUNXI_BROM_BASE				0XFFFF0000		/* 32K */
 
+#define SUNXI_CPU_CFG              (SUNXI_TIMER_BASE + 0x13c)
+
 #ifndef __ASSEMBLY__
 /* boot type */
 typedef enum {

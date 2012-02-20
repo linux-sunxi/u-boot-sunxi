@@ -105,12 +105,13 @@ struct dram_para {
 	u32 emr3;
 };
 
-#define SDRAM_RST_PIN_HIGH        (0)
-#define SDRAM_RST_PIN_LOW         (1)
+#define SDRAM_RST_PIN_HIGH        (1)
+#define SDRAM_RST_PIN_LOW         (0)
 
 #define DCLK_OUT_OFFSET           (15)
 #define DRAM_CTRL_SELECT_MAGIC    (0x16237495)
 
+#define MCR_ENABLE_MODE           (3)
 #define MCR_MODE_NORMAL           (0)
 #define MCR_DQ_OUT_MODE_HS        (3)
 #define MCR_DQ_IN_MODE_HS         (3)
@@ -146,6 +147,7 @@ struct dram_para {
 
 #define ZQCR0_IMP_DIV             (0x7b)
 
+#define MR_BURST_LENGTH           (0)
 #define MR_POWER_DOWN             (1)
 #define MR_CAS_LATENCY            (2)
 #define MR_WRITE_RECOVERY         (5)

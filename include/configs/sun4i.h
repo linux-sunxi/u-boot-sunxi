@@ -79,8 +79,6 @@
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE			(512 << 20)				/* 0x20000000, 512 MB Bank #1 */
 
-//#define CONFIG_SYS_MONITOR_BASE	0x00000000
-
 #if 0
 /* Nand config */
 #define CONFIG_NAND
@@ -119,7 +117,6 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
 #define CONFIG_FASTBOOT
-//#define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
 
@@ -165,7 +162,6 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-//#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
 #define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
@@ -195,5 +191,10 @@
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
+
+#define CONFIG_SPL
+#define CONFIG_SPL_TEXT_BASE 0x0
+#define CONFIG_SPL_SERIAL_SUPPORT
+#define CONFIG_SPL_LIBGENERIC_SUPPORT
 
 #endif /* __CONFIG_H */

@@ -29,13 +29,15 @@ SOBJS	:= lowlevel_init.o
 SOBJS	+= reset.o
 
 COBJS	+= timer.o
-COBJS	+= cpu_info.o
-COBJS	+= early_print.o
 COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= gpio.o
+COBJS	+= early_print.o
+
+ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
+COBJS	+= cpu_info.o
 COBJS	+= fastboot.o
 COBJS	+= sparse.o
 COBJS	+= partition.o
@@ -43,9 +45,7 @@ COBJS	+= usb/usbc.o \
            usb/usbc_dev.o \
            usb/usbc_host.o \
            usb/usbc_phy.o
-
-
-#COBJS-$(CONFIG_XXXX)	+= xxxx.o
+endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))

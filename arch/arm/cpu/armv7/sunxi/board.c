@@ -103,7 +103,9 @@ void s_init(void) {
 	int stop = 0x55;
 
 	watchdog_init();
+#ifndef CONFIG_SPL_BUILD
 	sunxi_key_init();
+#endif
 	clock_init();
 	gpio_init();
 	uart0_init();
@@ -113,7 +115,6 @@ void s_init(void) {
 		uart0_putc('r');
 		uart0_putc('a');
 		uart0_putc('m');
-		uart0_putc('\n');
 		sunxi_dram_init();
 	}
 }
@@ -129,5 +130,31 @@ void enable_caches(void) {
 
 	/* Enable D-cache. I-cache is already enabled in start.S */
 	dcache_enable();
+}
+#endif
+
+#ifdef CONFIG_SPL_BUILD
+void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
+
+void board_init_f(unsigned long bootflag)
+{
+#if 0
+	__attribute__((noreturn)) void (*uboot)(void);
+	copy_uboot_to_ram();
+
+	/* Jump to U-Boot image */
+	uboot = (void *)CONFIG_SYS_TEXT_BASE;
+	(*uboot)();
+	/* Never returns Here */
+#endif
+}
+
+/* Place Holders */
+void board_init_r(gd_t *id, ulong dest_addr)
+{
+	/* Function attribute is no-return */
+	/* This Function never executes */
+	while (1)
+		;
 }
 #endif
