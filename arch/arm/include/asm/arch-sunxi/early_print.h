@@ -51,7 +51,8 @@
 
 #ifndef __ASSEMBLY__
 int uart0_init(void);
-int uart0_putc(char c);
+void uart0_putc(char c);
+void uart0_puts(const char *s);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _SUNXI_EARLY_PRINT_H */
