@@ -177,17 +177,17 @@
 	"bootcmd=run setargs boot_normal\0" \
 	"console=ttyS0,115200\0" \
 	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"setargs=setenv bootargs console=${console} root=${mmc_root}" \
 	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"boot_normal=mmc read 40007800 13800 10000; boota 40007800\0" \
+	"boot_recovery=mmc read 40007800 recovery; boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
+#define CONFIG_BOOTCOMMAND	"mmc read 40007800 13800 10000;boota 40007800"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
