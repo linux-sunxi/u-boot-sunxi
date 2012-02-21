@@ -26,6 +26,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <serial.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
@@ -33,6 +34,14 @@
 #include <asm/arch/dram.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/early_print.h>
+
+#ifdef CONFIG_SPL_BUILD
+DECLARE_GLOBAL_DATA_PTR;
+
+/* Define global data structure pointer to it*/
+static gd_t gdata __attribute__ ((section(".data")));
+static bd_t bdata __attribute__ ((section(".data")));
+#endif
 
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
@@ -100,7 +109,6 @@ u32 is_running_in_sram(void) {
 void s_init(void) {
 
 	int in_sram = is_running_in_sram();
-	int stop = 0x55;
 
 	watchdog_init();
 #ifndef CONFIG_SPL_BUILD
@@ -111,10 +119,7 @@ void s_init(void) {
 	uart0_init();
 
 	if (in_sram) {
-		uart0_putc('s');
-		uart0_putc('r');
-		uart0_putc('a');
-		uart0_putc('m');
+		uart0_puts("init dram\n");
 		sunxi_dram_init();
 	}
 }
@@ -138,23 +143,23 @@ void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
 
 void board_init_f(unsigned long bootflag)
 {
-#if 0
-	__attribute__((noreturn)) void (*uboot)(void);
-	copy_uboot_to_ram();
-
-	/* Jump to U-Boot image */
-	uboot = (void *)CONFIG_SYS_TEXT_BASE;
-	(*uboot)();
-	/* Never returns Here */
-#endif
+	/*
+	 * We call relocate_code() with relocation target same as the
+	 * CONFIG_SYS_SPL_TEXT_BASE. This will result in relocation getting
+	 * skipped. Instead, only .bss initialization will happen. That's
+	 * all we need
+	 */
+	uart0_puts("board_init_f\n");
+	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
 }
 
 /* Place Holders */
 void board_init_r(gd_t *id, ulong dest_addr)
 {
-	/* Function attribute is no-return */
-	/* This Function never executes */
-	while (1)
-		;
+	gd = &gdata;
+	gd->bd = &bdata;
+	gd->flags |= GD_FLG_RELOC;
+
+	uart0_puts("board_init_r\n");
 }
 #endif

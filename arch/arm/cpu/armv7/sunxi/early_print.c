@@ -45,9 +45,15 @@ int uart0_init(void) {
 }
 
 #define TX_READY (readl(UART0_LSR) & (1 << 6))
-int uart0_putc(char c) {
+void uart0_putc(char c) {
 
 	while(!TX_READY)
 		;
 	writel(c, UART0_THR);
+}
+
+void uart0_puts(const char *s) {
+
+	while(*s)
+		uart0_putc(*s++);
 }

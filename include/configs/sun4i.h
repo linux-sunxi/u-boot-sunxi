@@ -151,7 +151,7 @@
  * The stack sizes are set up in start.S using the settings below
  */
 #define CONFIG_STACKSIZE			(256 << 10)				/* 256 KiB */
-#define LOW_LEVEL_SRAM_STACK		0x00003FFC
+#define LOW_LEVEL_SRAM_STACK		0x00005FFC				/* end of 24KiB sram */
 
 
 /*-----------------------------------------------------------------------
@@ -193,8 +193,19 @@
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 
 #define CONFIG_SPL
-#define CONFIG_SPL_TEXT_BASE 0x0
+
+#define CONFIG_SPL_BSS_START_ADDR	0x50000000
+#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
+
+#define CONFIG_SPL_TEXT_BASE       0x0          /* sram start */
+#define CONFIG_SPL_MAX_SIZE        (16 * 1024)  /* 16 KB */
+
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
+#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_FAT_SUPPORT
+
+#define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
+#define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
 #endif /* __CONFIG_H */

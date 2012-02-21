@@ -234,6 +234,7 @@ int sunxi_dram_init(void) {
 
 	dram_enable_itm(dram);
 	dram_read_pipe(dram);
+	sdelay(0x4000);
 	dram_config_hostport(dram);
 
 	return 0;
