@@ -37,12 +37,8 @@
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
-#define BOARD_LATE_INIT				/* init the fastboot partitions */
-
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
-#if 0
-#define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
-#endif
+
 /*
  * Display CPU and Board information
  */
@@ -105,8 +101,6 @@
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
-#define CONFIG_STORAGE_EMMC
-#define CONFIG_FASTBOOT_MMC_NO		CONFIG_MMC_SUNXI_SLOT
 
 #define CONFIG_DOS_PARTITION
 
@@ -115,10 +109,6 @@
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
-
-#define CONFIG_FASTBOOT
-#define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
 
 /*
  * Miscellaneous configurable options
@@ -161,8 +151,6 @@
 
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
-
-#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
 #define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */

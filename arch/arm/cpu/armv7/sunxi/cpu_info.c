@@ -27,36 +27,6 @@
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
 
-int print_boot_type(void) {
-
-	sunxi_boot_type_t type;
-
-	puts("BOOT:  "); 
-
-	type = get_boot_type();
-	switch (type) {
-	case SUNXI_BOOT_TYPE_MMC0:
-		puts("MMC0\n");
-		break;
-	case SUNXI_BOOT_TYPE_NAND:
-		puts("NAND\n");
-		break;
-	case SUNXI_BOOT_TYPE_MMC2:
-		puts("MMC2\n");
-		break;
-	case SUNXI_BOOT_TYPE_SPI:
-		puts("SPI\n");
-		break;
-	case SUNXI_BOOT_TYPE_NULL:
-		/* fall through */
-	default:
-		puts("ERROR\n");
-		break;
-	}
-
-	return 0;
-}
-
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
