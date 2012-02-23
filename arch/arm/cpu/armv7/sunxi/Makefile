@@ -38,13 +38,6 @@ COBJS	+= early_print.o
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
-COBJS	+= fastboot.o
-COBJS	+= sparse.o
-COBJS	+= partition.o
-COBJS	+= usb/usbc.o \
-           usb/usbc_dev.o \
-           usb/usbc_host.o \
-           usb/usbc_phy.o
 endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
