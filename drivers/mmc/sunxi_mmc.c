@@ -509,7 +509,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 		bytecnt = data->blocksize * data->blocks;
 		MMCDBG("trans data %d bytes\n", bytecnt);
-#ifdef CONFIG_MMC_SUNXI_USE_DMA
+#if defined(CONFIG_MMC_SUNXI_USE_DMA) && !defined(CONFIG_SPL_BUILD)
 		if (bytecnt > 64) {
 #else
 		if (0) {

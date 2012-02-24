@@ -34,6 +34,9 @@
 #include <asm/arch/dram.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/early_print.h>
+#include <version.h>
+#include <mmc.h>
+#include <fat.h>
 
 #ifdef CONFIG_SPL_BUILD
 DECLARE_GLOBAL_DATA_PTR;
@@ -87,44 +90,19 @@ int gpio_init(void) {
 	return 0;
 }
 
-u32 get_base(void) {
-
-	u32 val;
-
-	__asm__ __volatile__("mov %0, pc \n":"=r"(val)::"memory");
-	val &= 0xF0000000;
-	val >>= 28;
-	return val;
-}
-
-u32 is_running_in_sram(void) {
-
-	if (get_base() == 0)
-		return 1;	/* in SRAM */
-
-	return 0;		/* running in SDRAM */
-}
-
 /* do some early init */
 void s_init(void) {
 
-	int in_sram = is_running_in_sram();
-
 	watchdog_init();
-#ifndef CONFIG_SPL_BUILD
-	sunxi_key_init();
-#endif
 	clock_init();
 	gpio_init();
-	uart0_init();
 
-	if (in_sram) {
-		uart0_puts("init dram\n");
-		sunxi_dram_init();
-	}
+#ifdef CONFIG_SPL_BUILD
+	sunxi_dram_init();
+#endif
 }
 
-extern int sunxi_reset(void);
+extern void sunxi_reset(void);
 void reset_cpu(ulong addr) {
 
 	sunxi_reset();
@@ -141,6 +119,13 @@ void enable_caches(void) {
 #ifdef CONFIG_SPL_BUILD
 void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
 
+inline void hang(void)
+{
+	puts("### ERROR ### Please RESET the board ###\n");
+	for (;;)
+		;
+}
+
 void board_init_f(unsigned long bootflag)
 {
 	/*
@@ -149,17 +134,52 @@ void board_init_f(unsigned long bootflag)
 	 * skipped. Instead, only .bss initialization will happen. That's
 	 * all we need
 	 */
-	uart0_puts("board_init_f\n");
 	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
 }
 
-/* Place Holders */
 void board_init_r(gd_t *id, ulong dest_addr)
 {
+	__attribute__((noreturn)) void (*uboot)(void);
+	struct mmc *mmc;
+	int err;
+
 	gd = &gdata;
 	gd->bd = &bdata;
 	gd->flags |= GD_FLG_RELOC;
+	gd->baudrate = CONFIG_BAUDRATE;
 
-	uart0_puts("board_init_r\n");
+	timer_init();
+	serial_init();
+
+	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
+		U_BOOT_TIME);
+
+	puts("MMC:   ");
+	mmc_initialize(gd->bd);
+	/* We register only one device. So, the dev id is always 0 */
+	mmc = find_mmc_device(0);
+	if (!mmc) {
+		puts("spl: mmc device not found!!\n");
+		hang();
+	}
+
+	err = mmc_init(mmc);
+	if (err) {
+		printf("spl: mmc init failed: err - %d\n", err);
+		hang();
+	}
+
+	puts("Loading U-Boot...\n");
+
+	mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
+			CONFIG_MMC_U_BOOT_SECTOR_START,
+			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
+			(uchar *)CONFIG_SYS_TEXT_BASE);
+
+	puts("Jumping to U-Boot...\n");
+	/* Jump to U-Boot image */
+	uboot = (void *)CONFIG_SYS_TEXT_BASE;
+	(*uboot)();
+	/* Never returns Here */
 }
 #endif
