@@ -62,8 +62,8 @@
 
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
-#define CONFIG_SYS_INIT_RAM_ADDR	(SUNXI_SRAM_A1_BASE)
-#define CONFIG_SYS_INIT_RAM_SIZE	(SUNXI_SRAM_A1_SIZE)
+#define CONFIG_SYS_INIT_RAM_ADDR	0x0
+#define CONFIG_SYS_INIT_RAM_SIZE	0x8000      /* 32K */
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
@@ -116,7 +116,7 @@
 #define CONFIG_SYS_LONGHELP				/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"sunxi#"
+#define CONFIG_SYS_PROMPT		"sun4i#"
 #define CONFIG_SYS_CBSIZE	256			/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384			/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16			/* max number of command args */
@@ -140,8 +140,7 @@
  *
  * The stack sizes are set up in start.S using the settings below
  */
-#define CONFIG_STACKSIZE			(256 << 10)				/* 256 KiB */
-#define LOW_LEVEL_SRAM_STACK		0x00005FFC				/* end of 24KiB sram */
+#define CONFIG_STACKSIZE			(256 << 10)				/* 256 KB */
 
 
 /*-----------------------------------------------------------------------
@@ -149,7 +148,7 @@
  */
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
+#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
 #define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
@@ -158,20 +157,16 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_normal\0" \
+	"bootcmd=run setargs boot_mmc\0" \
 	"console=ttyS0,115200\0" \
-	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p2\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"setargs=setenv bootargs console=${console} root=${mmc_root} " \
 	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
-	"boot_fastboot=fastboot\0"
+	"boot_mmc=fatload mmc 0 0x48000000 uImage; bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
@@ -186,14 +181,20 @@
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 #define CONFIG_SPL_TEXT_BASE       0x0          /* sram start */
-#define CONFIG_SPL_MAX_SIZE        (16 * 1024)  /* 16 KB */
+#define CONFIG_SPL_MAX_SIZE        0x8000       /* 32 KB */
 
+#define CONFIG_SPL_LIBCOMMON_SUPPORT
+#define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 #define CONFIG_SPL_FAT_SUPPORT
 
+#define LOW_LEVEL_SRAM_STACK		0x00006000				/* end of 24KB in sram */
 #define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
+
+#define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
+#define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
 
 #endif /* __CONFIG_H */

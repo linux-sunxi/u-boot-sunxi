@@ -76,6 +76,7 @@ int clock_init(void) {
 	sr32(&ccm->apb1_gate, 16, 1, CLK_GATE_OPEN);
 
 
+#ifdef CONFIG_SPL_BUILD
 	/* ddr clock source is pll5 */
 	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_DISABLE);
 	sr32(&ccm->pll5_cfg, 0, 2, PLL5_FACTOR_M);
@@ -99,6 +100,7 @@ int clock_init(void) {
 	sdelay(0x1000);
 	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_OPEN);
 	sdelay(0x1000);
+#endif
 
 #if 0
 	/* nand clock source is osc24m */
