@@ -81,12 +81,15 @@
 
 //#define CONFIG_SYS_MONITOR_BASE	0x00000000
 
+#if 0
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
+#endif
+
 #define CONFIG_CMD_MEMORY
 #define CONFIG_SUNXI_DMA
 
@@ -100,7 +103,12 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
-#define CONFIG_MMC_SUNXI_SLOT			0		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_SLOT		0		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_USE_DMA
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
+#define CONFIG_STORAGE_EMMC
+#define CONFIG_FASTBOOT_MMC_NO		CONFIG_MMC_SUNXI_SLOT
 
 #define CONFIG_DOS_PARTITION
 /*
@@ -110,7 +118,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
 #define CONFIG_FASTBOOT
-#define CONFIG_STORAGE_NAND
+//#define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
 #define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
 
@@ -156,15 +164,10 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
+//#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
-/*------------------------------------------------------------------------
- * we save the environment in a nand partition, the partition name is defined
- * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
- * if not, below CONFIG_ENV_ADDR and CONFIG_ENV_SIZE will be where to store env.
- * */
-#define CONFIG_ENV_ADDR				(256 << 20)
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
@@ -173,17 +176,17 @@
 	"bootcmd=run setargs boot_normal\0" \
 	"console=ttyS0,115200\0" \
 	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"setargs=setenv bootargs console=${console} root=${mmc_root}" \
 	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"boot_normal=mmc read 40007800 13800 10000; boota 40007800\0" \
+	"boot_recovery=mmc read 40007800 recovery; boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
+#define CONFIG_BOOTCOMMAND	"mmc read 40007800 13800 10000;boota 40007800"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
