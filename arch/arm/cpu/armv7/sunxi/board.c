@@ -121,7 +121,7 @@ void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
 
 inline void hang(void)
 {
-	puts("### ERROR ### Please RESET the board ###\n");
+	puts("\n### ERROR ### Please RESET the board ###\n");
 	for (;;)
 		;
 }
@@ -169,12 +169,18 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		hang();
 	}
 
-	puts("Loading U-Boot...\n");
+	puts("Loading U-Boot...   ");
 
-	mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
+	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
 			CONFIG_MMC_U_BOOT_SECTOR_START,
 			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
 			(uchar *)CONFIG_SYS_TEXT_BASE);
+
+	if(err == CONFIG_MMC_U_BOOT_SECTOR_COUNT) {
+		puts("OK!\n");
+	} else {
+		hang();
+	}
 
 	puts("Jumping to U-Boot...\n");
 	/* Jump to U-Boot image */
