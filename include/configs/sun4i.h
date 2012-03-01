@@ -85,7 +85,6 @@
 #endif
 
 #define CONFIG_CMD_MEMORY
-#define CONFIG_SUNXI_DMA
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG

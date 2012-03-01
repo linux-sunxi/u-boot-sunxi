@@ -432,7 +432,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	else
 		rval |= (1 << 1);
 	writel(rval, &mmchost->reg->idie);
-	writel(pdes, &mmchost->reg->dlba);
+	writel((u32)pdes, &mmchost->reg->dlba);
 	writel((2U<<28)|(7<<16)|8, &mmchost->reg->ftrglevel);
 
 	return 0;
@@ -633,7 +633,7 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->f_min = 400000;
 	mmc->f_max = 52000000;
 
-	mmc_host[sdc_no].pdes = 0x50000000;
+	mmc_host[sdc_no].pdes = (struct sunxi_mmc_des*)0x50000000;
 	mmc_resource_init(sdc_no);
 	mmc_clk_io_on(sdc_no);
 

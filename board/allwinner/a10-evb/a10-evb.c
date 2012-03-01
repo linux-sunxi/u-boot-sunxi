@@ -26,11 +26,9 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <fastboot.h>
 #include <mmc.h>
-#include <asm/arch/android_misc.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/partition.h>
+#include <asm/arch/mmc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
