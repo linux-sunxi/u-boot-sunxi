@@ -127,21 +127,3 @@ int gpio_set_value(unsigned gpio, int value) {
 
 	return sunxi_gpio_output(gpio, value);
 }
-
-#ifdef DEBUG
-int do_gpio_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
-
-	int i;
-
-	for(i = 0; i < 18; i++) {
-		gpio_direction_input(SUNXI_GPA(i));
-		gpio_direction_output(SUNXI_GPA(i), 1);
-	}
-}
-
-U_BOOT_CMD(
-	gpio_test, 1, 0,	do_gpio_test,
-	"Test gpio",
-	""
-);
-#endif
