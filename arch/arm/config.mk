@@ -21,7 +21,7 @@
 # MA 02111-1307 USA
 #
 
-CROSS_COMPILE ?= arm-none-linux-gnueabi-
+CROSS_COMPILE ?= arm-linux-
 
 ifndef CONFIG_STANDALONE_LOAD_ADDR
 ifeq ($(SOC),omap3)

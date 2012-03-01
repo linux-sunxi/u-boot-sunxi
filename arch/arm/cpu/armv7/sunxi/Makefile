@@ -33,7 +33,9 @@ COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= gpio.o
+ifdef DEBUG
 COBJS	+= early_print.o
+endif
 
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o

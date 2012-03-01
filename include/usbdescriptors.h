@@ -188,20 +188,6 @@
 #define BMATTRIBUTE_RESERVED		0x80
 #define BMATTRIBUTE_SELF_POWERED	0x40
 
-/* USB_DT_DEVICE_QUALIFIER: Device Qualifier descriptor */
-struct usb_qualifier_descriptor {
-	__u8  bLength;
-	__u8  bDescriptorType;
-
-	__le16 bcdUSB;
-	__u8  bDeviceClass;
-	__u8  bDeviceSubClass;
-	__u8  bDeviceProtocol;
-	__u8  bMaxPacketSize0;
-	__u8  bNumConfigurations;
-	__u8  bRESERVED;
-} __attribute__ ((packed));
-
 /*
  * standard usb descriptor structures
  */
