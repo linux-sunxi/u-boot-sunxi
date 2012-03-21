@@ -195,4 +195,6 @@
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 
+#define UART_PINS_TO_SD
+
 #endif /* __CONFIG_H */

@@ -125,6 +125,12 @@ enum sunxi_gpio_number {
 #define SUNXI_GPA10_UART1_TX    (4)
 #define SUNXI_GPA11_UART1_RX    (4)
 
+#define SUNXI_GPB22_UART0_TX    (2)
+#define SUNXI_GPB23_UART0_RX    (2)
+
+#define SUNXI_GPC2_NCLE         (2)
+#define SUNXI_GPC2_SPI0_CLK     (3)
+
 #define SUNXI_GPC6_NRB0         (2)
 #define SUNXI_GPC6_SDC2_CMD     (3)
 
@@ -148,5 +154,10 @@ enum sunxi_gpio_number {
 
 #define SUNXI_GPF4_SDC0_D3      (2)
 #define SUNXI_GPF4_UART0_RX     (4)
+
+int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
+int sunxi_gpio_get_cfgpin(u32 pin);
+int sunxi_gpio_output(u32 pin, u32 val);
+int sunxi_gpio_input(u32 pin);
 
 #endif /* _SUNXI_GPIO_H */
