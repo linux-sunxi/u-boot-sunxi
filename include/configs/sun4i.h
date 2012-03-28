@@ -169,10 +169,13 @@
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
-#define CONFIG_CMD_FAT			/* with this we can access bootfs in nand */
+#define CONFIG_CMD_FAT			/* with this we can access fat bootfs */
+#define CONFIG_CMD_EXT2			/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
+#define CONFIG_CMD_SOURCE		/* boot.scr suppot */
+#define CONFIG_CMD_BDINFO		/* info about boot descriptor */
 
 #define CONFIG_SPL
 
