@@ -176,7 +176,7 @@
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 #define CONFIG_CMD_SOURCE		/* boot.scr suppot */
-#define CONFIG_CMD_BDINFO		/* info about boot descriptor */
+#define CONFIG_CMD_BDI			/* info about boot descriptor */
 
 #define CONFIG_SPL
 
