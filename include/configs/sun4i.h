@@ -155,18 +155,21 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
+#define CONFIG_BOOTCOMMAND		"run setargs boot_mmc"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_mmc\0" \
 	"console=ttyS0,115200\0" \
-	"mmc_root=/dev/mmcblk0p2\0" \
+	"root=/dev/mmcblk0p2\0" \
+	"panic=panic=10\0" \
+	"extra=\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${mmc_root} " \
-	"init=${init} loglevel=${loglevel}\0" \
-	"boot_mmc=fatload mmc 0 0x48000000 uImage; bootm 0x48000000\0"
+	"setargs=setenv bootargs console=${console} root=${root}" \
+	"init=${init} loglevel=${loglevel} ${panic} ${extra}\0" \
+	"kernel=uImage\0" \
+	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
 
-#define CONFIG_BOOTDELAY	1
+#define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
