@@ -177,6 +177,7 @@
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 #define CONFIG_CMD_SOURCE		/* boot.scr suppot */
 #define CONFIG_CMD_BDI			/* info about boot descriptor */
+#define CONFIG_CMD_SETARCH		/* override board arch */
 
 #define CONFIG_SPL
 
