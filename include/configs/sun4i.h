@@ -181,6 +181,9 @@
 #define CONFIG_CMD_SOURCE		/* boot.scr suppot */
 #define CONFIG_CMD_BDI			/* info about boot descriptor */
 #define CONFIG_CMD_SETARCH		/* override board arch */
+#define CONFIG_CMD_LOADB		/* load binaries over serial */
+#define CONFIG_CMD_SAVES		/* save data over serial */
+#define CONFIG_CMD_DUMPASCII		/* save ascii data over serial */
 
 #define CONFIG_SPL
 
