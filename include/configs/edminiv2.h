@@ -134,6 +134,7 @@
 #include <config_cmd_default.h>
 #define CONFIG_CMD_IDE
 #define CONFIG_CMD_I2C
+#define CONFIG_CMD_USB
 
 /*
  * Network
@@ -183,6 +184,19 @@
 #endif /* CMD_IDE */
 
 /*
+ * Common USB/EHCI configuration
+ */
+#ifdef CONFIG_CMD_USB
+#define CONFIG_USB_EHCI		/* Enable EHCI USB support */
+#define CONFIG_USB_EHCI_MARVELL
+#define ORION5X_USB20_HOST_PORT_BASE ORION5X_USB20_PORT0_BASE
+#define CONFIG_USB_STORAGE
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+#define CONFIG_SUPPORT_VFAT
+#endif /* CONFIG_CMD_USB */
+
+/*
  * I2C related stuff
  */
 #ifdef CONFIG_CMD_I2C
@@ -220,6 +234,16 @@
 #define CONFIG_SYS_MEMTEST_END		0x007fffff
 #define CONFIG_SYS_RESET_ADDRESS	0xffff0000
 #define CONFIG_SYS_MAXARGS		16
+
+/* Use the HUSH parser */
+#define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+
+/* Enable command line editing */
+#define CONFIG_CMDLINE_EDITING
+
+/* provide extensive help */
+#define CONFIG_SYS_LONGHELP
 
 /* additions for new relocation code, must be added to all boards */
 #define CONFIG_SYS_SDRAM_BASE		0

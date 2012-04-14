@@ -40,17 +40,112 @@
 static struct list_head mmc_devices;
 static int cur_dev_num = -1;
 
-int __board_mmc_getcd(u8 *cd, struct mmc *mmc) {
+int __board_mmc_getcd(struct mmc *mmc) {
 	return -1;
 }
 
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)__attribute__((weak,
+int board_mmc_getcd(struct mmc *mmc)__attribute__((weak,
 	alias("__board_mmc_getcd")));
+
+#ifdef CONFIG_MMC_BOUNCE_BUFFER
+static int mmc_bounce_need_bounce(struct mmc_data *orig)
+{
+	ulong addr, len;
+
+	if (orig->flags & MMC_DATA_READ)
+		addr = (ulong)orig->dest;
+	else
+		addr = (ulong)orig->src;
+
+	if (addr % ARCH_DMA_MINALIGN) {
+		debug("MMC: Unaligned data destination address %08lx!\n", addr);
+		return 1;
+	}
+
+	len = (ulong)(orig->blocksize * orig->blocks);
+	if (len % ARCH_DMA_MINALIGN) {
+		debug("MMC: Unaligned data destination length %08lx!\n", len);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int mmc_bounce_buffer_start(struct mmc_data *backup,
+					struct mmc_data *orig)
+{
+	ulong origlen, len;
+	void *buffer;
+
+	if (!orig)
+		return 0;
+
+	if (!mmc_bounce_need_bounce(orig))
+		return 0;
+
+	memcpy(backup, orig, sizeof(struct mmc_data));
+
+	origlen = orig->blocksize * orig->blocks;
+	len = roundup(origlen, ARCH_DMA_MINALIGN);
+	buffer = memalign(ARCH_DMA_MINALIGN, len);
+	if (!buffer) {
+		puts("MMC: Error allocating MMC bounce buffer!\n");
+		return 1;
+	}
+
+	if (orig->flags & MMC_DATA_READ) {
+		orig->dest = buffer;
+	} else {
+		memcpy(buffer, orig->src, origlen);
+		orig->src = buffer;
+	}
+
+	return 0;
+}
+
+static void mmc_bounce_buffer_stop(struct mmc_data *backup,
+					struct mmc_data *orig)
+{
+	ulong len;
+
+	if (!orig)
+		return;
+
+	if (!mmc_bounce_need_bounce(backup))
+		return;
+
+	if (backup->flags & MMC_DATA_READ) {
+		len = backup->blocksize * backup->blocks;
+		memcpy(backup->dest, orig->dest, len);
+		free(orig->dest);
+		orig->dest = backup->dest;
+	} else {
+		free((void *)orig->src);
+		orig->src = backup->src;
+	}
+
+	return;
+
+}
+#else
+static inline int mmc_bounce_buffer_start(struct mmc_data *backup,
+					struct mmc_data *orig) { return 0; }
+static inline void mmc_bounce_buffer_stop(struct mmc_data *backup,
+					struct mmc_data *orig) { }
+#endif
 
 int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 {
-#ifdef CONFIG_MMC_TRACE
+	struct mmc_data backup;
 	int ret;
+
+	memset(&backup, 0, sizeof(backup));
+
+	ret = mmc_bounce_buffer_start(&backup, data);
+	if (ret)
+		return ret;
+
+#ifdef CONFIG_MMC_TRACE
 	int i;
 	u8 *ptr;
 
@@ -99,16 +194,17 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 			printf("\t\tERROR MMC rsp not supported\n");
 			break;
 	}
-	return ret;
 #else
-	return mmc->send_cmd(mmc, cmd, data);
+	ret = mmc->send_cmd(mmc, cmd, data);
 #endif
+	mmc_bounce_buffer_stop(&backup, data);
+	return ret;
 }
 
 int mmc_send_status(struct mmc *mmc, int timeout)
 {
 	struct mmc_cmd cmd;
-	int err;
+	int err, retries = 5;
 #ifdef CONFIG_MMC_TRACE
 	int status;
 #endif
@@ -121,17 +217,21 @@ int mmc_send_status(struct mmc *mmc, int timeout)
 
 	do {
 		err = mmc_send_cmd(mmc, &cmd, NULL);
-		if (err)
+		if (!err) {
+			if ((cmd.response[0] & MMC_STATUS_RDY_FOR_DATA) &&
+			    (cmd.response[0] & MMC_STATUS_CURR_STATE) !=
+			     MMC_STATE_PRG)
+				break;
+			else if (cmd.response[0] & MMC_STATUS_MASK) {
+				printf("Status Error: 0x%08X\n",
+					cmd.response[0]);
+				return COMM_ERR;
+			}
+		} else if (--retries < 0)
 			return err;
-		else if (cmd.response[0] & MMC_STATUS_RDY_FOR_DATA)
-			break;
 
 		udelay(1000);
 
-		if (cmd.response[0] & MMC_STATUS_MASK) {
-			printf("Status Error: 0x%08X\n", cmd.response[0]);
-			return COMM_ERR;
-		}
 	} while (timeout--);
 
 #ifdef CONFIG_MMC_TRACE
@@ -305,9 +405,11 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 			printf("mmc fail to send stop cmd\n");
 			return 0;
 		}
-    }
-    /* Waiting for the ready status */
-    mmc_send_status(mmc, timeout);
+	}
+
+	/* Waiting for the ready status */
+	if (mmc_send_status(mmc, timeout))
+		return 0;
 
 	return blkcnt;
 }
@@ -340,7 +442,6 @@ int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start, lbaint_t blkcnt)
 {
 	struct mmc_cmd cmd;
 	struct mmc_data data;
-	int timeout = 1000;
 
 	if (blkcnt > 1)
 		cmd.cmdidx = MMC_CMD_READ_MULTIPLE_BLOCK;
@@ -372,9 +473,6 @@ int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start, lbaint_t blkcnt)
 			printf("mmc fail to send stop cmd\n");
 			return 0;
 		}
-
-		/* Waiting for the ready status */
-		mmc_send_status(mmc, timeout);
 	}
 
 	return blkcnt;
@@ -609,7 +707,8 @@ int mmc_switch(struct mmc *mmc, u8 set, u8 index, u8 value)
 	ret = mmc_send_cmd(mmc, &cmd, NULL);
 
 	/* Waiting for the ready status */
-	mmc_send_status(mmc, timeout);
+	if (!ret)
+		ret = mmc_send_status(mmc, timeout);
 
 	return ret;
 
@@ -671,6 +770,18 @@ int mmc_switch_part(int dev_num, unsigned int part_num)
 	return mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_PART_CONF,
 			  (mmc->part_config & ~PART_ACCESS_MASK)
 			  | (part_num & PART_ACCESS_MASK));
+}
+
+int mmc_getcd(struct mmc *mmc)
+{
+	int cd;
+
+	cd = board_mmc_getcd(mmc);
+
+	if ((cd < 0) && mmc->getcd)
+		cd = mmc->getcd(mmc);
+
+	return cd;
 }
 
 int sd_switch(struct mmc *mmc, int mode, int group, u8 value, u8 *resp)
@@ -782,6 +893,16 @@ retry_scr:
 
 	/* If high-speed isn't supported, we return */
 	if (!(__be32_to_cpu(switch_status[3]) & SD_HIGHSPEED_SUPPORTED))
+		return 0;
+
+	/*
+	 * If the host doesn't support SD_HIGHSPEED, do not switch card to
+	 * HIGHSPEED mode even if the card support SD_HIGHSPPED.
+	 * This can avoid furthur problem when the card runs in different
+	 * mode between the host.
+	 */
+	if (!((mmc->host_caps & MMC_MODE_HS_52MHz) &&
+		(mmc->host_caps & MMC_MODE_HS)))
 		return 0;
 
 	err = sd_switch(mmc, SD_SWITCH_SWITCH, 0, 1, (u8 *)switch_status);
@@ -1190,6 +1311,12 @@ block_dev_desc_t *mmc_get_dev(int dev)
 int mmc_init(struct mmc *mmc)
 {
 	int err;
+
+	if (mmc_getcd(mmc) == 0) {
+		mmc->has_init = 0;
+		printf("MMC: no card present\n");
+		return NO_CARD_ERR;
+	}
 
 	if (mmc->has_init)
 		return 0;

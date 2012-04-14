@@ -41,23 +41,19 @@ static void uppercase(char *str, int len)
 }
 
 static int total_sector;
-static int disk_write(__u32 startblock, __u32 getsize, __u8 *bufptr)
+static int disk_write(__u32 block, __u32 nr_blocks, void *buf)
 {
-	if (cur_dev == NULL)
+	if (!cur_dev || !cur_dev->block_write)
 		return -1;
 
-	if (startblock + getsize > total_sector) {
+	if (cur_part_info.start + block + nr_blocks >
+		cur_part_info.start + total_sector) {
 		printf("error: overflow occurs\n");
 		return -1;
 	}
 
-	startblock += part_offset;
-
-	if (cur_dev->block_read) {
-		return cur_dev->block_write(cur_dev->dev, startblock, getsize,
-					   (unsigned long *) bufptr);
-	}
-	return -1;
+	return cur_dev->block_write(cur_dev->dev,
+			cur_part_info.start + block, nr_blocks,	buf);
 }
 
 /*
@@ -112,6 +108,7 @@ static void set_name(dir_entry *dirent, const char *filename)
 	debug("ext : %s\n", dirent->ext);
 }
 
+static __u8 num_of_fats;
 /*
  * Write fat buffer into block device
  */
@@ -132,6 +129,15 @@ static int flush_fat_buffer(fsdata *mydata)
 	if (disk_write(startblock, getsize, bufptr) < 0) {
 		debug("error: writing FAT blocks\n");
 		return -1;
+	}
+
+	if (num_of_fats == 2) {
+		/* Update corresponding second FAT blocks */
+		startblock += mydata->fatlength;
+		if (disk_write(startblock, getsize, bufptr) < 0) {
+			debug("error: writing second FAT blocks\n");
+			return -1;
+		}
 	}
 
 	return 0;
@@ -787,7 +793,7 @@ static int check_overflow(fsdata *mydata, __u32 clustnum, unsigned long size)
 	if (size % mydata->sect_size)
 		sect_num++;
 
-	if (startsect + sect_num > total_sector)
+	if (startsect + sect_num > cur_part_info.start + total_sector)
 		return -1;
 
 	return 0;
@@ -817,7 +823,6 @@ static dir_entry *empty_dentptr;
 static dir_entry *find_directory_entry(fsdata *mydata, int startsect,
 	char *filename, dir_entry *retdent, __u32 start)
 {
-	__u16 prevcksum = 0xffff;
 	__u32 curclust = (startsect - mydata->data_begin) / mydata->clust_size;
 
 	debug("get_dentfromdir: %s\n", filename);
@@ -851,8 +856,6 @@ static dir_entry *find_directory_entry(fsdata *mydata, int startsect,
 #ifdef CONFIG_SUPPORT_VFAT
 				if ((dentptr->attr & ATTR_VFAT) &&
 				    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
-					prevcksum =
-					((dir_slot *)dentptr)->alias_checksum;
 					get_long_file_name(mydata, curclust,
 						     get_dentfromdir_block,
 						     &dentptr, l_name);
@@ -916,7 +919,6 @@ static int do_fat_write(const char *filename, void *buffer,
 	unsigned long size)
 {
 	dir_entry *dentptr, *retdent;
-	dir_slot *slotptr;
 	__u32 startsect;
 	__u32 start_cluster;
 	boot_sector bs;
@@ -924,7 +926,7 @@ static int do_fat_write(const char *filename, void *buffer,
 	fsdata datablock;
 	fsdata *mydata = &datablock;
 	int cursect;
-	int root_cluster, ret = -1, name_len;
+	int ret = -1, name_len;
 	char l_filename[VFAT_MAXLEN_BYTES];
 	int write_size = size;
 
@@ -937,9 +939,7 @@ static int do_fat_write(const char *filename, void *buffer,
 
 	total_sector = bs.total_sect;
 	if (total_sector == 0)
-		total_sector = part_size;
-
-	root_cluster = bs.root_cluster;
+		total_sector = cur_part_info.size;
 
 	if (mydata->fatsize == 32)
 		mydata->fatlength = bs.fat32_length;
@@ -950,6 +950,7 @@ static int do_fat_write(const char *filename, void *buffer,
 
 	cursect = mydata->rootdir_sect
 		= mydata->fat_sect + mydata->fatlength * bs.fats;
+	num_of_fats = bs.fats;
 
 	mydata->sect_size = (bs.sector_size[1] << 8) + bs.sector_size[0];
 	mydata->clust_size = bs.cluster_size;
@@ -1040,8 +1041,6 @@ static int do_fat_write(const char *filename, void *buffer,
 			goto exit;
 		}
 	} else {
-		slotptr = (dir_slot *)empty_dentptr;
-
 		/* Set short name to set alias checksum field in dir_slot */
 		set_name(empty_dentptr, filename);
 		fill_dir_slot(mydata, &empty_dentptr, filename);

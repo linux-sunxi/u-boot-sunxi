@@ -77,6 +77,7 @@
 #include <spi.h>
 #include <dataflash.h>
 #include <mmc.h>
+#include <atmel_mci.h>
 
 #include <asm/arch/at91sam9260.h>
 #include <asm/arch/at91sam9260_matrix.h>
@@ -235,10 +236,9 @@ int board_mmc_init(bd_t *bd)
 	return atmel_mci_init((void *)ATMEL_BASE_MCI);
 }
 
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)
+int board_mmc_getcd(struct mmc *mmc)
 {
-	*cd = at91_get_pio_value(CONFIG_SYS_MMC_CD_PIN) ? 1 : 0;
-	return 0;
+	return !at91_get_pio_value(CONFIG_SYS_MMC_CD_PIN);
 }
 #endif
 

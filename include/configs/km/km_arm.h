@@ -133,7 +133,6 @@
  * NAND Flash configuration
  */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define NAND_MAX_CHIPS			1
 
 #define BOOTFLASH_START		0x0
 
@@ -195,7 +194,7 @@ int get_scl(void);
 #define I2C_SCL(bit)	kw_gpio_set_value(KM_KIRKWOOD_SCL_PIN, bit)
 #endif
 
-#define I2C_DELAY	udelay(3)	/* 1/4 I2C clock duration */
+#define I2C_DELAY	udelay(1)
 #define I2C_SOFT_DECLARATIONS
 
 #endif

@@ -112,6 +112,8 @@
 #define MMC_STATUS_CURR_STATE	(0xf << 9)
 #define MMC_STATUS_ERROR	(1 << 19)
 
+#define MMC_STATE_PRG		(7 << 9)
+
 #define MMC_VDD_165_195		0x00000080	/* VDD voltage 1.65 - 1.95 */
 #define MMC_VDD_20_21		0x00000100	/* VDD voltage 2.0 ~ 2.1 */
 #define MMC_VDD_21_22		0x00000200	/* VDD voltage 2.1 ~ 2.2 */
@@ -302,6 +304,7 @@ struct mmc {
 			struct mmc_cmd *cmd, struct mmc_data *data);
 	void (*set_ios)(struct mmc *mmc);
 	int (*init)(struct mmc *mmc);
+	int (*getcd)(struct mmc *mmc);
 	uint b_max;
 };
 
@@ -314,11 +317,11 @@ struct mmc *find_mmc_device(int dev_num);
 int mmc_set_dev(int dev_num);
 void print_mmc_devices(char separator);
 int get_mmc_num(void);
-int board_mmc_getcd(u8 *cd, struct mmc *mmc);
+int board_mmc_getcd(struct mmc *mmc);
 int mmc_switch_part(int dev_num, unsigned int part_num);
+int mmc_getcd(struct mmc *mmc);
 
 #ifdef CONFIG_GENERIC_MMC
-int atmel_mci_init(void *regs);
 #define mmc_host_is_spi(mmc)	((mmc)->host_caps & MMC_MODE_SPI)
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 #else

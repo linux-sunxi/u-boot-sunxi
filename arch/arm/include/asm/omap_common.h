@@ -62,6 +62,11 @@ void preloader_console_init(void);
 #define BOOT_DEVICE_MMC2	5 /*emmc*/
 #define BOOT_DEVICE_MMC1	6
 #define BOOT_DEVICE_XIPWAIT	7
+#elif defined(CONFIG_AM33XX)	/* AM33XX */
+#define BOOT_DEVICE_NAND	5
+#define BOOT_DEVICE_MMC1	8
+#define BOOT_DEVICE_MMC2	0
+#define BOOT_DEVICE_UART	65
 #endif
 
 /* Boot type */
@@ -86,13 +91,18 @@ u32 omap_boot_mode(void);
 
 /* SPL common function s*/
 void spl_parse_image_header(const struct image_header *header);
-void omap_rev_string(char *omap_rev_string);
+void omap_rev_string(void);
+void spl_board_prepare_for_linux(void);
+int spl_start_uboot(void);
 
 /* NAND SPL functions */
 void spl_nand_load_image(void);
 
 /* MMC SPL functions */
 void spl_mmc_load_image(void);
+
+/* YMODEM SPL functions */
+void spl_ymodem_load_image(void);
 
 #ifdef CONFIG_SPL_BOARD_INIT
 void spl_board_init(void);

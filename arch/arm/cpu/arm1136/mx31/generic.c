@@ -101,6 +101,7 @@ unsigned int mxc_get_clock(enum mxc_clock clk)
 	case MXC_IPG_PERCLK:
 	case MXC_CSPI_CLK:
 	case MXC_UART_CLK:
+	case MXC_ESDHC_CLK:
 		return mx31_get_ipg_clk();
 	case MXC_IPU_CLK:
 		return mx31_get_hsp_clk();
@@ -209,6 +210,8 @@ static char *get_reset_cause(void)
 		return "WDOG";
 	case 0x0006:
 		return "JTAG";
+	case 0x0007:
+		return "ARM11P power gating";
 	default:
 		return "unknown reset";
 	}

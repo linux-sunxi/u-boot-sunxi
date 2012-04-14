@@ -1,6 +1,5 @@
 /*
- * (C) Copyright 2011
- * CompuLab, Ltd. <www.compulab.co.il>
+ * (C) Copyright 2011 CompuLab, Ltd. <www.compulab.co.il>
  *
  * Authors: Mike Rapoport <mike@compulab.co.il>
  *	    Igor Grinberg <grinberg@compulab.co.il>
@@ -34,6 +33,7 @@
 #include <net.h>
 #include <i2c.h>
 #include <twl4030.h>
+#include <linux/compiler.h>
 
 #include <asm/io.h>
 #include <asm/arch/mem.h>
@@ -41,6 +41,8 @@
 #include <asm/arch/mmc_host_def.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-types.h>
+
+#include "eeprom.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -316,8 +318,7 @@ void set_muxconf_regs(void)
 #ifdef CONFIG_GENERIC_MMC
 int board_mmc_init(bd_t *bis)
 {
-	omap_mmc_init(0);
-	return 0;
+	return omap_mmc_init(0);
 }
 #endif
 
@@ -370,6 +371,7 @@ static void reset_net_chip(void)
 static inline void reset_net_chip(void) {}
 #endif
 
+#ifdef CONFIG_SMC911X
 /*
  * Routine: handle_mac_address
  * Description: prepare MAC address for on-board Ethernet.
@@ -383,11 +385,9 @@ static int handle_mac_address(void)
 	if (rc)
 		return 0;
 
-#ifdef CONFIG_DRIVER_OMAP34XX_I2C
-	rc = i2c_read(0x50, 0, 1, enetaddr, 6);
+	rc = cm_t3x_eeprom_read_mac_addr(enetaddr);
 	if (rc)
 		return rc;
-#endif
 
 	if (!is_valid_ether_addr(enetaddr))
 		return -1;
@@ -404,7 +404,6 @@ int board_eth_init(bd_t *bis)
 {
 	int rc = 0, rc1 = 0;
 
-#ifdef CONFIG_SMC911X
 	setup_net_chip_gmpc();
 	reset_net_chip();
 
@@ -419,7 +418,17 @@ int board_eth_init(bd_t *bis)
 	rc1 = smc911x_initialize(1, SB_T35_SMC911X_BASE);
 	if (rc1 > 0)
 		rc++;
-#endif
 
 	return rc;
 }
+#endif
+
+void __weak get_board_serial(struct tag_serialnr *serialnr)
+{
+	/*
+	 * This corresponds to what happens when we can communicate with the
+	 * eeprom but don't get a valid board serial value.
+	 */
+	serialnr->low = 0;
+	serialnr->high = 0;
+};

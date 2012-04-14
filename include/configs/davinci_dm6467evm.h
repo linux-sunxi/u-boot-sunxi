@@ -22,7 +22,6 @@
 
 /* Spectrum Digital TMS320DM6467 EVM board */
 #define DAVINCI_DM6467EVM
-#define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_SYS_NAND_SMALLPAGE
 
@@ -36,7 +35,6 @@
 extern unsigned int davinci_arm_clk_get(void);
 #endif
 
-#define CFG_REFCLK_FREQ		27000000
 /* Arm Clock frequency    */
 #define CONFIG_SYS_CLK_FREQ	davinci_arm_clk_get()
 /* Timer Input clock freq */
@@ -149,6 +147,10 @@ extern unsigned int davinci_arm_clk_get(void);
 #undef CONFIG_CMD_FLASH
 #undef CONFIG_CMD_IMLS
 #define CONFIG_CMD_NAND
+#endif
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
 #endif
 
 #define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */

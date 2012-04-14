@@ -51,7 +51,6 @@
 #define SONATA_BOARD
 #define CONFIG_SYS_NAND_SMALLPAGE
 #define CONFIG_SYS_USE_NOR
-#define CONFIG_DISPLAY_CPUINFO
 #define MACH_TYPE_SONATA 1254
 #define CONFIG_MACH_TYPE MACH_TYPE_SONATA
 /*===================*/
@@ -198,6 +197,10 @@
 #define CONFIG_CMD_JFFS2
 #else
 #error "Either CONFIG_SYS_USE_NAND or CONFIG_SYS_USE_NOR _MUST_ be defined !!!"
+#endif
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
 #endif
 
 #define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */

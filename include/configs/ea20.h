@@ -48,6 +48,7 @@
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_SYS_TEXT_BASE		0xc1080000
+#define CONFIG_DA8XX_GPIO
 
 /*
  * Memory Info
@@ -167,6 +168,11 @@
 #define CONFIG_CMD_SAVES
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_I2C
+#define CONFIG_CMD_GPIO
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
+#endif
 
 #ifndef CONFIG_DRIVER_TI_EMAC
 #undef CONFIG_CMD_NET
@@ -197,7 +203,6 @@
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
 #define	CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_MAX_NAND_DEVICE	1 /* Max number of NAND devices */
-#define NAND_MAX_CHIPS			1
 #define CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
 #endif
 

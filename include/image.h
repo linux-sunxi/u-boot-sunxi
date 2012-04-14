@@ -108,6 +108,7 @@
 #define IH_ARCH_ST200	        18	/* STMicroelectronics ST200  */
 #define IH_ARCH_SANDBOX		19	/* Sandbox architecture (test only) */
 #define IH_ARCH_NDS32	        20	/* ANDES Technology - NDS32  */
+#define IH_ARCH_OPENRISC        21	/* OpenRISC 1000  */
 
 /*
  * Image Types
@@ -266,6 +267,8 @@ typedef struct bootm_headers {
 	struct lmb	lmb;		/* for memory mgmt */
 #endif
 } bootm_headers_t;
+
+extern bootm_headers_t images;
 
 /*
  * Some systems (for example LWMON) have very short watchdog periods;

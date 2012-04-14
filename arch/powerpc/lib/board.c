@@ -1021,7 +1021,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	 */
 	{
 		ulong pram = 0;
-		uchar memsz[32];
+		char memsz[32];
 
 #ifdef CONFIG_PRAM
 		pram = getenv_ulong("pram", 10, CONFIG_PRAM);
@@ -1032,9 +1032,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		pram += (LOGBUFF_LEN + LOGBUFF_OVERHEAD) / 1024;
 #endif
 #endif
-		sprintf((char *) memsz, "%ldk",
-			(bd->bi_memsize / 1024) - pram);
-		setenv("mem", (char *) memsz);
+		sprintf(memsz, "%ldk", (bd->bi_memsize / 1024) - pram);
+		setenv("mem", memsz);
 	}
 #endif
 
@@ -1065,7 +1064,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 void hang(void)
 {
 	puts("### ERROR ### Please RESET the board ###\n");
-	show_boot_progress(-30);
+	bootstage_error(BOOTSTAGE_ID_NEED_RESET);
 	for (;;)
 		;
 }

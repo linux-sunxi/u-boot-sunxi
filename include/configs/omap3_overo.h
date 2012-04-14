@@ -13,8 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * Foundation, Inc.
  */
 
 #ifndef __CONFIG_H
@@ -23,41 +22,41 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_OMAP		1	/* in a TI OMAP core */
-#define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_OMAP3_OVERO	1	/* working with overo */
+#define CONFIG_OMAP				/* in a TI OMAP core */
+#define CONFIG_OMAP34XX				/* which is a 34XX */
+#define CONFIG_OMAP3_OVERO			/* working with overo */
 
-#define CONFIG_SDRC	/* The chip has SDRC controller */
+#define CONFIG_SDRC				/* The chip has SDRC controller */
 
-#include <asm/arch/cpu.h>	/* get chip and board defs */
+#include <asm/arch/cpu.h>			/* get chip and board defs */
 #include <asm/arch/omap3.h>
 
 /*
  * Display CPU and Board information
  */
-#define CONFIG_DISPLAY_CPUINFO		1
-#define CONFIG_DISPLAY_BOARDINFO	1
+#define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_DISPLAY_BOARDINFO
 
 /* Clock Defines */
 #define V_OSCK			26000000	/* Clock output from T2 */
 #define V_SCLK			(V_OSCK >> 1)
 
-#undef CONFIG_USE_IRQ		/* no support for IRQs */
+#undef CONFIG_USE_IRQ				/* no support for IRQs */
 #define CONFIG_MISC_INIT_R
 
-#define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
-#define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_INITRD_TAG		1
-#define CONFIG_REVISION_TAG		1
+#define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
+#define CONFIG_REVISION_TAG
 
-#define CONFIG_OF_LIBFDT		1
+#define CONFIG_OF_LIBFDT
 
 /*
  * Size of malloc() pool
  */
-#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
+#define CONFIG_ENV_SIZE		(128 << 10)	/* 128 KiB */
 						/* Sector */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (128 << 10))
+#define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + (128 << 10))
 
 /*
  * Hardware drivers
@@ -66,7 +65,7 @@
 /*
  * NS16550 Configuration
  */
-#define V_NS16550_CLK			48000000	/* 48MHz (APLL96/2) */
+#define V_NS16550_CLK		48000000	/* 48MHz (APLL96/2) */
 
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
@@ -85,13 +84,10 @@
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600, \
 					115200}
-#define CONFIG_GENERIC_MMC		1
-#define CONFIG_MMC			1
-#define CONFIG_OMAP_HSMMC		1
-#define CONFIG_DOS_PARTITION		1
-
-/* DDR - I use Micron DDR */
-#define CONFIG_OMAP3_MICRON_DDR		1
+#define CONFIG_GENERIC_MMC
+#define CONFIG_MMC
+#define CONFIG_OMAP_HSMMC
+#define CONFIG_DOS_PARTITION
 
 /* commands to include */
 #include <config_cmd_default.h>
@@ -113,31 +109,29 @@
 #define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_HARD_I2C			1
+#define CONFIG_HARD_I2C
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
-#define CONFIG_I2C_MULTI_BUS		1
-#define CONFIG_DRIVER_OMAP34XX_I2C	1
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_DRIVER_OMAP34XX_I2C
 
 /*
  * TWL4030
  */
-#define CONFIG_TWL4030_POWER		1
-#define CONFIG_TWL4030_LED		1
+#define CONFIG_TWL4030_POWER
+#define CONFIG_TWL4030_LED
 
 /*
  * Board NAND Info.
  */
-#define CONFIG_SYS_NAND_QUIET_TEST	1
+#define CONFIG_SYS_NAND_QUIET_TEST
 #define CONFIG_NAND_OMAP_GPMC
 #define CONFIG_SYS_NAND_ADDR		NAND_BASE	/* physical address */
 							/* to access nand */
 #define CONFIG_SYS_NAND_BASE		NAND_BASE	/* physical address */
 							/* to access nand */
 							/* at CS0 */
-#define GPMC_NAND_ECC_LP_x16_LAYOUT	1
+#define GPMC_NAND_ECC_LP_x16_LAYOUT
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND */
 						/* devices */
@@ -249,7 +243,6 @@
  */
 #define CONFIG_NR_DRAM_BANKS	2	/* CS1 may or may not be populated */
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
 
 /*-----------------------------------------------------------------------
@@ -272,7 +265,7 @@
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_ONENAND_BASE		ONENAND_MAP
 
-#define CONFIG_ENV_IS_IN_NAND		1
+#define CONFIG_ENV_IS_IN_NAND
 #define ONENAND_ENV_OFFSET		0x240000 /* environment starts here */
 #define SMNAND_ENV_OFFSET		0x240000 /* environment starts here */
 
@@ -286,12 +279,17 @@
  *----------------------------------------------------------------------------
  */
 
-#define CONFIG_SMC911X		1
+#define CONFIG_SMC911X
 #define CONFIG_SMC911X_32_BIT
-#define CONFIG_SMC911X_BASE     0x2C000000
+#define CONFIG_SMC911X_BASE		0x2C000000
 
 #endif /* (CONFIG_CMD_NET) */
 
+/*
+ * Leave it at 0x80008000 to allow booting new u-boot.bin with X-loader
+ * and older u-boot.bin with the new U-Boot SPL.
+ */
+#define CONFIG_SYS_TEXT_BASE		0x80008000
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_INIT_RAM_ADDR	0x4020f800
 #define CONFIG_SYS_INIT_RAM_SIZE	0x800
@@ -300,5 +298,48 @@
 					 GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_SYS_CACHELINE_SIZE	64
+
+/* Defines for SPL */
+#define CONFIG_SPL
+#define CONFIG_SPL_NAND_SIMPLE
+#define CONFIG_SPL_TEXT_BASE		0x40200800
+#define CONFIG_SPL_MAX_SIZE		(45 * 1024)
+#define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
+
+/* move malloc and bss high to prevent clashing with the main image */
+#define CONFIG_SYS_SPL_MALLOC_START	0x87000000
+#define CONFIG_SYS_SPL_MALLOC_SIZE	0x80000
+#define CONFIG_SPL_BSS_START_ADDR	0x87080000	/* end of minimum RAM */
+#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
+
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x300 /* address 0x60000 */
+#define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
+#define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION	1
+#define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
+
+#define CONFIG_SPL_LIBCOMMON_SUPPORT
+#define CONFIG_SPL_LIBDISK_SUPPORT
+#define CONFIG_SPL_I2C_SUPPORT
+#define CONFIG_SPL_LIBGENERIC_SUPPORT
+#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_FAT_SUPPORT
+#define CONFIG_SPL_SERIAL_SUPPORT
+#define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_POWER_SUPPORT
+#define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/omap-common/u-boot-spl.lds"
+
+/* NAND boot config */
+#define CONFIG_SYS_NAND_5_ADDR_CYCLE
+#define CONFIG_SYS_NAND_PAGE_COUNT	64
+#define CONFIG_SYS_NAND_PAGE_SIZE	2048
+#define CONFIG_SYS_NAND_OOBSIZE		64
+#define CONFIG_SYS_NAND_BLOCK_SIZE	(128*1024)
+#define CONFIG_SYS_NAND_BAD_BLOCK_POS	NAND_LARGE_BADBLOCK_POS
+#define CONFIG_SYS_NAND_ECCPOS		{2, 3, 4, 5, 6, 7, 8, 9,\
+						10, 11, 12, 13}
+#define CONFIG_SYS_NAND_ECCSIZE		512
+#define CONFIG_SYS_NAND_ECCBYTES	3
+#define CONFIG_SYS_NAND_U_BOOT_START	CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x80000
 
 #endif				/* __CONFIG_H */

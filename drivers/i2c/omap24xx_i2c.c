@@ -35,10 +35,15 @@ static void wait_for_bb(void);
 static u16 wait_for_pin(void);
 static void flush_fifo(void);
 
-static struct i2c *i2c_base = (struct i2c *)I2C_DEFAULT_BASE;
-
-static unsigned int bus_initialized[I2C_BUS_MAX];
-static unsigned int current_bus;
+/*
+ * For SPL boot some boards need i2c before SDRAM is initialised so force
+ * variables to live in SRAM
+ */
+static struct i2c __attribute__((section (".data"))) *i2c_base =
+					(struct i2c *)I2C_DEFAULT_BASE;
+static unsigned int __attribute__((section (".data"))) bus_initialized[I2C_BUS_MAX] =
+					{ [0 ... (I2C_BUS_MAX-1)] = 0 };
+static unsigned int __attribute__((section (".data"))) current_bus = 0;
 
 void i2c_init(int speed, int slaveadd)
 {
@@ -73,7 +78,7 @@ void i2c_init(int speed, int slaveadd)
 		fssclh -= I2C_HIGHSPEED_PHASE_ONE_SCLH_TRIM;
 		if (((fsscll < 0) || (fssclh < 0)) ||
 		    ((fsscll > 255) || (fssclh > 255))) {
-			printf("Error : I2C initializing first phase clock\n");
+			puts("Error : I2C initializing first phase clock\n");
 			return;
 		}
 
@@ -84,7 +89,7 @@ void i2c_init(int speed, int slaveadd)
 		hssclh -= I2C_HIGHSPEED_PHASE_TWO_SCLH_TRIM;
 		if (((fsscll < 0) || (fssclh < 0)) ||
 		    ((fsscll > 255) || (fssclh > 255))) {
-			printf("Error : I2C initializing second phase clock\n");
+			puts("Error : I2C initializing second phase clock\n");
 			return;
 		}
 
@@ -99,7 +104,7 @@ void i2c_init(int speed, int slaveadd)
 		fssclh -= I2C_FASTSPEED_SCLH_TRIM;
 		if (((fsscll < 0) || (fssclh < 0)) ||
 		    ((fsscll > 255) || (fssclh > 255))) {
-			printf("Error : I2C initializing clock\n");
+			puts("Error : I2C initializing clock\n");
 			return;
 		}
 
@@ -118,7 +123,7 @@ void i2c_init(int speed, int slaveadd)
 	writew(I2C_CON_EN, &i2c_base->con);
 	while (!(readw(&i2c_base->syss) & I2C_SYSS_RDONE) && timeout--) {
 		if (timeout <= 0) {
-			printf("ERROR: Timeout in soft-reset\n");
+			puts("ERROR: Timeout in soft-reset\n");
 			return;
 		}
 		udelay(1000);
@@ -284,13 +289,13 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 	}
 
 	if (addr + len > 256) {
-		printf("I2C read: address out of range\n");
+		puts("I2C read: address out of range\n");
 		return 1;
 	}
 
 	for (i = 0; i < len; i++) {
 		if (i2c_read_byte(chip, addr + i, &buffer[i])) {
-			printf("I2C read: I/O error\n");
+			puts("I2C read: I/O error\n");
 			i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 			return 1;
 		}

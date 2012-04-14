@@ -92,7 +92,14 @@
 #define	CONFIG_SYS_MEMTEST_END		0x40400000	/* 4 MB RAM test */
 #define	CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 /* Point initial SP in SRAM so SPL can use it too. */
-#define	CONFIG_SYS_INIT_SP_ADDR		0x00002000
+
+#define CONFIG_SYS_INIT_RAM_ADDR	0x00002000
+#define CONFIG_SYS_INIT_RAM_SIZE	(128 * 1024)
+
+#define CONFIG_SYS_INIT_SP_OFFSET \
+	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR \
+	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 /*
  * We need to sacrifice first 4 bytes of RAM here to avoid triggering some
  * strange BUG in ROM corrupting first 4 bytes of RAM when loading U-Boot
@@ -133,6 +140,7 @@
  */
 #ifdef	CONFIG_CMD_MMC
 #define	CONFIG_MMC
+#define	CONFIG_MMC_BOUNCE_BUFFER
 #define	CONFIG_GENERIC_MMC
 #define	CONFIG_MXS_MMC
 #endif
@@ -140,17 +148,16 @@
 /*
  * NAND
  */
+#define	CONFIG_ENV_SIZE			(16 * 1024)
 #ifdef	CONFIG_CMD_NAND
 #define	CONFIG_NAND_MXS
 #define CONFIG_APBH_DMA
 #define	CONFIG_SYS_MAX_NAND_DEVICE	1
 #define	CONFIG_SYS_NAND_BASE		0x60000000
 #define	CONFIG_SYS_NAND_5_ADDR_CYCLE
-#define	NAND_MAX_CHIPS			8
 
 /* Environment is in NAND */
 #define	CONFIG_ENV_IS_IN_NAND
-#define	CONFIG_ENV_SIZE			(16 * 1024)
 #define	CONFIG_ENV_SIZE_REDUND		CONFIG_ENV_SIZE
 #define	CONFIG_ENV_SECT_SIZE		(128 * 1024)
 #define	CONFIG_ENV_RANGE		(512 * 1024)
@@ -173,13 +180,14 @@
 		"512k(redundant-environment),"	\
 		"4m(kernel),"			\
 		"-(filesystem)"
+#else
+#define	CONFIG_ENV_IS_NOWHERE
 #endif
 
 /*
  * Ethernet on SOC (FEC)
  */
 #ifdef	CONFIG_CMD_NET
-#define	CONFIG_NET_MULTI
 #define	CONFIG_ETHPRIME			"FEC0"
 #define	CONFIG_FEC_MXC
 #define	CONFIG_FEC_MXC_MULTI
@@ -245,7 +253,7 @@
 #ifdef	CONFIG_CMD_SF
 #define	CONFIG_SPI_FLASH
 #define	CONFIG_SPI_FLASH_STMICRO
-#define	CONFIG_SPI_FLASH_CS		2
+#define	CONFIG_SF_DEFAULT_CS		2
 #define	CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 #define	CONFIG_SF_DEFAULT_SPEED		24000000
 

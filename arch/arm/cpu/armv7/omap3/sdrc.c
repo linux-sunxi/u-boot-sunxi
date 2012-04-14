@@ -102,7 +102,7 @@ u32 get_sdr_cs_offset(u32 cs)
 		return 0;
 
 	offset = readl(&sdrc_base->cs_cfg);
-	offset = (offset & 15) << 27 | (offset & 0x30) << 17;
+	offset = (offset & 15) << 27 | (offset & 0x300) << 17;
 
 	return offset;
 }
@@ -180,7 +180,7 @@ void do_sdrc_init(u32 cs, u32 early)
 		write_sdrc_timings(CS0, sdrc_actim_base0, mcfg, ctrla, ctrlb,
 				rfr_ctrl, mr);
 		make_cs1_contiguous();
-		write_sdrc_timings(CS0, sdrc_actim_base1, mcfg, ctrla, ctrlb,
+		write_sdrc_timings(CS1, sdrc_actim_base1, mcfg, ctrla, ctrlb,
 				rfr_ctrl, mr);
 #endif
 

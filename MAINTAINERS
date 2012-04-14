@@ -41,6 +41,10 @@ Reinhard Arlt <reinhard.arlt@esd-electronics.com>
 
 	CPCI750		PPC750FX/GX
 
+Peter Barada <peter.barada@logicpd.com>
+
+	omap3_logic	ARM ARMV7 (Logic OMAP35xx/DM37xx)
+
 Yuli Barcohen <yuli@arabellasw.com>
 
 	Adder		MPC87x/MPC852T
@@ -436,10 +440,12 @@ Heiko Schocher <hs@denx.de>
 	municse		MPC5200
 	sc3		PPC405GP
 	suvd3		MPC8321
-	tuda1		MPC8321
-	tuxa1		MPC8321
 	uc101		MPC5200
 	ve8313		MPC8313
+
+Holger Brunck <holger.brunck@keymile.com>
+	tuge1		MPC8321
+	tuxx1		MPC8321
 
 Peter De Schrijver <p2@mind.be>
 
@@ -568,10 +574,12 @@ Stefano Babic <sbabic@denx.de>
 
 	ea20		davinci
 	flea3		i.MX35
+	mt_ventoux	omap3
 	mx35pdk		i.MX35
 	mx51evk		i.MX51
 	polaris		xscale/pxa
 	trizepsiv	xscale/pxa
+	twister		omap3
  	vision2		i.MX51
 
 Jason Liu <r64343@freescale.com>
@@ -579,15 +587,12 @@ Jason Liu <r64343@freescale.com>
 	mx53evk         i.MX53
 	mx53loco        i.MX53
 	mx6qarm2	i.MX6Q
+	mx6qsabrelite   i.MX6Q
 
 Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
 	igep0020	ARM ARMV7 (OMAP3xx SoC)
 	igep0030	ARM ARMV7 (OMAP3xx SoC)
-
-Dirk Behme <dirk.behme@gmail.com>
-
-	omap3_beagle	ARM ARMV7 (OMAP3530 SoC)
 
 Eric Benard <eric@eukrea.com>
 
@@ -639,6 +644,7 @@ Kristoffer Ericson <kristoffer.ericson@gmail.com>
 Fabio Estevam <fabio.estevam@freescale.com>
 
 	mx25pdk		i.MX25
+	mx28evk		i.MX28
 	mx31pdk		i.MX31
 	mx53ard		i.MX53
 	mx53smd		i.MX53
@@ -666,7 +672,10 @@ Igor Grinberg <grinberg@compulab.co.il>
 Kshitij Gupta <kshitij@ti.com>
 
 	omap1510inn	ARM925T
-	omap1610inn	ARM926EJS
+
+Stefan Herbrechtsmeier <stefan@code.herbrechtsmeier.net>
+
+	dns325		ARM926EJS (Kirkwood SoC)
 
 Vaibhav Hiremath <hvaibhav@ti.com>
 
@@ -704,6 +713,11 @@ Chander Kashyap <k.chander@samsung.com>
 
 	origen			ARM ARMV7 (EXYNOS4210 SoC)
 	SMDKV310		ARM ARMV7 (EXYNOS4210 SoC)
+	SMDK5250		ARM ARMV7 (EXYNOS5250 SoC)
+
+Heungjun Kim <riverful.kim@samsung.com>
+
+	trats			ARM ARMV7 (EXYNOS4210 SoC)
 
 Torsten Koschorrek <koschorrek@synertronixx.de>
 	scb9328		ARM920T (i.MXL)
@@ -748,10 +762,6 @@ Nagendra T S  <nagendra@mistralsolutions.com>
 
    am3517_crane    ARM ARMV7 (AM35x SoC)
 
-Chandan Nath <chandan.nath@ti.com>
-
-	am335x_evm	ARM ARMV7 (AM33xx Soc)
-
 Kyungmin Park <kyungmin.park@samsung.com>
 
 	apollon		ARM1136EJS
@@ -782,8 +792,20 @@ Stelian Pop <stelian@popies.net>
 	at91sam9263ek	ARM926EJS (AT91SAM9263 SoC)
 	at91sam9rlek	ARM926EJS (AT91SAM9RL SoC)
 
+Thierry Reding <thierry.reding@avionic-design.de>
+
+	plutux		Tegra2 (ARM7 & A9 Dual Core)
+	medcom		Tegra2 (ARM7 & A9 Dual Core)
+
+Christian Riesch <christian.riesch@omicron.at>
+Manfred Rudigier <manfred.rudigier@omicron.at>
+
+	calimain	ARM926EJS (AM1808 SoC)
+
 Tom Rini <trini@ti.com>
 
+	am335x_evm	ARM ARMV7 (AM33xx Soc)
+	omap3_beagle	ARM ARMV7 (OMAP3xx SoC)
 	omap3_evm	ARM ARMV7 (OMAP3xx SoC)
 
 Tom Rix <Tom.Rix@windriver.com>
@@ -885,10 +907,12 @@ Tom Warren <twarren@nvidia.com>
 Stephen Warren <swarren@nvidia.com>
 
 	ventana		Tegra2 (ARM7 & A9 Dual Core)
+	paz00		Tegra2 (ARM7 & A9 Dual Core)
 
 Thomas Weber <weber@corscience.de>
 
 	devkit8000	ARM ARMV7 (OMAP3530 SoC)
+	tricorder	ARM ARMV7 (OMAP3503 SoC)
 
 Lei Wen <leiwen@marvell.com>
 
@@ -902,6 +926,10 @@ Matthias Weisser <weisserm@arcor.de>
 Richard Woodruff <r-woodruff2@ti.com>
 
 	omap2420h4	ARM1136EJS
+
+Ilya Yanok <yanok@emcraft.com>
+
+	mcx		ARM ARMV7 (AM35x SoC)
 
 Syed Mohammed Khasim <sm.khasim@gmail.com>
 Sughosh Ganu <urwithsughosh@gmail.com>
@@ -1148,6 +1176,11 @@ Chong Huang <chuang@ucrobotics.com>
 
 	bf525-ucr2	BF525
 
+Dimitar Penev <dpn@switchfin.org>
+
+	BR4 Appliance	BF537
+	PR1 Appliance	BF537
+
 #########################################################################
 # NDS32 Systems:							#
 #									#
@@ -1159,6 +1192,17 @@ Macpaul Lin <macpaul@andestech.com>
 
 	ADP-AG101	N1213 (AG101 SoC)
 	ADP-AG101P	N1213 (AG101P XC5 FPGA)
+
+#########################################################################
+# OpenRISC Systems:							#
+#									#
+# Maintainer Name, Email Address					#
+#	Board		CPU						#
+#########################################################################
+
+Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+
+	openrisc-generic	OpenRISC
 
 #########################################################################
 # End of MAINTAINERS list						#

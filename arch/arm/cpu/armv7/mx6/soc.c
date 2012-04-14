@@ -32,7 +32,13 @@
 
 u32 get_cpu_rev(void)
 {
-	int system_rev = 0x61000 | CHIP_REV_1_0;
+	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
+	int reg = readl(&anatop->digprog);
+
+	/* Read mx6 variant: quad, dual or solo */
+	int system_rev = (reg >> 4) & 0xFF000;
+	/* Read mx6 silicon revision */
+	system_rev |= (reg & 0xFF) + 0x10;
 
 	return system_rev;
 }
@@ -40,18 +46,35 @@ u32 get_cpu_rev(void)
 #ifdef CONFIG_ARCH_CPU_INIT
 void init_aips(void)
 {
-	u32 reg = AIPS1_BASE_ADDR;
+	struct aipstz_regs *aips1, *aips2;
+
+	aips1 = (struct aipstz_regs *)AIPS1_BASE_ADDR;
+	aips2 = (struct aipstz_regs *)AIPS2_BASE_ADDR;
 
 	/*
 	 * Set all MPROTx to be non-bufferable, trusted for R/W,
 	 * not forced to user-mode.
 	 */
-	writel(0x77777777, reg + 0x00);
-	writel(0x77777777, reg + 0x04);
+	writel(0x77777777, &aips1->mprot0);
+	writel(0x77777777, &aips1->mprot1);
+	writel(0x77777777, &aips2->mprot0);
+	writel(0x77777777, &aips2->mprot1);
 
-	reg = AIPS2_BASE_ADDR;
-	writel(0x77777777, reg + 0x00);
-	writel(0x77777777, reg + 0x04);
+	/*
+	 * Set all OPACRx to be non-bufferable, not require
+	 * supervisor privilege level for access,allow for
+	 * write access and untrusted master access.
+	 */
+	writel(0x00000000, &aips1->opacr0);
+	writel(0x00000000, &aips1->opacr1);
+	writel(0x00000000, &aips1->opacr2);
+	writel(0x00000000, &aips1->opacr3);
+	writel(0x00000000, &aips1->opacr4);
+	writel(0x00000000, &aips2->opacr0);
+	writel(0x00000000, &aips2->opacr1);
+	writel(0x00000000, &aips2->opacr2);
+	writel(0x00000000, &aips2->opacr3);
+	writel(0x00000000, &aips2->opacr4);
 }
 
 int arch_cpu_init(void)
@@ -63,20 +86,22 @@ int arch_cpu_init(void)
 #endif
 
 #if defined(CONFIG_FEC_MXC)
-void imx_get_mac_from_fuse(unsigned char *mac)
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
 	struct iim_regs *iim = (struct iim_regs *)IMX_IIM_BASE;
 	struct fuse_bank *bank = &iim->bank[4];
 	struct fuse_bank4_regs *fuse =
 			(struct fuse_bank4_regs *)bank->fuse_regs;
 
-	u32 mac_lo = readl(&fuse->mac_addr_low);
-	u32 mac_hi = readl(&fuse->mac_addr_high);
+	u32 value = readl(&fuse->mac_addr_high);
+	mac[0] = (value >> 8);
+	mac[1] = value ;
 
-	*(u32 *)mac = mac_lo;
-
-	mac[4] = mac_hi & 0xff;
-	mac[5] = (mac_hi >> 8) & 0xff;
+	value = readl(&fuse->mac_addr_low);
+	mac[2] = value >> 24 ;
+	mac[3] = value >> 16 ;
+	mac[4] = value >> 8 ;
+	mac[5] = value ;
 
 }
 #endif

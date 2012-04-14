@@ -587,6 +587,15 @@ static inline int get_async3_src(void)
 #include <asm/arch/psc_defs.h>
 #include <asm/arch/syscfg_defs.h>
 #include <asm/arch/timer_defs.h>
+
+#define TMPBUF			0x00017ff8
+#define TMPSTATUS		0x00017ff0
+#define DV_TMPBUF_VAL		0x591b3ed7
+#define FLAG_PORRST		0x00000001
+#define FLAG_WDTRST		0x00000002
+#define FLAG_FLGON		0x00000004
+#define FLAG_FLGOFF		0x00000010
+
 #endif
 
 struct davinci_rtc {
@@ -622,8 +631,8 @@ struct davinci_rtc {
 #define RTC_STATE_BUSY	0x01
 #define RTC_STATE_RUN	0x02
 
-#define RTC_KICK0R_WE	0x130be783
-#define RTC_KICK1R_WE	0xe0f1a495
+#define RTC_KICK0R_WE	0x83e70b13
+#define RTC_KICK1R_WE	0x95a4f1e0
 
 #define davinci_rtc_base ((struct davinci_rtc *)DAVINCI_RTC_BASE)
 

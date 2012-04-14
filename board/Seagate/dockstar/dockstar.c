@@ -169,10 +169,10 @@ static void set_leds(u32 leds, u32 blinking)
 void show_boot_progress(int val)
 {
 	switch (val) {
-	case 15:		/* booting Linux */
+	case BOOTSTAGE_ID_RUN_OS:		/* booting Linux */
 		set_leds(BOTH_LEDS, NEITHER_LED);
 		break;
-	case 64:		/* Ethernet initialization */
+	case BOOTSTAGE_ID_NET_ETH_START:	/* Ethernet initialization */
 		set_leds(GREEN_LED, GREEN_LED);
 		break;
 	default:

@@ -56,6 +56,16 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_NET
+#define	CONFIG_FEC_MXC
+#define	CONFIG_MII
+#define IMX_FEC_BASE			ENET_BASE_ADDR
+#define	CONFIG_FEC_XCV_TYPE		RGMII
+#define CONFIG_FEC_MXC_PHYADDR		0
+
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX		1
@@ -66,8 +76,6 @@
 #include <config_cmd_default.h>
 
 #undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
 
 #define CONFIG_BOOTDELAY		3
 
@@ -78,6 +86,8 @@
 	"script=boot.scr\0" \
 	"uimage=uImage\0" \
 	"console=ttymxc3\0" \
+	"fdt_high=0xffffffff\0" \
+	"initrd_high=0xffffffff\0" \
 	"mmcdev=1\0" \
 	"mmcpart=2\0" \
 	"mmcroot=/dev/mmcblk0p3 rootwait rw\0" \

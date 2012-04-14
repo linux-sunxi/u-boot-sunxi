@@ -1538,7 +1538,6 @@ static int run_pipe_real(struct pipe *pi)
 	int nextin;
 	int flag = do_repeat ? CMD_FLAG_REPEAT : 0;
 	struct child_prog *child;
-	cmd_tbl_t *cmdtp;
 	char *p;
 # if __GNUC__
 	/* Avoid longjmp clobbering */
@@ -1642,62 +1641,30 @@ static int run_pipe_real(struct pipe *pi)
 				 * Is it really safe for inline use?  Experimentally,
 				 * things seem to work with glibc. */
 				setup_redirects(child, squirrel);
-#else
-			/* check ";", because ,example , argv consist from
-			 * "help;flinfo" must not execute
-			 */
-			if (strchr(child->argv[i], ';')) {
-				printf ("Unknown command '%s' - try 'help' or use 'run' command\n",
-					child->argv[i]);
-				return -1;
-			}
-			/* Look up command in command table */
 
-
-			if ((cmdtp = find_cmd(child->argv[i])) == NULL) {
-				printf ("Unknown command '%s' - try 'help'\n", child->argv[i]);
-				return -1;	/* give up after bad command */
-			} else {
-				int rcode;
-#if defined(CONFIG_CMD_BOOTD)
-				/* avoid "bootd" recursion */
-				if (cmdtp->cmd == do_bootd) {
-					if (flag & CMD_FLAG_BOOTD) {
-						printf ("'bootd' recursion detected\n");
-						return -1;
-					}
-				else
-					flag |= CMD_FLAG_BOOTD;
-				}
-#endif
-				/* found - check max args */
-				if ((child->argc - i) > cmdtp->maxargs)
-					return cmd_usage(cmdtp);
-#endif
-				child->argv+=i;  /* XXX horrible hack */
-#ifndef __U_BOOT__
+				child->argv += i;  /* XXX horrible hack */
 				rcode = x->function(child);
-#else
-				/* OK - call function to do the command */
-
-				rcode = (cmdtp->cmd)
-(cmdtp, flag,child->argc-i,&child->argv[i]);
-				if ( !cmdtp->repeatable )
-					flag_repeat = 0;
-
-
-#endif
-				child->argv-=i;  /* XXX restore hack so free() can work right */
-#ifndef __U_BOOT__
-
+				/* XXX restore hack so free() can work right */
+				child->argv -= i;
 				restore_redirects(squirrel);
-#endif
-
-				return rcode;
 			}
+			return rcode;
 		}
-#ifndef __U_BOOT__
+#else
+		/* check ";", because ,example , argv consist from
+		 * "help;flinfo" must not execute
+		 */
+		if (strchr(child->argv[i], ';')) {
+			printf("Unknown command '%s' - try 'help' or use "
+					"'run' command\n", child->argv[i]);
+			return -1;
+		}
+		/* Process the command */
+		return cmd_process(flag, child->argc, child->argv,
+				   &flag_repeat);
+#endif
 	}
+#ifndef __U_BOOT__
 
 	for (i = 0; i < pi->num_progs; i++) {
 		child = & (pi->progs[i]);

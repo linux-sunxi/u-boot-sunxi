@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000 - 2011
+# (C) Copyright 2000 - 2012
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -420,6 +420,12 @@ The following options need to be configured:
 		XWAY SoCs for booting from NOR flash. The U-Boot image needs to
 		be swapped if a flash programmer is used.
 
+- ARM options:
+		CONFIG_SYS_EXCEPTION_VECTORS_HIGH
+
+		Select high exception vectors of the ARM core, e.g., do not
+		clear the V bit of the c1 register of CP15.
+
 - Linux Kernel Interface:
 		CONFIG_CLOCKS_IN_MHZ
 
@@ -638,22 +644,14 @@ The following options need to be configured:
 		'Sane' compilers will generate smaller code if
 		CONFIG_PRE_CON_BUF_SZ is a power of 2
 
-- Pre-console putc():
-		Prior to the console being initialised, console output is
-		normally silently discarded. This can be annoying if a
-		panic() happens in this time.
-
-		If the CONFIG_PRE_CONSOLE_PUTC option is defined, then
-		U-Boot will call board_pre_console_putc() for each output
-		character in this case, This function should try to output
-		the character if possible, perhaps on all available UARTs
-		(it will need to do this directly, since the console code
-		is not functional yet). Note that if the panic happens
-		early enough, then it is possible that board_init_f()
-		(or even arch_cpu_init() on ARM) has not been called yet.
-		You should init all clocks, GPIOs, etc. that are needed
-		to get the character out. Baud rates will need to default
-		to something sensible.
+- Safe printf() functions
+		Define CONFIG_SYS_VSNPRINTF to compile in safe versions of
+		the printf() functions. These are defined in
+		include/vsprintf.h and include snprintf(), vsnprintf() and
+		so on. Code size increase is approximately 300-500 bytes.
+		If this option is not given then these functions will
+		silently discard their buffer size argument - this means
+		you are not getting any overflow checking in this case.
 
 - Boot Delay:	CONFIG_BOOTDELAY - in seconds
 		Delay before automatically booting the default image;
@@ -800,6 +798,7 @@ The following options need to be configured:
 					  (requires CONFIG_CMD_I2C)
 		CONFIG_CMD_SETGETDCR	  Support for DCR Register access
 					  (4xx only)
+		CONFIG_CMD_SF		* Read/write/erase SPI NOR flash
 		CONFIG_CMD_SHA1SUM	  print sha1 memory digest
 					  (requires CONFIG_CMD_MEMORY)
 		CONFIG_CMD_SOURCE	  "source" command Support
@@ -1020,6 +1019,9 @@ The following options need to be configured:
 			If this defined, the driver is quiet.
 			The driver doen't show link status messages.
 
+		CONFIG_CALXEDA_XGMAC
+		Support for the Calxeda XGMAC device
+
 		CONFIG_DRIVER_LAN91C96
 		Support for SMSC's LAN91C96 chips.
 
@@ -1123,6 +1125,9 @@ The following options need to be configured:
 				May be defined to allow interrupt polling
 				instead of using asynchronous interrupts
 
+		CONFIG_USB_EHCI_TXFIFO_THRESH enables setting of the
+		txfilltuning field in the EHCI controller on reset.
+
 - USB Device:
 		Define the below if you wish to use the USB console.
 		Once firmware is rebuilt from a serial console issue the
@@ -1145,6 +1150,14 @@ The following options need to be configured:
 			CONFIG_USB_TTY
 			Define this to have a tty type of device available to
 			talk to the UDC device
+
+			CONFIG_USBD_HS
+			Define this to enable the high speed support for usb
+			device and usbtty. If this feature is enabled, a routine
+			int is_usbd_high_speed(void)
+			also needs to be defined by the driver to dynamically poll
+			whether the enumeration has succeded at high speed or full
+			speed.
 
 			CONFIG_SYS_CONSOLE_IS_IN_ENV
 			Define this if you want stdin, stdout &/or stderr to
@@ -1231,8 +1244,12 @@ The following options need to be configured:
 
 - FAT(File Allocation Table) filesystem write function support:
 		CONFIG_FAT_WRITE
-		Support for saving memory data as a file
-		in FAT formatted partition
+
+		Define this to enable support for saving memory data as a
+		file in FAT formatted partition.
+
+		This will also enable the command "fatwrite" enabling the
+		user to write files to FAT.
 
 - Keyboard Support:
 		CONFIG_ISA_KEYBOARD
@@ -2179,6 +2196,25 @@ The following options need to be configured:
 		allows to read/write in Dataflash via the standard
 		commands cp, md...
 
+- Serial Flash support
+		CONFIG_CMD_SF
+
+		Defining this option enables SPI flash commands
+		'sf probe/read/write/erase/update'.
+
+		Usage requires an initial 'probe' to define the serial
+		flash parameters, followed by read/write/erase/update
+		commands.
+
+		The following defaults may be provided by the platform
+		to handle the common case when only a single serial
+		flash is present on the system.
+
+		CONFIG_SF_DEFAULT_BUS		Bus identifier
+		CONFIG_SF_DEFAULT_CS		Chip-select
+		CONFIG_SF_DEFAULT_MODE 		(see include/spi.h)
+		CONFIG_SF_DEFAULT_SPEED		in Hz
+
 - SystemACE Support:
 		CONFIG_SYSTEMACE
 
@@ -2222,6 +2258,31 @@ The following options need to be configured:
 		the system's boot progress on some display (for
 		example, some LED's) on your board. At the moment,
 		the following checkpoints are implemented:
+
+- Detailed boot stage timing
+		CONFIG_BOOTSTAGE
+		Define this option to get detailed timing of each stage
+		of the boot process.
+
+		CONFIG_BOOTSTAGE_USER_COUNT
+		This is the number of available user bootstage records.
+		Each time you call bootstage_mark(BOOTSTAGE_ID_ALLOC, ...)
+		a new ID will be allocated from this stash. If you exceed
+		the limit, recording will stop.
+
+		CONFIG_BOOTSTAGE_REPORT
+		Define this to print a report before boot, similar to this:
+
+		Timer summary in microseconds:
+		       Mark    Elapsed  Stage
+			  0          0  reset
+		  3,575,678  3,575,678  board_init_f start
+		  3,575,695         17  arch_cpu_init A9
+		  3,575,777         82  arch_cpu_init done
+		  3,659,598     83,821  board_init_r start
+		  3,910,375    250,777  main_loop
+		 29,916,167 26,005,792  bootm_start
+		 30,361,327    445,160  start_kernel
 
 Legacy uImage format:
 
@@ -2418,11 +2479,29 @@ FIT uImage format:
 		CONFIG_SPL
 		Enable building of SPL globally.
 
+		CONFIG_SPL_LDSCRIPT
+		LDSCRIPT for linking the SPL binary.
+
+		CONFIG_SPL_MAX_SIZE
+		Maximum binary size (text, data and rodata) of the SPL binary.
+
 		CONFIG_SPL_TEXT_BASE
 		TEXT_BASE for linking the SPL binary.
 
-		CONFIG_SPL_LDSCRIPT
-		LDSCRIPT for linking the SPL binary.
+		CONFIG_SPL_BSS_START_ADDR
+		Link address for the BSS within the SPL binary.
+
+		CONFIG_SPL_BSS_MAX_SIZE
+		Maximum binary size of the BSS section of the SPL binary.
+
+		CONFIG_SPL_STACK
+		Adress of the start of the stack SPL will use
+
+		CONFIG_SYS_SPL_MALLOC_START
+		Starting address of the malloc pool used in SPL.
+
+		CONFIG_SYS_SPL_MALLOC_SIZE
+		The size of the malloc pool used in SPL.
 
 		CONFIG_SPL_LIBCOMMON_SUPPORT
 		Support for common/libcommon.o in SPL binary
@@ -2439,6 +2518,45 @@ FIT uImage format:
 		CONFIG_SPL_MMC_SUPPORT
 		Support for drivers/mmc/libmmc.o in SPL binary
 
+		CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR,
+		CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS,
+		CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION
+		Address, size and partition on the MMC to load U-Boot from
+		when the MMC is being used in raw mode.
+
+		CONFIG_SPL_FAT_SUPPORT
+		Support for fs/fat/libfat.o in SPL binary
+
+		CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME
+		Filename to read to load U-Boot when reading from FAT
+
+		CONFIG_SPL_NAND_SIMPLE
+		Support for drivers/mtd/nand/libnand.o in SPL binary
+
+		CONFIG_SYS_NAND_5_ADDR_CYCLE, CONFIG_SYS_NAND_PAGE_COUNT,
+		CONFIG_SYS_NAND_PAGE_SIZE, CONFIG_SYS_NAND_OOBSIZE,
+		CONFIG_SYS_NAND_BLOCK_SIZE, CONFIG_SYS_NAND_BAD_BLOCK_POS,
+		CONFIG_SYS_NAND_ECCPOS, CONFIG_SYS_NAND_ECCSIZE,
+		CONFIG_SYS_NAND_ECCBYTES
+		Defines the size and behavior of the NAND that SPL uses
+		to read U-Boot with CONFIG_SPL_NAND_SIMPLE
+
+		CONFIG_SYS_NAND_U_BOOT_OFFS
+		Location in NAND for CONFIG_SPL_NAND_SIMPLE to read U-Boot
+		from.
+
+		CONFIG_SYS_NAND_U_BOOT_START
+		Location in memory for CONFIG_SPL_NAND_SIMPLE to load U-Boot
+		to.
+
+		CONFIG_SYS_NAND_HW_ECC_OOBFIRST
+		Define this if you need to first read the OOB and then the
+		data. This is used for example on davinci plattforms.
+
+		CONFIG_SPL_OMAP3_ID_NAND
+		Support for an OMAP3-specific set of functions to return the
+		ID and MFR of the first attached NAND chip, if present.
+
 		CONFIG_SPL_SERIAL_SUPPORT
 		Support for drivers/serial/libserial.o in SPL binary
 
@@ -2447,9 +2565,6 @@ FIT uImage format:
 
 		CONFIG_SPL_SPI_SUPPORT
 		Support for drivers/spi/libspi.o in SPL binary
-
-		CONFIG_SPL_FAT_SUPPORT
-		Support for fs/fat/libfat.o in SPL binary
 
 		CONFIG_SPL_LIBGENERIC_SUPPORT
 		Support for lib/libgeneric.o in SPL binary
@@ -3298,11 +3413,6 @@ Low Level (hardware related) configuration options:
 		that is executed before the actual U-Boot. E.g. when
 		compiling a NAND SPL.
 
-- CONFIG_SYS_NAND_HW_ECC_OOBFIRST
-		define this, if you want to read first the oob data
-		and then the data. This is used for example on
-		davinci plattforms.
-
 - CONFIG_USE_ARCH_MEMCPY
   CONFIG_USE_ARCH_MEMSET
 		If these options are used a optimized version of memcpy/memset will
@@ -3507,6 +3617,7 @@ go	- start application at address 'addr'
 run	- run commands in an environment variable
 bootm	- boot application image from memory
 bootp	- boot image via network using BootP/TFTP protocol
+bootz   - boot zImage from memory
 tftpboot- boot image via network using TFTP protocol
 	       and env variables "ipaddr" and "serverip"
 	       (and eventually "gatewayip")
@@ -3627,6 +3738,14 @@ List of environment variables (most likely not complete):
 
   fdt_high	- if set this restricts the maximum address that the
 		  flattened device tree will be copied into upon boot.
+		  For example, if you have a system with 1 GB memory
+		  at physical address 0x10000000, while Linux kernel
+		  only recognizes the first 704 MB as low memory, you
+		  may need to set fdt_high as 0x3C000000 to have the
+		  device tree blob be copied to the maximum address
+		  of the 704 MB low memory, so that Linux kernel can
+		  access it during the boot procedure.
+
 		  If this is set to the special value 0xFFFFFFFF then
 		  the fdt will not be copied at all on boot.  For this
 		  to work it must reside in writable memory, have
@@ -4318,6 +4437,18 @@ U-Boot supports the following image types:
 	U-Boot's command interpreter; this feature is especially
 	useful when you configure U-Boot to use a real shell (hush)
 	as command interpreter.
+
+Booting the Linux zImage:
+-------------------------
+
+On some platforms, it's possible to boot Linux zImage. This is done
+using the "bootz" command. The syntax of "bootz" command is the same
+as the syntax of "bootm" command.
+
+Note, defining the CONFIG_SUPPORT_INITRD_RAW allows user to supply
+kernel with raw initrd images. The syntax is slightly different, the
+address of the initrd must be augmented by it's size, in the following
+format: "<initrd addres>:<initrd size>".
 
 
 Standalone HOWTO:

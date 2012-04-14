@@ -26,10 +26,6 @@
 #include <asm/io.h>
 #include <malloc.h>
 #include <watchdog.h>
-#ifdef CONFIG_USB_KEYBOARD
-#include <stdio_dev.h>
-extern unsigned char new[];
-#endif
 
 #include "ehci.h"
 
@@ -259,6 +255,13 @@ static int ehci_reset(void)
 #endif
 		ehci_writel(reg_ptr, tmp);
 	}
+
+#ifdef CONFIG_USB_EHCI_TXFIFO_THRESH
+	cmd = ehci_readl(&hcor->or_txfilltuning);
+	cmd &= ~TXFIFO_THRESH(0x3f);
+	cmd |= TXFIFO_THRESH(CONFIG_USB_EHCI_TXFIFO_THRESH);
+	ehci_writel(&hcor->or_txfilltuning, cmd);
+#endif
 out:
 	return ret;
 }
@@ -780,7 +783,7 @@ ehci_submit_root(struct usb_device *dev, unsigned long pipe, void *buffer,
 		goto unknown;
 	}
 
-	wait_ms(1);
+	mdelay(1);
 	len = min3(srclen, le16_to_cpu(req->length), length);
 	if (srcptr != NULL && len > 0)
 		memcpy(buffer, srcptr, len);
@@ -861,7 +864,7 @@ int usb_lowlevel_init(void)
 	ehci_writel(&hcor->or_configflag, cmd);
 	/* unblock posted write */
 	cmd = ehci_readl(&hcor->or_usbcmd);
-	wait_ms(5);
+	mdelay(5);
 	reg = HC_VERSION(ehci_readl(&hccr->cr_capbase));
 	printf("USB EHCI %x.%02x\n", reg >> 8, reg & 0xff);
 
@@ -910,29 +913,3 @@ submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	return ehci_submit_async(dev, pipe, buffer, length, NULL);
 }
 
-#ifdef CONFIG_SYS_USB_EVENT_POLL
-/*
- * This function polls for USB keyboard data.
- */
-void usb_event_poll()
-{
-	struct stdio_dev *dev;
-	struct usb_device *usb_kbd_dev;
-	struct usb_interface *iface;
-	struct usb_endpoint_descriptor *ep;
-	int pipe;
-	int maxp;
-
-	/* Get the pointer to USB Keyboard device pointer */
-	dev = stdio_get_by_name("usbkbd");
-	usb_kbd_dev = (struct usb_device *)dev->priv;
-	iface = &usb_kbd_dev->config.if_desc[0];
-	ep = &iface->ep_desc[0];
-	pipe = usb_rcvintpipe(usb_kbd_dev, ep->bEndpointAddress);
-
-	/* Submit a interrupt transfer request */
-	maxp = usb_maxpacket(usb_kbd_dev, pipe);
-	usb_submit_int_msg(usb_kbd_dev, pipe, &new[0],
-			maxp > 8 ? 8 : maxp, ep->bInterval);
-}
-#endif /* CONFIG_SYS_USB_EVENT_POLL */

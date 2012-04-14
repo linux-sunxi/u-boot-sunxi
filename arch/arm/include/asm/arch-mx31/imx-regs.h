@@ -709,6 +709,13 @@ struct esdc_regs {
 #define MUX_CTL_CSPI3_SPI_RDY	0x0e
 #define MUX_CTL_CSPI3_MOSI		0x13
 
+#define MUX_CTL_SD1_DATA1	0x18
+#define MUX_CTL_SD1_DATA2	0x19
+#define MUX_CTL_SD1_DATA3	0x1a
+#define MUX_CTL_SD1_CMD		0x1d
+#define MUX_CTL_SD1_CLK		0x1e
+#define MUX_CTL_SD1_DATA0	0x1f
+
 #define MUX_CTL_USBH2_DATA1	0x40
 #define MUX_CTL_USBH2_DIR	0x44
 #define MUX_CTL_USBH2_STP	0x45
@@ -855,6 +862,10 @@ struct esdc_regs {
  */
 #define NFC_BASE_ADDR	0xB8000000
 
+/* SD card controller */
+#define SDHC1_BASE_ADDR	0x50004000
+#define SDHC2_BASE_ADDR	0x50008000
+
 /*
  * Internal RAM (16KB)
  */
@@ -889,5 +900,32 @@ struct esdc_regs {
 #define MXC_EHCI_INTERNAL_PHY		(1 << 7)
 #define MXC_EHCI_IPPUE_DOWN		(1 << 8)
 #define MXC_EHCI_IPPUE_UP		(1 << 9)
+
+/*
+ * CSPI register definitions
+ */
+#define MXC_CSPI
+#define MXC_CSPICTRL_EN		(1 << 0)
+#define MXC_CSPICTRL_MODE	(1 << 1)
+#define MXC_CSPICTRL_XCH	(1 << 2)
+#define MXC_CSPICTRL_SMC	(1 << 3)
+#define MXC_CSPICTRL_POL	(1 << 4)
+#define MXC_CSPICTRL_PHA	(1 << 5)
+#define MXC_CSPICTRL_SSCTL	(1 << 6)
+#define MXC_CSPICTRL_SSPOL	(1 << 7)
+#define MXC_CSPICTRL_CHIPSELECT(x)	(((x) & 0x3) << 24)
+#define MXC_CSPICTRL_BITCOUNT(x)	(((x) & 0x1f) << 8)
+#define MXC_CSPICTRL_DATARATE(x)	(((x) & 0x7) << 16)
+#define MXC_CSPICTRL_TC		(1 << 8)
+#define MXC_CSPICTRL_RXOVF	(1 << 6)
+#define MXC_CSPICTRL_MAXBITS	0x1f
+
+#define MXC_CSPIPERIOD_32KHZ	(1 << 15)
+#define MAX_SPI_BYTES	4
+
+#define MXC_SPI_BASE_ADDRESSES \
+	0x43fa4000, \
+	0x50010000, \
+	0x53f84000,
 
 #endif /* __ASM_ARCH_MX31_IMX_REGS_H */

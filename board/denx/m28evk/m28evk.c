@@ -70,25 +70,9 @@ int board_init(void)
 	return 0;
 }
 
-#define	HW_DIGCTRL_SCRATCH0	0x8001c280
-#define	HW_DIGCTRL_SCRATCH1	0x8001c290
 int dram_init(void)
 {
-	uint32_t sz[2];
-
-	sz[0] = readl(HW_DIGCTRL_SCRATCH0);
-	sz[1] = readl(HW_DIGCTRL_SCRATCH1);
-
-	if (sz[0] != sz[1]) {
-		printf("MX28:\n"
-			"Error, the RAM size in HW_DIGCTRL_SCRATCH0 and\n"
-			"HW_DIGCTRL_SCRATCH1 is not the same. Please\n"
-			"verify these two registers contain valid RAM size!\n");
-		hang();
-	}
-
-	gd->ram_size = sz[0];
-	return 0;
+	return mx28_dram_init();
 }
 
 #ifdef	CONFIG_CMD_MMC
@@ -177,40 +161,5 @@ int board_eth_init(bd_t *bis)
 
 	return ret;
 }
-
-#ifdef	CONFIG_M28_FEC_MAC_IN_OCOTP
-
-#define	MXS_OCOTP_MAX_TIMEOUT	1000000
-void imx_get_mac_from_fuse(char *mac)
-{
-	struct mx28_ocotp_regs *ocotp_regs =
-		(struct mx28_ocotp_regs *)MXS_OCOTP_BASE;
-	uint32_t data;
-
-	memset(mac, 0, 6);
-
-	writel(OCOTP_CTRL_RD_BANK_OPEN, &ocotp_regs->hw_ocotp_ctrl_set);
-
-	if (mx28_wait_mask_clr(&ocotp_regs->hw_ocotp_ctrl_reg, OCOTP_CTRL_BUSY,
-				MXS_OCOTP_MAX_TIMEOUT)) {
-		printf("MXS FEC: Can't get MAC from OCOTP\n");
-		return;
-	}
-
-	data = readl(&ocotp_regs->hw_ocotp_cust0);
-
-	mac[0] = 0x00;
-	mac[1] = 0x04;
-	mac[2] = (data >> 24) & 0xff;
-	mac[3] = (data >> 16) & 0xff;
-	mac[4] = (data >> 8) & 0xff;
-	mac[5] = data & 0xff;
-}
-#else
-void imx_get_mac_from_fuse(char *mac)
-{
-	memset(mac, 0, 6);
-}
-#endif
 
 #endif

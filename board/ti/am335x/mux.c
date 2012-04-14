@@ -14,7 +14,7 @@
  */
 
 #include <config.h>
-#include "common_def.h"
+#include <asm/arch/common_def.h>
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
 
@@ -258,6 +258,28 @@ static struct module_pin_mux uart0_pin_mux[] = {
 	{-1},
 };
 
+#ifdef CONFIG_MMC
+static struct module_pin_mux mmc0_pin_mux[] = {
+	{OFFSET(mmc0_dat3), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT3 */
+	{OFFSET(mmc0_dat2), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT2 */
+	{OFFSET(mmc0_dat1), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT1 */
+	{OFFSET(mmc0_dat0), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_DAT0 */
+	{OFFSET(mmc0_clk), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_CLK */
+	{OFFSET(mmc0_cmd), (MODE(0) | RXACTIVE | PULLUP_EN)},	/* MMC0_CMD */
+	{OFFSET(mcasp0_aclkr), (MODE(4) | RXACTIVE)},		/* MMC0_WP */
+	{OFFSET(spi0_cs1), (MODE(5) | RXACTIVE | PULLUP_EN)},	/* MMC0_CD */
+	{-1},
+};
+#endif
+
+static struct module_pin_mux i2c0_pin_mux[] = {
+	{OFFSET(i2c0_sda), (MODE(0) | RXACTIVE |
+			PULLUDEN | SLEWCTRL)}, /* I2C_DATA */
+	{OFFSET(i2c0_scl), (MODE(0) | RXACTIVE |
+			PULLUDEN | SLEWCTRL)}, /* I2C_SCLK */
+	{-1},
+};
+
 /*
  * Configure the pin mux for the module
  */
@@ -275,4 +297,16 @@ static void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 void enable_uart0_pin_mux(void)
 {
 	configure_module_pin_mux(uart0_pin_mux);
+}
+
+#ifdef CONFIG_MMC
+void enable_mmc0_pin_mux(void)
+{
+	configure_module_pin_mux(mmc0_pin_mux);
+}
+#endif
+
+void enable_i2c0_pin_mux(void)
+{
+	configure_module_pin_mux(i2c0_pin_mux);
 }

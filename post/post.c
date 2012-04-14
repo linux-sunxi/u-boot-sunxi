@@ -158,7 +158,7 @@ void post_output_backlog(void)
 				post_log("PASSED\n");
 			else {
 				post_log("FAILED\n");
-				show_boot_progress(-31);
+				bootstage_error(BOOTSTAGE_ID_POST_FAIL_R);
 			}
 		}
 	}
@@ -295,7 +295,7 @@ static int post_run_single(struct post_test *test,
 		} else {
 			if ((*test->test)(flags) != 0) {
 				post_log("FAILED\n");
-				show_boot_progress(-32);
+				bootstage_error(BOOTSTAGE_ID_POST_FAIL_R);
 				show_post_progress(i, POST_AFTER, POST_FAILED);
 				if (test_flags & POST_CRITICAL)
 					gd->flags |= GD_FLG_POSTFAIL;
@@ -495,7 +495,7 @@ void post_reloc(void)
  */
 unsigned long post_time_ms(unsigned long base)
 {
-#if defined(CONFIG_PPC) || defined(CONFIG_ARM) && !defined(CONFIG_KIRKWOOD)
+#if defined(CONFIG_PPC) || defined(CONFIG_BLACKFIN) || defined(CONFIG_ARM)
 	return (unsigned long)lldiv(get_ticks(), get_tbclk() / CONFIG_SYS_HZ)
 		- base;
 #else

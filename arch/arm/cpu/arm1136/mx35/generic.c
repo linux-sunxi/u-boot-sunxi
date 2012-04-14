@@ -393,7 +393,7 @@ unsigned int mxc_get_clock(enum mxc_clock clk)
 /*
  * The MX35 has no fuse for MAC, return a NULL MAC
  */
-void imx_get_mac_from_fuse(unsigned char *mac)
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
 	memset(mac, 0, 6);
 }
@@ -422,6 +422,7 @@ U_BOOT_CMD(
 	""
 );
 
+#if defined(CONFIG_DISPLAY_CPUINFO)
 static char *get_reset_cause(void)
 {
 	/* read RCSR register from CCM module */
@@ -444,7 +445,6 @@ static char *get_reset_cause(void)
 	}
 }
 
-#if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
 {
 	u32 srev = get_cpu_rev();

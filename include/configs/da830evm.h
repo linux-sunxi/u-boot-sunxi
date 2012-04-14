@@ -115,7 +115,6 @@
 #define CONFIG_SYS_CLE_MASK		0x10
 #define CONFIG_SYS_ALE_MASK		0x8
 #define CONFIG_SYS_MAX_NAND_DEVICE	1 /* Max number of NAND devices */
-#define NAND_MAX_CHIPS			1
 #endif
 
 #ifdef CONFIG_USE_NOR
@@ -203,6 +202,10 @@
 #define CONFIG_CMD_MEMORY
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_SETGETDCR
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
+#endif
 
 #ifndef CONFIG_DRIVER_TI_EMAC
 #undef CONFIG_CMD_NET

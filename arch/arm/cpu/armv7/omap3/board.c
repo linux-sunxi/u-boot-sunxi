@@ -92,7 +92,9 @@ u32 omap_boot_device(void)
 
 void spl_board_init(void)
 {
+#ifdef CONFIG_SPL_I2C_SUPPORT
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#endif
 }
 #endif /* CONFIG_SPL_BUILD */
 
@@ -144,7 +146,7 @@ void secureworld_exit()
 {
 	unsigned long i;
 
-	/* configrue non-secure access control register */
+	/* configure non-secure access control register */
 	__asm__ __volatile__("mrc p15, 0, %0, c1, c1, 2":"=r"(i));
 	/* enabling co-processor CP10 and CP11 accesses in NS world */
 	__asm__ __volatile__("orr %0, %0, #0xC00":"=r"(i));
@@ -228,8 +230,14 @@ void s_init(void)
 
 	per_clocks_enable();
 
+#ifdef CONFIG_USB_EHCI_OMAP
+	ehci_clocks_enable();
+#endif
+
 #ifdef CONFIG_SPL_BUILD
 	preloader_console_init();
+
+	timer_init();
 #endif
 
 	if (!in_sdram)
@@ -387,7 +395,7 @@ static void omap3_setup_aux_cr(void)
 {
 	/* Workaround for Cortex-A8 errata: #454179 #430973
 	 *	Set "IBE" bit
-	 *	Set "Disable Brach Size Mispredicts" bit
+	 *	Set "Disable Branch Size Mispredicts" bit
 	 * Workaround for erratum #621766
 	 *	Enable L1NEON bit
 	 * ACR |= (IBE | DBSM | L1NEON) => ACR |= 0xE0
@@ -424,7 +432,7 @@ void v7_outer_cache_enable(void)
 	omap3_update_aux_cr(0x2, 0);
 }
 
-void v7_outer_cache_disable(void)
+void omap3_outer_cache_disable(void)
 {
 	/* Clear L2EN */
 	omap3_update_aux_cr_secure(0, 0x2);

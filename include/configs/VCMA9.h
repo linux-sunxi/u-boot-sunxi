@@ -169,8 +169,7 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
-/* to be activated as soon as s3c24x0 has print_cpuinfo support */
-/*#define CONFIG_DISPLAY_CPUINFO*/			/* Display cpu info */
+#define CONFIG_DISPLAY_CPUINFO				/* Display cpu info */
 #define CONFIG_DISPLAY_BOARDINFO			/* Display board info */
 
 #define CONFIG_SYS_MEMTEST_START	0x30000000	/* memtest works on */
@@ -237,7 +236,6 @@
 #define CONFIG_NAND_S3C2410
 #define CONFIG_SYS_S3C2410_NAND_HWECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define NAND_MAX_CHIPS			1
 #define CONFIG_SYS_NAND_BASE		0x4E000000
 #define CONFIG_S3C24XX_CUSTOM_NAND_TIMING
 #define CONFIG_S3C24XX_TACLS		1

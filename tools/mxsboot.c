@@ -453,7 +453,7 @@ static int mx28_nand_write_firmware(struct mx28_nand_fcb *fcb, int infd,
 void usage(void)
 {
 	printf(
-		"Usage: mx28image [ops] <type> <infile> <outfile>\n"
+		"Usage: mxsboot [ops] <type> <infile> <outfile>\n"
 		"Augment BootStream file with a proper header for i.MX28 boot\n"
 		"\n"
 		"  <type>	type of image:\n"
@@ -605,6 +605,9 @@ int parse_ops(int argc, char **argv)
 		PARAM_NAND
 	};
 	int type;
+
+	if (argc < 4)
+		return -1;
 
 	for (i = 1; i < argc; i++) {
 		if (!strncmp(argv[i], "-w", 2))

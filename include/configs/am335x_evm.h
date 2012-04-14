@@ -16,7 +16,7 @@
 #ifndef __CONFIG_AM335X_EVM_H
 #define __CONFIG_AM335X_EVM_H
 
-#define CONFIG_AM335X
+#define CONFIG_AM33XX
 #define CONFIG_CMD_MEMORY	/* for mtest */
 #undef CONFIG_GZIP
 #undef CONFIG_ZLIB
@@ -26,11 +26,9 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/hardware.h>
 
-#define CONFIG_SETUP_PLL
-#define CONFIG_AM335X_CONFIG_DDR
 #define CONFIG_ENV_SIZE			0x400
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (8 * 1024))
-#define CONFIG_SYS_PROMPT		"AM335X# "
+#define CONFIG_SYS_PROMPT		"U-Boot# "
 #define CONFIG_SYS_NO_FLASH
 #define MACH_TYPE_TIAM335EVM		3589	/* Until the next sync */
 #define CONFIG_MACH_TYPE		MACH_TYPE_TIAM335EVM
@@ -48,14 +46,12 @@
 
 /* Clock Defines */
 #define V_OSCK				24000000  /* Clock output from T2 */
-#define V_SCLK				(V_OSCK >> 1)
+#define V_SCLK				(V_OSCK)
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for
-						   initial data */
 #define CONFIG_CMD_ECHO
 
 /* max number of command args */
-#define CONFIG_SYS_MAXARGS		32
+#define CONFIG_SYS_MAXARGS		16
 
 /* Console I/O Buffer Size */
 #define CONFIG_SYS_CBSIZE		512
@@ -75,9 +71,16 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START \
 					+ (8 * 1024 * 1024))
 
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 #define CONFIG_SYS_LOAD_ADDR		0x81000000 /* Default load address */
 #define CONFIG_SYS_HZ			1000 /* 1ms clock */
+
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_OMAP_HSMMC
+#define CONFIG_CMD_MMC
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT2
 
  /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1		/*  1 bank of DRAM */
@@ -89,7 +92,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR         (CONFIG_SYS_SDRAM_BASE + 0x1000 - \
 						GENERATED_GBL_DATA_SIZE)
  /* Platform/Board specific defs */
-#define CONFIG_SYS_CLK_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		0x48040000	/* Use Timer2 */
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
 #define CONFIG_SYS_HZ			1000
@@ -100,7 +102,14 @@
 #define CONFIG_SYS_NS16550_REG_SIZE	(-4)
 #define CONFIG_SYS_NS16550_CLK		(48000000)
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */
-#define CONFIG_SYS_NS16550_COM4		0x481A6000	/* UART3 on IA BOard */
+
+/* I2C Configuration */
+#define CONFIG_I2C
+#define CONFIG_CMD_I2C
+#define CONFIG_HARD_I2C
+#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C_SLAVE		1
+#define CONFIG_DRIVER_OMAP24XX_I2C
 
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 110, 300, 600, 1200, 2400, \
@@ -115,7 +124,46 @@
 
 #define CONFIG_ENV_IS_NOWHERE
 
-#define CONFIG_SYS_TEXT_BASE		0x402f0400
+/* Defines for SPL */
+#define CONFIG_SPL
+#define CONFIG_SPL_TEXT_BASE		0x402F0400
+#define CONFIG_SPL_MAX_SIZE		(46 * 1024)
+#define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
+
+#define CONFIG_SPL_BSS_START_ADDR	0x80000000
+#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
+
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x300 /* address 0x60000 */
+#define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
+#define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION	1
+#define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
+#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_FAT_SUPPORT
+#define CONFIG_SPL_I2C_SUPPORT
+
+#define CONFIG_SPL_LIBCOMMON_SUPPORT
+#define CONFIG_SPL_LIBDISK_SUPPORT
+#define CONFIG_SPL_LIBGENERIC_SUPPORT
+#define CONFIG_SPL_SERIAL_SUPPORT
+#define CONFIG_SPL_YMODEM_SUPPORT
+#define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/omap-common/u-boot-spl.lds"
+
+/*
+ * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
+ * 64 bytes before this address should be set aside for u-boot.img's
+ * header. That is 0x800FFFC0--0x80100000 should not be used for any
+ * other needs.
+ */
+#define CONFIG_SYS_TEXT_BASE		0x80800000
+#define CONFIG_SYS_SPL_MALLOC_START	0x80208000
+#define CONFIG_SYS_SPL_MALLOC_SIZE	0x100000
+
+/* Since SPL did pll and ddr initialization for us,
+ * we don't need to do it twice.
+ */
+#ifndef CONFIG_SPL_BUILD
+#define CONFIG_SKIP_LOWLEVEL_INIT
+#endif
 
 /* Unsupported features */
 #undef CONFIG_USE_IRQ

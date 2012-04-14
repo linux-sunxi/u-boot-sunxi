@@ -43,7 +43,12 @@ U_BOOT_CMD(
 
 int do_tftpb (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	return netboot_common(TFTPGET, cmdtp, argc, argv);
+	int ret;
+
+	bootstage_mark_name(BOOTSTAGE_KERNELREAD_START, "tftp_start");
+	ret = netboot_common(TFTPGET, cmdtp, argc, argv);
+	bootstage_mark_name(BOOTSTAGE_KERNELREAD_STOP, "tftp_done");
+	return ret;
 }
 
 U_BOOT_CMD(
@@ -230,36 +235,37 @@ static int netboot_common(enum proto_t proto, cmd_tbl_t *cmdtp, int argc,
 		break;
 #endif
 	default:
-		show_boot_progress (-80);
-		return cmd_usage(cmdtp);
+		bootstage_error(BOOTSTAGE_ID_NET_START);
+		return CMD_RET_USAGE;
 	}
+	bootstage_mark(BOOTSTAGE_ID_NET_START);
 
-	show_boot_progress (80);
 	if ((size = NetLoop(proto)) < 0) {
-		show_boot_progress (-81);
+		bootstage_error(BOOTSTAGE_ID_NET_NETLOOP_OK);
 		return 1;
 	}
+	bootstage_mark(BOOTSTAGE_ID_NET_NETLOOP_OK);
 
-	show_boot_progress (81);
 	/* NetLoop ok, update environment */
 	netboot_update_env();
 
 	/* done if no file was loaded (no errors though) */
 	if (size == 0) {
-		show_boot_progress (-82);
+		bootstage_error(BOOTSTAGE_ID_NET_LOADED);
 		return 0;
 	}
 
 	/* flush cache */
 	flush_cache(load_addr, size);
 
-	show_boot_progress(82);
+	bootstage_mark(BOOTSTAGE_ID_NET_LOADED);
+
 	rcode = bootm_maybe_autostart(cmdtp, argv[0]);
 
 	if (rcode < 0)
-		show_boot_progress (-83);
+		bootstage_error(BOOTSTAGE_ID_NET_DONE_ERR);
 	else
-		show_boot_progress (84);
+		bootstage_mark(BOOTSTAGE_ID_NET_DONE);
 	return rcode;
 }
 
@@ -271,7 +277,7 @@ int do_ping (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	NetPingIP = string_to_ip(argv[1]);
 	if (NetPingIP == 0)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if (NetLoop(PING) < 0) {
 		printf("ping failed; host %s is not alive\n", argv[1]);
@@ -377,7 +383,7 @@ U_BOOT_CMD(
 int do_dns(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if (argc == 1)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/*
 	 * We should check for a valid hostname:

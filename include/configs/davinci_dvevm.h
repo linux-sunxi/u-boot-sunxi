@@ -51,7 +51,6 @@
 #define DV_EVM
 #define CONFIG_SYS_NAND_SMALLPAGE
 #define CONFIG_SYS_USE_NAND
-#define CONFIG_DISPLAY_CPUINFO
 /*===================*/
 /* SoC Configuration */
 /*===================*/
@@ -200,6 +199,11 @@
 #define CONFIG_CMD_SAVES
 #define CONFIG_CMD_EEPROM
 #undef CONFIG_CMD_BDI
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
+#endif
+
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_SETGETDCR
 #ifdef CONFIG_SYS_USE_NAND

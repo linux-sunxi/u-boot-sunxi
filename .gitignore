@@ -10,6 +10,7 @@
 *.orig
 *.a
 *.o
+*.su
 *~
 *.swp
 *.patch
@@ -35,6 +36,7 @@
 /u-boot.dis
 /u-boot.lds
 /u-boot.ubl
+/u-boot.ais
 /u-boot.dtb
 /u-boot.sb
 

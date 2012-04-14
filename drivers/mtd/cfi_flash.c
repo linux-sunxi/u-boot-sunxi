@@ -40,6 +40,7 @@
 #include <asm/byteorder.h>
 #include <environment.h>
 #include <mtd/cfi_flash.h>
+#include <watchdog.h>
 
 /*
  * This file implements a Common Flash Interface (CFI) driver for
@@ -577,6 +578,7 @@ static int flash_status_check (flash_info_t * info, flash_sect_t sector,
 	reset_timer();
 #endif
 	start = get_timer (0);
+	WATCHDOG_RESET();
 	while (flash_is_busy (info, sector)) {
 		if (get_timer (start) > tout) {
 			printf ("Flash %s timeout at address %lx data %lx\n",
@@ -668,6 +670,7 @@ static int flash_status_poll(flash_info_t *info, void *src, void *dst,
 	reset_timer();
 #endif
 	start = get_timer(0);
+	WATCHDOG_RESET();
 	while (1) {
 		switch (info->portwidth) {
 		case FLASH_CFI_8BIT:
@@ -870,7 +873,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 	void *src = cp;
 	void *dst = (void *)dest;
 	void *dst2 = dst;
-	int flag = 0;
+	int flag = 1;
 	uint offset = 0;
 	unsigned int shift;
 	uchar write_cmd;
@@ -895,7 +898,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 
 	cnt = len >> shift;
 
-	while ((cnt-- > 0) && (flag == 0)) {
+	while ((cnt-- > 0) && (flag == 1)) {
 		switch (info->portwidth) {
 		case FLASH_CFI_8BIT:
 			flag = ((flash_read8(dst2) & flash_read8(src)) ==

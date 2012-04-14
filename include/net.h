@@ -16,6 +16,7 @@
 #include <commproc.h>
 #endif	/* CONFIG_8xx */
 
+#include <asm/cache.h>
 #include <asm/byteorder.h>	/* for nton* / ntoh* stuff */
 
 
@@ -31,7 +32,7 @@
 # define PKTBUFSRX	4
 #endif
 
-#define PKTALIGN	32
+#define PKTALIGN	ARCH_DMA_MINALIGN
 
 /* IPv4 addresses are always 32 bits in size */
 typedef u32		IPaddr_t;
@@ -67,8 +68,6 @@ typedef void rxhand_icmp_f(unsigned type, unsigned code, unsigned dport,
  */
 typedef void	thand_f(void);
 
-#define NAMESIZE 16
-
 enum eth_state_t {
 	ETH_STATE_INIT,
 	ETH_STATE_PASSIVE,
@@ -76,7 +75,7 @@ enum eth_state_t {
 };
 
 struct eth_device {
-	char name[NAMESIZE];
+	char name[16];
 	unsigned char enetaddr[6];
 	int iobase;
 	int state;
@@ -90,11 +89,13 @@ struct eth_device {
 #endif
 	int  (*write_hwaddr) (struct eth_device*);
 	struct eth_device *next;
+	int index;
 	void *priv;
 };
 
 extern int eth_initialize(bd_t *bis);	/* Initialize network subsystem */
 extern int eth_register(struct eth_device* dev);/* Register network device */
+extern int eth_unregister(struct eth_device *dev);/* Remove network device */
 extern void eth_try_another(int first_restart);	/* Change the device */
 extern void eth_set_current(void);		/* set nterface to ethcur var */
 extern struct eth_device *eth_get_dev(void);	/* get the current device MAC */

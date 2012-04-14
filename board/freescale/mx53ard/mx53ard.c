@@ -83,19 +83,22 @@ struct fsl_esdhc_cfg esdhc_cfg[2] = {
 	{MMC_SDHC2_BASE_ADDR, 1 },
 };
 
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)
+int board_mmc_getcd(struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
+	int ret;
 
 	mxc_request_iomux(MX53_PIN_GPIO_1, IOMUX_CONFIG_ALT1);
+	gpio_direction_input(1);
 	mxc_request_iomux(MX53_PIN_GPIO_4, IOMUX_CONFIG_ALT1);
+	gpio_direction_input(4);
 
 	if (cfg->esdhc_base == MMC_SDHC1_BASE_ADDR)
-		*cd = gpio_get_value(1); /*GPIO1_1*/
+		ret = !gpio_get_value(1); /* GPIO1_1 */
 	else
-		*cd = gpio_get_value(4); /*GPIO1_4*/
+		ret = !gpio_get_value(4); /* GPIO1_4 */
 
-	return 0;
+	return ret;
 }
 
 int board_mmc_init(bd_t *bis)
@@ -284,7 +287,7 @@ int board_init(void)
 
 int board_eth_init(bd_t *bis)
 {
-	int rc = 0;
+	int rc = -ENODEV;
 
 	weim_smc911x_iomux();
 	weim_cs1_settings();

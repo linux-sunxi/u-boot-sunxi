@@ -41,6 +41,9 @@
 #define CONFIG_BAUDRATE			38400
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
+#define CONFIG_BOOTCOUNT_LIMIT
+#define CONFIG_SYS_BOOTCOUNT_ADDR	0xfff3cf0c
+
 #define CONFIG_MISC_INIT_R
 #define CONFIG_SCSI_AHCI
 #define CONFIG_SCSI_AHCI_PLAT
@@ -51,19 +54,27 @@
 
 #define CONFIG_DOS_PARTITION
 
+#define CONFIG_CALXEDA_XGMAC
+
+/* PXE support */
+#define CONFIG_BOOTP_PXE
+#define CONFIG_BOOTP_PXE_CLIENTARCH	0x100
+#define CONFIG_BOOTP_VCI_STRING		"U-boot.armv7.highbank"
+
 /*
  * Command line configuration.
  */
 #include <config_cmd_default.h>
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
 
 #define CONFIG_CMD_BDI
+#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_LOADS
 #define CONFIG_CMD_SCSI
 #define CONFIG_CMD_EXT2
+#define CONFIG_CMD_PXE
+#define CONFIG_MENU
 
 #define CONFIG_BOOTDELAY		2
 /*
@@ -101,12 +112,16 @@
 #define CONFIG_SYS_MEMTEST_START	0x100000
 #define CONFIG_SYS_MEMTEST_END		(PHYS_SDRAM_1_SIZE - 0x100000)
 
-/* Room required on the stack for the environment data */
-#define CONFIG_ENV_SIZE			0x2000
-#define CONFIG_ENV_IS_NOWHERE
+/* Environment data setup
+*/
+#define CONFIG_ENV_IS_IN_NVRAM
+#define CONFIG_SYS_NVRAM_BASE_ADDR	0xfff88000	/* NVRAM base address */
+#define CONFIG_SYS_NVRAM_SIZE		0x8000		/* NVRAM size */
+#define CONFIG_ENV_SIZE			0x2000		/* Size of Environ */
+#define CONFIG_ENV_ADDR			CONFIG_SYS_NVRAM_BASE_ADDR
 
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
-#define CONFIG_SYS_TEXT_BASE		0x00001000
+#define CONFIG_SYS_TEXT_BASE		0x00008000
 #define CONFIG_SYS_INIT_SP_ADDR		0x01000000
 #define CONFIG_SKIP_LOWLEVEL_INIT
 

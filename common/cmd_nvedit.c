@@ -61,13 +61,14 @@ DECLARE_GLOBAL_DATA_PTR;
 	!defined(CONFIG_ENV_IS_IN_DATAFLASH)	&& \
 	!defined(CONFIG_ENV_IS_IN_MG_DISK)	&& \
 	!defined(CONFIG_ENV_IS_IN_MMC)		&& \
+	!defined(CONFIG_ENV_IS_IN_FAT)		&& \
 	!defined(CONFIG_ENV_IS_IN_NAND)		&& \
 	!defined(CONFIG_ENV_IS_IN_NVRAM)	&& \
 	!defined(CONFIG_ENV_IS_IN_ONENAND)	&& \
 	!defined(CONFIG_ENV_IS_IN_SPI_FLASH)	&& \
 	!defined(CONFIG_ENV_IS_NOWHERE)
 # error Define one of CONFIG_ENV_IS_IN_{EEPROM|FLASH|DATAFLASH|ONENAND|\
-SPI_FLASH|MG_DISK|NVRAM|MMC} or CONFIG_ENV_IS_NOWHERE
+SPI_FLASH|MG_DISK|NVRAM|MMC|FAT} or CONFIG_ENV_IS_NOWHERE
 #endif
 
 #define XMK_STR(x)	#x
@@ -173,7 +174,7 @@ static int do_env_grep(cmd_tbl_t *cmdtp, int flag,
 	int rcode = 1, arg = 1, idx;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	memset(matched, 0, env_htab.size / 8);
 
@@ -411,7 +412,7 @@ int setenv_addr(const char *varname, const void *addr)
 int do_env_set(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	return _do_env_set(flag, argc, argv);
 }
@@ -435,7 +436,7 @@ int do_env_ask(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	/* Check the syntax */
 	switch (argc) {
 	case 1:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	case 2:		/* env_ask envname */
 		sprintf(message, "Please enter '%s':", argv[1]);
@@ -493,7 +494,7 @@ int do_env_edit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	char *init_val;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Set read buffer to initial value or empty sting */
 	init_val = getenv(argv[1]);
@@ -502,7 +503,7 @@ int do_env_edit(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	else
 		buffer[0] = '\0';
 
-	readline_into_buffer("edit: ", buffer);
+	readline_into_buffer("edit: ", buffer, 0);
 
 	return setenv(argv[1], buffer);
 }
@@ -631,7 +632,7 @@ static int do_env_default(cmd_tbl_t *cmdtp, int flag,
 			  int argc, char * const argv[])
 {
 	if (argc != 2 || strcmp(argv[1], "-f") != 0)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	set_default_env("## Resetting to default environment\n");
 	return 0;
@@ -730,14 +731,14 @@ static int do_env_export(cmd_tbl_t *cmdtp, int flag,
 				sep = '\n';
 				break;
 			default:
-				return cmd_usage(cmdtp);
+				return CMD_RET_USAGE;
 			}
 		}
 NXTARG:		;
 	}
 
 	if (argc < 1)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	addr = (char *)simple_strtoul(argv[0], NULL, 16);
 
@@ -838,13 +839,13 @@ static int do_env_import(cmd_tbl_t *cmdtp, int flag,
 				del = 1;
 				break;
 			default:
-				return cmd_usage(cmdtp);
+				return CMD_RET_USAGE;
 			}
 		}
 	}
 
 	if (argc < 1)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if (!fmt)
 		printf("## Warning: defaulting to text format\n");
@@ -944,7 +945,7 @@ static int do_env(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	cmd_tbl_t *cp;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* drop initial "env" arg */
 	argc--;
@@ -955,7 +956,7 @@ static int do_env(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (cp)
 		return cp->cmd(cmdtp, flag, argc, argv);
 
-	return cmd_usage(cmdtp);
+	return CMD_RET_USAGE;
 }
 
 U_BOOT_CMD(

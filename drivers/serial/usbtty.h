@@ -33,8 +33,8 @@
 #include <usb/musb_udc.h>
 #elif defined(CONFIG_CPU_PXA27X)
 #include <usb/pxa27x_udc.h>
-#elif defined(CONFIG_SPEAR3XX) || defined(CONFIG_SPEAR600)
-#include <usb/spr_udc.h>
+#elif defined(CONFIG_DW_UDC)
+#include <usb/designware_udc.h>
 #endif
 
 #include <version.h>
@@ -69,6 +69,10 @@
 #define CONFIG_USBD_SERIAL_INT_ENDPOINT UDC_INT_ENDPOINT
 #define CONFIG_USBD_SERIAL_INT_PKTSIZE	UDC_INT_PACKET_SIZE
 #define CONFIG_USBD_SERIAL_BULK_PKTSIZE	UDC_BULK_PACKET_SIZE
+
+#if defined(CONFIG_USBD_HS)
+#define CONFIG_USBD_SERIAL_BULK_HS_PKTSIZE	UDC_BULK_HS_PACKET_SIZE
+#endif
 
 #define USBTTY_DEVICE_CLASS	COMMUNICATIONS_DEVICE_CLASS
 

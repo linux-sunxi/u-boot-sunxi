@@ -27,7 +27,7 @@
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
-# define SHOW_BOOT_PROGRESS(arg)	show_boot_progress(arg)
+# define SHOW_BOOT_PROGRESS(arg)	bootstage_mark(arg)
 #else
 # define SHOW_BOOT_PROGRESS(arg)
 #endif
@@ -370,7 +370,7 @@ static ulong board_init (void)
 			immr->im_ioport.iop_pcdat |= PC_REP_RES;
 		}
 	}
-	SHOW_BOOT_PROGRESS (0x00);
+	SHOW_BOOT_PROGRESS(BOOTSTAGE_ID_CHECK_MAGIC);
 
 	return ((revision << 16) | (speed & 0xFFFF));
 }
@@ -595,7 +595,9 @@ void show_boot_progress (int status)
 {
 	volatile immap_t *immr = (immap_t *) CONFIG_SYS_IMMR;
 
-	if (status < -32) status = -1;	/* let things compatible */
+	/* let things compatible */
+	if (status < -BOOTSTAGE_ID_POST_FAIL_R)
+		status = -1;
 	status ^= 0x0F;
 	status = (status & 0x0F) << 14;
 	immr->im_cpm.cp_pbdat = (immr->im_cpm.cp_pbdat & ~PB_LED_ALL) | status;

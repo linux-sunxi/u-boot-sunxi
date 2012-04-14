@@ -114,6 +114,14 @@ static void mmc_set_transfer_mode(struct mmc_host *host, struct mmc_data *data)
 	if (data->flags & MMC_DATA_READ)
 		mode |= TEGRA_MMC_TRNMOD_DATA_XFER_DIR_SEL_READ;
 
+	if (data->flags & MMC_DATA_WRITE) {
+		if ((uintptr_t)data->src & (ARCH_DMA_MINALIGN - 1))
+			printf("Warning: unaligned write to %p may fail\n",
+			       data->src);
+		flush_dcache_range((ulong)data->src, (ulong)data->src +
+			data->blocks * data->blocksize);
+	}
+
 	writew(mode, &host->reg->trnmod);
 }
 
@@ -154,7 +162,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	struct mmc_host *host = (struct mmc_host *)mmc->priv;
 	int flags, i;
 	int result;
-	unsigned int mask;
+	unsigned int mask = 0;
 	unsigned int retry = 0x100000;
 	debug(" mmc_send_cmd called\n");
 
@@ -219,16 +227,19 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	if (i == retry) {
 		printf("%s: waiting for status update\n", __func__);
+		writel(mask, &host->reg->norintsts);
 		return TIMEOUT;
 	}
 
 	if (mask & TEGRA_MMC_NORINTSTS_CMD_TIMEOUT) {
 		/* Timeout Error */
 		debug("timeout: %08x cmd %d\n", mask, cmd->cmdidx);
+		writel(mask, &host->reg->norintsts);
 		return TIMEOUT;
 	} else if (mask & TEGRA_MMC_NORINTSTS_ERR_INTERRUPT) {
 		/* Error Interrupt */
 		debug("error: %08x cmd %d\n", mask, cmd->cmdidx);
+		writel(mask, &host->reg->norintsts);
 		return -1;
 	}
 
@@ -257,6 +268,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 			if (i == retry) {
 				printf("%s: card is still busy\n", __func__);
+				writel(mask, &host->reg->norintsts);
 				return TIMEOUT;
 			}
 
@@ -310,6 +322,14 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			}
 		}
 		writel(mask, &host->reg->norintsts);
+		if (data->flags & MMC_DATA_READ) {
+			if ((uintptr_t)data->dest & (ARCH_DMA_MINALIGN - 1))
+				printf("Warning: unaligned read from %p "
+					"may fail\n", data->dest);
+			invalidate_dcache_range((ulong)data->dest,
+				(ulong)data->dest +
+					data->blocks * data->blocksize);
+		}
 	}
 
 	udelay(1000);
@@ -474,6 +494,18 @@ static int mmc_core_init(struct mmc *mmc)
 	return 0;
 }
 
+int tegra2_mmc_getcd(struct mmc *mmc)
+{
+	struct mmc_host *host = (struct mmc_host *)mmc->priv;
+
+	debug("tegra2_mmc_getcd called\n");
+
+	if (host->cd_gpio >= 0)
+		return !gpio_get_value(host->cd_gpio);
+
+	return 1;
+}
+
 int tegra2_mmc_init(int dev_index, int bus_width, int pwr_gpio, int cd_gpio)
 {
 	struct mmc_host *host;
@@ -512,6 +544,7 @@ int tegra2_mmc_init(int dev_index, int bus_width, int pwr_gpio, int cd_gpio)
 	mmc->send_cmd = mmc_send_cmd;
 	mmc->set_ios = mmc_set_ios;
 	mmc->init = mmc_core_init;
+	mmc->getcd = tegra2_mmc_getcd;
 
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_VDD_165_195;
 	if (bus_width == 8)
@@ -532,25 +565,6 @@ int tegra2_mmc_init(int dev_index, int bus_width, int pwr_gpio, int cd_gpio)
 	mmc->f_max = 48000000;
 
 	mmc_register(mmc);
-
-	return 0;
-}
-
-/* this is a weak define that we are overriding */
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)
-{
-	struct mmc_host *host = (struct mmc_host *)mmc->priv;
-
-	debug("board_mmc_getcd called\n");
-
-	*cd = 1; /* Assume card is inserted, or eMMC */
-
-	if (IS_SD(mmc)) {
-		if (host->cd_gpio >= 0) {
-			if (gpio_get_value(host->cd_gpio))
-				*cd = 0;
-		}
-	}
 
 	return 0;
 }

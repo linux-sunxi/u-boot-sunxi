@@ -51,8 +51,7 @@
 #define CONFIG_OF_LIBFDT		/* enable passing of devicetree */
 
 /* Environment */
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SIZE			0x20000	/* Total Size Environment */
+#define CONFIG_ENV_SIZE			0x2000	/* Total Size Environment */
 
 /*
  * Size of malloc() pool
@@ -84,6 +83,19 @@
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
+
+/*
+ * This parameter affects a TXFILLTUNING field that controls how much data is
+ * sent to the latency fifo before it is sent to the wire. Without this
+ * parameter, the default (2) causes occasional Data Buffer Errors in OUT
+ * packets depending on the buffer address and size.
+ */
+#define CONFIG_USB_EHCI_TXFIFO_THRESH	10
+#define CONFIG_EHCI_IS_TDI
+#define CONFIG_EHCI_DCACHE
+
+/* Total I2C ports on Tegra2 */
+#define TEGRA_I2C_NUM_CONTROLLERS	4
 
 /* include default commands */
 #include <config_cmd_default.h>
@@ -152,7 +164,7 @@
 #define PHYS_SDRAM_1		TEGRA2_SDRC_CS0
 #define PHYS_SDRAM_1_SIZE	0x20000000	/* 512M */
 
-#define CONFIG_SYS_TEXT_BASE	0x00E08000
+#define CONFIG_SYS_TEXT_BASE	0x00108000
 #define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_STACKBASE

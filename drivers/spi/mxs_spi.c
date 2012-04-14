@@ -129,9 +129,15 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 	int len = bitlen / 8;
 	const char *tx = dout;
 	char *rx = din;
+	char dummy;
 
-	if (bitlen == 0)
-		return 0;
+	if (bitlen == 0) {
+		if (flags & SPI_XFER_END) {
+			rx = &dummy;
+			len = 1;
+		} else
+			return 0;
+	}
 
 	if (!rx && !tx)
 		return 0;
@@ -156,7 +162,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		if (mx28_wait_mask_set(&ssp_regs->hw_ssp_ctrl0_reg,
 			SSP_CTRL0_RUN, MXS_SPI_MAX_TIMEOUT)) {
 			printf("MXS SPI: Timeout waiting for start\n");
-			return -1;
+			return -ETIMEDOUT;
 		}
 
 		if (tx)
@@ -168,7 +174,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 			if (mx28_wait_mask_clr(&ssp_regs->hw_ssp_status_reg,
 				SSP_STATUS_FIFO_EMPTY, MXS_SPI_MAX_TIMEOUT)) {
 				printf("MXS SPI: Timeout waiting for data\n");
-				return -1;
+				return -ETIMEDOUT;
 			}
 
 			*rx = readl(&ssp_regs->hw_ssp_data);
@@ -178,7 +184,7 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		if (mx28_wait_mask_clr(&ssp_regs->hw_ssp_ctrl0_reg,
 			SSP_CTRL0_RUN, MXS_SPI_MAX_TIMEOUT)) {
 			printf("MXS SPI: Timeout waiting for finish\n");
-			return -1;
+			return -ETIMEDOUT;
 		}
 	}
 

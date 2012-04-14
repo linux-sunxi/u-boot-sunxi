@@ -35,34 +35,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-/*
- * This is used to verify if the configuration header
- * was executed by rom code prior to control of transfer
- * to the bootloader. SPL is responsible for saving and
- * passing the boot_params pointer to the u-boot.
- */
-struct omap_boot_parameters boot_params __attribute__ ((section(".data")));
-
-#ifdef CONFIG_SPL_BUILD
-/*
- * We use static variables because global data is not ready yet.
- * Initialized data is available in SPL right from the beginning.
- * We would not typically need to save these parameters in regular
- * U-Boot. This is needed only in SPL at the moment.
- */
-u32 omap_bootmode = MMCSD_MODE_FAT;
-
-u32 omap_boot_device(void)
-{
-	return (u32) (boot_params.omap_bootdevice);
-}
-
-u32 omap_boot_mode(void)
-{
-	return omap_bootmode;
-}
-#endif
-
 void do_set_mux(u32 base, struct pad_conf_entry const *array, int size)
 {
 	int i;
@@ -104,14 +76,14 @@ u32 cortex_rev(void)
 	return rev;
 }
 
-void omap_rev_string(char *omap_rev_string)
+void omap_rev_string(void)
 {
 	u32 omap_rev = omap_revision();
 	u32 omap_variant = (omap_rev & 0xFFFF0000) >> 16;
 	u32 major_rev = (omap_rev & 0x00000F00) >> 8;
 	u32 minor_rev = (omap_rev & 0x000000F0) >> 4;
 
-	sprintf(omap_rev_string, "OMAP%x ES%x.%x", omap_variant, major_rev,
+	printf("OMAP%x ES%x.%x\n", omap_variant, major_rev,
 		minor_rev);
 }
 
@@ -148,6 +120,8 @@ void s_init(void)
 #endif
 	prcm_init();
 #ifdef CONFIG_SPL_BUILD
+	timer_init();
+
 	/* For regular u-boot sdram_init() is called from dram_init() */
 	sdram_init();
 	init_boot_params();
@@ -251,10 +225,8 @@ u32 get_device_type(void)
  */
 int print_cpuinfo(void)
 {
-	char rev_string_buffer[50];
-
-	omap_rev_string(rev_string_buffer);
-	printf("CPU  : %s\n", rev_string_buffer);
+	puts("CPU  : ");
+	omap_rev_string();
 
 	return 0;
 }

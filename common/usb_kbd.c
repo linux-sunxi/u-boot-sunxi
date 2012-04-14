@@ -87,6 +87,12 @@ static const unsigned char usb_kbd_numkey_shifted[] = {
 	'|', '~', ':', '"', '~', '<', '>', '?'
 };
 
+static const unsigned char usb_kbd_num_keypad[] = {
+	'/', '*', '-', '+', '\r',
+	'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+	'.', 0, 0, 0, '='
+};
+
 /*
  * NOTE: It's important for the NUM, CAPS, SCROLL-lock bits to be in this
  *       order. See usb_kbd_setled() function!
@@ -218,6 +224,10 @@ static int usb_kbd_translate(struct usb_kbd_pdata *data, unsigned char scancode,
 			keycode = usb_kbd_numkey[scancode - 0x1e];
 	}
 
+	/* Numeric keypad */
+	if ((scancode >= 0x54) && (scancode <= 0x67))
+		keycode = usb_kbd_num_keypad[scancode - 0x54];
+
 	if (data->flags & USB_KBD_CTRL)
 		keycode = scancode - 0x3;
 
@@ -313,14 +323,30 @@ static int usb_kbd_irq(struct usb_device *dev)
 static inline void usb_kbd_poll_for_event(struct usb_device *dev)
 {
 #if	defined(CONFIG_SYS_USB_EVENT_POLL)
-	usb_event_poll();
+	struct usb_interface *iface;
+	struct usb_endpoint_descriptor *ep;
+	struct usb_kbd_pdata *data;
+	int pipe;
+	int maxp;
+
+	/* Get the pointer to USB Keyboard device pointer */
+	data = dev->privptr;
+	iface = &dev->config.if_desc[0];
+	ep = &iface->ep_desc[0];
+	pipe = usb_rcvintpipe(dev, ep->bEndpointAddress);
+
+	/* Submit a interrupt transfer request */
+	maxp = usb_maxpacket(dev, pipe);
+	usb_submit_int_msg(dev, pipe, &data->new[0],
+			maxp > 8 ? 8 : maxp, ep->bInterval);
+
 	usb_kbd_irq_worker(dev);
 #elif	defined(CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP)
 	struct usb_interface *iface;
 	struct usb_kbd_pdata *data = dev->privptr;
 	iface = &dev->config.if_desc[0];
 	usb_get_report(dev, iface->desc.bInterfaceNumber,
-			1, 1, data->new, sizeof(data->new));
+			1, 0, data->new, sizeof(data->new));
 	if (memcmp(data->old, data->new, sizeof(data->new)))
 		usb_kbd_irq_worker(dev);
 #endif
@@ -477,6 +503,11 @@ int drv_usb_kbd_init(void)
 		if (error)
 			return error;
 
+#ifdef CONFIG_CONSOLE_MUX
+		error = iomux_doenv(stdin, stdinname);
+		if (error)
+			return error;
+#else
 		/* Check if this is the standard input device. */
 		if (strcmp(stdinname, DEVNAME))
 			return 1;
@@ -488,6 +519,7 @@ int drv_usb_kbd_init(void)
 		error = console_assign(stdin, DEVNAME);
 		if (error)
 			return error;
+#endif
 
 		return 1;
 	}

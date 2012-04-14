@@ -318,11 +318,11 @@ static int
 do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	char *pxefile_addr_str;
-	void *pxefile_addr_r;
+	unsigned long pxefile_addr_r;
 	int err;
 
 	if (argc != 1)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 
 	pxefile_addr_str = from_env("pxefile_addr_r");
@@ -339,10 +339,10 @@ do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 * Keep trying paths until we successfully get a file we're looking
 	 * for.
 	 */
-	if (pxe_uuid_path(pxefile_addr_r) > 0
-		|| pxe_mac_path(pxefile_addr_r) > 0
-		|| pxe_ipaddr_paths(pxefile_addr_r) > 0
-		|| get_pxelinux_path("default", pxefile_addr_r) > 0) {
+	if (pxe_uuid_path((void *)pxefile_addr_r) > 0
+		|| pxe_mac_path((void *)pxefile_addr_r) > 0
+		|| pxe_ipaddr_paths((void *)pxefile_addr_r) > 0
+		|| get_pxelinux_path("default", (void *)pxefile_addr_r) > 0) {
 
 		printf("Config file found\n");
 
@@ -363,7 +363,7 @@ do_pxe_get(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
  */
 static int get_relfile_envaddr(char *file_path, char *envaddr_name)
 {
-	void *file_addr;
+	unsigned long file_addr;
 	char *envaddr;
 
 	envaddr = from_env(envaddr_name);
@@ -371,10 +371,10 @@ static int get_relfile_envaddr(char *file_path, char *envaddr_name)
 	if (!envaddr)
 		return -ENOENT;
 
-	if (strict_strtoul(envaddr, 16, (unsigned long *)&file_addr) < 0)
+	if (strict_strtoul(envaddr, 16, &file_addr) < 0)
 		return -EINVAL;
 
-	return get_relfile(file_path, file_addr);
+	return get_relfile(file_path, (void *)file_addr);
 }
 
 /*
@@ -537,7 +537,7 @@ static int label_localboot(struct pxe_label *label)
 
 	printf("running: %s\n", dupcmd);
 
-	ret = run_command2(dupcmd, 0);
+	ret = run_command(dupcmd, 0);
 
 	free(dupcmd);
 
@@ -1312,7 +1312,7 @@ do_pxe_boot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	} else if (argc == 2) {
 		pxefile_addr_str = argv[1];
 	} else {
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	}
 
 	if (strict_strtoul(pxefile_addr_str, 16, &pxefile_addr_r) < 0) {
@@ -1344,7 +1344,7 @@ int do_pxe(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	cmd_tbl_t *cp;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* drop initial "pxe" arg */
 	argc--;
@@ -1355,7 +1355,7 @@ int do_pxe(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (cp)
 		return cp->cmd(cmdtp, flag, argc, argv);
 
-	return cmd_usage(cmdtp);
+	return CMD_RET_USAGE;
 }
 
 U_BOOT_CMD(
