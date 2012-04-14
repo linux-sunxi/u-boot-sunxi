@@ -65,6 +65,7 @@ extern unsigned int davinci_arm_clk_get(void);
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_SYS_BARGSIZE		1024		/* Bootarg Size */
 #define CONFIG_SYS_LOAD_ADDR		0x80700000	/* kernel address */
+#define CONFIG_REVISION_TAG
 
 /* Serial Driver info */
 #define CONFIG_SYS_NS16550
@@ -84,14 +85,12 @@ extern unsigned int davinci_arm_clk_get(void);
 
 /* Network & Ethernet Configuration */
 #define CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	1
 #define CONFIG_MII
 #define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
-#define CONFIG_NET_MULTI
 #define CONFIG_CMD_NET
 
 /* Flash & Environment */

@@ -21,38 +21,49 @@
 
 #include <common.h>
 #include <mmc.h>
+#include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/arch/clk_rst.h>
+#include <asm/arch/clock.h>
 #include "tegra2_mmc.h"
 
 /* support 4 mmc hosts */
 struct mmc mmc_dev[4];
 struct mmc_host mmc_host[4];
 
-static inline struct tegra2_mmc *tegra2_get_base_mmc(int dev_index)
+
+/**
+ * Get the host address and peripheral ID for a device. Devices are numbered
+ * from 0 to 3.
+ *
+ * @param host		Structure to fill in (base, reg, mmc_id)
+ * @param dev_index	Device index (0-3)
+ */
+static void tegra2_get_setup(struct mmc_host *host, int dev_index)
 {
-	unsigned long offset;
 	debug("tegra2_get_base_mmc: dev_index = %d\n", dev_index);
 
 	switch (dev_index) {
-	case 0:
-		offset = TEGRA2_SDMMC4_BASE;
-		break;
 	case 1:
-		offset = TEGRA2_SDMMC3_BASE;
+		host->base = TEGRA2_SDMMC3_BASE;
+		host->mmc_id = PERIPH_ID_SDMMC3;
 		break;
 	case 2:
-		offset = TEGRA2_SDMMC2_BASE;
+		host->base = TEGRA2_SDMMC2_BASE;
+		host->mmc_id = PERIPH_ID_SDMMC2;
 		break;
 	case 3:
-		offset = TEGRA2_SDMMC1_BASE;
+		host->base = TEGRA2_SDMMC1_BASE;
+		host->mmc_id = PERIPH_ID_SDMMC1;
 		break;
+	case 0:
 	default:
-		offset = TEGRA2_SDMMC4_BASE;
+		host->base = TEGRA2_SDMMC4_BASE;
+		host->mmc_id = PERIPH_ID_SDMMC4;
 		break;
 	}
 
-	return (struct tegra2_mmc *)(offset);
+	host->reg = (struct tegra2_mmc *)host->base;
 }
 
 static void mmc_prepare_data(struct mmc_host *host, struct mmc_data *data)
@@ -71,7 +82,8 @@ static void mmc_prepare_data(struct mmc_host *host, struct mmc_data *data)
 	 * 11 = Selects 64-bit Address ADMA2
 	 */
 	ctrl = readb(&host->reg->hostctl);
-	ctrl &= ~(3 << 3);			/* SDMA */
+	ctrl &= ~TEGRA_MMC_HOSTCTL_DMASEL_MASK;
+	ctrl |= TEGRA_MMC_HOSTCTL_DMASEL_SDMA;
 	writeb(ctrl, &host->reg->hostctl);
 
 	/* We do not handle DMA boundaries, so set it to max (512 KiB) */
@@ -93,43 +105,36 @@ static void mmc_set_transfer_mode(struct mmc_host *host, struct mmc_data *data)
 	 * ENBLKCNT[1]	: Block Count Enable
 	 * ENDMA[0]	: DMA Enable
 	 */
-	mode = (1 << 1) | (1 << 0);
+	mode = (TEGRA_MMC_TRNMOD_DMA_ENABLE |
+		TEGRA_MMC_TRNMOD_BLOCK_COUNT_ENABLE);
+
 	if (data->blocks > 1)
-		mode |= (1 << 5);
+		mode |= TEGRA_MMC_TRNMOD_MULTI_BLOCK_SELECT;
+
 	if (data->flags & MMC_DATA_READ)
-		mode |= (1 << 4);
+		mode |= TEGRA_MMC_TRNMOD_DATA_XFER_DIR_SEL_READ;
 
 	writew(mode, &host->reg->trnmod);
 }
 
-static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
-			struct mmc_data *data)
+static int mmc_wait_inhibit(struct mmc_host *host,
+			    struct mmc_cmd *cmd,
+			    struct mmc_data *data,
+			    unsigned int timeout)
 {
-	struct mmc_host *host = (struct mmc_host *)mmc->priv;
-	int flags, i;
-	unsigned int timeout;
-	unsigned int mask;
-	unsigned int retry = 0x100000;
-	debug(" mmc_send_cmd called\n");
-
-	/* Wait max 10 ms */
-	timeout = 10;
-
 	/*
 	 * PRNSTS
-	 * CMDINHDAT[1]	: Command Inhibit (DAT)
-	 * CMDINHCMD[0]	: Command Inhibit (CMD)
+	 * CMDINHDAT[1] : Command Inhibit (DAT)
+	 * CMDINHCMD[0] : Command Inhibit (CMD)
 	 */
-	mask = (1 << 0);
-	if ((data != NULL) || (cmd->resp_type & MMC_RSP_BUSY))
-		mask |= (1 << 1);
+	unsigned int mask = TEGRA_MMC_PRNSTS_CMD_INHIBIT_CMD;
 
 	/*
 	 * We shouldn't wait for data inhibit for stop commands, even
 	 * though they might use busy signaling
 	 */
-	if (data)
-		mask &= ~(1 << 1);
+	if ((data == NULL) && (cmd->resp_type & MMC_RSP_BUSY))
+		mask |= TEGRA_MMC_PRNSTS_CMD_INHIBIT_DAT;
 
 	while (readl(&host->reg->prnsts) & mask) {
 		if (timeout == 0) {
@@ -139,6 +144,24 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		timeout--;
 		udelay(1000);
 	}
+
+	return 0;
+}
+
+static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
+			struct mmc_data *data)
+{
+	struct mmc_host *host = (struct mmc_host *)mmc->priv;
+	int flags, i;
+	int result;
+	unsigned int mask;
+	unsigned int retry = 0x100000;
+	debug(" mmc_send_cmd called\n");
+
+	result = mmc_wait_inhibit(host, cmd, data, 10 /* ms */);
+
+	if (result < 0)
+		return result;
 
 	if (data)
 		mmc_prepare_data(host, data);
@@ -165,20 +188,20 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	 *	11 = Length 48 Check busy after response
 	 */
 	if (!(cmd->resp_type & MMC_RSP_PRESENT))
-		flags = 0;
+		flags = TEGRA_MMC_CMDREG_RESP_TYPE_SELECT_NO_RESPONSE;
 	else if (cmd->resp_type & MMC_RSP_136)
-		flags = (1 << 0);
+		flags = TEGRA_MMC_CMDREG_RESP_TYPE_SELECT_LENGTH_136;
 	else if (cmd->resp_type & MMC_RSP_BUSY)
-		flags = (3 << 0);
+		flags = TEGRA_MMC_CMDREG_RESP_TYPE_SELECT_LENGTH_48_BUSY;
 	else
-		flags = (2 << 0);
+		flags = TEGRA_MMC_CMDREG_RESP_TYPE_SELECT_LENGTH_48;
 
 	if (cmd->resp_type & MMC_RSP_CRC)
-		flags |= (1 << 3);
+		flags |= TEGRA_MMC_TRNMOD_CMD_CRC_CHECK;
 	if (cmd->resp_type & MMC_RSP_OPCODE)
-		flags |= (1 << 4);
+		flags |= TEGRA_MMC_TRNMOD_CMD_INDEX_CHECK;
 	if (data)
-		flags |= (1 << 5);
+		flags |= TEGRA_MMC_TRNMOD_DATA_PRESENT_SELECT_DATA_TRANSFER;
 
 	debug("cmd: %d\n", cmd->cmdidx);
 
@@ -187,7 +210,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	for (i = 0; i < retry; i++) {
 		mask = readl(&host->reg->norintsts);
 		/* Command Complete */
-		if (mask & (1 << 0)) {
+		if (mask & TEGRA_MMC_NORINTSTS_CMD_COMPLETE) {
 			if (!data)
 				writel(mask, &host->reg->norintsts);
 			break;
@@ -199,11 +222,11 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		return TIMEOUT;
 	}
 
-	if (mask & (1 << 16)) {
+	if (mask & TEGRA_MMC_NORINTSTS_CMD_TIMEOUT) {
 		/* Timeout Error */
 		debug("timeout: %08x cmd %d\n", mask, cmd->cmdidx);
 		return TIMEOUT;
-	} else if (mask & (1 << 15)) {
+	} else if (mask & TEGRA_MMC_NORINTSTS_ERR_INTERRUPT) {
 		/* Error Interrupt */
 		debug("error: %08x cmd %d\n", mask, cmd->cmdidx);
 		return -1;
@@ -246,23 +269,44 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 
 	if (data) {
+		unsigned long	start = get_timer(0);
+
 		while (1) {
 			mask = readl(&host->reg->norintsts);
 
-			if (mask & (1 << 15)) {
+			if (mask & TEGRA_MMC_NORINTSTS_ERR_INTERRUPT) {
 				/* Error Interrupt */
 				writel(mask, &host->reg->norintsts);
 				printf("%s: error during transfer: 0x%08x\n",
 						__func__, mask);
 				return -1;
-			} else if (mask & (1 << 3)) {
-				/* DMA Interrupt */
+			} else if (mask & TEGRA_MMC_NORINTSTS_DMA_INTERRUPT) {
+				/*
+				 * DMA Interrupt, restart the transfer where
+				 * it was interrupted.
+				 */
+				unsigned int address = readl(&host->reg->sysad);
+
 				debug("DMA end\n");
-				break;
-			} else if (mask & (1 << 1)) {
+				writel(TEGRA_MMC_NORINTSTS_DMA_INTERRUPT,
+				       &host->reg->norintsts);
+				writel(address, &host->reg->sysad);
+			} else if (mask & TEGRA_MMC_NORINTSTS_XFER_COMPLETE) {
 				/* Transfer Complete */
 				debug("r/w is done\n");
 				break;
+			} else if (get_timer(start) > 2000UL) {
+				writel(mask, &host->reg->norintsts);
+				printf("%s: MMC Timeout\n"
+				       "    Interrupt status        0x%08x\n"
+				       "    Interrupt status enable 0x%08x\n"
+				       "    Interrupt signal enable 0x%08x\n"
+				       "    Present status          0x%08x\n",
+				       __func__, mask,
+				       readl(&host->reg->norintstsen),
+				       readl(&host->reg->norintsigen),
+				       readl(&host->reg->prnsts));
+				return -1;
 			}
 		}
 		writel(mask, &host->reg->norintsts);
@@ -274,62 +318,24 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 static void mmc_change_clock(struct mmc_host *host, uint clock)
 {
-	int div, hw_div;
+	int div;
 	unsigned short clk;
 	unsigned long timeout;
-	unsigned int reg, hostbase;
-	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
+
 	debug(" mmc_change_clock called\n");
 
-	/* Change Tegra2 SDMMCx clock divisor here */
-	/* Source is 216MHz, PLLP_OUT0 */
+	/*
+	 * Change Tegra2 SDMMCx clock divisor here. Source is 216MHz,
+	 * PLLP_OUT0
+	 */
 	if (clock == 0)
 		goto out;
-
-	div = 1;
-	if (clock <= 400000) {
-		hw_div = ((9-1)<<1);		/* Best match is 375KHz */
-		div = 64;
-	} else if (clock <= 20000000)
-		hw_div = ((11-1)<<1);		/* Best match is 19.6MHz */
-	else if (clock <= 26000000)
-		hw_div = ((9-1)<<1);		/* Use 24MHz */
-	else
-		hw_div = ((4-1)<<1) + 1;	/* 4.5 divisor for 48MHz */
-
-	debug("mmc_change_clock: hw_div = %d, card clock div = %d\n",
-		hw_div, div);
-
-	/* Change SDMMCx divisor */
-
-	hostbase = readl(&host->base);
-	debug("mmc_change_clock: hostbase = %08X\n", hostbase);
-
-	if (hostbase == TEGRA2_SDMMC1_BASE) {
-		reg = readl(&clkrst->crc_clk_src_sdmmc1);
-		reg &= 0xFFFFFF00;	/* divisor (7.1) = 00 */
-		reg |= hw_div;		/* n-1 */
-		writel(reg, &clkrst->crc_clk_src_sdmmc1);
-	} else if (hostbase == TEGRA2_SDMMC2_BASE) {
-		reg = readl(&clkrst->crc_clk_src_sdmmc2);
-		reg &= 0xFFFFFF00;	/* divisor (7.1) = 00 */
-		reg |= hw_div;		/* n-1 */
-		writel(reg, &clkrst->crc_clk_src_sdmmc2);
-	} else if (hostbase == TEGRA2_SDMMC3_BASE) {
-		reg = readl(&clkrst->crc_clk_src_sdmmc3);
-		reg &= 0xFFFFFF00;	/* divisor (7.1) = 00 */
-		reg |= hw_div;		/* n-1 */
-		writel(reg, &clkrst->crc_clk_src_sdmmc3);
-	} else {
-		reg = readl(&clkrst->crc_clk_src_sdmmc4);
-		reg &= 0xFFFFFF00;	/* divisor (7.1) = 00 */
-		reg |= hw_div;		/* n-1 */
-		writel(reg, &clkrst->crc_clk_src_sdmmc4);
-	}
+	clock_adjust_periph_pll_div(host->mmc_id, CLOCK_ID_PERIPH, clock,
+				    &div);
+	debug("div = %d\n", div);
 
 	writew(0, &host->reg->clkcon);
 
-	div >>= 1;
 	/*
 	 * CLKCON
 	 * SELFREQ[15:8]	: base clock divided by value
@@ -337,12 +343,15 @@ static void mmc_change_clock(struct mmc_host *host, uint clock)
 	 * STBLINTCLK[1]	: Internal Clock Stable
 	 * ENINTCLK[0]		: Internal Clock Enable
 	 */
-	clk = (div << 8) | (1 << 0);
+	div >>= 1;
+	clk = ((div << TEGRA_MMC_CLKCON_SDCLK_FREQ_SEL_SHIFT) |
+	       TEGRA_MMC_CLKCON_INTERNAL_CLOCK_ENABLE);
 	writew(clk, &host->reg->clkcon);
 
 	/* Wait max 10 ms */
 	timeout = 10;
-	while (!(readw(&host->reg->clkcon) & (1 << 1))) {
+	while (!(readw(&host->reg->clkcon) &
+		 TEGRA_MMC_CLKCON_INTERNAL_CLOCK_STABLE)) {
 		if (timeout == 0) {
 			printf("%s: timeout error\n", __func__);
 			return;
@@ -351,11 +360,10 @@ static void mmc_change_clock(struct mmc_host *host, uint clock)
 		udelay(1000);
 	}
 
-	clk |= (1 << 2);
+	clk |= TEGRA_MMC_CLKCON_SD_CLOCK_ENABLE;
 	writew(clk, &host->reg->clkcon);
 
 	debug("mmc_change_clock: clkcon = %08X\n", clk);
-	debug("mmc_change_clock: CLK_SOURCE_SDMMCx = %08X\n", reg);
 
 out:
 	host->clock = clock;
@@ -370,7 +378,6 @@ static void mmc_set_ios(struct mmc *mmc)
 	debug("bus_width: %x, clock: %d\n", mmc->bus_width, mmc->clock);
 
 	/* Change clock first */
-
 	mmc_change_clock(host, mmc->clock);
 
 	ctrl = readb(&host->reg->hostctl);
@@ -404,7 +411,7 @@ static void mmc_reset(struct mmc_host *host)
 	 * 1 = reset
 	 * 0 = work
 	 */
-	writeb((1 << 0), &host->reg->swrst);
+	writeb(TEGRA_MMC_SWRST_SW_RESET_FOR_ALL, &host->reg->swrst);
 
 	host->clock = 0;
 
@@ -412,7 +419,7 @@ static void mmc_reset(struct mmc_host *host)
 	timeout = 100;
 
 	/* hw clears the bit when it's done */
-	while (readb(&host->reg->swrst) & (1 << 0)) {
+	while (readb(&host->reg->swrst) & TEGRA_MMC_SWRST_SW_RESET_FOR_ALL) {
 		if (timeout == 0) {
 			printf("%s: timeout error\n", __func__);
 			return;
@@ -442,12 +449,17 @@ static int mmc_core_init(struct mmc *mmc)
 	 * NORMAL Interrupt Status Enable Register init
 	 * [5] ENSTABUFRDRDY : Buffer Read Ready Status Enable
 	 * [4] ENSTABUFWTRDY : Buffer write Ready Status Enable
+	 * [3] ENSTADMAINT   : DMA boundary interrupt
 	 * [1] ENSTASTANSCMPLT : Transfre Complete Status Enable
 	 * [0] ENSTACMDCMPLT : Command Complete Status Enable
 	*/
 	mask = readl(&host->reg->norintstsen);
 	mask &= ~(0xffff);
-	mask |= (1 << 5) | (1 << 4) | (1 << 1) | (1 << 0);
+	mask |= (TEGRA_MMC_NORINTSTSEN_CMD_COMPLETE |
+		 TEGRA_MMC_NORINTSTSEN_XFER_COMPLETE |
+		 TEGRA_MMC_NORINTSTSEN_DMA_INTERRUPT |
+		 TEGRA_MMC_NORINTSTSEN_BUFFER_WRITE_READY |
+		 TEGRA_MMC_NORINTSTSEN_BUFFER_READ_READY);
 	writel(mask, &host->reg->norintstsen);
 
 	/*
@@ -456,22 +468,47 @@ static int mmc_core_init(struct mmc *mmc)
 	 */
 	mask = readl(&host->reg->norintsigen);
 	mask &= ~(0xffff);
-	mask |= (1 << 1);
+	mask |= TEGRA_MMC_NORINTSIGEN_XFER_COMPLETE;
 	writel(mask, &host->reg->norintsigen);
 
 	return 0;
 }
 
-static int tegra2_mmc_initialize(int dev_index, int bus_width)
+int tegra2_mmc_init(int dev_index, int bus_width, int pwr_gpio, int cd_gpio)
 {
+	struct mmc_host *host;
+	char gpusage[12]; /* "SD/MMCn PWR" or "SD/MMCn CD" */
 	struct mmc *mmc;
 
-	debug(" mmc_initialize called\n");
+	debug(" tegra2_mmc_init: index %d, bus width %d "
+		"pwr_gpio %d cd_gpio %d\n",
+		dev_index, bus_width, pwr_gpio, cd_gpio);
+
+	host = &mmc_host[dev_index];
+
+	host->clock = 0;
+	host->pwr_gpio = pwr_gpio;
+	host->cd_gpio = cd_gpio;
+	tegra2_get_setup(host, dev_index);
+
+	clock_start_periph_pll(host->mmc_id, CLOCK_ID_PERIPH, 20000000);
+
+	if (host->pwr_gpio >= 0) {
+		sprintf(gpusage, "SD/MMC%d PWR", dev_index);
+		gpio_request(host->pwr_gpio, gpusage);
+		gpio_direction_output(host->pwr_gpio, 1);
+	}
+
+	if (host->cd_gpio >= 0) {
+		sprintf(gpusage, "SD/MMC%d CD", dev_index);
+		gpio_request(host->cd_gpio, gpusage);
+		gpio_direction_input(host->cd_gpio);
+	}
 
 	mmc = &mmc_dev[dev_index];
 
 	sprintf(mmc->name, "Tegra2 SD/MMC");
-	mmc->priv = &mmc_host[dev_index];
+	mmc->priv = host;
 	mmc->send_cmd = mmc_send_cmd;
 	mmc->set_ios = mmc_set_ios;
 	mmc->init = mmc_core_init;
@@ -481,7 +518,7 @@ static int tegra2_mmc_initialize(int dev_index, int bus_width)
 		mmc->host_caps = MMC_MODE_8BIT;
 	else
 		mmc->host_caps = MMC_MODE_4BIT;
-	mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
+	mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS | MMC_MODE_HC;
 
 	/*
 	 * min freq is for card identification, and is the highest
@@ -494,17 +531,26 @@ static int tegra2_mmc_initialize(int dev_index, int bus_width)
 	mmc->f_min = 375000;
 	mmc->f_max = 48000000;
 
-	mmc_host[dev_index].clock = 0;
-	mmc_host[dev_index].reg = tegra2_get_base_mmc(dev_index);
-	mmc_host[dev_index].base = (unsigned int)mmc_host[dev_index].reg;
 	mmc_register(mmc);
 
 	return 0;
 }
 
-int tegra2_mmc_init(int dev_index, int bus_width)
+/* this is a weak define that we are overriding */
+int board_mmc_getcd(u8 *cd, struct mmc *mmc)
 {
-	debug(" tegra2_mmc_init: index %d, bus width %d\n",
-		dev_index, bus_width);
-	return tegra2_mmc_initialize(dev_index, bus_width);
+	struct mmc_host *host = (struct mmc_host *)mmc->priv;
+
+	debug("board_mmc_getcd called\n");
+
+	*cd = 1; /* Assume card is inserted, or eMMC */
+
+	if (IS_SD(mmc)) {
+		if (host->cd_gpio >= 0) {
+			if (gpio_get_value(host->cd_gpio))
+				*cd = 0;
+		}
+	}
+
+	return 0;
 }

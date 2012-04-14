@@ -23,6 +23,11 @@
 # MA 02111-1307 USA
 #
 
+# The AVP is ARMv4T architecture so we must use special compiler
+# flags for any startup files it might use.
+CFLAGS_arch/arm/cpu/armv7/tegra2/ap20.o += -march=armv4t
+CFLAGS_arch/arm/cpu/armv7/tegra2/clock.o += -march=armv4t
+
 include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
@@ -36,7 +41,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
 all:	 $(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

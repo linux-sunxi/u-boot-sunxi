@@ -112,22 +112,11 @@
 #define CONFIG_SYS_L2_SIZE		(512 << 10)
 #define CONFIG_SYS_INIT_L2_END	(CONFIG_SYS_INIT_L2_ADDR + CONFIG_SYS_L2_SIZE)
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR		0xffe00000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS		0xfffe00000ull	/* physical addr of CCSRBAR */
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
-#endif
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR */
+#define CONFIG_SYS_CCSRBAR		0xffe00000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
-#if defined(CONFIG_RAMBOOT_NAND) && !defined(CONFIG_NAND_SPL)
-#define CONFIG_SYS_CCSRBAR_DEFAULT		CONFIG_SYS_CCSRBAR
-#else
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000      /* CCSRBAR Default */
+#if defined(CONFIG_NAND_SPL)
+#define CONFIG_SYS_CCSR_DO_NOT_RELOCATE
 #endif
 
 /* DDR Setup */
@@ -551,7 +540,6 @@
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS VIDEO_IO_OFFSET
 #endif
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -581,10 +569,6 @@
 
 
 #if defined(CONFIG_TSEC_ENET)
-
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 #define CONFIG_MII		1	/* MII PHY management */
 #define CONFIG_MII_DEFAULT_TSEC	1	/* Allow unregistered phys */
@@ -738,8 +722,8 @@
 #define CONFIG_IPADDR		192.168.1.254
 
 #define CONFIG_HOSTNAME		unknown
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 
 #define CONFIG_SERVERIP		192.168.1.1

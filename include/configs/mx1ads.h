@@ -45,7 +45,7 @@
 /* #define _CONFIG_UART2 */		/* internal uart 2 */
 /* #define CONFIG_SILENT_CONSOLE */	/* use this to disable output */
 
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 #define USE_920T_MMU		1
 
 #if 0
@@ -63,7 +63,6 @@
 /*
  *  CS8900 Ethernet drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900		/* we have a CS8900 on-board */
 #define CONFIG_CS8900_BASE	0x15000300
 #define CONFIG_CS8900_BUS16	/* the Linux driver does accesses as shorts */

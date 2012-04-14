@@ -298,7 +298,6 @@
 
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_CMD_NET
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
 #define CONFIG_CMD_REGINFO
@@ -531,8 +530,8 @@
 #define CONFIG_IPADDR		192.168.1.100
 
 #define CONFIG_HOSTNAME		unknown
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	8610hpcd/u-boot.bin
 
 #define CONFIG_SERVERIP		192.168.1.1

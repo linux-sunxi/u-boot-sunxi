@@ -28,7 +28,7 @@
 #include <command.h>
 #include <net.h>
 
-static int netboot_common (proto_t, cmd_tbl_t *, int , char * const []);
+static int netboot_common(enum proto_t, cmd_tbl_t *, int, char * const []);
 
 int do_bootp (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -43,7 +43,7 @@ U_BOOT_CMD(
 
 int do_tftpb (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	return netboot_common (TFTP, cmdtp, argc, argv);
+	return netboot_common(TFTPGET, cmdtp, argc, argv);
 }
 
 U_BOOT_CMD(
@@ -51,6 +51,22 @@ U_BOOT_CMD(
 	"boot image via network using TFTP protocol",
 	"[loadAddress] [[hostIPaddr:]bootfilename]"
 );
+
+#ifdef CONFIG_CMD_TFTPPUT
+int do_tftpput(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	int ret;
+
+	ret = netboot_common(TFTPPUT, cmdtp, argc, argv);
+	return ret;
+}
+
+U_BOOT_CMD(
+	tftpput,	4,	1,	do_tftpput,
+	"TFTP put command, for uploading files to a server",
+	"Address Size [[hostIPaddr:]filename]"
+);
+#endif
 
 #ifdef CONFIG_CMD_TFTPSRV
 static int do_tftpsrv(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
@@ -167,8 +183,8 @@ static void netboot_update_env (void)
 #endif
 }
 
-static int
-netboot_common (proto_t proto, cmd_tbl_t *cmdtp, int argc, char * const argv[])
+static int netboot_common(enum proto_t proto, cmd_tbl_t *cmdtp, int argc,
+		char * const argv[])
 {
 	char *s;
 	char *end;
@@ -203,6 +219,16 @@ netboot_common (proto_t proto, cmd_tbl_t *cmdtp, int argc, char * const argv[])
 
 		break;
 
+#ifdef CONFIG_CMD_TFTPPUT
+	case 4:
+		if (strict_strtoul(argv[1], 16, &save_addr) < 0 ||
+			strict_strtoul(argv[2], 16, &save_size) < 0) {
+			printf("Invalid address/size\n");
+			return cmd_usage(cmdtp);
+		}
+		copy_filename(BootFile, argv[3], sizeof(BootFile));
+		break;
+#endif
 	default:
 		show_boot_progress (-80);
 		return cmd_usage(cmdtp);

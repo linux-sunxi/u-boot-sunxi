@@ -51,9 +51,18 @@
  */
 
 
+#ifdef CONFIG_SYS_DV_NOR_BOOT_CFG
+.globl _start
+_start:
+.globl _NOR_BOOT_CFG
+_NOR_BOOT_CFG:
+	.word	CONFIG_SYS_DV_NOR_BOOT_CFG
+	b	reset
+#else
 .globl _start
 _start:
 	b	reset
+#endif
 #ifdef CONFIG_SPL_BUILD
 /* No exception handlers in preloader */
 	ldr	pc, _hang
@@ -117,7 +126,15 @@ _fiq:
 
 .globl _TEXT_BASE
 _TEXT_BASE:
+#ifdef CONFIG_NAND_SPL /* deprecated, use instead CONFIG_SPL_BUILD */
 	.word	CONFIG_SYS_TEXT_BASE
+#else
+#ifdef CONFIG_SPL_BUILD
+	.word	CONFIG_SPL_TEXT_BASE
+#else
+	.word	CONFIG_SYS_TEXT_BASE
+#endif
+#endif
 
 /*
  * These are defined in the board-specific linker script.
@@ -136,6 +153,12 @@ _bss_end_ofs:
 .globl _end_ofs
 _end_ofs:
 	.word _end - _start
+
+#ifdef CONFIG_NAND_U_BOOT
+.globl _end
+_end:
+	.word __bss_end__
+#endif
 
 #ifdef CONFIG_USE_IRQ
 /* IRQ stack memory (calculated at run-time) */
@@ -171,13 +194,19 @@ reset:
 	 * we do sys-critical inits only at reboot,
 	 * not when booting from ram!
 	 */
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	bl	cpu_init_crit
-#endif
 
 /* Set stackpointer in internal RAM to call board_init_f */
 call_board_init_f:
+#ifdef CONFIG_NAND_SPL /* deprecated, use instead CONFIG_SPL_BUILD */
 	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
+#else
+#ifdef CONFIG_SPL_BUILD
+	ldr	sp, =(CONFIG_SPL_STACK)
+#else
+	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
+#endif
+#endif
 	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
 	ldr	r0,=0x00000000
 	bl	board_init_f
@@ -202,6 +231,7 @@ stack_setup:
 	mov	sp, r4
 
 	adr	r0, _start
+	sub	r9, r6, r0		/* r9 <- relocation offset */
 	cmp	r0, r6
 	beq	clear_bss		/* skip relocation */
 	mov	r1, r6			/* r1 <- scratch for copy loop */
@@ -256,19 +286,27 @@ fixnext:
 #endif
 
 clear_bss:
-#ifndef CONFIG_SPL_BUILD
+#ifdef CONFIG_SPL_BUILD
+	/* No relocation for SPL */
+	ldr	r0, =__bss_start
+	ldr	r1, =__bss_end__
+#else
 	ldr	r0, _bss_start_ofs
 	ldr	r1, _bss_end_ofs
 	mov	r4, r6			/* reloc addr */
 	add	r0, r0, r4
 	add	r1, r1, r4
+#endif
 	mov	r2, #0x00000000		/* clear			    */
 
-clbss_l:str	r2, [r0]		/* clear loop...		    */
+clbss_l:cmp	r0, r1			/* clear loop... */
+	bhs	clbss_e			/* if reached end of bss, exit */
+	str	r2, [r0]
 	add	r0, r0, #4
-	cmp	r0, r1
-	bne	clbss_l
+	b	clbss_l
+clbss_e:
 
+#ifndef CONFIG_SPL_BUILD
 	bl coloured_LED_init
 	bl red_led_on
 #endif
@@ -315,7 +353,6 @@ _dynsym_start_ofs:
  *
  *************************************************************************
  */
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 cpu_init_crit:
 	/*
 	 * flush v4 I/D caches
@@ -334,14 +371,15 @@ cpu_init_crit:
 	orr	r0, r0, #0x00001000	/* set bit 12 (I) I-Cache */
 	mcr	p15, 0, r0, c1, c0, 0
 
+#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	/*
 	 * Go setup Memory and board specific bits prior to relocation.
 	 */
 	mov	ip, lr		/* perserve link reg across call */
 	bl	lowlevel_init	/* go setup pll,mux,memory */
 	mov	lr, ip		/* restore link */
-	mov	pc, lr		/* back to my caller */
 #endif /* CONFIG_SKIP_LOWLEVEL_INIT */
+	mov	pc, lr		/* back to my caller */
 
 #ifndef CONFIG_SPL_BUILD
 /*

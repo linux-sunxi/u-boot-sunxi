@@ -74,14 +74,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_MEMTEST_END		0x00400000
 #define CONFIG_PANIC_HANG	/* do not reset board on panic */
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
-#define CONFIG_SYS_CCSRBAR		0xe0000000	/* relocated CCSRBAR */
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR */
+#define CONFIG_SYS_CCSRBAR		0xe0000000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
 /* DDR Setup */
 #define CONFIG_FSL_DDR2
@@ -326,7 +320,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_ISA_IO_BASE_ADDRESS VIDEO_IO_OFFSET
 #endif
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -355,10 +348,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 
 #if defined(CONFIG_TSEC_ENET)
-
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 #define CONFIG_MII		1	/* MII PHY management */
 #define CONFIG_MII_DEFAULT_TSEC	1	/* Allow unregistered phys */
@@ -478,8 +467,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_IPADDR	192.168.1.251
 
 #define CONFIG_HOSTNAME	8544ds_unknown
-#define CONFIG_ROOTPATH	/nfs/mpc85xx
-#define CONFIG_BOOTFILE	8544ds/uImage.uboot
+#define CONFIG_ROOTPATH	"/nfs/mpc85xx"
+#define CONFIG_BOOTFILE	"8544ds/uImage.uboot"
 #define CONFIG_UBOOTPATH	8544ds/u-boot.bin	/* TFTP server */
 
 #define CONFIG_SERVERIP	192.168.1.1

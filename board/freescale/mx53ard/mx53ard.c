@@ -37,11 +37,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-u32 get_board_rev(void)
-{
-	return get_cpu_rev();
-}
-
 int dram_init(void)
 {
 	u32 size1, size2;
@@ -91,6 +86,9 @@ struct fsl_esdhc_cfg esdhc_cfg[2] = {
 int board_mmc_getcd(u8 *cd, struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
+
+	mxc_request_iomux(MX53_PIN_GPIO_1, IOMUX_CONFIG_ALT1);
+	mxc_request_iomux(MX53_PIN_GPIO_4, IOMUX_CONFIG_ALT1);
 
 	if (cfg->esdhc_base == MMC_SDHC1_BASE_ADDR)
 		*cd = gpio_get_value(1); /*GPIO1_1*/
@@ -278,7 +276,6 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	gd->bd->bi_arch_number = MACH_TYPE_MX53_ARD;
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 

@@ -34,14 +34,17 @@ extern void fsl_ddr_set_memctl_regs(const fsl_ddr_cfg_regs_t *regs,
 u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
 	[0][0] = SPD_EEPROM_ADDRESS,
 };
-#endif
-#if (CONFIG_NUM_DDR_CONTROLLERS == 2) && (CONFIG_DIMM_SLOTS_PER_CTLR == 1)
+#elif (CONFIG_NUM_DDR_CONTROLLERS == 1) && (CONFIG_DIMM_SLOTS_PER_CTLR == 2)
+u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
+	[0][0] = SPD_EEPROM_ADDRESS1,	/* controller 1 */
+	[0][1] = SPD_EEPROM_ADDRESS2,	/* controller 1 */
+};
+#elif (CONFIG_NUM_DDR_CONTROLLERS == 2) && (CONFIG_DIMM_SLOTS_PER_CTLR == 1)
 u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
 	[0][0] = SPD_EEPROM_ADDRESS1,	/* controller 1 */
 	[1][0] = SPD_EEPROM_ADDRESS2,	/* controller 2 */
 };
-#endif
-#if (CONFIG_NUM_DDR_CONTROLLERS == 2) && (CONFIG_DIMM_SLOTS_PER_CTLR == 2)
+#elif (CONFIG_NUM_DDR_CONTROLLERS == 2) && (CONFIG_DIMM_SLOTS_PER_CTLR == 2)
 u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
 	[0][0] = SPD_EEPROM_ADDRESS1,	/* controller 1 */
 	[0][1] = SPD_EEPROM_ADDRESS2,	/* controller 1 */
@@ -132,7 +135,6 @@ void fsl_ddr_get_spd(generic_spd_eeprom_t *ctrl_dimms_spd,
  *				|  interleaving
  */
 
-#ifdef DEBUG
 const char *step_string_tbl[] = {
 	"STEP_GET_SPD",
 	"STEP_COMPUTE_DIMM_PARMS",
@@ -153,7 +155,6 @@ const char * step_to_string(unsigned int step) {
 
 	return step_string_tbl[s];
 }
-#endif
 
 int step_assign_addresses(fsl_ddr_info_t *pinfo,
 			  unsigned int dbw_cap_adj[],
@@ -496,7 +497,12 @@ phys_size_t fsl_ddr_sdram(void)
 	memset(&info, 0, sizeof(fsl_ddr_info_t));
 
 	/* Compute it once normally. */
-	total_memory = fsl_ddr_compute(&info, STEP_GET_SPD, 0);
+#ifdef CONFIG_FSL_DDR_INTERACTIVE
+	if (getenv("ddr_interactive"))
+		total_memory = fsl_ddr_interactive(&info);
+	else
+#endif
+		total_memory = fsl_ddr_compute(&info, STEP_GET_SPD, 0);
 
 	/* Check for memory controller interleaving. */
 	memctl_interleaved = 0;

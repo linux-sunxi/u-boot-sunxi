@@ -34,12 +34,28 @@ struct eon_spi_flash_params {
 
 static const struct eon_spi_flash_params eon_spi_flash_table[] = {
 	{
+		.idcode1 = 0x16,
+		.page_size = 256,
+		.pages_per_sector = 16,
+		.sectors_per_block = 16,
+		.nr_sectors = 1024,
+		.name = "EN25Q32B",
+	},
+	{
 		.idcode1 = 0x18,
 		.page_size = 256,
 		.pages_per_sector = 16,
 		.sectors_per_block = 16,
 		.nr_sectors = 4096,
 		.name = "EN25Q128",
+	},
+	{
+		.idcode1 = 0x16,
+		.page_size = 256,
+		.pages_per_sector = 16,
+		.sectors_per_block = 16,
+		.nr_sectors = 1024,
+		.name = "EN25Q32B",
 	},
 };
 

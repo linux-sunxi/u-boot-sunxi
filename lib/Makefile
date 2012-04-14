@@ -38,6 +38,7 @@ COBJS-y += crc16.o
 COBJS-y += crc32.o
 COBJS-y += display_options.o
 COBJS-y += errno.o
+COBJS-$(CONFIG_OF_CONTROL) += fdtdec.o
 COBJS-$(CONFIG_GZIP) += gunzip.o
 COBJS-y += hashtable.o
 COBJS-$(CONFIG_LMB) += lmb.o
@@ -55,6 +56,7 @@ COBJS-y += ctype.o
 COBJS-y += div64.o
 COBJS-y += string.o
 COBJS-y += time.o
+COBJS-$(CONFIG_BOOTP_PXE) += uuid.o
 COBJS-y += vsprintf.o
 
 COBJS	:= $(COBJS-y)

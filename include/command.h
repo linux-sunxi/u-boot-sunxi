@@ -64,6 +64,9 @@ typedef struct cmd_tbl_s	cmd_tbl_t;
 extern cmd_tbl_t  __u_boot_cmd_start;
 extern cmd_tbl_t  __u_boot_cmd_end;
 
+#if defined(CONFIG_CMD_RUN)
+extern int do_run(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+#endif
 
 /* common/command.c */
 int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
@@ -117,7 +120,8 @@ extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 #define CMD_FLAG_REPEAT		0x0001	/* repeat last command		*/
 #define CMD_FLAG_BOOTD		0x0002	/* command is from bootd	*/
 
-#define Struct_Section  __attribute__ ((unused,section (".u_boot_cmd")))
+#define Struct_Section  __attribute__((unused, section(".u_boot_cmd"), \
+		aligned(4)))
 
 #ifdef CONFIG_AUTO_COMPLETE
 # define _CMD_COMPLETE(x) x,

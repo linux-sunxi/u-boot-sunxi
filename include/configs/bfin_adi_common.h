@@ -55,7 +55,6 @@
 # endif
 # ifdef CONFIG_POST
 #  define CONFIG_CMD_DIAG
-#  define CONFIG_POST_ALT_LIST
 # endif
 # ifdef CONFIG_RTC_BFIN
 #  define CONFIG_CMD_DATE
@@ -266,7 +265,7 @@
 #  define CONFIG_SERVERIP	192.168.0.2
 # endif
 # ifndef CONFIG_ROOTPATH
-#  define CONFIG_ROOTPATH	/romfs
+#  define CONFIG_ROOTPATH	"/romfs"
 # endif
 # ifdef CONFIG_CMD_DHCP
 #  ifndef CONFIG_SYS_AUTOLOAD

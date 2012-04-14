@@ -27,6 +27,8 @@
 #define __SDHCI_HW_H
 
 #include <asm/io.h>
+#include <mmc.h>
+
 /*
  * Controller registers
  */
@@ -213,6 +215,10 @@
  * quirks
  */
 #define SDHCI_QUIRK_32BIT_DMA_ADDR	(1 << 0)
+#define SDHCI_QUIRK_REG32_RW		(1 << 1)
+
+/* to make gcc happy */
+struct sdhci_host;
 
 /*
  * Host SDMA buffer boundary. Valid values from 4K to 512K in powers of 2.
@@ -236,6 +242,7 @@ struct sdhci_host {
 	unsigned int quirks;
 	unsigned int version;
 	unsigned int clock;
+	struct mmc *mmc;
 	const struct sdhci_ops *ops;
 };
 

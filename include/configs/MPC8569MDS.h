@@ -105,20 +105,11 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_SYS_L2_SIZE		(512 << 10)
 #define CONFIG_SYS_INIT_L2_END	(CONFIG_SYS_INIT_L2_ADDR + CONFIG_SYS_L2_SIZE)
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR		0xe0000000	/* relocated CCSRBAR */
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR
-						/* physical addr of CCSRBAR */
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR
-						/* PQII uses CONFIG_SYS_IMMR */
+#define CONFIG_SYS_CCSRBAR		0xe0000000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
-#if defined(CONFIG_RAMBOOT_NAND) && !defined(CONFIG_NAND_SPL)
-#define CONFIG_SYS_CCSRBAR_DEFAULT	CONFIG_SYS_CCSRBAR
-#else
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
+#if defined(CONFIG_NAND_SPL)
+#define CONFIG_SYS_CCSR_DO_NOT_RELOCATE
 #endif
 
 /* DDR Setup */
@@ -489,7 +480,6 @@ extern unsigned long get_clock_freq(void);
 
 #if defined(CONFIG_PCI)
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 #undef CONFIG_EEPRO100
@@ -499,10 +489,6 @@ extern unsigned long get_clock_freq(void);
 #undef CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 
 #endif	/* CONFIG_PCI */
-
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
 
 /*
  * Environment
@@ -524,7 +510,8 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change */
 
 /* QE microcode/firmware address */
-#define CONFIG_SYS_QE_FW_ADDR	0xfff00000
+#define CONFIG_SYS_QE_FMAN_FW_IN_NOR
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xfff00000
 
 /*
  * BOOTP options
@@ -605,8 +592,8 @@ extern unsigned long get_clock_freq(void);
  * Environment Configuration
  */
 #define CONFIG_HOSTNAME mpc8569mds
-#define CONFIG_ROOTPATH  /nfsroot
-#define CONFIG_BOOTFILE  your.uImage
+#define CONFIG_ROOTPATH  "/nfsroot"
+#define CONFIG_BOOTFILE  "your.uImage"
 
 #define CONFIG_SERVERIP  192.168.1.1
 #define CONFIG_GATEWAYIP 192.168.1.1

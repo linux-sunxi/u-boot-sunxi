@@ -17,6 +17,7 @@
 #ifdef CONFIG_STATUS_LED
 #include <status_led.h>
 #endif
+#include <linux/compiler.h>
 
 #define BOOTP_VENDOR_MAGIC	0x63825363	/* RFC1048 Magic Cookie		*/
 
@@ -105,7 +106,7 @@ static int BootpCheckPkt(uchar *pkt, unsigned dest, unsigned src, unsigned len)
  */
 static void BootpCopyNetParams(Bootp_t *bp)
 {
-	IPaddr_t tmp_ip;
+	__maybe_unused IPaddr_t tmp_ip;
 
 	NetCopyIP(&NetOurIP, &bp->bp_yiaddr);
 #if !defined(CONFIG_BOOTP_SERVERIP)
@@ -136,36 +137,6 @@ static int truncate_sz (const char *name, int maxlen, int curlen)
 		curlen = maxlen - 1;
 	}
 	return (curlen);
-}
-
-/*
- * Check if autoload is enabled. If so, use either NFS or TFTP to download
- * the boot file.
- */
-static void auto_load(void)
-{
-	const char *s = getenv("autoload");
-
-	if (s != NULL) {
-		if (*s == 'n') {
-			/*
-			 * Just use BOOTP to configure system;
-			 * Do not use TFTP to load the bootfile.
-			 */
-			NetState = NETLOOP_SUCCESS;
-			return;
-		}
-#if defined(CONFIG_CMD_NFS)
-		if (strcmp(s, "NFS") == 0) {
-			/*
-			 * Use NFS to load the bootfile.
-			 */
-			NfsStart();
-			return;
-		}
-#endif
-	}
-	TftpStart();
 }
 
 #if !defined(CONFIG_CMD_DHCP)
@@ -354,7 +325,7 @@ BootpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 
 	debug("Got good BOOTP\n");
 
-	auto_load();
+	net_auto_load();
 }
 #endif
 
@@ -381,6 +352,11 @@ static int DhcpExtended (u8 * e, int message_type, IPaddr_t ServerID, IPaddr_t R
 {
 	u8 *start = e;
 	u8 *cnt;
+#if defined(CONFIG_BOOTP_PXE)
+	char *uuid;
+	size_t vci_strlen;
+	u16 clientarch;
+#endif
 
 #if defined(CONFIG_BOOTP_VENDOREX)
 	u8 *x;
@@ -433,6 +409,41 @@ static int DhcpExtended (u8 * e, int message_type, IPaddr_t ServerID, IPaddr_t R
 		memcpy (e, hostname, hostnamelen);
 		e += hostnamelen;
 	}
+#endif
+
+#if defined(CONFIG_BOOTP_PXE)
+	clientarch = CONFIG_BOOTP_PXE_CLIENTARCH;
+	*e++ = 93;	/* Client System Architecture */
+	*e++ = 2;
+	*e++ = (clientarch >> 8) & 0xff;
+	*e++ = clientarch & 0xff;
+
+	*e++ = 94;	/* Client Network Interface Identifier */
+	*e++ = 3;
+	*e++ = 1;	/* type field for UNDI */
+	*e++ = 0;	/* major revision */
+	*e++ = 0;	/* minor revision */
+
+	uuid = getenv("pxeuuid");
+
+	if (uuid) {
+		if (uuid_str_valid(uuid)) {
+			*e++ = 97;	/* Client Machine Identifier */
+			*e++ = 17;
+			*e++ = 0;	/* type 0 - UUID */
+
+			uuid_str_to_bin(uuid, e);
+			e += 16;
+		} else {
+			printf("Invalid pxeuuid: %s\n", uuid);
+		}
+	}
+
+	*e++ = 60;	/* Vendor Class Identifier */
+	vci_strlen = strlen(CONFIG_BOOTP_VCI_STRING);
+	*e++ = vci_strlen;
+	memcpy(e, CONFIG_BOOTP_VCI_STRING, vci_strlen);
+	e += vci_strlen;
 #endif
 
 #if defined(CONFIG_BOOTP_VENDOREX)
@@ -939,7 +950,7 @@ DhcpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			dhcp_state = BOUND;
 			printf ("DHCP client bound to address %pI4\n", &NetOurIP);
 
-			auto_load();
+			net_auto_load();
 			return;
 		}
 		break;

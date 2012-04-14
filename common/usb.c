@@ -49,6 +49,7 @@
 #include <asm/processor.h>
 #include <linux/ctype.h>
 #include <asm/byteorder.h>
+#include <asm/unaligned.h>
 
 #include <usb.h>
 #ifdef CONFIG_4xx
@@ -56,15 +57,15 @@
 #endif
 
 #ifdef DEBUG
-#define USB_DEBUG
-#define USB_HUB_DEBUG
+#define USB_DEBUG	1
+#define USB_HUB_DEBUG	1
+#else
+#define USB_DEBUG	0
+#define USB_HUB_DEBUG	0
 #endif
 
-#ifdef	USB_DEBUG
-#define	USB_PRINTF(fmt, args...)	printf(fmt , ##args)
-#else
-#define USB_PRINTF(fmt, args...)
-#endif
+#define USB_PRINTF(fmt, args...)	debug_cond(USB_DEBUG, fmt, ##args)
+#define USB_HUB_PRINTF(fmt, args...)	debug_cond(USB_HUB_DEBUG, fmt, ##args)
 
 #define USB_BUFSIZ	512
 
@@ -263,40 +264,48 @@ int usb_maxpacket(struct usb_device *dev, unsigned long pipe)
 		return dev->epmaxpacketin[((pipe>>15) & 0xf)];
 }
 
-/* The routine usb_set_maxpacket_ep() is extracted from the loop of routine
+/*
+ * The routine usb_set_maxpacket_ep() is extracted from the loop of routine
  * usb_set_maxpacket(), because the optimizer of GCC 4.x chokes on this routine
  * when it is inlined in 1 single routine. What happens is that the register r3
  * is used as loop-count 'i', but gets overwritten later on.
  * This is clearly a compiler bug, but it is easier to workaround it here than
  * to update the compiler (Occurs with at least several GCC 4.{1,2},x
  * CodeSourcery compilers like e.g. 2007q3, 2008q1, 2008q3 lite editions on ARM)
+ *
+ * NOTE: Similar behaviour was observed with GCC4.6 on ARMv5.
  */
 static void  __attribute__((noinline))
-usb_set_maxpacket_ep(struct usb_device *dev, struct usb_endpoint_descriptor *ep)
+usb_set_maxpacket_ep(struct usb_device *dev, int if_idx, int ep_idx)
 {
 	int b;
+	struct usb_endpoint_descriptor *ep;
+	u16 ep_wMaxPacketSize;
+
+	ep = &dev->config.if_desc[if_idx].ep_desc[ep_idx];
 
 	b = ep->bEndpointAddress & USB_ENDPOINT_NUMBER_MASK;
+	ep_wMaxPacketSize = get_unaligned(&ep->wMaxPacketSize);
 
 	if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
 						USB_ENDPOINT_XFER_CONTROL) {
 		/* Control => bidirectional */
-		dev->epmaxpacketout[b] = ep->wMaxPacketSize;
-		dev->epmaxpacketin[b] = ep->wMaxPacketSize;
+		dev->epmaxpacketout[b] = ep_wMaxPacketSize;
+		dev->epmaxpacketin[b] = ep_wMaxPacketSize;
 		USB_PRINTF("##Control EP epmaxpacketout/in[%d] = %d\n",
 			   b, dev->epmaxpacketin[b]);
 	} else {
 		if ((ep->bEndpointAddress & 0x80) == 0) {
 			/* OUT Endpoint */
-			if (ep->wMaxPacketSize > dev->epmaxpacketout[b]) {
-				dev->epmaxpacketout[b] = ep->wMaxPacketSize;
+			if (ep_wMaxPacketSize > dev->epmaxpacketout[b]) {
+				dev->epmaxpacketout[b] = ep_wMaxPacketSize;
 				USB_PRINTF("##EP epmaxpacketout[%d] = %d\n",
 					   b, dev->epmaxpacketout[b]);
 			}
 		} else {
 			/* IN Endpoint */
-			if (ep->wMaxPacketSize > dev->epmaxpacketin[b]) {
-				dev->epmaxpacketin[b] = ep->wMaxPacketSize;
+			if (ep_wMaxPacketSize > dev->epmaxpacketin[b]) {
+				dev->epmaxpacketin[b] = ep_wMaxPacketSize;
 				USB_PRINTF("##EP epmaxpacketin[%d] = %d\n",
 					   b, dev->epmaxpacketin[b]);
 			}
@@ -313,8 +322,7 @@ int usb_set_maxpacket(struct usb_device *dev)
 
 	for (i = 0; i < dev->config.desc.bNumInterfaces; i++)
 		for (ii = 0; ii < dev->config.if_desc[i].desc.bNumEndpoints; ii++)
-			usb_set_maxpacket_ep(dev,
-					  &dev->config.if_desc[i].ep_desc[ii]);
+			usb_set_maxpacket_ep(dev, i, ii);
 
 	return 0;
 }
@@ -328,7 +336,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 	struct usb_descriptor_header *head;
 	int index, ifno, epno, curr_if_num;
 	int i;
-	unsigned char *ch;
+	u16 ep_wMaxPacketSize;
 
 	ifno = -1;
 	epno = -1;
@@ -374,8 +382,15 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 			dev->config.if_desc[ifno].no_of_ep++;
 			memcpy(&dev->config.if_desc[ifno].ep_desc[epno],
 				&buffer[index], buffer[index]);
-			le16_to_cpus(&(dev->config.if_desc[ifno].ep_desc[epno].\
-							       wMaxPacketSize));
+			ep_wMaxPacketSize = get_unaligned(&dev->config.\
+							if_desc[ifno].\
+							ep_desc[epno].\
+							wMaxPacketSize);
+			put_unaligned(le16_to_cpu(ep_wMaxPacketSize),
+					&dev->config.\
+					if_desc[ifno].\
+					ep_desc[epno].\
+					wMaxPacketSize);
 			USB_PRINTF("if %d, ep %d\n", ifno, epno);
 			break;
 		default:
@@ -386,7 +401,9 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 				   head->bDescriptorType);
 
 			{
-				ch = (unsigned char *)head;
+#ifdef USB_DEBUG
+				unsigned char *ch = (unsigned char *)head;
+#endif
 				for (i = 0; i < head->bLength; i++)
 					USB_PRINTF("%02X ", *ch++);
 				USB_PRINTF("\n\n\n");
@@ -967,13 +984,6 @@ void usb_scan_devices(void)
  * Probes device for being a hub and configurate it
  */
 
-#ifdef	USB_HUB_DEBUG
-#define	USB_HUB_PRINTF(fmt, args...)	printf(fmt , ##args)
-#else
-#define USB_HUB_PRINTF(fmt, args...)
-#endif
-
-
 static struct usb_hub_device hub_dev[USB_MAX_HUB];
 static int usb_hub_index;
 
@@ -1120,7 +1130,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 {
 	struct usb_device *usb;
 	struct usb_port_status portsts;
-	unsigned short portstatus, portchange;
+	unsigned short portstatus;
 
 	/* Check status */
 	if (usb_get_port_status(dev, port + 1, &portsts) < 0) {
@@ -1129,9 +1139,10 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	}
 
 	portstatus = le16_to_cpu(portsts.wPortStatus);
-	portchange = le16_to_cpu(portsts.wPortChange);
 	USB_HUB_PRINTF("portstatus %x, change %x, %s\n",
-			portstatus, portchange, portspeed(portstatus));
+			portstatus,
+			le16_to_cpu(portsts.wPortChange),
+			portspeed(portstatus));
 
 	/* Clear the connection change status */
 	usb_clear_port_feature(dev, port + 1, USB_PORT_FEAT_C_CONNECTION);
@@ -1178,11 +1189,13 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 
 int usb_hub_configure(struct usb_device *dev)
 {
+	int i;
 	unsigned char buffer[USB_BUFSIZ], *bitmap;
 	struct usb_hub_descriptor *descriptor;
-	struct usb_hub_status *hubsts;
-	int i;
 	struct usb_hub_device *hub;
+#ifdef USB_HUB_DEBUG
+	struct usb_hub_status *hubsts;
+#endif
 
 	/* "allocate" Hub device */
 	hub = usb_hub_allocate();
@@ -1284,7 +1297,9 @@ int usb_hub_configure(struct usb_device *dev)
 		return -1;
 	}
 
+#ifdef USB_HUB_DEBUG
 	hubsts = (struct usb_hub_status *)buffer;
+#endif
 	USB_HUB_PRINTF("get_hub_status returned status %X, change %X\n",
 			le16_to_cpu(hubsts->wHubStatus),
 			le16_to_cpu(hubsts->wHubChange));

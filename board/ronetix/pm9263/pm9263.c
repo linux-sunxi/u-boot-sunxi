@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Copyright (C) 2008 Ronetix Ilko Iliev (www.ronetix.at)
  * Copyright (C) 2009 Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
@@ -164,7 +164,6 @@ void lcd_disable(void)
 /* Initialize the PSRAM memory */
 static int pm9263_lcd_hw_psram_init(void)
 {
-	volatile uint16_t x;
 	unsigned long csa;
 	struct at91_smc *smc = (struct at91_smc *)ATMEL_BASE_SMC1;
 	struct at91_matrix *matrix = (struct at91_matrix *)ATMEL_BASE_MATRIX;
@@ -196,14 +195,14 @@ static int pm9263_lcd_hw_psram_init(void)
 	at91_set_pio_value(PSRAM_CRE_PIN, 0);	/* set PSRAM_CRE_PIN to '0' */
 
 	/* PSRAM: write BCR */
-	x = readw(PSRAM_CTRL_REG);
-	x = readw(PSRAM_CTRL_REG);
+	readw(PSRAM_CTRL_REG);
+	readw(PSRAM_CTRL_REG);
 	writew(1, PSRAM_CTRL_REG);	/* 0 - RCR,1 - BCR */
 	writew(0x9d4f, PSRAM_CTRL_REG);	/* write the BCR */
 
 	/* write RCR of the PSRAM */
-	x = readw(PSRAM_CTRL_REG);
-	x = readw(PSRAM_CTRL_REG);
+	readw(PSRAM_CTRL_REG);
+	readw(PSRAM_CTRL_REG);
 	writew(0, PSRAM_CTRL_REG);	/* 0 - RCR,1 - BCR */
 	/* set RCR; 0x10-async mode,0x90-page mode */
 	writew(0x90, PSRAM_CTRL_REG);
@@ -222,8 +221,8 @@ static int pm9263_lcd_hw_psram_init(void)
 		at91_set_pio_value(PSRAM_CRE_PIN, 1); /* set PSRAM_CRE_PIN to '1' */
 
 		/* write RCR of the PSRAM */
-		x = readw(PSRAM_CTRL_REG);
-		x = readw(PSRAM_CTRL_REG);
+		readw(PSRAM_CTRL_REG);
+		readw(PSRAM_CTRL_REG);
 		writew(0, PSRAM_CTRL_REG);	/* 0 - RCR,1 - BCR */
 		/* set RCR;0x10-async mode,0x90-page mode */
 		writew(0x90, PSRAM_CTRL_REG);
@@ -337,25 +336,28 @@ void lcd_show_board_info(void)
 
 #endif /* CONFIG_LCD */
 
-int board_init(void)
+int board_early_init_f(void)
 {
 	struct at91_pmc *pmc = (struct at91_pmc *)ATMEL_BASE_PMC;
 
-	/* Enable Ctrlc */
-	console_init_f();
-
-	writel((1 << ATMEL_ID_PIOA) |
-		(1 << ATMEL_ID_PIOCDE) |
-		(1 << ATMEL_ID_PIOB),
+	/* Enable clocks for all PIOs */
+	writel((1 << ATMEL_ID_PIOA) | (1 << ATMEL_ID_PIOB) |
+		(1 << ATMEL_ID_PIOCDE),
 		&pmc->pcer);
 
+	at91_seriald_hw_init();
+
+	return 0;
+}
+
+int board_init(void)
+{
 	/* arch number of AT91SAM9263EK-Board */
 	gd->bd->bi_arch_number = MACH_TYPE_PM9263;
 
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
-	at91_seriald_hw_init();
 #ifdef CONFIG_CMD_NAND
 	pm9263_nand_hw_init();
 #endif

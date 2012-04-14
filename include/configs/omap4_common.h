@@ -39,7 +39,7 @@
 
 /* Get CPU defs */
 #include <asm/arch/cpu.h>
-#include <asm/arch/omap4.h>
+#include <asm/arch/omap.h>
 
 /* Display CPU and Board Info */
 #define CONFIG_DISPLAY_CPUINFO		1
@@ -98,7 +98,9 @@
 #define CONFIG_I2C_MULTI_BUS		1
 
 /* TWL6030 */
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_TWL6030_POWER		1
+#endif
 
 /* MMC */
 #define CONFIG_GENERIC_MMC		1
@@ -119,6 +121,9 @@
 
 /* Flash */
 #define CONFIG_SYS_NO_FLASH	1
+
+/* clocks */
+#define CONFIG_SYS_CLOCKS_ENABLE_ALL
 
 /* commands to include */
 #include <config_cmd_default.h>
@@ -145,7 +150,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
-	"console=ttyS2,115200n8\0" \
+	"console=ttyO2,115200n8\0" \
 	"usbtty=cdc_acm\0" \
 	"vram=16M\0" \
 	"mmcdev=0\0" \
@@ -234,8 +239,11 @@
 #define CONFIG_SYS_L2_PL310		1
 #define CONFIG_SYS_PL310_BASE	0x48242000
 #endif
+#define CONFIG_SYS_CACHELINE_SIZE	32
 
 /* Defines for SDRAM init */
+#define CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
+
 #ifndef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
 #define CONFIG_SYS_AUTOMATIC_SDRAM_DETECTION
 #define CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS
@@ -247,8 +255,21 @@
 #define CONFIG_SPL_MAX_SIZE		(38 * 1024)
 #define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 
-#define CONFIG_SPL_BSS_START_ADDR	0x80000000
-#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
+/*
+ * 64 bytes before this address should be set aside for u-boot.img's
+ * header. That is 80E7FFC0--0x80E80000 should not be used for any
+ * other needs.
+ */
+#define CONFIG_SYS_TEXT_BASE		0x80E80000
+
+/*
+ * BSS and malloc area 64MB into memory to allow enough
+ * space for the kernel at the beginning of memory
+ */
+#define CONFIG_SPL_BSS_START_ADDR	0x84000000
+#define CONFIG_SPL_BSS_MAX_SIZE		0x100000	/* 1 MB */
+#define CONFIG_SYS_SPL_MALLOC_START	0x84100000
+#define CONFIG_SYS_SPL_MALLOC_SIZE	0x100000	/* 1 MB */
 
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x300 /* address 0x60000 */
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
@@ -264,12 +285,6 @@
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/omap-common/u-boot-spl.lds"
 
-/*
- * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM
- * 64 bytes before this address should be set aside for u-boot.img's
- * header. That is 0x800FFFC0--0x80100000 should not be used for any
- * other needs.
- */
-#define CONFIG_SYS_TEXT_BASE		0x80100000
+#define CONFIG_SYS_ENABLE_PADS_ALL
 
 #endif /* __CONFIG_OMAP4_COMMON_H */

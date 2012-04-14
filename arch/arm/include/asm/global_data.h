@@ -38,6 +38,9 @@ typedef	struct	global_data {
 	unsigned long	flags;
 	unsigned long	baudrate;
 	unsigned long	have_console;	/* serial_init() was called */
+#ifdef CONFIG_PRE_CONSOLE_BUFFER
+	unsigned long	precon_buf_idx;	/* Pre-Console buffer index */
+#endif
 	unsigned long	env_addr;	/* Address  of Environment struct */
 	unsigned long	env_valid;	/* Checksum of Environment valid? */
 	unsigned long	fb_base;	/* base address of frame buffer */
@@ -73,8 +76,14 @@ typedef	struct	global_data {
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	unsigned long	tlb_addr;
 #endif
+	const void	*fdt_blob;	/* Our device tree, NULL if none */
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
+#if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
+	unsigned long	post_log_word; /* Record POST activities */
+	unsigned long	post_log_res; /* success of POST test */
+	unsigned long	post_init_f_time; /* When post_init_f started */
+#endif
 } gd_t;
 
 /*

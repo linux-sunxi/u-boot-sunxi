@@ -31,12 +31,17 @@
 #include <asm/arch/scu.h>
 #include <common.h>
 
-u32 s_first_boot = 1;
+/* Returns 1 if the current CPU executing is a Cortex-A9, else 0 */
+static int ap20_cpu_is_cortexa9(void)
+{
+	u32 id = readb(NV_PA_PG_UP_BASE + PG_UP_TAG_0);
+	return id == (PG_UP_TAG_0_PID_CPU & 0xff);
+}
 
 void init_pllx(void)
 {
 	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
-	struct clk_pll *pll = &clkrst->crc_pll[CLOCK_PLL_ID_XCPU];
+	struct clk_pll *pll = &clkrst->crc_pll[CLOCK_ID_XCPU];
 	u32 reg;
 
 	/* If PLLX is already enabled, just return */
@@ -189,7 +194,6 @@ static void reset_A9_cpu(int reset)
 
 static void clock_enable_coresight(int enable)
 {
-	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
 	u32 rst, src;
 
 	clock_set_enable(PERIPH_ID_CORESIGHT, enable);
@@ -203,7 +207,7 @@ static void clock_enable_coresight(int enable)
 		 *  (bits 7:0), so 00000001b == 1.5 (n+1 + .5)
 		 */
 		src = CLK_DIVIDER(NVBL_PLLP_KHZ, 144000);
-		writel(src, &clkrst->crc_clk_src_csite);
+		clock_ll_set_source_divisor(PERIPH_ID_CSI, 0, src);
 
 		/* Unlock the CPU CoreSight interfaces */
 		rst = 0xC5ACCE55;
@@ -284,38 +288,37 @@ void init_pmc_scratch(void)
 	writel(CONFIG_SYS_BOARD_ODMDATA, &pmc->pmc_scratch20);
 }
 
-void cpu_start(void)
+void tegra2_start(void)
 {
 	struct pmux_tri_ctlr *pmt = (struct pmux_tri_ctlr *)NV_PA_APB_MISC_BASE;
 
-	/* enable JTAG */
-	writel(0xC0, &pmt->pmt_cfg_ctl);
+	/* If we are the AVP, start up the first Cortex-A9 */
+	if (!ap20_cpu_is_cortexa9()) {
+		/* enable JTAG */
+		writel(0xC0, &pmt->pmt_cfg_ctl);
 
-	if (s_first_boot) {
 		/*
-		 * Need to set this before cold-booting,
-		 *  otherwise we'll end up in an infinite loop.
-		 */
-		s_first_boot = 0;
-		cold_boot();
-	}
-}
+		* If we are ARM7 - give it a different stack. We are about to
+		* start up the A9 which will want to use this one.
+		*/
+		asm volatile("ldr	sp, =%c0\n"
+			: : "i"(AVP_EARLY_BOOT_STACK_LIMIT));
 
-void tegra2_start()
-{
-	if (s_first_boot) {
-		/* Init Debug UART Port (115200 8n1) */
-		uart_init();
-
-		/* Init PMC scratch memory */
-		init_pmc_scratch();
+		start_cpu((u32)_start);
+		halt_avp();
+		/* not reached */
 	}
 
-#ifdef CONFIG_ENABLE_CORTEXA9
-	/* take the mpcore out of reset */
-	cpu_start();
+	/* Init PMC scratch memory */
+	init_pmc_scratch();
 
-	/* configure cache */
-	cache_configure();
-#endif
+	enable_scu();
+
+	/* enable SMP mode and FW for CPU0, by writing to Auxiliary Ctl reg */
+	asm volatile(
+		"mrc	p15, 0, r0, c1, c0, 1\n"
+		"orr	r0, r0, #0x41\n"
+		"mcr	p15, 0, r0, c1, c0, 1\n");
+
+	/* FIXME: should have ap20's L2 disabled too? */
 }

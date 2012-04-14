@@ -220,6 +220,12 @@
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - 0x1000000)
 
+#define CONFIG_SYS_CACHELINE_SIZE       64
+
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_PMIC_MAX8998
+
 #include <asm/arch/gpio.h>
 /*
  * I2C Settings
@@ -231,5 +237,8 @@
 #define CONFIG_SYS_I2C_SPEED	50000
 #define CONFIG_I2C_MULTI_BUS
 #define CONFIG_SYS_MAX_I2C_BUS	7
+#define CONFIG_USB_GADGET
+#define CONFIG_USB_GADGET_S3C_UDC_OTG
+#define CONFIG_USB_GADGET_DUALSPEED
 
 #endif	/* __CONFIG_H */

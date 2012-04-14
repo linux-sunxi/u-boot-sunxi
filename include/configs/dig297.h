@@ -32,12 +32,19 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <asm/mach-types.h>
+#ifdef MACH_TYPE_OMAP3_CPS
+#error "MACH_TYPE_OMAP3_CPS has been defined properly, please remove this."
+#else
+#define MACH_TYPE_OMAP3_CPS 2751
+#endif
+#define CONFIG_MACH_TYPE MACH_TYPE_OMAP3_CPS
+
 /*
  * High Level Configuration Options
  */
 #define CONFIG_OMAP		/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		/* which is a 34XX */
-#define CONFIG_OMAP3430		/* which is in a 3430 */
 
 #define CONFIG_SYS_TEXT_BASE	0x80008000
 
@@ -165,7 +172,6 @@
  * SMSC9220 Ethernet
  */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_32_BIT
 #define CONFIG_SMC911X_BASE     0x2C000000
@@ -274,9 +280,6 @@
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
 #define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
-
-/* SDRAM Bank Allocation method */
-#define SDRC_R_B_C		1
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization

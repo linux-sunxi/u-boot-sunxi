@@ -31,6 +31,10 @@
  */
 /* An i.MX51 CPU */
 #define CONFIG_MX51
+
+#define	machine_is_efikamx()	(CONFIG_MACH_TYPE == MACH_TYPE_MX51_EFIKAMX)
+#define	machine_is_efikasb()	(CONFIG_MACH_TYPE == MACH_TYPE_MX51_EFIKASB)
+
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_SYS_MX5_HCLK		24000000
@@ -39,6 +43,10 @@
 #define CONFIG_DISPLAY_BOARDINFO
 
 #define CONFIG_SYS_TEXT_BASE		0x97800000
+
+#define	CONFIG_L2_OFF
+#define	CONFIG_SYS_ICACHE_OFF
+#define	CONFIG_SYS_DCACHE_OFF
 
 /*
  * Bootloader Components Configuration
@@ -49,6 +57,8 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_IDE
+#define CONFIG_CMD_NET
+#define CONFIG_CMD_DATE
 #undef CONFIG_CMD_IMLS
 
 /*
@@ -75,13 +85,13 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Hardware drivers
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX51_UART1
+#define CONFIG_MXC_UART_BASE		UART1_BASE
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
@@ -120,12 +130,15 @@
 #endif
 
 /* SPI PMIC */
-#define CONFIG_FSL_PMIC
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS		0
 #define CONFIG_FSL_PMIC_CS		(0 | 120 << 8)
 #define CONFIG_FSL_PMIC_CLK		25000000
 #define CONFIG_FSL_PMIC_MODE		(SPI_MODE_0 | SPI_CS_HIGH)
-#define CONFIG_RTC_MC13783
+#define CONFIG_FSL_PMIC_BITLEN	32
+#define CONFIG_RTC_MC13XXX
 #endif
 
 /*
@@ -168,17 +181,46 @@
 #endif
 
 /*
+ * USB
+ */
+#define	CONFIG_CMD_USB
+#ifdef	CONFIG_CMD_USB
+#define	CONFIG_USB_EHCI			/* Enable EHCI USB support */
+#define	CONFIG_USB_EHCI_MX5
+#define	CONFIG_USB_ULPI
+#define	CONFIG_USB_ULPI_VIEWPORT
+#define	CONFIG_MXC_USB_PORT	1
+#if	(CONFIG_MXC_USB_PORT == 0)
+#define	CONFIG_MXC_USB_PORTSC	(1 << 28)
+#define	CONFIG_MXC_USB_FLAGS	MXC_EHCI_INTERNAL_PHY
+#else
+#define	CONFIG_MXC_USB_PORTSC	(2 << 30)
+#define	CONFIG_MXC_USB_FLAGS	0
+#endif
+#define	CONFIG_EHCI_IS_TDI
+#define	CONFIG_USB_STORAGE
+#define	CONFIG_USB_HOST_ETHER
+#define	CONFIG_USB_KEYBOARD
+#define	CONFIG_SYS_USB_EVENT_POLL_VIA_CONTROL_EP
+#define CONFIG_PREBOOT
+/* USB NET */
+#ifdef	CONFIG_CMD_NET
+#define	CONFIG_USB_ETHER_ASIX
+#define	CONFIG_NET_MULTI
+#define	CONFIG_CMD_PING
+#define	CONFIG_CMD_DHCP
+#endif
+#endif /* CONFIG_CMD_USB */
+
+/*
  * Filesystems
  */
 #ifdef CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#ifdef	CONFIG_CMD_NET
+#define	CONFIG_CMD_NFS
 #endif
-
-#undef CONFIG_CMD_PING
-#undef CONFIG_CMD_DHCP
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
-#define CONFIG_CMD_DATE
+#endif
 
 /*
  * Miscellaneous configurable options
@@ -230,6 +272,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 #define CONFIG_SYS_DDR_CLKSEL		0
-#define CONFIG_SYS_CLKTL_CBCDR		0x59E35100
+#define CONFIG_SYS_CLKTL_CBCDR		0x59E35145
 
 #endif

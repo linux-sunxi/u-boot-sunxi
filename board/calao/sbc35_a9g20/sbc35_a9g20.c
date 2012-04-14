@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Copyright (C) 2009
@@ -152,7 +152,6 @@ int board_init(void)
 	/* Enable Ctrlc */
 	console_init_f();
 
-	gd->bd->bi_arch_number = MACH_TYPE_SBC35_A9G20;
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 

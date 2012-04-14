@@ -71,6 +71,8 @@ struct cspi_regs {
 /* Watchdog Timer (WDOG) registers */
 #define WDOG_ENABLE	(1 << 2)
 #define WDOG_WT_SHIFT	8
+#define WDOG_WDZST	(1 << 0)
+
 struct wdog_regs {
 	u16 wcr;	/* Control */
 	u16 wsr;	/* Service */
@@ -94,6 +96,12 @@ struct iim_regs {
 	u32 iim_scs1;
 	u32 iim_scs2;
 	u32 iim_scs3;
+};
+
+struct iomuxc_regs {
+	u32 unused1;
+	u32 unused2;
+	u32 gpr;
 };
 
 struct mx3_cpu_type {
@@ -466,9 +474,70 @@ enum iomux_pins {
 	MX31_PIN_CAPTURE	= IOMUX_PIN(7,    327),
 };
 
+/*
+ * various IOMUX general purpose functions
+ */
+enum iomux_gp_func {
+	MUX_PGP_FIRI			= 1 << 0,
+	MUX_DDR_MODE			= 1 << 1,
+	MUX_PGP_CSPI_BB			= 1 << 2,
+	MUX_PGP_ATA_1			= 1 << 3,
+	MUX_PGP_ATA_2			= 1 << 4,
+	MUX_PGP_ATA_3			= 1 << 5,
+	MUX_PGP_ATA_4			= 1 << 6,
+	MUX_PGP_ATA_5			= 1 << 7,
+	MUX_PGP_ATA_6			= 1 << 8,
+	MUX_PGP_ATA_7			= 1 << 9,
+	MUX_PGP_ATA_8			= 1 << 10,
+	MUX_PGP_UH2			= 1 << 11,
+	MUX_SDCTL_CSD0_SEL		= 1 << 12,
+	MUX_SDCTL_CSD1_SEL		= 1 << 13,
+	MUX_CSPI1_UART3			= 1 << 14,
+	MUX_EXTDMAREQ2_MBX_SEL		= 1 << 15,
+	MUX_TAMPER_DETECT_EN		= 1 << 16,
+	MUX_PGP_USB_4WIRE		= 1 << 17,
+	MUX_PGP_USB_COMMON		= 1 << 18,
+	MUX_SDHC_MEMSTICK1		= 1 << 19,
+	MUX_SDHC_MEMSTICK2		= 1 << 20,
+	MUX_PGP_SPLL_BYP		= 1 << 21,
+	MUX_PGP_UPLL_BYP		= 1 << 22,
+	MUX_PGP_MSHC1_CLK_SEL		= 1 << 23,
+	MUX_PGP_MSHC2_CLK_SEL		= 1 << 24,
+	MUX_CSPI3_UART5_SEL		= 1 << 25,
+	MUX_PGP_ATA_9			= 1 << 26,
+	MUX_PGP_USB_SUSPEND		= 1 << 27,
+	MUX_PGP_USB_OTG_LOOPBACK	= 1 << 28,
+	MUX_PGP_USB_HS1_LOOPBACK	= 1 << 29,
+	MUX_PGP_USB_HS2_LOOPBACK	= 1 << 30,
+	MUX_CLKO_DDR_MODE		= 1 << 31,
+};
+
 /* Bit definitions for RCSR register in CCM */
 #define CCM_RCSR_NF16B	(1 << 31)
 #define CCM_RCSR_NFMS	(1 << 30)
+
+/* WEIM CS control registers */
+struct mx31_weim_cscr {
+	u32 upper;
+	u32 lower;
+	u32 additional;
+	u32 reserved;
+};
+
+struct mx31_weim {
+	struct mx31_weim_cscr cscr[6];
+};
+
+/* ESD control registers */
+struct esdc_regs {
+	u32 ctl0;
+	u32 cfg0;
+	u32 ctl1;
+	u32 cfg1;
+	u32 misc;
+	u32 dly[5];
+	u32 dlyl;
+};
 
 #endif
 
@@ -511,11 +580,31 @@ enum iomux_pins {
 #define PLL_MFI(x)		(((x) & 0xf) << 10)
 #define PLL_MFN(x)		(((x) & 0x3ff) << 0)
 
+#define GET_PDR0_CSI_PODF(x)	(((x) >> 23) & 0x1ff)
+#define GET_PDR0_PER_PODF(x)	(((x) >> 16) & 0x1f)
+#define GET_PDR0_HSP_PODF(x)	(((x) >> 11) & 0x7)
+#define GET_PDR0_NFC_PODF(x)	(((x) >> 8) & 0x7)
+#define GET_PDR0_IPG_PODF(x)	(((x) >> 6) & 0x3)
+#define GET_PDR0_MAX_PODF(x)	(((x) >> 3) & 0x7)
+#define GET_PDR0_MCU_PODF(x)	((x) & 0x7)
+
+#define GET_PLL_PD(x)		(((x) >> 26) & 0xf)
+#define GET_PLL_MFD(x)		(((x) >> 16) & 0x3ff)
+#define GET_PLL_MFI(x)		(((x) >> 10) & 0xf)
+#define GET_PLL_MFN(x)		(((x) >> 0) & 0x3ff)
+
+
 #define WEIM_ESDCTL0	0xB8001000
 #define WEIM_ESDCFG0	0xB8001004
 #define WEIM_ESDCTL1	0xB8001008
 #define WEIM_ESDCFG1	0xB800100C
 #define WEIM_ESDMISC	0xB8001010
+
+#define UART1_BASE	0x43F90000
+#define UART2_BASE	0x43F94000
+#define UART3_BASE	0x5000C000
+#define UART4_BASE	0x43FB0000
+#define UART5_BASE	0x43FB4000
 
 #define ESDCTL_SDE			(1 << 31)
 #define ESDCTL_CMD_RW			(0 << 28)
@@ -534,13 +623,31 @@ enum iomux_pins {
 #define ESDCTL_BL(x)			((x) << 7)
 #define ESDCTL_PRCT(x)			((x) << 0)
 
+#define ESDCTL_BASE_ADDR	0xB8001000
+
+/* 13 fields of the upper CS control register */
+#define CSCR_U(sp, wp, bcd, bcs, psz, pme, sync, dol, \
+		cnc, wsc, ew, wws, edc) \
+	((sp) << 31 | (wp) << 30 | (bcd) << 28 | (psz) << 22 | (pme) << 21 |\
+	 (sync) << 20 | (dol) << 16 | (cnc) << 14 | (wsc) << 8 | (ew) << 7 |\
+	 (wws) << 4 | (edc) << 0)
+/* 12 fields of the lower CS control register */
+#define CSCR_L(oea, oen, ebwa, ebwn, \
+		csa, ebc, dsz, csn, psr, cre, wrap, csen) \
+	((oea) << 28 | (oen) << 24 | (ebwa) << 20 | (ebwn) << 16 |\
+	 (csa) << 12 | (ebc) << 11 | (dsz) << 8 | (csn) << 4 |\
+	 (psr) << 3 | (cre) << 2 | (wrap) << 1 | (csen) << 0)
+/* 14 fields of the additional CS control register */
+#define CSCR_A(ebra, ebrn, rwa, rwn, mum, lah, lbn, lba, dww, dct, \
+		wwu, age, cnc2, fce) \
+	((ebra) << 28 | (ebrn) << 24 | (rwa) << 20 | (rwn) << 16 |\
+	 (mum) << 15 | (lah) << 13 | (lbn) << 10 | (lba) << 8 |\
+	 (dww) << 6 | (dct) << 4 | (wwu) << 3 |\
+	 (age) << 2 | (cnc2) << 1 | (fce) << 0)
+
 #define WEIM_BASE	0xb8002000
-#define CSCR_U(x)	(WEIM_BASE + (x) * 0x10)
-#define CSCR_L(x)	(WEIM_BASE + 4 + (x) * 0x10)
-#define CSCR_A(x)	(WEIM_BASE + 8 + (x) * 0x10)
 
 #define IOMUXC_BASE	0x43FAC000
-#define IOMUXC_GPR	(IOMUXC_BASE + 0x8)
 #define IOMUXC_SW_MUX_CTL(x)	(IOMUXC_BASE + 0xc + (x) * 4)
 #define IOMUXC_SW_PAD_CTL(x)	(IOMUXC_BASE + 0x154 + (x) * 4)
 
@@ -597,12 +704,23 @@ enum iomux_pins {
 
 /* Register offsets based on IOMUXC_BASE */
 /* 0x00 .. 0x7b */
+#define MUX_CTL_CSPI3_MISO		0x0c
+#define MUX_CTL_CSPI3_SCLK		0x0d
+#define MUX_CTL_CSPI3_SPI_RDY	0x0e
+#define MUX_CTL_CSPI3_MOSI		0x13
+
 #define MUX_CTL_USBH2_DATA1	0x40
 #define MUX_CTL_USBH2_DIR	0x44
 #define MUX_CTL_USBH2_STP	0x45
 #define MUX_CTL_USBH2_NXT	0x46
 #define MUX_CTL_USBH2_DATA0	0x47
 #define MUX_CTL_USBH2_CLK	0x4B
+
+#define MUX_CTL_TXD2		0x70
+#define MUX_CTL_RTS2		0x71
+#define MUX_CTL_CTS2		0x72
+#define MUX_CTL_RXD2		0x77
+
 #define MUX_CTL_RTS1		0x7c
 #define MUX_CTL_CTS1		0x7d
 #define MUX_CTL_DTR_DCE1	0x7e
@@ -659,6 +777,11 @@ enum iomux_pins {
 #define MUX_TXD1__UART1_TXD_MUX	IOMUX_MODE(MUX_CTL_TXD1, MUX_CTL_FUNC)
 #define MUX_RTS1__UART1_RTS_B	IOMUX_MODE(MUX_CTL_RTS1, MUX_CTL_FUNC)
 #define MUX_CTS1__UART1_CTS_B	IOMUX_MODE(MUX_CTL_CTS1, MUX_CTL_FUNC)
+
+#define MUX_RXD2__UART2_RXD_MUX	IOMUX_MODE(MUX_CTL_RXD2, MUX_CTL_FUNC)
+#define MUX_TXD2__UART2_TXD_MUX	IOMUX_MODE(MUX_CTL_TXD2, MUX_CTL_FUNC)
+#define MUX_RTS2__UART2_RTS_B	IOMUX_MODE(MUX_CTL_RTS2, MUX_CTL_FUNC)
+#define MUX_CTS2__UART2_CTS_B	IOMUX_MODE(MUX_CTL_CTS2, MUX_CTL_FUNC)
 
 #define MUX_CSPI2_SS0__CSPI2_SS0_B IOMUX_MODE(MUX_CTL_CSPI2_SS0, MUX_CTL_FUNC)
 #define MUX_CSPI2_SS1__CSPI2_SS1_B IOMUX_MODE(MUX_CTL_CSPI2_SS1, MUX_CTL_FUNC)

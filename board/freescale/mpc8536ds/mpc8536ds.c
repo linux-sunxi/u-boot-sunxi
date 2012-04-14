@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Freescale Semiconductor, Inc.
+ * Copyright 2008-2010, 2011 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -49,10 +49,16 @@ int board_early_init_f (void)
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 
 	setbits_be32(&gur->pmuxcr,
-			(MPC85xx_PMUXCR_SD_DATA |
-			 MPC85xx_PMUXCR_SDHC_CD |
+			(MPC85xx_PMUXCR_SDHC_CD |
 			 MPC85xx_PMUXCR_SDHC_WP));
 
+	/* The MPC8536DS board insert the SDHC_WP pin for erratum NMG_eSDHC118,
+	 * however, this erratum only applies to MPC8536 Rev1.0.
+	 * So set SDHC_WP to active-low when use MPC8536 Rev1.1 and greater.*/
+	if ((((SVR_MAJ(get_svr()) & 0x7) == 0x1) &&
+			(SVR_MIN(get_svr()) >= 0x1))
+			|| (SVR_MAJ(get_svr() & 0x7) > 0x1))
+		setbits_be32(&gur->gencfgr, MPC85xx_GENCFGR_SDHC_WP_INV);
 #endif
 	return 0;
 }

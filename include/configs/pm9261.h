@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Ilko Iliev <www.ronetix.at>
  *
@@ -51,6 +51,9 @@
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 #define CONFIG_SYS_TEXT_BASE	0
+
+#define MACH_TYPE_PM9261	1187
+#define CONFIG_MACH_TYPE	MACH_TYPE_PM9261
 
 /* clocks */
 /* CKGR_MOR - enable main osc. */
@@ -158,6 +161,7 @@
 #define CONFIG_INITRD_TAG	1
 
 #undef CONFIG_SKIP_LOWLEVEL_INIT
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * Hardware drivers
@@ -256,7 +260,6 @@
 #define CONFIG_DM9000_USE_16BIT			1
 #define CONFIG_NET_RETRY_COUNT			20
 #define CONFIG_RESET_PHY_R			1
-#define CONFIG_NET_MULTI
 
 /* USB */
 #define CONFIG_USB_ATMEL

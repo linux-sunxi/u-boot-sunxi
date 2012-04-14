@@ -37,6 +37,7 @@
  * High Level Configuration Options
  * (easy to change)
  */
+#define CONFIG_SYS_TEXT_BASE		0x01000000
 #define CONFIG_SYS_MEMTEST_START	0x100000
 #define CONFIG_SYS_MEMTEST_END		0x10000000
 #define CONFIG_SYS_HZ			1000
@@ -54,7 +55,6 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111
 #define CONFIG_SMC_USE_32_BIT
 #define CONFIG_SMC91111_BASE    0xC8000000

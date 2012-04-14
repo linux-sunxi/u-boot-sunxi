@@ -175,7 +175,7 @@ static char default_environment[] = {
 	"autoload=" CONFIG_SYS_AUTOLOAD "\0"
 #endif
 #ifdef	CONFIG_ROOTPATH
-	"rootpath=" MK_STR (CONFIG_ROOTPATH) "\0"
+	"rootpath=" CONFIG_ROOTPATH "\0"
 #endif
 #ifdef	CONFIG_GATEWAYIP
 	"gatewayip=" MK_STR (CONFIG_GATEWAYIP) "\0"
@@ -187,7 +187,7 @@ static char default_environment[] = {
 	"hostname=" MK_STR (CONFIG_HOSTNAME) "\0"
 #endif
 #ifdef	CONFIG_BOOTFILE
-	"bootfile=" MK_STR (CONFIG_BOOTFILE) "\0"
+	"bootfile=" CONFIG_BOOTFILE "\0"
 #endif
 #ifdef	CONFIG_LOADADDR
 	"loadaddr=" MK_STR (CONFIG_LOADADDR) "\0"
@@ -488,7 +488,7 @@ int fw_setenv(int argc, char *argv[])
 			value = (char *)malloc(len - strlen(name));
 			if (!value) {
 				fprintf(stderr,
-				"Cannot malloc %u bytes: %s\n",
+				"Cannot malloc %zu bytes: %s\n",
 				len - strlen(name), strerror(errno));
 				return -1;
 			}
@@ -802,7 +802,7 @@ static int flash_write_buf (int dev, int fd, void *buf, size_t count,
 		data = malloc (erase_len);
 		if (!data) {
 			fprintf (stderr,
-				 "Cannot malloc %u bytes: %s\n",
+				 "Cannot malloc %zu bytes: %s\n",
 				 erase_len, strerror (errno));
 			return -1;
 		}

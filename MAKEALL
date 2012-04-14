@@ -16,6 +16,7 @@ usage()
 	  -c CPU,    --cpu CPU         Build all boards with cpu CPU
 	  -v VENDOR, --vendor VENDOR   Build all boards with vendor VENDOR
 	  -s SOC,    --soc SOC         Build all boards with soc SOC
+	  -l,        --list            List all targets to be built
 	  -h,        --help            This help output
 
 	Selections by these options are logically ANDed; if the same option
@@ -47,8 +48,8 @@ usage()
 	exit ${ret}
 }
 
-SHORT_OPTS="ha:c:v:s:"
-LONG_OPTS="help,arch:,cpu:,vendor:,soc:"
+SHORT_OPTS="ha:c:v:s:l"
+LONG_OPTS="help,arch:,cpu:,vendor:,soc:,list"
 
 # Option processing based on util-linux-2.13/getopt-parse.bash
 
@@ -65,6 +66,7 @@ TEMP=`getopt -o ${SHORT_OPTS} --long ${LONG_OPTS} \
 eval set -- "$TEMP"
 
 SELECTED=''
+ONLY_LIST=''
 
 while true ; do
 	case "$1" in
@@ -104,6 +106,9 @@ while true ; do
 		fi
 		SELECTED='y'
 		shift 2 ;;
+	-l|--list)
+		ONLY_LIST='y'
+		shift ;;
 	-h|--help)
 		usage ;;
 	--)
@@ -303,20 +308,15 @@ LIST_SA="$(boards_by_cpu sa1100)"
 LIST_ARM9="$(boards_by_cpu arm920t)	\
 	$(boards_by_cpu arm926ejs)	\
 	$(boards_by_cpu arm925t)	\
-	omap1610h2		\
-	omap1610inn		\
-	omap730p2		\
 "
 
 #########################################################################
 ## ARM11 Systems
 #########################################################################
 LIST_ARM11="$(boards_by_cpu arm1136)	\
-	apollon			\
 	imx31_phycore		\
 	imx31_phycore_eet	\
 	mx31pdk			\
-	mx31pdk_nand		\
 	smdk6400		\
 "
 
@@ -379,14 +379,11 @@ LIST_mips4kc="		\
 	vct_premium_onenand_small	\
 "
 
-LIST_mips5kc=""
-
 LIST_au1xx0="		\
 	dbau1000	\
 	dbau1100	\
 	dbau1500	\
 	dbau1550	\
-	dbau1550_el	\
 	gth2		\
 "
 
@@ -400,18 +397,16 @@ LIST_mips="		\
 ## MIPS Systems		(little endian)
 #########################################################################
 
-LIST_mips4kc_el=""
-
-LIST_mips5kc_el=""
+LIST_xburst_el="	\
+	qi_lb60		\
+"
 
 LIST_au1xx0_el="	\
 	dbau1550_el	\
 	pb1000		\
 "
-
 LIST_mips_el="			\
-	${LIST_mips4kc_el}	\
-	${LIST_mips5kc_el}	\
+	${LIST_xburst_el}	\
 	${LIST_au1xx0_el}	\
 "
 
@@ -437,20 +432,15 @@ LIST_microblaze="$(boards_by_arch microblaze)"
 ## ColdFire Systems
 #########################################################################
 
-LIST_coldfire="$(boards_by_arch m68k)
-	astro_mcf5373l		\
-	cobra5272		\
+LIST_m68k="$(boards_by_arch m68k)
 	EB+MCF-EV123		\
 	EB+MCF-EV123_internal	\
 	M52277EVB		\
 	M5235EVB		\
-	M5329AFEE		\
-	M5373EVB		\
 	M54451EVB		\
 	M54455EVB		\
-	M5475AFE		\
-	M5485AFE		\
 "
+LIST_coldfire=${LIST_m68k}
 
 #########################################################################
 ## AVR32 Systems
@@ -480,10 +470,21 @@ LIST_sh="$(boards_by_arch sh)"
 
 LIST_sparc="$(boards_by_arch sparc)"
 
+#########################################################################
+## NDS32 Systems
+#########################################################################
+
+LIST_nds32="$(boards_by_arch nds32)"
+
 #-----------------------------------------------------------------------
 
 build_target() {
 	target=$1
+
+	if [ "$ONLY_LIST" == 'y' ] ; then
+		echo "$target"
+		return
+	fi
 
 	${MAKE} distclean >/dev/null
 	${MAKE} -s ${target}_config
@@ -528,6 +529,7 @@ build_targets() {
 #-----------------------------------------------------------------------
 
 print_stats() {
+	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
 	echo ""
 	echo "--------------------- SUMMARY ----------------------------"
 	echo "Boards compiled: ${TOTAL_CNT}"

@@ -4,7 +4,7 @@
  * esd electronic system design gmbh <www.esd.eu>
  *
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the esd OTC570 board.
@@ -44,6 +44,13 @@
  * hex number here!
  */
 #define CONFIG_SYS_TEXT_BASE		0x20002000
+
+/*
+ * since a number of boards are not being listed in linux
+ * arch/arm/tools/mach-types any more, the mach-types have to be
+ * defined here
+ */
+#define MACH_TYPE_OTC570		2166
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_SLOW_CLOCK	32768	/* 32.768 kHz crystal */
@@ -214,7 +221,6 @@
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_FIT
 #define CONFIG_NET_RETRY_COUNT			20
 #undef CONFIG_RESET_PHY_R

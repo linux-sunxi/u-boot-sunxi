@@ -101,6 +101,7 @@
 #include <common.h>
 #include <version.h>
 #include <malloc.h>
+#include <linux/compiler.h>
 
 /*
  * Console device defines with SMI graphic
@@ -161,6 +162,13 @@
 #endif
 
 /*
+ * Defines for the i.MX31 driver (mx3fb.c)
+ */
+#if defined(CONFIG_VIDEO_MX3) || defined(CONFIG_VIDEO_MX5)
+#define VIDEO_FB_16BPP_WORD_SWAP
+#endif
+
+/*
  * Include video_fb.h after definitions of VIDEO_HW_RECTFILL etc.
  */
 #include <video_fb.h>
@@ -195,6 +203,7 @@
 #include <linux/types.h>
 #include <stdio_dev.h>
 #include <video_font.h>
+#include <video_font_data.h>
 
 #if defined(CONFIG_CMD_DATE)
 #include <rtc.h>
@@ -233,8 +242,9 @@
 #define CURSOR_SET
 #endif
 
-#ifdef	CONFIG_CONSOLE_CURSOR
-#ifdef	CURSOR_ON
+#if defined(CONFIG_CONSOLE_CURSOR) || defined(CONFIG_VIDEO_SW_CURSOR)
+#if defined(CURSOR_ON) || \
+	(defined(CONFIG_CONSOLE_CURSOR) && defined(CONFIG_VIDEO_SW_CURSOR))
 #error	only one of CONFIG_CONSOLE_CURSOR, CONFIG_VIDEO_SW_CURSOR, \
 	or CONFIG_VIDEO_HW_CURSOR can be defined
 #endif
@@ -242,26 +252,17 @@ void console_cursor(int state);
 
 #define CURSOR_ON  console_cursor(1)
 #define CURSOR_OFF console_cursor(0)
-#define CURSOR_SET
+#define CURSOR_SET video_set_cursor()
+#endif /* CONFIG_CONSOLE_CURSOR || CONFIG_VIDEO_SW_CURSOR */
+
+#ifdef	CONFIG_CONSOLE_CURSOR
+#ifndef	CONFIG_CONSOLE_TIME
+#error	CONFIG_CONSOLE_CURSOR must be defined for CONFIG_CONSOLE_TIME
+#endif
 #ifndef CONFIG_I8042_KBD
 #warning Cursor drawing on/off needs timer function s.a. drivers/input/i8042.c
 #endif
-#else
-#ifdef	CONFIG_CONSOLE_TIME
-#error	CONFIG_CONSOLE_CURSOR must be defined for CONFIG_CONSOLE_TIME
-#endif
 #endif /* CONFIG_CONSOLE_CURSOR */
-
-#ifdef	CONFIG_VIDEO_SW_CURSOR
-#ifdef	CURSOR_ON
-#error	only one of CONFIG_CONSOLE_CURSOR, CONFIG_VIDEO_SW_CURSOR, \
-	or CONFIG_VIDEO_HW_CURSOR can be defined
-#endif
-#define CURSOR_ON
-#define CURSOR_OFF video_putchar(console_col * VIDEO_FONT_WIDTH,\
-				 console_row * VIDEO_FONT_HEIGHT, ' ')
-#define CURSOR_SET video_set_cursor()
-#endif /* CONFIG_VIDEO_SW_CURSOR */
 
 
 #ifdef CONFIG_VIDEO_HW_CURSOR
@@ -278,6 +279,7 @@ void console_cursor(int state);
 #ifdef	CONFIG_VIDEO_LOGO
 #ifdef	CONFIG_VIDEO_BMP_LOGO
 #include <bmp_logo.h>
+#include <bmp_logo_data.h>
 #define VIDEO_LOGO_WIDTH	BMP_LOGO_WIDTH
 #define VIDEO_LOGO_HEIGHT	BMP_LOGO_HEIGHT
 #define VIDEO_LOGO_LUT_OFFSET	BMP_LOGO_OFFSET
@@ -366,6 +368,10 @@ static void *video_console_address;	/* console buffer start address */
 
 static int video_logo_height = VIDEO_LOGO_HEIGHT;
 
+static int __maybe_unused cursor_state;
+static int __maybe_unused old_col;
+static int __maybe_unused old_row;
+
 static int console_col;		/* cursor col */
 static int console_row;		/* cursor row */
 
@@ -423,7 +429,6 @@ static const int video_font_draw_table32[16][4] = {
 	{0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00000000},
 	{0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff}
 };
-
 
 static void video_drawchars(int xx, int yy, unsigned char *s, int count)
 {
@@ -600,27 +605,28 @@ static void video_putchar(int xx, int yy, unsigned char c)
 #if defined(CONFIG_CONSOLE_CURSOR) || defined(CONFIG_VIDEO_SW_CURSOR)
 static void video_set_cursor(void)
 {
-	/* swap drawing colors */
-	eorx = fgx;
-	fgx = bgx;
-	bgx = eorx;
-	eorx = fgx ^ bgx;
-	/* draw cursor */
-	video_putchar(console_col * VIDEO_FONT_WIDTH,
-		      console_row * VIDEO_FONT_HEIGHT, ' ');
-	/* restore drawing colors */
-	eorx = fgx;
-	fgx = bgx;
-	bgx = eorx;
-	eorx = fgx ^ bgx;
+	if (cursor_state)
+		console_cursor(0);
+	console_cursor(1);
 }
-#endif
 
-#ifdef CONFIG_CONSOLE_CURSOR
+static void video_invertchar(int xx, int yy)
+{
+	int firstx = xx * VIDEO_PIXEL_SIZE;
+	int lastx = (xx + VIDEO_FONT_WIDTH) * VIDEO_PIXEL_SIZE;
+	int firsty = yy * VIDEO_LINE_LEN;
+	int lasty = (yy + VIDEO_FONT_HEIGHT) * VIDEO_LINE_LEN;
+	int x, y;
+	for (y = firsty; y < lasty; y += VIDEO_LINE_LEN) {
+		for (x = firstx; x < lastx; x++) {
+			u8 *dest = (u8 *)(video_fb_address) + x + y;
+			*dest = ~*dest;
+		}
+	}
+}
+
 void console_cursor(int state)
 {
-	static int last_state = 0;
-
 #ifdef CONFIG_CONSOLE_TIME
 	struct rtc_time tm;
 	char info[16];
@@ -642,17 +648,22 @@ void console_cursor(int state)
 	}
 #endif
 
-	if (state && (last_state != state)) {
-		video_set_cursor();
+	if (cursor_state != state) {
+		if (cursor_state) {
+			/* turn off the cursor */
+			video_invertchar(old_col * VIDEO_FONT_WIDTH,
+					 old_row * VIDEO_FONT_HEIGHT +
+					 video_logo_height);
+		} else {
+			/* turn off the cursor and record where it is */
+			video_invertchar(console_col * VIDEO_FONT_WIDTH,
+					 console_row * VIDEO_FONT_HEIGHT +
+					 video_logo_height);
+			old_col = console_col;
+			old_row = console_row;
+		}
+		cursor_state = state;
 	}
-
-	if (!state && (last_state != state)) {
-		/* clear cursor */
-		video_putchar(console_col * VIDEO_FONT_WIDTH,
-			      console_row * VIDEO_FONT_HEIGHT, ' ');
-	}
-
-	last_state = state;
 }
 #endif
 
@@ -719,19 +730,11 @@ static void console_back(void)
 		if (console_row < 0)
 			console_row = 0;
 	}
-	video_putchar(console_col * VIDEO_FONT_WIDTH,
-		      console_row * VIDEO_FONT_HEIGHT, ' ');
+	CURSOR_SET;
 }
 
 static void console_newline(void)
 {
-	/* Check if last character in the line was just drawn. If so, cursor was
-	   overwriten and need not to be cleared. Cursor clearing without this
-	   check causes overwriting the 1st character of the line if line lenght
-	   is >= CONSOLE_COLS
-	 */
-	if (console_col < CONSOLE_COLS)
-		CURSOR_OFF;
 	console_row++;
 	console_col = 0;
 
@@ -747,13 +750,14 @@ static void console_newline(void)
 
 static void console_cr(void)
 {
-	CURSOR_OFF;
 	console_col = 0;
 }
 
 void video_putc(const char c)
 {
 	static int nl = 1;
+
+	CURSOR_OFF;
 
 	switch (c) {
 	case 13:		/* back to first column */
@@ -767,7 +771,6 @@ void video_putc(const char c)
 		break;
 
 	case 9:		/* tab 8 */
-		CURSOR_OFF;
 		console_col |= 0x0008;
 		console_col &= ~0x0007;
 
@@ -1145,7 +1148,7 @@ int video_display_bitmap(ulong bmp_image, int x, int y)
 	colors = le32_to_cpu(bmp->header.colors_used);
 	compression = le32_to_cpu(bmp->header.compression);
 
-	debug("Display-bmp: %d x %d  with %d colors\n",
+	debug("Display-bmp: %ld x %ld  with %d colors\n",
 	      width, height, colors);
 
 	if (compression != BMP_BI_RGB
@@ -1553,7 +1556,8 @@ void logo_plot(void *screen, int width, int x, int y)
 static void *video_logo(void)
 {
 	char info[128];
-	int space, len, y_off = 0;
+	int space, len;
+	__maybe_unused int y_off = 0;
 
 #ifdef CONFIG_SPLASH_SCREEN
 	char *s;

@@ -45,6 +45,8 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX31_3DS
+
 #if defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #endif
@@ -59,7 +61,7 @@
  */
 
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX31_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_HW_WATCHDOG
 #define CONFIG_MXC_GPIO
 
@@ -68,12 +70,16 @@
 #define CONFIG_DEFAULT_SPI_BUS	1
 #define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
 
-#define CONFIG_FSL_PMIC
+/* PMIC Controller */
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS	1
 #define CONFIG_FSL_PMIC_CS	2
 #define CONFIG_FSL_PMIC_CLK	1000000
 #define CONFIG_FSL_PMIC_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
-#define CONFIG_RTC_MC13783
+#define CONFIG_FSL_PMIC_BITLEN	32
+#define CONFIG_RTC_MC13XXX
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -100,7 +106,7 @@
  */
 #undef CONFIG_CMD_IMLS
 
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_BOOTDELAY	3
 
@@ -115,7 +121,6 @@
 		"nand erase 0x0 0x40000; "				\
 		"nand write 0x81000000 0x0 0x40000\0"
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_BASE	0xB6000000
 #define CONFIG_SMC911X_32_BIT
@@ -124,7 +129,7 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP	/* undef to save memory */
-#define CONFIG_SYS_PROMPT	"uboot> "
+#define CONFIG_SYS_PROMPT	"MX31PDK U-Boot > "
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE + \

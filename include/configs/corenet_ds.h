@@ -56,7 +56,6 @@
 #define CONFIG_PCI			/* Enable PCI/PCIE */
 #define CONFIG_PCIE1			/* PCIE controler 1 */
 #define CONFIG_PCIE2			/* PCIE controler 2 */
-#define CONFIG_PCIE3			/* PCIE controler 3 */
 #define CONFIG_FSL_PCI_INIT		/* Use common FSL init code */
 #define CONFIG_SYS_PCI_64BIT		/* enable 64-bit PCI resources */
 
@@ -144,19 +143,6 @@
 #define CONFIG_SYS_L3_SIZE		(1024 << 10)
 #define CONFIG_SYS_INIT_L3_END (CONFIG_SYS_INIT_L3_ADDR + CONFIG_SYS_L3_SIZE)
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xfe000000	/* CCSRBAR Default */
-#define CONFIG_SYS_CCSRBAR		0xfe000000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS		0xffe000000ull	/* physical addr of CCSRBAR */
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR	/* physical addr of CCSRBAR */
-#endif
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR */
-
 #ifdef CONFIG_PHYS_64BIT
 #define CONFIG_SYS_DCSRBAR		0xf0000000
 #define CONFIG_SYS_DCSRBAR_PHYS		0xf00000000ull
@@ -182,7 +168,11 @@
 #define CONFIG_DDR_SPD
 #define CONFIG_FSL_DDR3
 
+#ifdef CONFIG_P3060QDS
+#define CONFIG_SYS_SPD_BUS_NUM	0
+#else
 #define CONFIG_SYS_SPD_BUS_NUM	1
+#endif
 #define SPD_EEPROM_ADDRESS1	0x51
 #define SPD_EEPROM_ADDRESS2	0x52
 #define SPD_EEPROM_ADDRESS	SPD_EEPROM_ADDRESS1	/* for p3041/p5010 */
@@ -212,7 +202,6 @@
 	(BR_PHYS_ADDR(CONFIG_SYS_FLASH_BASE_PHYS) | BR_PS_16 | BR_V)
 #define CONFIG_SYS_OR1_PRELIM	0xf8000ff7
 
-#define CONFIG_FSL_NGPIXIS		/* use common ngPIXIS code */
 #define PIXIS_BASE		0xffdf0000	/* PIXIS registers */
 #ifdef CONFIG_PHYS_64BIT
 #define PIXIS_BASE_PHYS		0xfffdf0000ull
@@ -243,8 +232,6 @@
 #endif
 
 /* Nand Flash */
-#if defined(CONFIG_P3041DS) || defined(CONFIG_P5020DS)
-#define CONFIG_NAND_FSL_ELBC
 #ifdef CONFIG_NAND_FSL_ELBC
 #define CONFIG_SYS_NAND_BASE		0xffa00000
 #ifdef CONFIG_PHYS_64BIT
@@ -285,11 +272,10 @@
 #define CONFIG_SYS_BR2_PRELIM  CONFIG_SYS_NAND_BR_PRELIM /* NAND Base Address */
 #define CONFIG_SYS_OR2_PRELIM  CONFIG_SYS_NAND_OR_PRELIM /* NAND Options */
 #endif
-#endif /* CONFIG_NAND_FSL_ELBC */
 #else
 #define CONFIG_SYS_BR0_PRELIM  CONFIG_SYS_FLASH_BR_PRELIM /* NOR Base Address */
 #define CONFIG_SYS_OR0_PRELIM  CONFIG_SYS_FLASH_OR_PRELIM /* NOR Options */
-#endif
+#endif /* CONFIG_NAND_FSL_ELBC */
 
 #define CONFIG_SYS_FLASH_EMPTY_INFO
 #define CONFIG_SYS_FLASH_AMD_CHECK_DQ7
@@ -487,34 +473,39 @@
 #define CONFIG_SYS_DPAA_FMAN
 #define CONFIG_SYS_DPAA_PME
 /* Default address of microcode for the Linux Fman driver */
-#define CONFIG_SYS_FMAN_FW
 #if defined(CONFIG_SPIFLASH)
 /*
  * env is stored at 0x100000, sector size is 0x10000, ucode is stored after
  * env, so we got 0x110000.
  */
-#define CONFIG_SYS_QE_FW_IN_SPIFLASH	0x110000
+#define CONFIG_SYS_QE_FW_IN_SPIFLASH
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0x110000
 #elif defined(CONFIG_SDCARD)
 /*
  * PBL SD boot image should stored at 0x1000(8 blocks), the size of the image is
  * about 545KB (1089 blocks), Env is stored after the image, and the env size is
  * 0x2000 (16 blocks), 8 + 1089 + 16 = 1113, enlarge it to 1130.
  */
-#define CONFIG_SYS_QE_FW_IN_MMC		(512 * 1130)
+#define CONFIG_SYS_QE_FMAN_FW_IN_MMC
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	(512 * 1130)
 #elif defined(CONFIG_NAND)
-#define CONFIG_SYS_QE_FW_IN_NAND	(6 * CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_SYS_QE_FMAN_FW_IN_NAND
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	(6 * CONFIG_SYS_NAND_BLOCK_SIZE)
 #else
-#define CONFIG_SYS_FMAN_FW_ADDR		0xEF000000
+#define CONFIG_SYS_QE_FMAN_FW_IN_NOR
+#define CONFIG_SYS_QE_FMAN_FW_ADDR		0xEF000000
 #endif
-#define CONFIG_SYS_FMAN_FW_LENGTH	0x10000
-#define CONFIG_SYS_FDT_PAD		(0x3000 + CONFIG_SYS_FMAN_FW_LENGTH)
+#define CONFIG_SYS_QE_FMAN_FW_LENGTH	0x10000
+#define CONFIG_SYS_FDT_PAD		(0x3000 + CONFIG_SYS_QE_FMAN_FW_LENGTH)
 
 #ifdef CONFIG_SYS_DPAA_FMAN
 #define CONFIG_FMAN_ENET
+#define CONFIG_PHYLIB_10G
+#define CONFIG_PHY_VITESSE
+#define CONFIG_PHY_TERANETICS
 #endif
 
 #ifdef CONFIG_PCI
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_E1000
 
@@ -580,6 +571,7 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SETEXPR
+#define CONFIG_CMD_REGINFO
 
 #ifdef CONFIG_PCI
 #define CONFIG_CMD_PCI
@@ -596,8 +588,6 @@
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
 #define CONFIG_CMD_EXT2
 #define CONFIG_HAS_FSL_DR_USB
-
-#define CONFIG_MMC
 
 #ifdef CONFIG_MMC
 #define CONFIG_FSL_ESDHC
@@ -644,8 +634,8 @@
 /*
  * Environment Configuration
  */
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 
 /* default location for tftp and bootm */
@@ -655,7 +645,7 @@
 
 #define CONFIG_BAUDRATE	115200
 
-#if defined(CONFIG_P4080DS)
+#if defined(CONFIG_P4080DS) || defined(CONFIG_P3060QDS)
 #define __USB_PHY_TYPE	ulpi
 #else
 #define __USB_PHY_TYPE	utmi
@@ -707,5 +697,9 @@
 	"bootm $loadaddr $ramdiskaddr $fdtaddr"
 
 #define CONFIG_BOOTCOMMAND		CONFIG_HDBOOT
+
+#ifdef CONFIG_SECURE_BOOT
+#include <asm/fsl_secure_boot.h>
+#endif
 
 #endif	/* __CONFIG_H */

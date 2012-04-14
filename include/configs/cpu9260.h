@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Ilko Iliev <www.ronetix.at>
  *
@@ -327,7 +327,6 @@
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT			20
 #define CONFIG_MACB_SEARCH_PHY
 

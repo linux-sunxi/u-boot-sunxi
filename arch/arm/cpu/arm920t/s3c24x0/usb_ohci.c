@@ -765,10 +765,9 @@ static void td_submit_job(struct usb_device *dev, unsigned long pipe,
 
 static void dl_transfer_length(struct td *td)
 {
-	__u32 tdINFO, tdBE, tdCBP;
+	__u32 tdBE, tdCBP;
 	struct urb_priv *lurb_priv = &urb_priv;
 
-	tdINFO = m32_swap(td->hwINFO);
 	tdBE = m32_swap(td->hwBE);
 	tdCBP = m32_swap(td->hwCBP);
 
@@ -1042,8 +1041,12 @@ static int ohci_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 	int leni = transfer_len;
 	int len = 0;
 	int stat = 0;
-	__u32 datab[4];
-	__u8 *data_buf = (__u8 *) datab;
+	union {
+		__u32 word[4];
+		__u16 hword[8];
+		__u8 byte[16];
+	} datab;
+	__u8 *data_buf = datab.byte;
 	__u16 bmRType_bReq;
 	__u16 wValue;
 	__u16 wIndex;
@@ -1079,20 +1082,20 @@ static int ohci_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 		 */
 
 	case RH_GET_STATUS:
-		*(__u16 *) data_buf = m16_swap(1);
+		datab.hword[0] = m16_swap(1);
 		OK(2);
 	case RH_GET_STATUS | RH_INTERFACE:
-		*(__u16 *) data_buf = m16_swap(0);
+		datab.hword[0] = m16_swap(0);
 		OK(2);
 	case RH_GET_STATUS | RH_ENDPOINT:
-		*(__u16 *) data_buf = m16_swap(0);
+		datab.hword[0] = m16_swap(0);
 		OK(2);
 	case RH_GET_STATUS | RH_CLASS:
-		*(__u32 *) data_buf =
+		datab.word[0] =
 		    m32_swap(RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));
 		OK(4);
 	case RH_GET_STATUS | RH_OTHER | RH_CLASS:
-		*(__u32 *) data_buf = m32_swap(RD_RH_PORTSTAT);
+		datab.word[0] = m32_swap(RD_RH_PORTSTAT);
 		OK(4);
 
 	case RH_CLEAR_FEATURE | RH_ENDPOINT:
@@ -1224,7 +1227,7 @@ static int ohci_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 				data_buf[3] |= 0x8;
 
 			/* corresponds to data_buf[4-7] */
-			datab[1] = 0;
+			datab.word[1] = 0;
 			data_buf[5] = (temp & RH_A_POTPGT) >> 24;
 			temp = roothub_b(&gohci);
 			data_buf[7] = temp & RH_B_DR;
@@ -1541,7 +1544,6 @@ static int hc_start(struct ohci *ohci)
 	writel(RH_HS_LPSC, &ohci->regs->roothub.status);
 #endif /* OHCI_USE_NPS */
 
-#define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 	/* POTPGT delay is bits 24-31, in 2 ms units. */
 	mdelay((roothub_a(ohci) >> 23) & 0x1fe);
 

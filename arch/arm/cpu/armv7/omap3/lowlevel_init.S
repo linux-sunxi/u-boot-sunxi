@@ -35,6 +35,16 @@
 _TEXT_BASE:
 	.word	CONFIG_SYS_TEXT_BASE	/* sdram load addr from config.mk */
 
+.global save_boot_params
+save_boot_params:
+#ifdef CONFIG_SPL_BUILD
+	ldr	r4, =omap3_boot_device
+	ldr	r5, [r0, #0x4]
+	and	r5, r5, #0xff
+	str	r5, [r4]
+#endif
+	bx	lr
+
 .global omap3_gp_romcode_call
 omap3_gp_romcode_call:
 	PUSH {r4-r12, lr} @ Save all registers from ROM code!
@@ -206,6 +216,14 @@ lowlevel_init:
 	ldr	sp, SRAM_STACK
 	str	ip, [sp]	/* stash old link register */
 	mov	ip, lr		/* save link reg across call */
+#if !defined(CONFIG_SYS_NAND_BOOT) && !defined(CONFIG_SYS_ONENAND_BOOT)
+/*
+ * No need to copy/exec the clock code - DPLL adjust already done
+ * in NAND/oneNAND Boot.
+ */
+	ldr	r1, =SRAM_CLK_CODE
+	bl	cpy_clk_code
+#endif /* NAND Boot */
 	bl	s_init		/* go setup pll, mux, memory */
 	ldr	ip, [sp]	/* restore save ip */
 	mov	lr, ip		/* restore link reg */

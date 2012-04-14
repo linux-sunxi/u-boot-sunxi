@@ -157,7 +157,7 @@ unsigned long flash_init (void)
 	int i;
 
 #if !defined(CONFIG_PATI)
-	unsigned long size_b1,flashcr,size_reg;
+	unsigned long flashcr,size_reg;
 	int mode;
 	extern char version_string;
 	char *p = &version_string;
@@ -197,7 +197,6 @@ unsigned long flash_init (void)
 #if !defined(CONFIG_PATI)
 	/* protect reset vector */
 	flash_info[0].protect[flash_info[0].sector_count-1] = 1;
-	size_b1 = 0 ;
 	flash_info[0].size = size_b0;
 	/* set up flash cs according to the size */
 	size_reg=(flash_info[0].size >>20);
@@ -600,7 +599,7 @@ int	flash_erase (flash_info_t *info, int s_first, int s_last)
 {
 	volatile FLASH_WORD_SIZE *addr = (FLASH_WORD_SIZE *)(info->start[0]);
 	volatile FLASH_WORD_SIZE *addr2;
-	int flag, prot, sect, l_sect;
+	int flag, prot, sect;
 	int i, rcode = 0;
 
 
@@ -631,8 +630,6 @@ int	flash_erase (flash_info_t *info, int s_first, int s_last)
 	} else {
 		printf ("\n");
 	}
-
-	l_sect = -1;
 
 	/* Disable interrupts which might cause a timeout here */
 	flag = disable_interrupts();
@@ -672,7 +669,6 @@ int	flash_erase (flash_info_t *info, int s_first, int s_last)
 					rcode |= wait_for_DQ7(info, sect);
 				}
 			}
-			l_sect = sect;
 			/*
 			 * Wait for each sector to complete, it's more
 			 * reliable.  According to AMD Spec, you must
@@ -691,16 +687,6 @@ int	flash_erase (flash_info_t *info, int s_first, int s_last)
 	/* wait at least 80us - let's wait 1 ms */
 	udelay (1000);
 
-#if 0
-	/*
-	 * We wait for the last triggered sector
-	 */
-	if (l_sect < 0)
-		goto DONE;
-	wait_for_DQ7(info, l_sect);
-
-DONE:
-#endif
 	/* reset to read mode */
 	addr = (FLASH_WORD_SIZE *)info->start[0];
 	addr[0] = (FLASH_WORD_SIZE)0x00F000F0;	/* reset bank */

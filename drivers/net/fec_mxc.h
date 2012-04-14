@@ -32,6 +32,8 @@
 #ifndef __FEC_MXC_H
 #define __FEC_MXC_H
 
+void imx_get_mac_from_fuse(unsigned char *mac);
+
 /**
  * Layout description of the FEC
  */
@@ -194,6 +196,7 @@ struct ethernet_regs {
 #define FEC_RCNTRL_PROM			0x00000008
 #define FEC_RCNTRL_BC_REJ		0x00000010
 #define FEC_RCNTRL_FCE			0x00000020
+#define FEC_RCNTRL_RMII			0x00000100
 
 #define FEC_TCNTRL_GTS			0x00000001
 #define FEC_TCNTRL_HBC			0x00000002
@@ -257,7 +260,8 @@ struct fec_bd {
 enum xceiver_type {
 	SEVENWIRE,	/* 7-wire       */
 	MII10,		/* MII 10Mbps   */
-	MII100		/* MII 100Mbps  */
+	MII100,		/* MII 100Mbps  */
+	RMII		/* RMII */
 };
 
 /**
@@ -273,6 +277,9 @@ struct fec_priv {
 	bd_t *bd;
 	void *rdb_ptr;
 	void *base_ptr;
+	int dev_id;
+	int phy_id;
+	int (*mii_postcall)(int);
 };
 
 /**

@@ -36,6 +36,9 @@
 #ifndef _CONFIG_KM_ARM_H
 #define _CONFIG_KM_ARM_H
 
+/* We got removed from Linux mach-types.h */
+#define MACH_TYPE_KM_KIRKWOOD          2255
+
 /*
  * High Level Configuration Options (easy to change)
  */
@@ -44,6 +47,8 @@
 #define CONFIG_KIRKWOOD			/* SOC Family Name */
 #define CONFIG_KW88F6281		/* SOC Name */
 #define CONFIG_MACH_KM_KIRKWOOD		/* Machine type */
+
+#define CONFIG_MACH_TYPE	MACH_TYPE_KM_KIRKWOOD
 
 /* include common defines/options for all Keymile boards */
 #include "keymile-common.h"
@@ -54,7 +59,7 @@
 
 #include "asm/arch/config.h"
 
-#define CONFIG_SYS_TEXT_BASE	0x04000000	/* code address after reloc */
+#define CONFIG_SYS_TEXT_BASE	0x07d00000	/* code address before reloc */
 #define CONFIG_SYS_MEMTEST_START 0x00400000	/* 4M */
 #define CONFIG_SYS_MEMTEST_END	0x007fffff	/*(_8M -1) */
 #define CONFIG_SYS_LOAD_ADDR	0x00800000	/* default load adr- 8M */
@@ -69,7 +74,8 @@
 
 /* architecture specific default bootargs */
 #define CONFIG_KM_DEF_BOOT_ARGS_CPU					\
-		"bootcountaddr=${bootcountaddr} ${mtdparts}"
+		"bootcountaddr=${bootcountaddr} ${mtdparts}"		\
+		" boardid=0x${IVM_BoardId} hwkey=0x${IVM_HWKey}"
 
 #define CONFIG_KM_DEF_ENV_CPU						\
 	"boot=bootm ${load_addr_r} - -\0"				\
@@ -153,7 +159,6 @@
  * Ethernet Driver configuration
  */
 #define CONFIG_NETCONSOLE	/* include NetConsole support   */
-#define CONFIG_NET_MULTI	/* specify more that one ports available */
 #define CONFIG_MII		/* expose smi ove miiphy interface */
 #define CONFIG_MVGBE		/* Enable Marvell Gbe Controller Driver */
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	/* detect link using phy */
@@ -255,7 +260,6 @@ int get_scl(void);
 #if defined(CONFIG_SYS_NO_FLASH)
 #define CONFIG_KM_UBI_PARTITION_NAME   "ubi0"
 #undef	CONFIG_FLASH_CFI_MTD
-#undef	CONFIG_CMD_JFFS2
 #undef	CONFIG_JFFS2_CMDLINE
 #endif
 
@@ -271,5 +275,11 @@ int get_scl(void);
 #define CONFIG_KM_RESERVED_PRAM 0x801000
 /* address for the bootcount (taken from end of RAM) */
 #define BOOTCOUNT_ADDR          (CONFIG_KM_RESERVED_PRAM)
+
+/* enable POST tests */
+#define CONFIG_POST	(CONFIG_SYS_POST_MEM_REGIONS)
+#define CONFIG_POST_SKIP_ENV_FLAGS
+#define CONFIG_POST_EXTERNAL_WORD_FUNCS
+#define CONFIG_CMD_DIAG
 
 #endif /* _CONFIG_KM_ARM_H */

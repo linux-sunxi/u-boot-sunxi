@@ -43,8 +43,9 @@
 #define CONFIG_FSL_PCIE_RESET		/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT		/* enable 64-bit PCI resources */
 
-#ifdef CONFIG_PHYS_64BIT
 #define CONFIG_ENABLE_36BIT_PHYS
+
+#ifdef CONFIG_PHYS_64BIT
 #define CONFIG_ADDR_MAP
 #define CONFIG_SYS_NUM_ADDR_MAP		16	/* number of TLB1 entries */
 #endif
@@ -64,18 +65,8 @@
 #define CONFIG_SYS_MEMTEST_START	0x00000000
 #define CONFIG_SYS_MEMTEST_END		0x7fffffff
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
-#define CONFIG_SYS_CCSRBAR		0xffe00000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS		0xfffe00000ull
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS		CONFIG_SYS_CCSRBAR
-#endif
-#define CONFIG_SYS_IMMR			CONFIG_SYS_CCSRBAR
+#define CONFIG_SYS_CCSRBAR		0xffe00000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
 /* DDR Setup */
 #define CONFIG_DDR_SPD
@@ -182,7 +173,7 @@
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
-#define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
 
 /*
  * Serial Port
@@ -346,7 +337,6 @@
 #define CONFIG_SYS_PCIE3_IO_SIZE	0x00010000	/* 64k */
 
 #ifdef CONFIG_PCI
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 #define CONFIG_E1000			/* Define e1000 pci Ethernet card */
@@ -355,7 +345,6 @@
 /* SATA */
 #define CONFIG_LIBATA
 #define CONFIG_FSL_SATA
-#define CONFIG_FSL_SATA_V2
 
 #define CONFIG_SYS_SATA_MAX_DEVICE	2
 #define CONFIG_SATA1
@@ -390,7 +379,6 @@
 #ifdef CONFIG_TSEC_ENET
 
 #define CONFIG_TSECV2
-#define CONFIG_NET_MULTI
 
 #define CONFIG_MII			/* MII PHY management */
 #define CONFIG_TSEC1		1
@@ -493,8 +481,8 @@
  */
 
 #define CONFIG_HOSTNAME		p1022ds
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 
 #define CONFIG_LOADADDR		1000000

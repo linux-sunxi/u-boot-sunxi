@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2011 Freescale Semiconductor, Inc.
  *
- * Configuration settings for the MX53-SMDFreescale board.
+ * Configuration settings for the MX53SMD Freescale board.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,10 +29,11 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX53_SMD
+
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
-#define CONFIG_REVISION_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
@@ -43,7 +44,7 @@
 #define CONFIG_MXC_GPIO
 
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX53_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C
@@ -66,7 +67,6 @@
 
 /* Eth Configs */
 #define CONFIG_HAS_ETH1
-#define CONFIG_NET_MULTI
 #define CONFIG_MII
 #define CONFIG_DISCOVER_PHY
 
@@ -92,7 +92,7 @@
 
 #define CONFIG_BOOTDELAY	3
 
-#define CONFIG_PRIME	"FEC0"
+#define CONFIG_ETHPRIME		"FEC0"
 
 #define CONFIG_LOADADDR		0x70800000	/* loadaddr env var */
 #define CONFIG_SYS_TEXT_BASE    0x77800000

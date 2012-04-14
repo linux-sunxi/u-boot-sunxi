@@ -11,6 +11,15 @@ easily if here is something they might want to dig for...
 
 Board	Arch	CPU	removed	    Commit	last known maintainer/contact
 =============================================================================
+tb0229	mips	mips32	-	  2011-12-12
+rmu	powerpc	MPC850	fb82fd7   2011-12-07	Wolfgang Denk <wd@denx.de>
+OXC	powerpc	MPC8240	309a292   2011-12-07
+BAB7xx	powerpc	MPC740/MPC750 c53043b 2011-12-07 Frank Gottschling <fgottschling@eltec.de>
+xm250   arm     pxa     c746cdd   2011-25-11
+pleb2   arm     pxa     b185a1c   2011-25-11
+cradle  arm     pxa     4e24f8a   2011-25-11    Kyle Harris <kharris@nexus-tech.net>
+cerf250 arm     pxa     a3f1241   2011-25-11    Prakash Kumar <prakash@embedx.com>
+mpq101	powerpc	mpc85xx	e877fab	  2011-10-23	Alex Dubov <oakad@yahoo.com>
 ixdpg425 arm	ixp	0ca8eb7	  2011-09-22	Stefan Roese <sr@denx.de>
 ixdp425 arm	ixp	0ca8eb7	  2011-09-22	Kyle Harris <kharris@nexus-tech.net>
 zylonite arm	pxa	b66521a	  2011-09-05
@@ -29,7 +38,7 @@ m501sk	arm	arm920t	b1a2bd4	  2011-07-17
 kb9202	arm	arm920t	5bd3814	  2011-07-17
 csb637	arm	arm920t	d14af08	  2011-07-17
 cmc_pu2	arm	arm920t	37a9b4d	  2011-07-17
-at91cap9adk arm	arm926ejs b550834 2011-07-17	Stelian Pop <stelian.pop@leadtechdesign.com>
+at91cap9adk arm	arm926ejs b550834 2011-07-17	Stelian Pop <stelian@popies.net>
 voiceblue arm	arm925t	1b793a4	  2011-07-17
 smdk2400 arm	arm920t	ad218a8	  2011-07-17	Gary Jennejohn <garyj@denx.de>
 sbc2410x arm	arm920t	1f7f0ed	  2011-07-17

@@ -32,16 +32,12 @@
 #include <i2c.h>
 #include <mmc.h>
 #include <fsl_esdhc.h>
+#include <pmic.h>
 #include <fsl_pmic.h>
 #include <asm/gpio.h>
 #include <mc13892.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-u32 get_board_rev(void)
-{
-	return get_cpu_rev();
-}
 
 int dram_init(void)
 {
@@ -124,12 +120,16 @@ static void setup_i2c(unsigned int port_number)
 void power_init(void)
 {
 	unsigned int val;
+	struct pmic *p;
+
+	pmic_init();
+	p = get_pmic();
 
 	/* Set VDDA to 1.25V */
-	val = pmic_reg_read(REG_SW_2);
+	pmic_reg_read(p, REG_SW_2, &val);
 	val &= ~SWX_OUT_MASK;
 	val |= SWX_OUT_1_25;
-	pmic_reg_write(REG_SW_2, val);
+	pmic_reg_write(p, REG_SW_2, val);
 
 	/*
 	 * Need increase VCC and VDDA to 1.3V
@@ -137,16 +137,16 @@ void power_init(void)
 	 */
 	if (is_soc_rev(CHIP_REV_2_0) == 0) {
 		/* Set VCC to 1.3V for TO2 */
-		val = pmic_reg_read(REG_SW_1);
+		pmic_reg_read(p, REG_SW_1, &val);
 		val &= ~SWX_OUT_MASK;
 		val |= SWX_OUT_1_30;
-		pmic_reg_write(REG_SW_1, val);
+		pmic_reg_write(p, REG_SW_1, val);
 
 		/* Set VDDA to 1.3V for TO2 */
-		val = pmic_reg_read(REG_SW_2);
+		pmic_reg_read(p, REG_SW_2, &val);
 		val &= ~SWX_OUT_MASK;
 		val |= SWX_OUT_1_30;
-		pmic_reg_write(REG_SW_2, val);
+		pmic_reg_write(p, REG_SW_2, val);
 	}
 }
 
@@ -211,6 +211,9 @@ struct fsl_esdhc_cfg esdhc_cfg[2] = {
 int board_mmc_getcd(u8 *cd, struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
+
+	mxc_request_iomux(MX53_PIN_EIM_DA11, IOMUX_CONFIG_ALT1);
+	mxc_request_iomux(MX53_PIN_EIM_DA13, IOMUX_CONFIG_ALT1);
 
 	if (cfg->esdhc_base == MMC_SDHC1_BASE_ADDR)
 		*cd = gpio_get_value(77); /*GPIO3_13*/
@@ -355,7 +358,6 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	gd->bd->bi_arch_number = MACH_TYPE_MX53_EVK;
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 

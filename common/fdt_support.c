@@ -2,7 +2,7 @@
  * (C) Copyright 2007
  * Gerald Van Baren, Custom IDEAS, vanbaren@cideas.com
  *
- * Copyright 2010 Freescale Semiconductor, Inc.
+ * Copyright 2010-2011 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -49,8 +49,8 @@ DECLARE_GLOBAL_DATA_PTR;
  * Convenience function to find a node and return it's property or a
  * default value if it doesn't exist.
  */
-u32 fdt_getprop_u32_default(void *fdt, const char *path, const char *prop,
-				const u32 dflt)
+u32 fdt_getprop_u32_default(const void *fdt, const char *path,
+				const char *prop, const u32 dflt)
 {
 	const u32 *val;
 	int off;
@@ -61,7 +61,7 @@ u32 fdt_getprop_u32_default(void *fdt, const char *path, const char *prop,
 
 	val = fdt_getprop(fdt, off, prop, NULL);
 	if (val)
-		return *val;
+		return fdt32_to_cpu(*val);
 	else
 		return dflt;
 }
@@ -372,7 +372,7 @@ static int get_cells_len(void *blob, char *nr_cells_name)
 	const u32 *cell;
 
 	cell = fdt_getprop(blob, 0, nr_cells_name, NULL);
-	if (cell && *cell == 2)
+	if (cell && fdt32_to_cpu(*cell) == 2)
 		return 8;
 
 	return 4;
@@ -495,7 +495,7 @@ int fdt_resize(void *blob)
 	total = fdt_num_mem_rsv(blob);
 	for (i = 0; i < total; i++) {
 		fdt_get_mem_rsv(blob, i, &addr, &size);
-		if (addr == (uint64_t)(u32)blob) {
+		if (addr == (uintptr_t)blob) {
 			fdt_del_mem_rsv(blob, i);
 			break;
 		}
@@ -511,14 +511,14 @@ int fdt_resize(void *blob)
 		fdt_size_dt_strings(blob) + 5 * sizeof(struct fdt_reserve_entry);
 
 	/* Make it so the fdt ends on a page boundary */
-	actualsize = ALIGN(actualsize + ((uint)blob & 0xfff), 0x1000);
-	actualsize = actualsize - ((uint)blob & 0xfff);
+	actualsize = ALIGN(actualsize + ((uintptr_t)blob & 0xfff), 0x1000);
+	actualsize = actualsize - ((uintptr_t)blob & 0xfff);
 
 	/* Change the fdt header to reflect the correct size */
 	fdt_set_totalsize(blob, actualsize);
 
 	/* Add the new reservation */
-	ret = fdt_add_mem_rsv(blob, (uint)blob, actualsize);
+	ret = fdt_add_mem_rsv(blob, (uintptr_t)blob, actualsize);
 	if (ret < 0)
 		return ret;
 
@@ -1182,27 +1182,24 @@ int fdt_node_offset_by_compat_reg(void *blob, const char *compat,
  */
 int fdt_alloc_phandle(void *blob)
 {
-	int offset, len, phandle = 0;
-	const u32 *val;
+	int offset, phandle = 0;
 
 	for (offset = fdt_next_node(blob, -1, NULL); offset >= 0;
 	     offset = fdt_next_node(blob, offset, NULL)) {
-		val = fdt_getprop(blob, offset, "linux,phandle", &len);
-		if (val)
-			phandle = max(*val, phandle);
+		phandle = max(phandle, fdt_get_phandle(blob, offset));
 	}
 
 	return phandle + 1;
 }
 
 /*
- * fdt_create_phandle: Create a phandle property for the given node
+ * fdt_set_phandle: Create a phandle property for the given node
  *
  * @fdt: ptr to device tree
  * @nodeoffset: node to update
  * @phandle: phandle value to set (must be unique)
-*/
-int fdt_create_phandle(void *fdt, int nodeoffset, uint32_t phandle)
+ */
+int fdt_set_phandle(void *fdt, int nodeoffset, uint32_t phandle)
 {
 	int ret;
 
@@ -1233,6 +1230,91 @@ int fdt_create_phandle(void *fdt, int nodeoffset, uint32_t phandle)
 	ret = fdt_setprop_cell(fdt, nodeoffset, "linux,phandle", phandle);
 
 	return ret;
+}
+
+/*
+ * fdt_create_phandle: Create a phandle property for the given node
+ *
+ * @fdt: ptr to device tree
+ * @nodeoffset: node to update
+ */
+unsigned int fdt_create_phandle(void *fdt, int nodeoffset)
+{
+	/* see if there is a phandle already */
+	int phandle = fdt_get_phandle(fdt, nodeoffset);
+
+	/* if we got 0, means no phandle so create one */
+	if (phandle == 0) {
+		int ret;
+
+		phandle = fdt_alloc_phandle(fdt);
+		ret = fdt_set_phandle(fdt, nodeoffset, phandle);
+		if (ret < 0) {
+			printf("Can't set phandle %u: %s\n", phandle,
+			       fdt_strerror(ret));
+			return 0;
+		}
+	}
+
+	return phandle;
+}
+
+/*
+ * fdt_set_node_status: Set status for the given node
+ *
+ * @fdt: ptr to device tree
+ * @nodeoffset: node to update
+ * @status: FDT_STATUS_OKAY, FDT_STATUS_DISABLED,
+ *	    FDT_STATUS_FAIL, FDT_STATUS_FAIL_ERROR_CODE
+ * @error_code: optional, only used if status is FDT_STATUS_FAIL_ERROR_CODE
+ */
+int fdt_set_node_status(void *fdt, int nodeoffset,
+			enum fdt_status status, unsigned int error_code)
+{
+	char buf[16];
+	int ret = 0;
+
+	if (nodeoffset < 0)
+		return nodeoffset;
+
+	switch (status) {
+	case FDT_STATUS_OKAY:
+		ret = fdt_setprop_string(fdt, nodeoffset, "status", "okay");
+		break;
+	case FDT_STATUS_DISABLED:
+		ret = fdt_setprop_string(fdt, nodeoffset, "status", "disabled");
+		break;
+	case FDT_STATUS_FAIL:
+		ret = fdt_setprop_string(fdt, nodeoffset, "status", "fail");
+		break;
+	case FDT_STATUS_FAIL_ERROR_CODE:
+		sprintf(buf, "fail-%d", error_code);
+		ret = fdt_setprop_string(fdt, nodeoffset, "status", buf);
+		break;
+	default:
+		printf("Invalid fdt status: %x\n", status);
+		ret = -1;
+		break;
+	}
+
+	return ret;
+}
+
+/*
+ * fdt_set_status_by_alias: Set status for the given node given an alias
+ *
+ * @fdt: ptr to device tree
+ * @alias: alias of node to update
+ * @status: FDT_STATUS_OKAY, FDT_STATUS_DISABLED,
+ *	    FDT_STATUS_FAIL, FDT_STATUS_FAIL_ERROR_CODE
+ * @error_code: optional, only used if status is FDT_STATUS_FAIL_ERROR_CODE
+ */
+int fdt_set_status_by_alias(void *fdt, const char* alias,
+			    enum fdt_status status, unsigned int error_code)
+{
+	int offset = fdt_path_offset(fdt, alias);
+
+	return fdt_set_node_status(fdt, offset, status, error_code);
 }
 
 #if defined(CONFIG_VIDEO)

@@ -36,6 +36,7 @@
 #define CONFIG_MACH_DAVINCI_DA850_EVM
 #define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
+#define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
@@ -121,14 +122,12 @@
  * Network & Ethernet Configuration
  */
 #ifdef CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	0
 #define CONFIG_MII
 #define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
-#define CONFIG_NET_MULTI
 #endif
 
 #ifdef CONFIG_USE_NOR
@@ -161,6 +160,7 @@
  * U-Boot general configuration
  */
 #define CONFIG_MISC_INIT_R
+#define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_BOOTFILE		"uImage" /* Boot file name */
 #define CONFIG_SYS_PROMPT	"U-Boot > " /* Command Prompt */
 #define CONFIG_SYS_CBSIZE	1024 /* Console I/O Buffer Size	*/

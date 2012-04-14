@@ -96,7 +96,7 @@
 #define CONFIG_SYS_MEMTEST_END		0x0FFFFFFF
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 256 * 1024)
 
-#define BOARD_LATE_INIT		/* call board_late_init during start up */
+#define CONFIG_BOARD_LATE_INIT	/* call board_late_init during start up */
 
 /* timing informazion */
 #define CONFIG_SYS_HZ		1000 /* Mandatory... */
@@ -135,7 +135,6 @@
 #define __io(a)			((void __iomem *)(PCI_IO_VADDR + (a)))
 #define __mem_isa(a)		((a) + PCI_MEMORY_VADDR)
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111	/* Using SMC91c111*/
 #define CONFIG_SMC91111_BASE	0x34000300
 #undef  CONFIG_SMC91111_EXT_PHY	/* Internal PHY */

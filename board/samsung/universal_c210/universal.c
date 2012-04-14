@@ -27,11 +27,15 @@
 #include <asm/arch/adc.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
+#include <pmic.h>
+#include <usb/s3c_udc.h>
+#include <asm/arch/cpu.h>
+#include <max8998_pmic.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-struct s5pc210_gpio_part1 *gpio1;
-struct s5pc210_gpio_part2 *gpio2;
+struct exynos4_gpio_part1 *gpio1;
+struct exynos4_gpio_part2 *gpio2;
 unsigned int board_rev;
 
 u32 get_board_rev(void)
@@ -48,14 +52,18 @@ static void check_hw_revision(void);
 
 int board_init(void)
 {
-	gpio1 = (struct s5pc210_gpio_part1 *) S5PC210_GPIO_PART1_BASE;
-	gpio2 = (struct s5pc210_gpio_part2 *) S5PC210_GPIO_PART2_BASE;
+	gpio1 = (struct exynos4_gpio_part1 *) EXYNOS4_GPIO_PART1_BASE;
+	gpio2 = (struct exynos4_gpio_part2 *) EXYNOS4_GPIO_PART2_BASE;
 
 	gd->bd->bi_arch_number = MACH_TYPE_UNIVERSAL_C210;
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
 	check_hw_revision();
 	printf("HW Revision:\t0x%x\n", board_rev);
+
+#if defined(CONFIG_PMIC)
+	pmic_init();
+#endif
 
 	return 0;
 }
@@ -247,4 +255,49 @@ int board_mmc_init(bd_t *bis)
 	return err;
 
 }
+#endif
+
+#ifdef CONFIG_USB_GADGET
+static int s5pc210_phy_control(int on)
+{
+	int ret = 0;
+	struct pmic *p = get_pmic();
+
+	if (pmic_probe(p))
+		return -1;
+
+	if (on) {
+		ret |= pmic_set_output(p,
+				       MAX8998_REG_BUCK_ACTIVE_DISCHARGE3,
+				       MAX8998_SAFEOUT1, LDO_ON);
+		ret |= pmic_set_output(p, MAX8998_REG_ONOFF1,
+				      MAX8998_LDO3, LDO_ON);
+		ret |= pmic_set_output(p, MAX8998_REG_ONOFF2,
+				      MAX8998_LDO8, LDO_ON);
+
+	} else {
+		ret |= pmic_set_output(p, MAX8998_REG_ONOFF2,
+				      MAX8998_LDO8, LDO_OFF);
+		ret |= pmic_set_output(p, MAX8998_REG_ONOFF1,
+				      MAX8998_LDO3, LDO_OFF);
+		ret |= pmic_set_output(p,
+				       MAX8998_REG_BUCK_ACTIVE_DISCHARGE3,
+				       MAX8998_SAFEOUT1, LDO_OFF);
+	}
+
+	if (ret) {
+		puts("MAX8998 LDO setting error!\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+struct s3c_plat_otg_data s5pc210_otg_data = {
+	.phy_control = s5pc210_phy_control,
+	.regs_phy = EXYNOS4_USBPHY_BASE,
+	.regs_otg = EXYNOS4_USBOTG_BASE,
+	.usb_phy_ctrl = EXYNOS4_USBPHY_CONTROL,
+	.usb_flags = PHY0_SLEEP,
+};
 #endif

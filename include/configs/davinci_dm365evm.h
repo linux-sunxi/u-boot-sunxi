@@ -33,9 +33,6 @@
 #define CONFIG_SYS_HZ_CLOCK		24000000	/* timer0 freq */
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SOC_DM365
-#define CONFIG_SYS_ICACHE_OFF
-#define CONFIG_SYS_DCACHE_OFF
-#define CONFIG_SYS_L2CACHE_OFF
 
 /* Memory Info */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -60,14 +57,12 @@
 
 /* Network Configuration */
 #define CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	0
 #define CONFIG_MII
 #define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
-#define CONFIG_NET_MULTI
 
 /* I2C */
 #define CONFIG_HARD_I2C

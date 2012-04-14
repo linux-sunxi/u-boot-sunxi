@@ -117,8 +117,6 @@ int board_init()
 	writel(input_select1, &inputselect->i2c3_ipp_sda_in);	/* I2C3 SDA */
 	writel(input_select2, &inputselect->i2c3_ipp_scl_in);	/* I2C3 SCL */
 
-	/* board id for linux */
-	gd->bd->bi_arch_number = MACH_TYPE_ZMX25;
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	return 0;
@@ -130,7 +128,6 @@ int board_late_init(void)
 
 #ifdef CONFIG_FEC_MXC
 	struct iomuxc_mux_ctl *muxctl;
-	struct iomuxc_pad_ctl *padctl;
 	u32 gpio_mux_mode2 = MX25_PIN_MUX_MODE(2);
 	u32 gpio_mux_mode5 = MX25_PIN_MUX_MODE(5);
 
@@ -146,7 +143,6 @@ int board_late_init(void)
 	 * FEC_RX_ERR: FEC_RX_ERR is ALT 2 mode of pin R2
 	 */
 	muxctl = (struct iomuxc_mux_ctl *)IMX_IOPADMUX_BASE;
-	padctl = (struct iomuxc_pad_ctl *)IMX_IOPADCTL_BASE;
 
 	writel(gpio_mux_mode5, &muxctl->pad_upll_bypclk);
 	writel(gpio_mux_mode2, &muxctl->pad_uart2_cts);
@@ -187,10 +183,4 @@ int dram_init(void)
 	gd->ram_size = get_ram_size((void *)PHYS_SDRAM,
 				PHYS_SDRAM_SIZE);
 	return 0;
-}
-
-void dram_init_banksize(void)
-{
-	gd->bd->bi_dram[0].start = PHYS_SDRAM;
-	gd->bd->bi_dram[0].size = gd->ram_size;
 }

@@ -70,6 +70,7 @@
 #define CONFIG_PCI		1
 #define CONFIG_PCI_PNP		1
 #define CONFIG_PCI_SCAN_SHOW	1
+#define CONFIG_PCI_BOOTDELAY	250
 
 #define CONFIG_PCI_MEM_BUS	0x40000000
 #define CONFIG_PCI_MEM_PHYS	CONFIG_PCI_MEM_BUS
@@ -286,13 +287,6 @@
 #define CONFIG_RTC_DS1337
 #define CONFIG_SYS_I2C_RTC_ADDR	0x68
 #define CONFIG_SYS_DS1339_TCR_VAL	0xAB	/* diode + 4k resistor */
-#endif
-
-/* ExBo I2C Addresses */
-#if defined(CONFIG_DIGSY_REV5)
-#define CONFIG_SYS_EXBO_EE_I2C_ADDRESS	0x54
-#else
-#define CONFIG_SYS_EXBO_EE_I2C_ADDRESS	0x56
 #endif
 
 /*

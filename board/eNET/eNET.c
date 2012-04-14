@@ -23,7 +23,7 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/ic/sc520.h>
+#include <asm/arch/sc520.h>
 #include <net.h>
 #include <netdev.h>
 
@@ -223,7 +223,7 @@ void setup_pcat_compatibility()
 	 *  active low polarity on PIC interrupt pins,
 	 *  active high polarity on all other irq pins
 	 */
-	writew(0x0000,&sc520_mmcr->intpinpol);
+	writew(0x0000, &sc520_mmcr->intpinpol);
 
 	/*
 	 * PIT 0 -> IRQ0
@@ -252,7 +252,7 @@ void setup_pcat_compatibility()
 
 void enet_timer_isr(void)
 {
-	static long enet_ticks = 0;
+	static long enet_ticks;
 
 	enet_ticks++;
 
@@ -281,9 +281,9 @@ void hw_watchdog_reset(void)
 
 void enet_toggle_run_led(void)
 {
-	unsigned char leds_state= inb(LED_LATCH_ADDRESS);
+	unsigned char leds_state = inb(LED_LATCH_ADDRESS);
 	if (leds_state & LED_RUN_BITMASK)
-		outb(leds_state &~ LED_RUN_BITMASK, LED_LATCH_ADDRESS);
+		outb(leds_state & ~LED_RUN_BITMASK, LED_LATCH_ADDRESS);
 	else
 		outb(leds_state | LED_RUN_BITMASK, LED_LATCH_ADDRESS);
 }

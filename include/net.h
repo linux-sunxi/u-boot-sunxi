@@ -14,43 +14,7 @@
 
 #if defined(CONFIG_8xx)
 #include <commproc.h>
-# if !defined(CONFIG_NET_MULTI)
-#  if defined(FEC_ENET) || defined(SCC_ENET)
-#   define CONFIG_NET_MULTI
-#  endif
-# endif
 #endif	/* CONFIG_8xx */
-
-#if defined(CONFIG_MPC5xxx)
-# if !defined(CONFIG_NET_MULTI)
-#  if defined(CONFIG_MPC5xxx_FEC)
-#   define CONFIG_NET_MULTI
-#  endif
-# endif
-#endif	/* CONFIG_MPC5xxx */
-
-#if !defined(CONFIG_NET_MULTI) && defined(CONFIG_CPM2)
-#include <config.h>
-#if defined(CONFIG_ETHER_ON_FCC)
-#if defined(CONFIG_ETHER_ON_SCC)
-#error "Ethernet not correctly defined"
-#endif /* CONFIG_ETHER_ON_SCC */
-#define CONFIG_NET_MULTI
-#if (CONFIG_ETHER_INDEX == 1)
-#define	CONFIG_ETHER_ON_FCC1
-# define CONFIG_SYS_CMXFCR_MASK1	CONFIG_SYS_CMXFCR_MASK
-# define CONFIG_SYS_CMXFCR_VALUE1	CONFIG_SYS_CMXFCR_VALUE
-#elif (CONFIG_ETHER_INDEX == 2)
-#define	CONFIG_ETHER_ON_FCC2
-# define CONFIG_SYS_CMXFCR_MASK2	CONFIG_SYS_CMXFCR_MASK
-# define CONFIG_SYS_CMXFCR_VALUE2	CONFIG_SYS_CMXFCR_VALUE
-#elif (CONFIG_ETHER_INDEX == 3)
-#define	CONFIG_ETHER_ON_FCC3
-# define CONFIG_SYS_CMXFCR_MASK3	CONFIG_SYS_CMXFCR_MASK
-# define CONFIG_SYS_CMXFCR_VALUE3	CONFIG_SYS_CMXFCR_VALUE
-#endif /* CONFIG_ETHER_INDEX */
-#endif /* CONFIG_ETHER_ON_FCC */
-#endif /* !CONFIG_NET_MULTI && CONFIG_8260 */
 
 #include <asm/byteorder.h>	/* for nton* / ntoh* stuff */
 
@@ -69,7 +33,8 @@
 
 #define PKTALIGN	32
 
-typedef ulong		IPaddr_t;
+/* IPv4 addresses are always 32 bits in size */
+typedef u32		IPaddr_t;
 
 
 /**
@@ -83,6 +48,19 @@ typedef ulong		IPaddr_t;
 typedef void rxhand_f(uchar *pkt, unsigned dport,
 		      IPaddr_t sip, unsigned sport,
 		      unsigned len);
+
+/**
+ * An incoming ICMP packet handler.
+ * @param type	ICMP type
+ * @param code	ICMP code
+ * @param dport	destination UDP port
+ * @param sip	source IP address
+ * @param sport	source UDP port
+ * @param pkt	pointer to the ICMP packet data
+ * @param len	packet length
+ */
+typedef void rxhand_icmp_f(unsigned type, unsigned code, unsigned dport,
+		IPaddr_t sip, unsigned sport, uchar *pkt, unsigned len);
 
 /*
  *	A timeout handler.  Called after time interval has expired.
@@ -118,9 +96,7 @@ struct eth_device {
 extern int eth_initialize(bd_t *bis);	/* Initialize network subsystem */
 extern int eth_register(struct eth_device* dev);/* Register network device */
 extern void eth_try_another(int first_restart);	/* Change the device */
-#ifdef CONFIG_NET_MULTI
 extern void eth_set_current(void);		/* set nterface to ethcur var */
-#endif
 extern struct eth_device *eth_get_dev(void);	/* get the current device MAC */
 extern struct eth_device *eth_get_dev_by_name(const char *devname);
 extern struct eth_device *eth_get_dev_by_index(int index); /* get dev @ index */
@@ -282,12 +258,16 @@ typedef struct
  * ICMP stuff (just enough to handle (host) redirect messages)
  */
 #define ICMP_ECHO_REPLY		0	/* Echo reply			*/
+#define ICMP_NOT_REACH		3	/* Detination unreachable	*/
 #define ICMP_REDIRECT		5	/* Redirect (change route)	*/
 #define ICMP_ECHO_REQUEST	8	/* Echo request			*/
 
 /* Codes for REDIRECT. */
 #define ICMP_REDIR_NET		0	/* Redirect Net			*/
 #define ICMP_REDIR_HOST		1	/* Redirect Host		*/
+
+/* Codes for NOT_REACH */
+#define ICMP_NOT_REACH_PORT	3	/* Port unreachable		*/
 
 typedef struct icmphdr {
 	uchar		type;
@@ -303,6 +283,7 @@ typedef struct icmphdr {
 			ushort	__unused;
 			ushort	mtu;
 		} frag;
+		uchar data[0];
 	} un;
 } ICMP_t;
 
@@ -383,12 +364,12 @@ extern int		NetState;		/* Network loop state		*/
 #define NETLOOP_SUCCESS		3
 #define NETLOOP_FAIL		4
 
-#ifdef CONFIG_NET_MULTI
 extern int		NetRestartWrap;		/* Tried all network devices	*/
-#endif
 
-typedef enum { BOOTP, RARP, ARP, TFTP, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP,
-	       TFTPSRV } proto_t;
+enum proto_t {
+	BOOTP, RARP, ARP, TFTPGET, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP,
+	TFTPSRV, TFTPPUT
+};
 
 /* from net/net.c */
 extern char	BootFile[128];			/* Boot File name		*/
@@ -414,7 +395,7 @@ extern int NetTimeOffset;			/* offset time from UTC		*/
 #endif
 
 /* Initialize the network adapter */
-extern int	NetLoop(proto_t);
+extern int NetLoop(enum proto_t);
 
 /* Shutdown adapters and cleanup */
 extern void	NetStop(void);
@@ -437,6 +418,7 @@ extern uint	NetCksum(uchar *, int);		/* Calculate the checksum	*/
 
 /* Set callbacks */
 extern void	NetSetHandler(rxhand_f *);	/* Set RX packet handler	*/
+extern void net_set_icmp_handler(rxhand_icmp_f *f); /* Set ICMP RX handler */
 extern void	NetSetTimeout(ulong, thand_f *);/* Set timeout handler		*/
 
 /* Transmit "NetTxPacket" */
@@ -447,6 +429,12 @@ extern int	NetSendUDPPacket(uchar *ether, IPaddr_t dest, int dport, int sport, i
 
 /* Processes a received packet */
 extern void	NetReceive(volatile uchar *, int);
+
+/*
+ * Check if autoload is enabled. If so, use either NFS or TFTP to download
+ * the boot file.
+ */
+void net_auto_load(void);
 
 /*
  * The following functions are a bit ugly, but necessary to deal with

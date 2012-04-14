@@ -27,7 +27,6 @@
  */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_OMAP3430		1	/* which is in a 3430 */
 #define CONFIG_OMAP3_IGEP0020	1	/* working with IGEP0020 */
 
 #define CONFIG_SDRC	/* The chip has SDRC controller */
@@ -238,9 +237,6 @@
 #define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 meg */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
 
-/* SDRAM Bank Allocation method */
-#define SDRC_R_B_C		1
-
 /*
  * FLASH and environment organization
  */
@@ -264,7 +260,6 @@
  * SMSC911x Ethernet
  */
 #if defined(CONFIG_CMD_NET)
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_32_BIT
 #define CONFIG_SMC911X_BASE	0x2C000000

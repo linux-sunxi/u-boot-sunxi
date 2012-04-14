@@ -32,6 +32,7 @@
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_ZMX25
 /*
  * Environment settings
  */
@@ -45,7 +46,7 @@
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Compressions
@@ -65,7 +66,7 @@
  * Serial
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX25_UART2
+#define CONFIG_MXC_UART_BASE	UART2_BASE
 #define CONFIG_CONS_INDEX	1	/* use UART2 for console */
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -76,7 +77,6 @@
 #define CONFIG_FEC_MXC
 #define CONFIG_FEC_MXC_PHYADDR		0x00
 #define CONFIG_MII
-#define CONFIG_NET_MULTI
 
 /*
  * BOOTP options

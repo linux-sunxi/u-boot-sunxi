@@ -19,6 +19,7 @@
 # Top-level generic files
 #
 
+/MLO
 /System.map
 /u-boot
 /u-boot.hex
@@ -34,19 +35,20 @@
 /u-boot.dis
 /u-boot.lds
 /u-boot.ubl
+/u-boot.dtb
+/u-boot.sb
 
 #
 # Generated files
 #
 
-*.depend
+*.depend*
 /LOG
 /errlog
 /reloc_off
 
 /include/generated/
-/lib/asm-offsets.s
-/arch/*/cpu/asm-offsets.s
+asm-offsets.s
 
 # stgit generated dirs
 patches-*

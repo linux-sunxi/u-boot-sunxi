@@ -77,6 +77,7 @@
 #define CONFIG_MPC8536DS	1
 
 #define CONFIG_FSL_ELBC		1	/* Has Enhanced localbus controller */
+#define CONFIG_SPI_FLASH	1	/* Has SPI Flash */
 #define CONFIG_PCI		1	/* Enable PCI/PCIE */
 #define CONFIG_PCI1		1	/* Enable PCI controller 1 */
 #define CONFIG_PCIE1		1	/* PCIE controler 1 (slot 1) */
@@ -127,22 +128,11 @@
 #define CONFIG_SYS_L2_SIZE		(512 << 10)
 #define CONFIG_SYS_INIT_L2_END	(CONFIG_SYS_INIT_L2_ADDR + CONFIG_SYS_L2_SIZE)
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR		0xffe00000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS	0xfffe00000ull /* physical addr of CCSRBAR */
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR
-#endif
-#define CONFIG_SYS_IMMR	CONFIG_SYS_CCSRBAR	/* PQII uses CONFIG_SYS_IMMR */
+#define CONFIG_SYS_CCSRBAR		0xffe00000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
-#if defined(CONFIG_RAMBOOT_NAND) && !defined(CONFIG_NAND_SPL)
-#define CONFIG_SYS_CCSRBAR_DEFAULT	CONFIG_SYS_CCSRBAR
-#else
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
+#if defined(CONFIG_NAND_SPL)
+#define CONFIG_SYS_CCSR_DO_NOT_RELOCATE
 #endif
 
 /* DDR Setup */
@@ -469,6 +459,19 @@
 #define CONFIG_SYS_EEPROM_BUS_NUM	1
 
 /*
+ * eSPI - Enhanced SPI
+ */
+#define CONFIG_HARD_SPI
+#define CONFIG_FSL_ESPI
+
+#if defined(CONFIG_SPI_FLASH)
+#define CONFIG_SPI_FLASH_SPANSION
+#define CONFIG_CMD_SF
+#define CONFIG_SF_DEFAULT_SPEED	10000000
+#define CONFIG_SF_DEFAULT_MODE	0
+#endif
+
+/*
  * General PCI
  * Memory space is mapped 1-1, but I/O space must start from 0.
  */
@@ -553,7 +556,6 @@
 
 #if defined(CONFIG_PCI)
 
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 
 /*PCIE video card used*/
@@ -611,10 +613,6 @@
 
 #if defined(CONFIG_TSEC_ENET)
 
-#ifndef CONFIG_NET_MULTI
-#define CONFIG_NET_MULTI	1
-#endif
-
 #define CONFIG_MII		1	/* MII PHY management */
 #define CONFIG_MII_DEFAULT_TSEC	1	/* Allow unregistered phys */
 #define CONFIG_TSEC1	1
@@ -646,10 +644,24 @@
 
 #if defined(CONFIG_SYS_RAMBOOT)
 #if defined(CONFIG_RAMBOOT_NAND)
-	#define CONFIG_ENV_IS_IN_NAND	1
-	#define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
-	#define CONFIG_ENV_OFFSET ((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
-#elif defined(CONFIG_RAMBOOT_SDCARD) || defined(CONFIG_RAMBOOT_SPIFLASH)
+#define CONFIG_ENV_IS_IN_NAND	1
+#define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
+#define CONFIG_ENV_OFFSET ((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_ENV_RANGE	(3 * CONFIG_ENV_SIZE)
+#elif defined(CONFIG_RAMBOOT_SPIFLASH)
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_SPI_BUS	0
+#define CONFIG_ENV_SPI_CS	0
+#define CONFIG_ENV_SPI_MAX_HZ	10000000
+#define CONFIG_ENV_SPI_MODE	0
+#define CONFIG_ENV_SIZE		0x2000	/* 8KB */
+#define CONFIG_ENV_OFFSET	0xF0000
+#define CONFIG_ENV_SECT_SIZE	0x10000
+#elif defined(CONFIG_RAMBOOT_SDCARD)
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_SYS_MMC_ENV_DEV  0
+#else
 	#define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
 	#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - 0x1000)
 	#define CONFIG_ENV_SIZE		0x2000
@@ -696,6 +708,21 @@
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
+#endif
+
+/*
+ * USB
+ */
+#define CONFIG_USB_EHCI
+
+#ifdef CONFIG_USB_EHCI
+#define CONFIG_CMD_USB
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET
+#define CONFIG_USB_EHCI_FSL
+#define CONFIG_USB_STORAGE
+#endif
+
+#if defined(CONFIG_MMC) || defined(CONFIG_USB_EHCI)
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
@@ -752,8 +779,8 @@
 #define CONFIG_IPADDR		192.168.1.254
 
 #define CONFIG_HOSTNAME		unknown
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin /* U-Boot image on TFTP server */
 
 #define CONFIG_SERVERIP		192.168.1.1

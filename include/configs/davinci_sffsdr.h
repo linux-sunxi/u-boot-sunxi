@@ -65,7 +65,6 @@
 #define CONFIG_SYS_I2C_SLAVE		10	/* Bogus, master-only in U-Boot */
 /* Network & Ethernet Configuration */
 #define CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	1
 #define CONFIG_MII
 #define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
@@ -73,7 +72,6 @@
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
 #define CONFIG_OVERWRITE_ETHADDR_ONCE
-#define CONFIG_NET_MULTI
 /* Flash & Environment */
 #undef CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_SYS_NO_FLASH

@@ -37,6 +37,7 @@
 
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
+#define CONFIG_CMD_DEFAULTENV_VARS
 #define CONFIG_CMD_ECHO
 #define CONFIG_CMD_IMMAP
 #define CONFIG_CMD_MII
@@ -170,7 +171,7 @@
 		"ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}"	\
 		":${hostname}:${netdev}:off3"				\
 		" console=" CONFIG_KM_CONSOLE_TTY ",${baudrate}"	\
-		" mem=${pnvramaddr} init=${init}"			\
+		" mem=${kernelmem} init=${init}"			\
 		" phram.phram=phvar,${varaddr}," xstr(CONFIG_KM_PHRAM)	\
 		" ubi.mtd=" CONFIG_KM_UBI_LINUX_MTD_NAME " "		\
 		CONFIG_KM_DEF_BOOT_ARGS_CPU				\

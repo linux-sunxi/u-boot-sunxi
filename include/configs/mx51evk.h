@@ -41,25 +41,25 @@
  * increase in the final file size: 144260 vs. 109536 Bytes.
  */
 
-#define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
-#define CONFIG_REVISION_TAG		1
-#define CONFIG_SETUP_MEMORY_TAGS	1
-#define CONFIG_INITRD_TAG		1
+#define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
 
-#define CONFIG_OF_LIBFDT		1
+#define CONFIG_OF_LIBFDT
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX51_BABBAGE
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
 
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Hardware drivers
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX51_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_MXC_GPIO
 
 /*
@@ -69,11 +69,16 @@
 
 #define CONFIG_MXC_SPI
 
-#define CONFIG_FSL_PMIC
+/* PMIC Controller */
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS	0
 #define CONFIG_FSL_PMIC_CS	0
 #define CONFIG_FSL_PMIC_CLK	2500000
 #define CONFIG_FSL_PMIC_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
+#define CONFIG_FSL_PMIC_BITLEN	32
+#define CONFIG_RTC_MC13XXX
 
 /*
  * MMC Configs
@@ -93,7 +98,6 @@
  * Eth Configs
  */
 #define CONFIG_HAS_ETH1
-#define CONFIG_NET_MULTI
 #define CONFIG_MII
 #define CONFIG_DISCOVER_PHY
 
@@ -105,6 +109,19 @@
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
+
+/* USB Configs */
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_FAT
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_MX5
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_USB_ETHER_SMSC95XX
+#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_MXC_USB_PORTSC	PORT_PTS_ULPI
+#define CONFIG_MXC_USB_FLAGS	MXC_EHCI_POWER_PINS_ENABLED
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -120,9 +137,11 @@
 
 #undef CONFIG_CMD_IMLS
 
+#define CONFIG_CMD_DATE
+
 #define CONFIG_BOOTDELAY	3
 
-#define CONFIG_PRIME	"FEC0"
+#define CONFIG_ETHPRIME		"FEC0"
 
 #define CONFIG_LOADADDR		0x90800000	/* loadaddr env var */
 

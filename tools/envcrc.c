@@ -73,19 +73,20 @@
 #define ENV_SIZE (CONFIG_ENV_SIZE - ENV_HEADER_SIZE)
 
 
-extern uint32_t crc32 (uint32_t, const unsigned char *, unsigned int);
-
 #ifdef CONFIG_BUILD_ENVCRC
+# include <environment.h>
 extern unsigned int env_size;
-extern unsigned char environment;
+extern env_t environment;
 #endif	/* CONFIG_BUILD_ENVCRC */
+
+extern uint32_t crc32 (uint32_t, const unsigned char *, unsigned int);
 
 int main (int argc, char **argv)
 {
 #ifdef CONFIG_BUILD_ENVCRC
 	unsigned char pad = 0x00;
 	uint32_t crc;
-	unsigned char *envptr = &environment,
+	unsigned char *envptr = (unsigned char *)&environment,
 		*dataptr = envptr + ENV_HEADER_SIZE;
 	unsigned int datasize = ENV_SIZE;
 	unsigned int eoe;

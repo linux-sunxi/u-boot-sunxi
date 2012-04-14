@@ -33,7 +33,9 @@
 #define CONFIG_MACH_TEGRA_GENERIC	/* which is a Tegra generic machine */
 #define CONFIG_SYS_L2CACHE_OFF		/* No L2 cache */
 
-#define CONFIG_ENABLE_CORTEXA9		/* enable CPU (A9 complex) */
+#define CONFIG_SYS_CACHELINE_SIZE	32
+
+#define CONFIG_ARCH_CPU_INIT		/* Fire up the A9 core */
 
 #include <asm/arch/tegra2.h>		/* get chip and board defs */
 
@@ -43,7 +45,6 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
-#define CONFIG_SKIP_RELOCATE_UBOOT
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs */
@@ -98,7 +99,7 @@
 /* turn on command-line edit/hist/auto */
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_COMMAND_HISTORY
-#define CONFIG_AUTOCOMPLETE
+#define CONFIG_AUTO_COMPLETE
 
 #define CONFIG_SYS_NO_FLASH
 

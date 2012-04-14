@@ -45,6 +45,7 @@
 #define CONFIG_88F5182		1	/* SOC Name */
 #define CONFIG_MACH_EDMINIV2	1	/* Machine type */
 
+#include <asm/arch/orion5x.h>
 /*
  * CLKs configurations
  */
@@ -145,7 +146,6 @@
 #define CONFIG_PHY_BASE_ADR	0x8
 #define CONFIG_RESET_PHY_R	/* use reset_phy() to init mv8831116 PHY */
 #define CONFIG_NETCONSOLE	/* include NetConsole support   */
-#define CONFIG_NET_MULTI	/* specify more that one ports available */
 #define	CONFIG_MII		/* expose smi ove miiphy interface */
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	/* detect link using phy */
 #define CONFIG_ENV_OVERWRITE	/* ethaddr can be reprogrammed */

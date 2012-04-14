@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the AT91SAM9263EK board.
@@ -290,7 +290,6 @@
 /* Ethernet */
 #define CONFIG_MACB			1
 #define CONFIG_RMII			1
-#define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R		1
 

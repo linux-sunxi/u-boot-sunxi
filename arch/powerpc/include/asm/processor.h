@@ -513,7 +513,13 @@
 
 #define SPRN_TLB0CFG	0x2B0	/* TLB 0 Config Register */
 #define SPRN_TLB1CFG	0x2B1	/* TLB 1 Config Register */
+#define SPRN_TLB0PS	0x158	/* TLB 0 Page Size Register */
+#define SPRN_TLB1PS	0x159	/* TLB 1 Page Size Register */
 #define SPRN_MMUCSR0	0x3f4	/* MMU control and status register 0 */
+#define SPRN_MMUCFG	0x3F7	/* MMU Configuration Register */
+#define MMUCFG_MAVN	0x00000003	/* MMU Architecture Version Number */
+#define MMUCFG_MAVN_V1	0x00000000	/* v1.0 */
+#define MMUCFG_MAVN_V2	0x00000001	/* v2.0 */
 #define SPRN_MAS0	0x270	/* MMU Assist Register 0 */
 #define SPRN_MAS1	0x271	/* MMU Assist Register 1 */
 #define SPRN_MAS2	0x272	/* MMU Assist Register 2 */
@@ -1022,7 +1028,11 @@
 #define SVR_FAM(svr)	(((svr) >> 20) & 0xFFF)	/* Family field */
 #define SVR_MEM(svr)	(((svr) >> 16) & 0xF)	/* Member field */
 
+#ifdef CONFIG_MPC8536
+#define SVR_MAJ(svr)	(((svr) >>  4) & 0x7)	/* Major revision field*/
+#else
 #define SVR_MAJ(svr)	(((svr) >>  4) & 0xF)	/* Major revision field*/
+#endif
 #define SVR_MIN(svr)	(((svr) >>  0) & 0xF)	/* Minor revision field*/
 
 /* Some parts define SVR[0:23] as the SOC version */
@@ -1111,6 +1121,8 @@
 #define SVR_P2041_E	0x821801
 #define SVR_P3041	0x821103
 #define SVR_P3041_E	0x821903
+#define SVR_P3060	0x820002
+#define SVR_P3060_E	0x820802
 #define SVR_P4040	0x820100
 #define SVR_P4040_E	0x820900
 #define SVR_P4080	0x820000
@@ -1176,13 +1188,17 @@ struct cpu_type {
 	char name[15];
 	u32 soc_ver;
 	u32 num_cores;
+	u32 mask;	/* which cpu(s) actually exist */
 };
 
 struct cpu_type *identify_cpu(u32 ver);
 
 #if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
 #define CPU_TYPE_ENTRY(n, v, nc) \
-	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), }
+	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), \
+	  .mask = (1 << (nc)) - 1 }
+#define CPU_TYPE_ENTRY_MASK(n, v, nc, m) \
+	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), .mask = (m) }
 #else
 #if defined(CONFIG_MPC83xx)
 #define CPU_TYPE_ENTRY(x) {#x, SPR_##x}

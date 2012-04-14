@@ -36,7 +36,6 @@
 #ifndef __ASSEMBLY__
 #ifdef CONFIG_FEC_MXC
 extern void mx25_fec_init_pins(void);
-extern void imx_get_mac_from_fuse(unsigned char *mac);
 #endif
 
 /* Clock Control Module (CCM) registers */
@@ -181,8 +180,8 @@ struct aips_regs {
 #define IMX_I2C3_BASE		(0x43F84000)
 #define IMX_CAN1_BASE		(0x43F88000)
 #define IMX_CAN2_BASE		(0x43F8C000)
-#define IMX_UART1_BASE		(0x43F90000)
-#define IMX_UART2_BASE		(0x43F94000)
+#define UART1_BASE		(0x43F90000)
+#define UART2_BASE		(0x43F94000)
 #define IMX_I2C2_BASE		(0x43F98000)
 #define IMX_OWIRE_BASE		(0x43F9C000)
 #define IMX_CSPI1_BASE		(0x43FA4000)
@@ -198,15 +197,15 @@ struct aips_regs {
 /* SPBA */
 #define IMX_SPBA_BASE		(0x50000000)
 #define IMX_CSPI3_BASE		(0x50004000)
-#define IMX_UART4_BASE		(0x50008000)
-#define IMX_UART3_BASE		(0x5000C000)
+#define UART4_BASE		(0x50008000)
+#define UART3_BASE		(0x5000C000)
 #define IMX_CSPI2_BASE		(0x50010000)
 #define IMX_SSI2_BASE		(0x50014000)
 #define IMX_ESAI_BASE		(0x50018000)
 #define IMX_ATA_DMA_BASE	(0x50020000)
 #define IMX_SIM1_BASE		(0x50024000)
 #define IMX_SIM2_BASE		(0x50028000)
-#define IMX_UART5_BASE		(0x5002C000)
+#define UART5_BASE		(0x5002C000)
 #define IMX_TSC_BASE		(0x50030000)
 #define IMX_SSI1_BASE		(0x50034000)
 #define IMX_FEC_BASE		(0x50038000)
@@ -350,5 +349,8 @@ struct aips_regs {
 #define GPIO2_BASE_ADDR		IMX_GPIO2_BASE
 #define GPIO3_BASE_ADDR		IMX_GPIO3_BASE
 #define GPIO4_BASE_ADDR		IMX_GPIO4_BASE
+
+#define CHIP_REV_1_0		0x10
+#define CHIP_REV_1_1		0x11
 
 #endif				/* _IMX_REGS_H */

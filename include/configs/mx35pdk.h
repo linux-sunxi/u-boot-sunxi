@@ -42,7 +42,7 @@
 #define CONFIG_SYS_64BIT_VSPRINTF
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs */
 #define CONFIG_REVISION_TAG
@@ -69,9 +69,11 @@
 /*
  * PMIC Configs
  */
-#define CONFIG_FSL_PMIC
-#define CONFIG_FSL_PMIC_I2C
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_PMIC_FSL
 #define CONFIG_SYS_FSL_PMIC_I2C_ADDR	0x08
+#define CONFIG_RTC_MC13XXX
 
 /*
  * MFD MC9SDZ60
@@ -83,7 +85,7 @@
  * UART (console)
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX35_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -110,6 +112,7 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
 #define CONFIG_NET_RETRY_COUNT	100
+#define CONFIG_CMD_DATE
 
 #define CONFIG_BOOTDELAY	3
 
@@ -123,7 +126,6 @@
 #define CONFIG_SMC911X_BASE CS5_BASE_ADDR
 
 #define CONFIG_HAS_ETH1
-#define CONFIG_NET_MULTI
 #define CONFIG_ETHPRIME
 
 /*

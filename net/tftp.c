@@ -81,6 +81,12 @@ static int	TftpTsize;
 /* The number of hashes we printed */
 static short	TftpNumchars;
 #endif
+#ifdef CONFIG_CMD_TFTPPUT
+static int	TftpWriting;	/* 1 if writing, else 0 */
+static int	TftpFinalBlock;	/* 1 if we have sent the last block */
+#else
+#define TftpWriting	0
+#endif
 
 #define STATE_SEND_RRQ	1
 #define STATE_DATA	2
@@ -88,6 +94,7 @@ static short	TftpNumchars;
 #define STATE_BAD_MAGIC	4
 #define STATE_OACK	5
 #define STATE_RECV_WRQ	6
+#define STATE_SEND_WRQ	7
 
 /* default TFTP block size */
 #define TFTP_BLOCK_SIZE		512
@@ -190,15 +197,119 @@ store_block(unsigned block, uchar *src, unsigned len)
 		NetBootFileXferSize = newsize;
 }
 
+/* Clear our state ready for a new transfer */
+static void new_transfer(void)
+{
+	TftpLastBlock = 0;
+	TftpBlockWrap = 0;
+	TftpBlockWrapOffset = 0;
+#ifdef CONFIG_CMD_TFTPPUT
+	TftpFinalBlock = 0;
+#endif
+}
+
+#ifdef CONFIG_CMD_TFTPPUT
+/**
+ * Load the next block from memory to be sent over tftp.
+ *
+ * @param block	Block number to send
+ * @param dst	Destination buffer for data
+ * @param len	Number of bytes in block (this one and every other)
+ * @return number of bytes loaded
+ */
+static int load_block(unsigned block, uchar *dst, unsigned len)
+{
+	/* We may want to get the final block from the previous set */
+	ulong offset = ((int)block - 1) * len + TftpBlockWrapOffset;
+	ulong tosend = len;
+
+	tosend = min(NetBootFileXferSize - offset, tosend);
+	(void)memcpy(dst, (void *)(save_addr + offset), tosend);
+	debug("%s: block=%d, offset=%ld, len=%d, tosend=%ld\n", __func__,
+		block, offset, len, tosend);
+	return tosend;
+}
+#endif
+
 static void TftpSend(void);
 static void TftpTimeout(void);
 
 /**********************************************************************/
 
+static void show_block_marker(void)
+{
+#ifdef CONFIG_TFTP_TSIZE
+	if (TftpTsize) {
+		ulong pos = TftpBlock * TftpBlkSize + TftpBlockWrapOffset;
+
+		while (TftpNumchars < pos * 50 / TftpTsize) {
+			putc('#');
+			TftpNumchars++;
+		}
+	} else
+#endif
+	{
+		if (((TftpBlock - 1) % 10) == 0)
+			putc('#');
+		else if ((TftpBlock % (10 * HASHES_PER_LINE)) == 0)
+			puts("\n\t ");
+	}
+}
+
+/**
+ * restart the current transfer due to an error
+ *
+ * @param msg	Message to print for user
+ */
+static void restart(const char *msg)
+{
+	printf("\n%s; starting again\n", msg);
+#ifdef CONFIG_MCAST_TFTP
+	mcast_cleanup();
+#endif
+	NetStartAgain();
+}
+
+/*
+ * Check if the block number has wrapped, and update progress
+ *
+ * TODO: The egregious use of global variables in this file should be tidied.
+ */
+static void update_block_number(void)
+{
+	/*
+	 * RFC1350 specifies that the first data packet will
+	 * have sequence number 1. If we receive a sequence
+	 * number of 0 this means that there was a wrap
+	 * around of the (16 bit) counter.
+	 */
+	if (TftpBlock == 0) {
+		TftpBlockWrap++;
+		TftpBlockWrapOffset += TftpBlkSize * TFTP_SEQUENCE_SIZE;
+		TftpTimeoutCount = 0; /* we've done well, reset thhe timeout */
+	} else {
+		show_block_marker();
+	}
+}
+
+/* The TFTP get or put is complete */
+static void tftp_complete(void)
+{
+#ifdef CONFIG_TFTP_TSIZE
+	/* Print hash marks for the last packet received */
+	while (TftpTsize && TftpNumchars < 49) {
+		putc('#');
+		TftpNumchars++;
+	}
+#endif
+	puts("\ndone\n");
+	NetState = NETLOOP_SUCCESS;
+}
+
 static void
 TftpSend(void)
 {
-	volatile uchar *pkt;
+	uchar *pkt;
 	volatile uchar *xp;
 	int		len = 0;
 	volatile ushort *s;
@@ -214,14 +325,19 @@ TftpSend(void)
 	 *	We will always be sending some sort of packet, so
 	 *	cobble together the packet headers now.
 	 */
-	pkt = NetTxPacket + NetEthHdrSize() + IP_HDR_SIZE;
+	pkt = (uchar *)(NetTxPacket + NetEthHdrSize() + IP_HDR_SIZE);
 
 	switch (TftpState) {
-
 	case STATE_SEND_RRQ:
+	case STATE_SEND_WRQ:
 		xp = pkt;
 		s = (ushort *)pkt;
+#ifdef CONFIG_CMD_TFTPPUT
+		*s++ = htons(TftpState == STATE_SEND_RRQ ? TFTP_RRQ :
+			TFTP_WRQ);
+#else
 		*s++ = htons(TFTP_RRQ);
+#endif
 		pkt = (uchar *)s;
 		strcpy((char *)pkt, tftp_filename);
 		pkt += strlen(tftp_filename) + 1;
@@ -233,8 +349,8 @@ TftpSend(void)
 		debug("send option \"timeout %s\"\n", (char *)pkt);
 		pkt += strlen((char *)pkt) + 1;
 #ifdef CONFIG_TFTP_TSIZE
-		memcpy((char *)pkt, "tsize\0000\0", 8);
-		pkt += 8;
+		pkt += sprintf((char *)pkt, "tsize%c%lu%c",
+				0, NetBootFileXferSize, 0);
 #endif
 		/* try for more effic. blk size */
 		pkt += sprintf((char *)pkt, "blksize%c%d%c",
@@ -265,9 +381,19 @@ TftpSend(void)
 	case STATE_DATA:
 		xp = pkt;
 		s = (ushort *)pkt;
-		*s++ = htons(TFTP_ACK);
-		*s++ = htons(TftpBlock);
-		pkt = (uchar *)s;
+		s[0] = htons(TFTP_ACK);
+		s[1] = htons(TftpBlock);
+		pkt = (uchar *)(s + 2);
+#ifdef CONFIG_CMD_TFTPPUT
+		if (TftpWriting) {
+			int toload = TftpBlkSize;
+			int loaded = load_block(TftpBlock, pkt, toload);
+
+			s[0] = htons(TFTP_DATA);
+			pkt += loaded;
+			TftpFinalBlock = (loaded < toload);
+		}
+#endif
 		len = pkt - xp;
 		break;
 
@@ -275,7 +401,8 @@ TftpSend(void)
 		xp = pkt;
 		s = (ushort *)pkt;
 		*s++ = htons(TFTP_ERROR);
-		*s++ = htons(3);
+			*s++ = htons(3);
+
 		pkt = (uchar *)s;
 		strcpy((char *)pkt, "File too large");
 		pkt += 14 /*strlen("File too large")*/ + 1;
@@ -298,6 +425,16 @@ TftpSend(void)
 			 TftpOurPort, len);
 }
 
+#ifdef CONFIG_CMD_TFTPPUT
+static void icmp_handler(unsigned type, unsigned code, unsigned dest,
+			 IPaddr_t sip, unsigned src, uchar *pkt, unsigned len)
+{
+	if (type == ICMP_NOT_REACH && code == ICMP_NOT_REACH_PORT) {
+		/* Oh dear the other end has gone away */
+		restart("TFTP server died");
+	}
+}
+#endif
 
 static void
 TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
@@ -315,7 +452,7 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			return;
 	}
 	if (TftpState != STATE_SEND_RRQ && src != TftpRemotePort &&
-	    TftpState != STATE_RECV_WRQ)
+	    TftpState != STATE_RECV_WRQ && TftpState != STATE_SEND_WRQ)
 		return;
 
 	if (len < 2)
@@ -328,8 +465,30 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 	switch (ntohs(proto)) {
 
 	case TFTP_RRQ:
-	case TFTP_ACK:
 		break;
+
+	case TFTP_ACK:
+#ifdef CONFIG_CMD_TFTPPUT
+		if (TftpWriting) {
+			if (TftpFinalBlock) {
+				tftp_complete();
+			} else {
+				/*
+				 * Move to the next block. We want our block
+				 * count to wrap just like the other end!
+				 */
+				int block = ntohs(*s);
+				int ack_ok = (TftpBlock == block);
+
+				TftpBlock = (unsigned short)(block + 1);
+				update_block_number();
+				if (ack_ok)
+					TftpSend(); /* Send next data block */
+			}
+		}
+#endif
+		break;
+
 	default:
 		break;
 
@@ -339,9 +498,7 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 		TftpRemoteIP = sip;
 		TftpRemotePort = src;
 		TftpOurPort = 1024 + (get_timer(0) % 3072);
-		TftpLastBlock = 0;
-		TftpBlockWrap = 0;
-		TftpBlockWrapOffset = 0;
+		new_transfer();
 		TftpSend(); /* Send ACK(0) */
 		break;
 #endif
@@ -380,7 +537,14 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			TftpState = STATE_DATA;	/* passive.. */
 		else
 #endif
-		TftpSend(); /* Send ACK */
+#ifdef CONFIG_CMD_TFTPPUT
+		if (TftpWriting) {
+			/* Get ready to send the first block */
+			TftpState = STATE_DATA;
+			TftpBlock++;
+		}
+#endif
+		TftpSend(); /* Send ACK or first data block */
 		break;
 	case TFTP_DATA:
 		if (len < 2)
@@ -388,34 +552,7 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 		len -= 2;
 		TftpBlock = ntohs(*(ushort *)pkt);
 
-		/*
-		 * RFC1350 specifies that the first data packet will
-		 * have sequence number 1. If we receive a sequence
-		 * number of 0 this means that there was a wrap
-		 * around of the (16 bit) counter.
-		 */
-		if (TftpBlock == 0) {
-			TftpBlockWrap++;
-			TftpBlockWrapOffset +=
-				TftpBlkSize * TFTP_SEQUENCE_SIZE;
-			printf("\n\t %lu MB received\n\t ",
-				TftpBlockWrapOffset>>20);
-		}
-#ifdef CONFIG_TFTP_TSIZE
-		else if (TftpTsize) {
-			while (TftpNumchars <
-			       NetBootFileXferSize * 50 / TftpTsize) {
-				putc('#');
-				TftpNumchars++;
-			}
-		}
-#endif
-		else {
-			if (((TftpBlock - 1) % 10) == 0)
-				putc('#');
-			else if ((TftpBlock % (10 * HASHES_PER_LINE)) == 0)
-				puts("\n\t ");
-		}
+		update_block_number();
 
 		if (TftpState == STATE_SEND_RRQ)
 			debug("Server did not acknowledge timeout option!\n");
@@ -425,9 +562,7 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			/* first block received */
 			TftpState = STATE_DATA;
 			TftpRemotePort = src;
-			TftpLastBlock = 0;
-			TftpBlockWrap = 0;
-			TftpBlockWrapOffset = 0;
+			new_transfer();
 
 #ifdef CONFIG_MCAST_TFTP
 			if (Multicast) { /* start!=1 common if mcast */
@@ -498,21 +633,8 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 		}
 		else
 #endif
-		if (len < TftpBlkSize) {
-			/*
-			 *	We received the whole thing.  Try to
-			 *	run it.
-			 */
-#ifdef CONFIG_TFTP_TSIZE
-			/* Print hash marks for the last packet received */
-			while (TftpTsize && TftpNumchars < 49) {
-				putc('#');
-				TftpNumchars++;
-			}
-#endif
-			puts("\ndone\n");
-			NetState = NETLOOP_SUCCESS;
-		}
+		if (len < TftpBlkSize)
+			tftp_complete();
 		break;
 
 	case TFTP_ERROR:
@@ -548,11 +670,7 @@ static void
 TftpTimeout(void)
 {
 	if (++TftpTimeoutCount > TftpTimeoutCountMax) {
-		puts("\nRetry count exceeded; starting again\n");
-#ifdef CONFIG_MCAST_TFTP
-		mcast_cleanup();
-#endif
-		NetStartAgain();
+		restart("Retry count exceeded");
 	} else {
 		puts("T ");
 		NetSetTimeout(TftpTimeoutMSecs, TftpTimeout);
@@ -562,8 +680,7 @@ TftpTimeout(void)
 }
 
 
-void
-TftpStart(void)
+void TftpStart(enum proto_t protocol)
 {
 	char *ep;             /* Environment pointer */
 
@@ -591,7 +708,7 @@ TftpStart(void)
 
 	TftpRemoteIP = NetServerIP;
 	if (BootFile[0] == '\0') {
-		sprintf(default_filename, "%02lX%02lX%02lX%02lX.img",
+		sprintf(default_filename, "%02X%02X%02X%02X.img",
 			NetOurIP & 0xFF,
 			(NetOurIP >>  8) & 0xFF,
 			(NetOurIP >> 16) & 0xFF,
@@ -615,11 +732,14 @@ TftpStart(void)
 		}
 	}
 
-#if defined(CONFIG_NET_MULTI)
 	printf("Using %s device\n", eth_get_name());
+	printf("TFTP %s server %pI4; our IP address is %pI4",
+#ifdef CONFIG_CMD_TFTPPUT
+	       protocol == TFTPPUT ? "to" : "from",
+#else
+		"from",
 #endif
-	printf("TFTP from server %pI4"
-		"; our IP address is %pI4", &TftpRemoteIP, &NetOurIP);
+		&TftpRemoteIP, &NetOurIP);
 
 	/* Check if we need to send across this subnet */
 	if (NetOurGatewayIP && NetOurSubnetMask) {
@@ -640,19 +760,32 @@ TftpStart(void)
 	}
 
 	putc('\n');
-
-	printf("Load address: 0x%lx\n", load_addr);
-
-	puts("Loading: *\b");
+#ifdef CONFIG_CMD_TFTPPUT
+	TftpWriting = (protocol == TFTPPUT);
+	if (TftpWriting) {
+		printf("Save address: 0x%lx\n", save_addr);
+		printf("Save size:    0x%lx\n", save_size);
+		NetBootFileXferSize = save_size;
+		puts("Saving: *\b");
+		TftpState = STATE_SEND_WRQ;
+		new_transfer();
+	} else
+#endif
+	{
+		printf("Load address: 0x%lx\n", load_addr);
+		puts("Loading: *\b");
+		TftpState = STATE_SEND_RRQ;
+	}
 
 	TftpTimeoutCountMax = TftpRRQTimeoutCountMax;
 
 	NetSetTimeout(TftpTimeoutMSecs, TftpTimeout);
 	NetSetHandler(TftpHandler);
-
+#ifdef CONFIG_CMD_TFTPPUT
+	net_set_icmp_handler(icmp_handler);
+#endif
 	TftpRemotePort = WELL_KNOWN_PORT;
 	TftpTimeoutCount = 0;
-	TftpState = STATE_SEND_RRQ;
 	/* Use a pseudo-random port unless a specific port is set */
 	TftpOurPort = 1024 + (get_timer(0) % 3072);
 
@@ -687,9 +820,7 @@ TftpStartServer(void)
 {
 	tftp_filename[0] = 0;
 
-#if defined(CONFIG_NET_MULTI)
 	printf("Using %s device\n", eth_get_name());
-#endif
 	printf("Listening for TFTP transfer on %pI4\n", &NetOurIP);
 	printf("Load address: 0x%lx\n", load_addr);
 

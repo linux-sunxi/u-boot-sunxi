@@ -268,7 +268,6 @@
  * Ethernet configuration
  */
 #define CONFIG_MPC512x_FEC	1
-#define CONFIG_NET_MULTI
 #define CONFIG_PHY_ADDR		0x1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_FEC_AN_TIMEOUT	1
@@ -373,8 +372,8 @@
 #define CONFIG_TIMESTAMP
 
 #define CONFIG_HOSTNAME		mecp512x
-#define CONFIG_BOOTFILE		/tftpboot/mecp512x/uImage
-#define CONFIG_ROOTPATH		/tftpboot/mecp512x/target_root
+#define CONFIG_BOOTFILE		"/tftpboot/mecp512x/uImage"
+#define CONFIG_ROOTPATH		"/tftpboot/mecp512x/target_root"
 
 #define CONFIG_LOADADDR		400000	/* def. location for tftp and bootm */
 

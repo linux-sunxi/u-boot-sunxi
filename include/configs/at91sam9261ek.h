@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the AT91SAM9261EK board.
@@ -153,7 +153,6 @@
 #define CONFIG_SYS_NO_FLASH
 
 /* Ethernet */
-#define CONFIG_NET_MULTI
 #define CONFIG_DRIVER_DM9000
 #define CONFIG_DM9000_BASE		0x30000000
 #define DM9000_IO			CONFIG_DM9000_BASE

@@ -449,7 +449,6 @@ mod_i2c_mem(cmd_tbl_t *cmdtp, int incrflag, int flag, int argc, char * const arg
 	ulong	data;
 	int	size = 1;
 	int	nbytes;
-	extern char console_buffer[];
 
 	if (argc != 3)
 		return cmd_usage(cmdtp);
@@ -1209,9 +1208,7 @@ static int do_i2c_add_bus(cmd_tbl_t * cmdtp, int flag, int argc, char * const ar
 			device = device->next;
 		}
 	} else {
-		I2C_MUX_DEVICE *dev;
-
-		dev = i2c_mux_ident_muxstring ((uchar *)argv[1]);
+		(void)i2c_mux_ident_muxstring ((uchar *)argv[1]);
 		ret = 0;
 	}
 	return ret;

@@ -37,6 +37,7 @@
  * High Level Configuration Options
  * (easy to change)
  */
+#define CONFIG_SYS_TEXT_BASE		0x01000000
 #define CONFIG_SYS_MEMTEST_START	0x100000
 #define CONFIG_SYS_MEMTEST_END		0x10000000
 #define CONFIG_SYS_HZ			1000
@@ -67,8 +68,6 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_SERIAL0		0x16000000
 #define CONFIG_SYS_SERIAL1		0x17000000
-
-/*#define CONFIG_NET_MULTI */
 
 
 /*

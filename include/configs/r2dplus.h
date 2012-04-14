@@ -30,7 +30,7 @@
 #define CONFIG_SCIF_CONSOLE	1
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_CONS_SCIF1	1
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_BOOTDELAY	-1
 #define CONFIG_BOOTARGS		"console=ttySC0,115200"
@@ -122,7 +122,6 @@
 /*
  * Network device (RTL8139) support
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_RTL8139
 
 #endif /* __CONFIG_H */

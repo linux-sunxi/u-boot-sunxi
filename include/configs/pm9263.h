@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  * Ilko Iliev <www.ronetix.at>
  *
@@ -51,6 +51,9 @@
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 #define CONFIG_SYS_TEXT_BASE	0
+
+#define MACH_TYPE_PM9263	1475
+#define CONFIG_MACH_TYPE	MACH_TYPE_PM9263
 
 /* clocks */
 #define CONFIG_SYS_MOR_VAL						\
@@ -169,6 +172,7 @@
 
 #undef CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_USER_LOWLEVEL_INIT	1
+#define CONFIG_BOARD_EARLY_INIT_F
 
 /*
  * Hardware drivers
@@ -281,7 +285,6 @@
 /* Ethernet */
 #define CONFIG_MACB			1
 #define CONFIG_RMII			1
-#define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R		1
 
@@ -353,7 +356,7 @@
 #define CONFIG_SYS_JFFS2_FIRST_SECTOR	11
 
 #define CONFIG_BOOTCOMMAND		"run flashboot"
-#define CONFIG_ROOTPATH			/ronetix/rootfs
+#define CONFIG_ROOTPATH			"/ronetix/rootfs"
 #define CONFIG_AUTOBOOT_PROMPT		"autoboot in %d seconds\n"
 
 #define CONFIG_CON_ROT			"fbcon=rotate:3 "

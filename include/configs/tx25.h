@@ -34,6 +34,12 @@
 /* NAND BOOT is the only boot method */
 #define CONFIG_NAND_U_BOOT
 
+#ifndef MACH_TYPE_TX25
+#define MACH_TYPE_TX25	2177
+#endif
+
+#define CONFIG_MACH_TYPE MACH_TYPE_TX25
+
 #ifdef CONFIG_NAND_SPL
 /* Start copying real U-boot from the second page */
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	0x800
@@ -84,7 +90,7 @@
  * Serial Info
  */
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX25_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_CONS_INDEX	1	/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200	/* Default baud rate */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -137,8 +143,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		0x1f
 #define CONFIG_MII
 #define CONFIG_CMD_NET
-#define CONFIG_NET_MULTI
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_BOOTDELAY	5

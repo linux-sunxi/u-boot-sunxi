@@ -37,6 +37,10 @@
 #define CONFIG_USE_ARCH_MEMCPY
 #define CONFIG_USE_ARCH_MEMSET
 
+#define MACH_TYPE_JADECPU	2636
+
+#define CONFIG_MACH_TYPE MACH_TYPE_JADECPU
+
 /*
  * Environment settings
  */
@@ -51,7 +55,7 @@
 #define CONFIG_CMDLINE_TAG	1	/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS 1
 #define CONFIG_INITRD_TAG	1
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Compressions
@@ -80,7 +84,6 @@
 /*
  * Ethernet
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X
 #define CONFIG_SMC911X_BASE	0x02000000
 #define CONFIG_SMC911X_16_BIT

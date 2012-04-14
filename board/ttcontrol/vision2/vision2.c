@@ -31,19 +31,17 @@
 #include <asm/arch/iomux.h>
 #include <asm/gpio.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/errno.h>
 #include <i2c.h>
 #include <mmc.h>
+#include <pmic.h>
 #include <fsl_esdhc.h>
 #include <fsl_pmic.h>
 #include <mc13892.h>
 #include <linux/fb.h>
 
+#include <ipu_pixfmt.h>
+
 DECLARE_GLOBAL_DATA_PTR;
-
-static u32 system_rev;
-
-extern int mx51_fb_init(struct fb_videomode *mode);
 
 static struct fb_videomode nec_nl6448bc26_09c = {
 	"NEC_NL6448BC26-09C",
@@ -148,13 +146,6 @@ static void init_drive_strength(void)
 	mxc_iomux_set_pad(MX51_PIN_CTL_DRAM_DQM3,
 		PAD_CTL_PKE_ENABLE | PAD_CTL_PUE_KEEPER |
 		PAD_CTL_DRV_HIGH | PAD_CTL_SRE_FAST);
-}
-
-u32 get_board_rev(void)
-{
-	system_rev = get_cpu_rev();
-
-	return system_rev;
 }
 
 int dram_init(void)
@@ -313,59 +304,63 @@ static void reset_peripherals(int reset)
 static void power_init_mx51(void)
 {
 	unsigned int val;
+	struct pmic *p;
+
+	pmic_init();
+	p = get_pmic();
 
 	/* Write needed to Power Gate 2 register */
-	val = pmic_reg_read(REG_POWER_MISC);
+	pmic_reg_read(p, REG_POWER_MISC, &val);
 
 	/* enable VCAM with 2.775V to enable read from PMIC */
 	val = VCAMCONFIG | VCAMEN;
-	pmic_reg_write(REG_MODE_1, val);
+	pmic_reg_write(p, REG_MODE_1, val);
 
 	/*
 	 * Set switchers in Auto in NORMAL mode & STANDBY mode
 	 * Setup the switcher mode for SW1 & SW2
 	 */
-	val = pmic_reg_read(REG_SW_4);
+	pmic_reg_read(p, REG_SW_4, &val);
 	val = (val & ~((SWMODE_MASK << SWMODE1_SHIFT) |
 		(SWMODE_MASK << SWMODE2_SHIFT)));
 	val |= (SWMODE_AUTO_AUTO << SWMODE1_SHIFT) |
 		(SWMODE_AUTO_AUTO << SWMODE2_SHIFT);
-	pmic_reg_write(REG_SW_4, val);
+	pmic_reg_write(p, REG_SW_4, val);
 
 	/* Setup the switcher mode for SW3 & SW4 */
-	val = pmic_reg_read(REG_SW_5);
+	pmic_reg_read(p, REG_SW_5, &val);
 	val &= ~((SWMODE_MASK << SWMODE4_SHIFT) |
 		(SWMODE_MASK << SWMODE3_SHIFT));
 	val |= (SWMODE_AUTO_AUTO << SWMODE4_SHIFT) |
 		(SWMODE_AUTO_AUTO << SWMODE3_SHIFT);
-	pmic_reg_write(REG_SW_5, val);
+	pmic_reg_write(p, REG_SW_5, val);
 
 
 	/* Set VGEN3 to 1.8V, VCAM to 3.0V */
-	val = pmic_reg_read(REG_SETTING_0);
+	pmic_reg_read(p, REG_SETTING_0, &val);
 	val &= ~(VCAM_MASK | VGEN3_MASK);
 	val |= VCAM_3_0;
-	pmic_reg_write(REG_SETTING_0, val);
+	pmic_reg_write(p, REG_SETTING_0, val);
 
 	/* Set VVIDEO to 2.775V, VAUDIO to 3V0, VSD to 1.8V */
-	val = pmic_reg_read(REG_SETTING_1);
+	pmic_reg_read(p, REG_SETTING_1, &val);
 	val &= ~(VVIDEO_MASK | VSD_MASK | VAUDIO_MASK);
 	val |= VVIDEO_2_775 | VAUDIO_3_0 | VSD_1_8;
-	pmic_reg_write(REG_SETTING_1, val);
+	pmic_reg_write(p, REG_SETTING_1, val);
 
 	/* Configure VGEN3 and VCAM regulators to use external PNP */
 	val = VGEN3CONFIG | VCAMCONFIG;
-	pmic_reg_write(REG_MODE_1, val);
+	pmic_reg_write(p, REG_MODE_1, val);
 	udelay(200);
 
 	/* Enable VGEN3, VCAM, VAUDIO, VVIDEO, VSD regulators */
 	val = VGEN3EN | VGEN3CONFIG | VCAMEN | VCAMCONFIG |
 		VVIDEOEN | VAUDIOEN  | VSDEN;
-	pmic_reg_write(REG_MODE_1, val);
+	pmic_reg_write(p, REG_MODE_1, val);
 
-	val = pmic_reg_read(REG_POWER_CTL2);
+	pmic_reg_read(p, REG_POWER_CTL2, &val);
 	val |= WDIRESET;
-	pmic_reg_write(REG_POWER_CTL2, val);
+	pmic_reg_write(p, REG_POWER_CTL2, val);
 
 	udelay(2500);
 
@@ -600,6 +595,21 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
+void lcd_enable(void)
+{
+	int ret;
+
+	mxc_request_iomux(MX51_PIN_DI1_PIN2, IOMUX_CONFIG_ALT0);
+	mxc_request_iomux(MX51_PIN_DI1_PIN3, IOMUX_CONFIG_ALT0);
+
+	gpio_set_value(2, 1);
+	mxc_request_iomux(MX51_PIN_GPIO1_2, IOMUX_CONFIG_ALT0);
+
+	ret = mx51_fb_init(&nec_nl6448bc26_09c, 0, IPU_PIX_FMT_RGB666);
+	if (ret)
+		puts("LCD cannot be configured\n");
+}
+
 int board_early_init_f(void)
 {
 
@@ -636,26 +646,14 @@ static void backlight(int on)
 	}
 }
 
-void lcd_enable(void)
-{
-	int ret;
-
-	mxc_request_iomux(MX51_PIN_DI1_PIN2, IOMUX_CONFIG_ALT0);
-	mxc_request_iomux(MX51_PIN_DI1_PIN3, IOMUX_CONFIG_ALT0);
-
-	gpio_set_value(2, 1);
-	mxc_request_iomux(MX51_PIN_GPIO1_2, IOMUX_CONFIG_ALT0);
-
-	ret = mx51_fb_init(&nec_nl6448bc26_09c);
-	if (ret)
-		puts("LCD cannot be configured\n");
-}
-
 int board_init(void)
 {
-	gd->bd->bi_arch_number = MACH_TYPE_TTC_VISION2;	/* board id for linux */
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
+
+	lcd_enable();
+
+	backlight(1);
 
 	return 0;
 }
@@ -676,6 +674,8 @@ int board_late_init(void)
 	reset_peripherals(0);
 	udelay(2000);
 #endif
+
+	setenv("stdout", "serial");
 
 	return 0;
 }

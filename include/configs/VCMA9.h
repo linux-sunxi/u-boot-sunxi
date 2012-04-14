@@ -29,6 +29,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+
+#define MACH_TYPE_MPL_VCMA9	227
+
 /*
  * High Level Configuration Options
  * (easy to change)
@@ -37,6 +40,7 @@
 #define CONFIG_S3C24X0		/* in a SAMSUNG S3C24x0-type SoC */
 #define CONFIG_S3C2410		/* specifically a SAMSUNG S3C2410 SoC */
 #define CONFIG_VCMA9		/* on a MPL VCMA9 Board  */
+#define CONFIG_MACH_TYPE	MACH_TYPE_MPL_VCMA9 /* Machine type */
 
 #define CONFIG_SYS_TEXT_BASE	0x0
 
@@ -76,7 +80,7 @@
 #define CONFIG_CMD_BSP
 #define CONFIG_CMD_NAND
 
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
@@ -111,7 +115,6 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900			/* we have a CS8900 on-board */
 #define CONFIG_CS8900_BASE		0x20000300
 #define CONFIG_CS8900_BUS16

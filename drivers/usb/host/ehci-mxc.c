@@ -110,17 +110,15 @@ int ehci_hcd_init(void)
 {
 	struct usb_ehci *ehci;
 #ifdef CONFIG_MX31
-	u32 tmp;
 	struct clock_control_regs *sc_regs =
 		(struct clock_control_regs *)CCM_BASE;
 
-	tmp = __raw_readl(&sc_regs->ccmr);
+	__raw_readl(&sc_regs->ccmr);
 	__raw_writel(__raw_readl(&sc_regs->ccmr) | (1 << 9), &sc_regs->ccmr) ;
 #endif
 
 	udelay(80);
 
-	/* Take USB2 */
 	ehci = (struct usb_ehci *)(IMX_USB_BASE +
 		(0x200 * CONFIG_MXC_USB_PORT));
 	hccr = (struct ehci_hccr *)((uint32_t)&ehci->caplength);

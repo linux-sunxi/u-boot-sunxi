@@ -35,6 +35,8 @@
 
 #define CONFIG_SYS_TEXT_BASE		0xA0000000
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX31ADS
+
 /*
  * Disabled for now due to build problems under Debian and a significant increase
  * in the final file size: 144260 vs. 109536 Bytes.
@@ -58,8 +60,8 @@
  * Hardware drivers
  */
 
-#define CONFIG_MXC_UART	1
-#define CONFIG_SYS_MX31_UART1		1
+#define CONFIG_MXC_UART
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 
 #define CONFIG_HARD_SPI		1
 #define CONFIG_MXC_SPI		1
@@ -67,12 +69,16 @@
 #define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
 #define CONFIG_MXC_GPIO
 
-#define CONFIG_FSL_PMIC
+/* PMIC Controller */
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS	1
 #define CONFIG_FSL_PMIC_CS	0
 #define CONFIG_FSL_PMIC_CLK	1000000
 #define CONFIG_FSL_PMIC_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
-#define CONFIG_RTC_MC13783	1
+#define CONFIG_FSL_PMIC_BITLEN	32
+#define CONFIG_RTC_MC13XXX
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -113,7 +119,6 @@
 		"cp.b ${loadaddr} ${uboot_addr} ${filesize}; "		\
 		"setenv filesize; saveenv\0"
 
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900
 #define CONFIG_CS8900_BASE	0xb4020300
 #define CONFIG_CS8900_BUS16		1	/* follow the Linux driver */

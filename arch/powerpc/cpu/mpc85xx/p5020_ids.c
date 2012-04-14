@@ -27,18 +27,24 @@
 #ifdef CONFIG_SYS_DPAA_QBMAN
 struct qportal_info qp_info[CONFIG_SYS_QMAN_NUM_PORTALS] = {
 	/* dqrr liodn, frame data liodn, liodn off, sdest */
-	SET_QP_INFO( 1,  2,  1, 0),
-	SET_QP_INFO( 3,  4,  2, 1),
-	SET_QP_INFO( 5,  6,  3, 2),
-	SET_QP_INFO( 7,  8,  4, 3),
-	SET_QP_INFO( 9, 10,  5, 4),
-	SET_QP_INFO( 0,  0,  0, 5),
-	SET_QP_INFO( 0,  0,  0, 6),
-	SET_QP_INFO( 0,  0,  0, 7),
-	SET_QP_INFO( 0,  0,  0, 0), /* for now sdest to 0 */
-	SET_QP_INFO( 0,  0,  0, 0), /* for now sdest to 0 */
+	SET_QP_INFO(1, 2, 1, 0),
+	SET_QP_INFO(3, 4, 2, 1),
+	SET_QP_INFO(5, 6, 3, 0),
+	SET_QP_INFO(7, 8, 4, 1),
+	SET_QP_INFO(9, 10, 5, 0),
+	SET_QP_INFO(11, 12, 1, 1),
+	SET_QP_INFO(13, 14, 2, 0),
+	SET_QP_INFO(15, 16, 3, 1),
+	SET_QP_INFO(17, 18, 4, 0),
+	SET_QP_INFO(19, 20, 5, 1),
 };
 #endif
+
+struct srio_liodn_id_table srio_liodn_tbl[] = {
+	SET_SRIO_LIODN_2(1, 199, 200),
+	SET_SRIO_LIODN_2(2, 201, 202),
+};
+int srio_liodn_tbl_sz = ARRAY_SIZE(srio_liodn_tbl);
 
 struct liodn_id_table liodn_tbl[] = {
 #ifdef CONFIG_SYS_DPAA_QBMAN
@@ -97,6 +103,27 @@ struct liodn_id_table sec_liodn_tbl[] = {
 };
 int sec_liodn_tbl_sz = ARRAY_SIZE(sec_liodn_tbl);
 
+#ifdef CONFIG_SYS_FSL_RAID_ENGINE
+struct liodn_id_table raide_liodn_tbl[] = {
+	SET_RAID_ENGINE_JQ_LIODN_ENTRY(0, 0, 60),
+	SET_RAID_ENGINE_JQ_LIODN_ENTRY(0, 1, 61),
+	SET_RAID_ENGINE_JQ_LIODN_ENTRY(1, 0, 62),
+	SET_RAID_ENGINE_JQ_LIODN_ENTRY(1, 1, 63),
+};
+int raide_liodn_tbl_sz = ARRAY_SIZE(raide_liodn_tbl);
+#endif
+
+#ifdef CONFIG_SYS_DPAA_RMAN
+struct liodn_id_table rman_liodn_tbl[] = {
+	/* Set RMan block 0-3 liodn offset */
+	SET_RMAN_LIODN(0, 6),
+	SET_RMAN_LIODN(1, 7),
+	SET_RMAN_LIODN(2, 8),
+	SET_RMAN_LIODN(3, 9),
+};
+int rman_liodn_tbl_sz = ARRAY_SIZE(rman_liodn_tbl);
+#endif
+
 struct liodn_id_table liodn_bases[] = {
 	[FSL_HW_PORTAL_SEC]  = SET_LIODN_BASE_2(64, 100),
 #ifdef CONFIG_SYS_DPAA_FMAN
@@ -104,5 +131,11 @@ struct liodn_id_table liodn_bases[] = {
 #endif
 #ifdef CONFIG_SYS_DPAA_PME
 	[FSL_HW_PORTAL_PME]   = SET_LIODN_BASE_2(136, 172),
+#endif
+#ifdef CONFIG_SYS_FSL_RAID_ENGINE
+	[FSL_HW_PORTAL_RAID_ENGINE]  = SET_LIODN_BASE_1(47),
+#endif
+#ifdef CONFIG_SYS_DPAA_RMAN
+	[FSL_HW_PORTAL_RMAN] = SET_LIODN_BASE_1(80),
 #endif
 };

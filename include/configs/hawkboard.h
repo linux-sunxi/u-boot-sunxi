@@ -34,6 +34,7 @@
 #define CONFIG_MACH_DAVINCI_HAWK
 #define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
+#define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
@@ -83,7 +84,6 @@
 /*
  * Network & Ethernet Configuration
  */
-#define CONFIG_EMAC_MDIO_PHY_NUM	0x7
 #if !defined(CONFIG_NAND_SPL)
 #define CONFIG_DRIVER_TI_EMAC
 #endif
@@ -93,7 +93,6 @@
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT		10
-#define CONFIG_NET_MULTI
 
 /*
  * Nand Flash
