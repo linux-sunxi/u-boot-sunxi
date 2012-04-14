@@ -593,17 +593,6 @@ struct dmm_lisa_map_regs {
 	u32 dmm_lisa_map_3;
 };
 
-struct control_lpddr2io_regs {
-	u32 control_lpddr2io1_0;
-	u32 control_lpddr2io1_1;
-	u32 control_lpddr2io1_2;
-	u32 control_lpddr2io1_3;
-	u32 control_lpddr2io2_0;
-	u32 control_lpddr2io2_1;
-	u32 control_lpddr2io2_2;
-	u32 control_lpddr2io2_3;
-};
-
 #define CS0	0
 #define CS1	1
 /* The maximum frequency at which the LPDDR2 interface can operate in Hz*/
@@ -823,13 +812,6 @@ struct control_lpddr2io_regs {
 /* MR16 value: refresh full array(no partial array self refresh) */
 #define MR16_REF_FULL_ARRAY	0
 
-/* LPDDR2 IO regs */
-#define CONTROL_LPDDR2IO_SLEW_125PS_DRV8_PULL_DOWN	0x1C1C1C1C
-#define CONTROL_LPDDR2IO_SLEW_325PS_DRV8_GATE_KEEPER	0x9E9E9E9E
-
-/* CONTROL_EFUSE_2 */
-#define CONTROL_EFUSE_2_NMOS_PMOS_PTV_CODE_1		0x00ffc000
-
 /*
  * Maximum number of entries we keep in our array of timing tables
  * We need not keep all the speed bins supported by the device
@@ -1029,9 +1011,8 @@ struct emif_regs {
 void emif_get_reg_dump(u32 emif_nr, const struct emif_regs **regs);
 void emif_get_dmm_regs(const struct dmm_lisa_map_regs **dmm_lisa_regs);
 #else
-void emif_get_device_details(u32 emif_nr,
-		struct lpddr2_device_details *cs0_device_details,
-		struct lpddr2_device_details *cs1_device_details);
+struct lpddr2_device_details *emif_get_device_details(u32 emif_nr, u8 cs,
+			struct lpddr2_device_details *lpddr2_dev_details);
 void emif_get_device_timings(u32 emif_nr,
 		const struct lpddr2_device_timings **cs0_device_timings,
 		const struct lpddr2_device_timings **cs1_device_timings);

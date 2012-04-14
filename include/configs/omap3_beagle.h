@@ -118,7 +118,7 @@
 #define CONFIG_I2C_MULTI_BUS		1
 
 /* Probe all devices */
-#define CONFIG_SYS_I2C_NOPROBES		{0x0, 0x0}
+#define CONFIG_SYS_I2C_NOPROBES		{{0x0, 0x0}}
 
 /* USB */
 #define CONFIG_MUSB_UDC			1
@@ -215,7 +215,6 @@
 	"loadaddr=0x80200000\0" \
 	"rdaddr=0x81000000\0" \
 	"usbtty=cdc_acm\0" \
-	"usbethaddr=de:ad:be:ef\0" \
 	"bootfile=uImage.beagle\0" \
 	"console=ttyS2,115200n8\0" \
 	"mpurate=auto\0" \
