@@ -167,7 +167,7 @@
 	"setargs=setenv bootargs console=${console} root=${root}" \
 	" init=${init} loglevel=${loglevel} panic=${panic} ${extra}\0" \
 	"kernel=uImage\0" \
-	"boot.scr=if fatload mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot.scr; then" \
+	"boot.scr=if fatload mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot/boot.scr; then" \
 	" source 0x44000000;" \
 	" fi;" \
 	" true\0" \
@@ -178,7 +178,7 @@
 #define CONFIG_AUTO_COMPLETE
 
 #define CONFIG_CMD_FAT			/* with this we can access fat bootfs */
-#define CONFIG_FAT_WRITE		/* enale wirite access */ 
+#define CONFIG_FAT_WRITE		/* enable write access */ 
 #define CONFIG_CMD_EXT2			/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
