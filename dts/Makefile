@@ -36,7 +36,7 @@ $(error Your architecture does not have device tree support enabled. \
 Please define CONFIG_ARCH_DEVICE_TREE))
 
 # We preprocess the device tree file provide a useful define
-DTS_CPPFLAGS := -DARCH_CPU_DTS=\"../arch/$(ARCH)/dts/$(CONFIG_ARCH_DEVICE_TREE).dtsi\"
+DTS_CPPFLAGS := -DARCH_CPU_DTS=\"$(SRCTREE)/arch/$(ARCH)/dts/$(CONFIG_ARCH_DEVICE_TREE).dtsi\"
 
 all:	$(obj).depend $(LIB)
 
@@ -46,9 +46,13 @@ all:	$(obj).depend $(LIB)
 DT_BIN	:= $(obj)dt.dtb
 
 $(DT_BIN): $(TOPDIR)/board/$(VENDOR)/dts/$(DEVICE_TREE).dts
-	cat $< | $(CPP) -P $(DTS_CPPFLAGS) - >$@.tmp
-	$(DTC) -R 4 -p 0x1000 -O dtb -o ${DT_BIN} $@.tmp
-	rm $@.tmp
+	rc=$$( \
+		cat $< | $(CPP) -P $(DTS_CPPFLAGS) - | \
+		{ { $(DTC) -R 4 -p 0x1000 -O dtb -o ${DT_BIN} - 2>&1 ; \
+		    echo $$? >&3 ; } | \
+		  grep -v '^DTC: dts->dtb  on file' ; \
+	        } 3>&1 ) ; \
+	exit $$rc
 
 process_lds = \
 	$(1) | sed -r -n 's/^OUTPUT_$(2)[ ("]*([^")]*).*/\1/p'
