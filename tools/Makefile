@@ -70,6 +70,7 @@ BIN_FILES-y += mkenvimage$(SFX)
 BIN_FILES-y += mkimage$(SFX)
 BIN_FILES-$(CONFIG_SMDK5250) += mksmdk5250spl$(SFX)
 BIN_FILES-$(CONFIG_MX28) += mxsboot$(SFX)
+BIN_FILES-$(CONFIG_SUNXI) += mksunxiboot$(SFX)
 BIN_FILES-$(CONFIG_NETCONSOLE) += ncb$(SFX)
 BIN_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1$(SFX)
 
@@ -97,6 +98,7 @@ NOPED_OBJ_FILES-y += mkenvimage.o
 NOPED_OBJ_FILES-y += mkimage.o
 OBJ_FILES-$(CONFIG_SMDK5250) += mkexynosspl.o
 OBJ_FILES-$(CONFIG_MX28) += mxsboot.o
+OBJ_FILES-$(CONFIG_SUNXI) += mksunxiboot.o
 OBJ_FILES-$(CONFIG_NETCONSOLE) += ncb.o
 NOPED_OBJ_FILES-y += os_support.o
 OBJ_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1.o
@@ -224,6 +226,10 @@ $(obj)mpc86x_clk$(SFX):	$(obj)mpc86x_clk.o
 	$(HOSTSTRIP) $@
 
 $(obj)mxsboot$(SFX):	$(obj)mxsboot.o
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+	$(HOSTSTRIP) $@
+
+$(obj)mksunxiboot$(SFX):	$(obj)mksunxiboot.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 
