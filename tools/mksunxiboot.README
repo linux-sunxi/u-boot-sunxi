@@ -1,0 +1,13 @@
+This program make a arm binary file can be loaded by Allwinner A10 and releated
+chips from storage media such as nand and mmc.
+
+More information about A10 boot, please refer to
+http://rhombus-tech.net/allwinner_a10/a10_boot_process/
+
+To compile this program, just type make, you will get 'mksunxiboot'.
+
+To use it,
+$./mksunxiboot u-boot.bin u-boot-mmc.bin
+then you can write it to a mmc card with dd.
+$sudo dd if=u-boot-mmc.bin of=/dev/sdb bs=1024 seek=8
+then insert your mmc card to your A10 tablet, you can boot from mmc card.
