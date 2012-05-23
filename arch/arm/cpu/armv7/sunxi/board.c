@@ -104,6 +104,10 @@ void gpio_init()
 	writel(0x55555555, &gpio_c->drv[0]);
 	writel(0x15555, &gpio_c->drv[1]);
 #ifdef UART_PINS_TO_SD
+	/* disable GPB22,23 as uart0 tx,rx */
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPIO_INPUT);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPIO_INPUT);
+	/* set GPF2,4 as uart0 tx,rx */
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
 #endif
