@@ -65,7 +65,7 @@ sunxi_boot_type_t boot_from(void) {
 
 	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
 	if( cfg == SUNXI_GPF2_SDC0_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
+		return SUNXI_BOOT_TYPE_MMC0;
 
 	/* if we are here, something goes wrong */
 	return SUNXI_BOOT_TYPE_NULL;
