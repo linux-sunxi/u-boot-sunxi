@@ -160,12 +160,11 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
 	"root=/dev/mmcblk0p2\0" \
-	"panic=panic=10\0" \
-	"extra=\0" \
-	"init=/init\0" \
+	"panicarg=panic=10\0" \
+	"extraargs=\0" \
 	"loglevel=8\0" \
 	"setargs=setenv bootargs console=${console} root=${root}" \
-	"init=${init} loglevel=${loglevel} ${panic} ${extra}\0" \
+	" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
 	"kernel=uImage\0" \
 	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
 
