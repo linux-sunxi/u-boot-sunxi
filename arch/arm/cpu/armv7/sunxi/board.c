@@ -141,6 +141,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	timer_init();
 	serial_init();
 
+	gd->have_console = 1;
+
 	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
 		U_BOOT_TIME);
 
