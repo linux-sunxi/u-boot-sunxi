@@ -155,7 +155,7 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_BOOTCOMMAND		"run setargs boot_mmc"
+#define CONFIG_BOOTCOMMAND		"run boot.scr setargs boot_mmc"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
@@ -166,6 +166,10 @@
 	"setargs=setenv bootargs console=${console} root=${root}" \
 	" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
 	"kernel=uImage\0" \
+	"boot.scr=if fatload mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot/boot.scr; then" \
+	" source 0x44000000;" \
+	" fi;" \
+	" true\0" \
 	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	3
