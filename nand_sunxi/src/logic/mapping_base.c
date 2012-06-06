@@ -25,10 +25,6 @@
 *
 ************************************************************************************************************************
 */
-#include "../include/nand_oal.h"
-#include "../include/nand_drv_cfg.h"
-#include "../include/nand_type.h"
-#include "../include/nand_physic.h"
 #include "../include/nand_logic.h"
 
 extern struct __NandDriverGlobal_t     NandDriverInfo;
@@ -543,7 +539,7 @@ static __s32 _GetLogPageForWrite(__u32 nBlk, __u32 nPage, __u16 *pLogPage, __u32
         result = _CreateNewLogBlk(nBlk, (__u32 *)&tmpLogPst);
         if(result < 0)
         {
-            MAPPING_ERR("[MAPPING_ERR] Create new log block failed!\n", result);
+            MAPPING_ERR("[MAPPING_ERR] Create new log block failed!\n");
             return -1;
         }
     }

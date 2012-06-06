@@ -14,7 +14,7 @@
 *
 * Date : 2008.03.25
 *
-* Description : This file define the function interface and some data structure export for
+* Description : This file define the function __s32erface and some data structure export for
 *               the physical module.
 *
 * Others : None at present.
@@ -33,10 +33,6 @@
 #define __NAND_PHYSIC_H__
 
 #include "nand_type.h"
-//#include "nand_ndfc.h"
-//#include "nand_osal.h"
-//#include "nand_ccmu.h"
-//#include "nand_reg.h"
 
 //===========================================
 extern struct __NandStorageInfo_t  NandStorageInfo;
@@ -88,10 +84,10 @@ extern struct __NandPageCachePool_t PageCachePool;
 //define if the nand flash can support page copy-back with command operation
 #define SUPPORT_PAGE_COPYBACK               (NAND_PAGE_COPYBACK & NandStorageInfo.OperationOpt)
 
-//define if the nand flash can support internal inter-leave operation
+//define if the nand flash can support __s32ernal __s32er-leave operation
 #define SUPPORT_INT_INTERLEAVE              (NAND_INT_INTERLEAVE & NandStorageInfo.OperationOpt)
 
-//define if the nand flash system can support external inter-leave operation
+//define if the nand flash system can support external __s32er-leave operation
 #define SUPPORT_EXT_INTERLEAVE              (NAND_EXT_INTERLEAVE & NandStorageInfo.OperationOpt)
 
 //define if the nand flash system can support randomizer
@@ -100,11 +96,14 @@ extern struct __NandPageCachePool_t PageCachePool;
 //define if the nand flash system can support read retry
 #define SUPPORT_READ_RETRY                  (NAND_READ_RETRY & NandStorageInfo.OperationOpt)
 
-//define if the nand flash system can support read retry
+//define if the nand flash system can support read unique id
 #define SUPPORT_READ_UNIQUE_ID              (NAND_READ_UNIQUE_ID & NandStorageInfo.OperationOpt)
 
 //define if the nand flash system can support bank align
 #define SUPPORT_ALIGN_NAND_BNK              (!(NAND_PAGE_ADR_NO_SKIP & NandStorageInfo.OperationOpt))
+
+//define if the nand flash require to skip die addr
+#define SUPPORT_DIE_SKIP                    (NAND_DIE_SKIP & NandStorageInfo.OperationOpt)
 
 //define the count of the nand flash DIE in a nand flash chip
 #define DIE_CNT_OF_CHIP                     (NandStorageInfo.DieCntPerChip)
@@ -159,7 +158,7 @@ extern struct __NandPageCachePool_t PageCachePool;
 //define the spare data cache for physical module processing spare area data
 #define PHY_TMP_SPARE_CACHE                 (PageCachePool.SpareCache)
 //==============================================================================
-//  define the functions interface for the physic operation module
+//  define the functions __s32erface for the physic operation module
 //==============================================================================
 
 /*
@@ -217,7 +216,7 @@ __s32 PHY_ResetChip(__u32 nChip);
 *Description: Read nand flash ID from the given nand chip.
 *
 *Arguments  : nChip         the chip number whoes ID need be read;
-*             pChipID       the pointer to the chip ID buffer.
+*             pChipID       the po__s32er to the chip ID buffer.
 *
 *Return     : read nand chip ID result;
 *               = 0     read chip ID successful, the chip ID has been stored in given buffer;
@@ -267,7 +266,7 @@ __s32 PHY_BlockErase(struct __PhysicOpPara_t *pBlkAdr);
 *
 *Description: Read a page from a nand flash physical page to buffer.
 *
-*Arguments  : pPageAdr      the pointer to the accessed page parameter.
+*Arguments  : pPageAdr      the po__s32er to the accessed page parameter.
 *
 *Return     : the result of physical page read;
 *               = 0     read physical page successful;
@@ -286,7 +285,7 @@ __s32  PHY_PageReadSpare(struct __PhysicOpPara_t *pPageAdr);
 *
 *Description: Write a page from buffer to a nand flash physical page.
 *
-*Arguments  : pPageAdr      the pointer to the accessed page parameter.
+*Arguments  : pPageAdr      the po__s32er to the accessed page parameter.
 *
 *Return     : The result of the page write;
 *               = 0     page write successful;
@@ -339,6 +338,8 @@ __s32 PHY_SynchBank(__u32 nBank, __u32 bMode);
 
 __s32 PHY_GetDefaultParam(__u32 bank);
 __s32 PHY_SetDefaultParam(__u32 bank);
+
+__s32 PHY_ScanDDRParam(void);
 
 #endif  //ifnedf __NAND_PHYSIC_H__
 

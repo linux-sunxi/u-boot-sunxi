@@ -4,10 +4,11 @@
 
 #define  OOB_BUF_SIZE                   32
 
-
-extern int NAND_DmaInit(void);
-extern int NAND_DmaExit(void);
-extern int OSAL_printf(const char * str, ...);
+extern int NAND_Print(const char * str, ...);
+static int OSAL_printf(const char * str, ...)
+{
+    NAND_Print(str);
+}
 
 static block_dev_desc_t 	nand_blk_dev;
 
