@@ -12,10 +12,7 @@
 *    v0.1  2008-04-07 Richard
 *            support three methods to make free physic block or free physic page.
 **********************************************************************************/
-#include "../include/nand_oal.h"
-#include "../include/nand_drv_cfg.h"
-#include "../include/nand_type.h"
-#include "../include/nand_physic.h"
+
 #include "../include/nand_logic.h"
 
 extern struct __NandDriverGlobal_t     NandDriverInfo;
@@ -354,7 +351,7 @@ __s32  _free2data_simple_merge(__u32 nlogical)
         SrcPage = InData?SuperPage:SrcPage;
 		LML_CalculatePhyOpPar(&SrcParam, CUR_MAP_ZONE,SrcBlk, SrcPage);
 		LML_CalculatePhyOpPar(&DstParam, CUR_MAP_ZONE,DstBlk, DstPage);
-
+			
         if (DstPage == 0)
         {
             __u8 SeqPlus;
@@ -418,7 +415,7 @@ __s32  _free2data_simple_merge(__u32 nlogical)
     MEMSET(&LogBlk, 0xff, sizeof(struct __LogBlkType_t));
     BMM_SetLogBlk(nlogical, &LogBlk);
 
-
+    
 
     /*clear page map table*/
     PMM_ClearCurMapTbl();

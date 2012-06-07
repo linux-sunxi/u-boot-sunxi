@@ -29,10 +29,6 @@
 *
 ************************************************************************************************************************
 */
-#include "../include/nand_oal.h"
-#include "../include/nand_drv_cfg.h"
-#include "../include/nand_type.h"
-#include "../include/nand_physic.h"
 #include "../include/nand_format.h"
 #include "../include/nand_logic.h"
 
@@ -309,7 +305,7 @@ static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 S
     }
 
 	return result;
-
+	
     #if 0
     if(result < 0)
     {
@@ -1002,7 +998,7 @@ static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
                     //set the bad flag of the physical block
                     tmpBadFlag = 1;
                 }
-
+			
                 if(tmpPage == 0)
                 {
                     //get the logical information of the physical block
@@ -1797,7 +1793,7 @@ static __s32 _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
     for( ; tmpPhyBlk<SuperBlkCntOfDie; tmpPhyBlk++)
     {
         tmpLogicInfo = pDieInfo->pPhyBlk[tmpPhyBlk];
-
+        
         //added by penggang 20101206
         //the last block is degenrous, if it is free block, kick it as a bad block
         if(tmpPhyBlk == SuperBlkCntOfDie-1)
@@ -1807,13 +1803,13 @@ static __s32 _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
                 FORMAT_DBG("[FORMAT_DBG] mark the last block as bad block \n");
                 pDieInfo->pPhyBlk[tmpPhyBlk] = BAD_BLOCK_INFO;
                 _WriteBadBlkFlag(pDieInfo->nDie, tmpPhyBlk);
-
+                
             }
         }
-
+        
         tmpLogicInfo = pDieInfo->pPhyBlk[tmpPhyBlk];
-
-
+        
+        
         //check if the block is a bad block
         if(tmpLogicInfo == BAD_BLOCK_INFO)
         {
@@ -2504,7 +2500,7 @@ __s32 FMT_Init(void)
     if(SUPPORT_EXT_INTERLEAVE)
     {
        if(NandStorageInfo.ChipCnt >=2)
-          LogicArchiPar.PageCntPerLogicBlk *= 2;
+          LogicArchiPar.PageCntPerLogicBlk *= 2; 	
     }
     LogicArchiPar.ZoneCntPerDie = (NandStorageInfo.BlkCntPerDie / NandStorageInfo.PlaneCntPerDie) / BLOCK_CNT_OF_ZONE;
 
@@ -2631,7 +2627,6 @@ void ClearNandStruct( void )
 {
     MEMSET(&PageCachePool, 0x00, sizeof(struct __NandPageCachePool_t));
 }
-
 
 
 
