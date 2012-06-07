@@ -283,9 +283,9 @@ struct __NandPhyInfoPar_t HynixNandTbl[] =
     { {0xad, 0xd7, 0x94, 0x9A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2A H27UCG8U5(D)A H27UDG8VF(D)A
     { {0xad, 0xde, 0xd5, 0x9A, 0xff, 0xff, 0xff, 0xff }, 2,    16,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UDG8V5A
     { {0xad, 0xd7, 0x94, 0x25, 0xff, 0xff, 0xff, 0xff }, 1,     8,     128,     8192,   0x0008,   974,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2M
-    { {0xad, 0xde, 0x94, 0xd2, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   950,    15,     2,  0x000604,      0,    &PhysicArchiPara3 },   // H27UCG8T2M
-    { {0xad, 0xd7, 0x18, 0x8d, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     4096,   0x0188,   950,    15,     3,  0x000604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
-    { {0xad, 0xd7, 0x94, 0xda, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   950,    15,     3,  0x010604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
+    { {0xad, 0xde, 0x94, 0xd2, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   950,    30,     2,  0x000604,      0,    &PhysicArchiPara3 },   // H27UCG8T2M
+    { {0xad, 0xd7, 0x18, 0x8d, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     4096,   0x0188,   950,    30,     3,  0x000604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
+    { {0xad, 0xd7, 0x94, 0xda, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   950,    30,     3,  0x010604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
     { {0xad, 0xde, 0x94, 0xda, 0x74, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   960,    40,     4,  0x020708,      0,    &PhysicArchiPara3 },   // H27UCG8T2A
     { {0xad, 0xd7, 0x94, 0x91, 0x60, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   960,    40,     4,  0x030708,      0,    &PhysicArchiPara3 },   // H27UBG8T2C
     //---------------------------------------------------------------------------------------------------------------------------

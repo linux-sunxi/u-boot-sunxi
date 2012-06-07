@@ -308,7 +308,7 @@ __s32 PHY_Init(void)
 	return ret;	
 }
 
-#if 1
+#if 0
 __s32 PHY_GetDefaultParam(__u32 bank)
 {   
 	__u8 default_value[64]; 
