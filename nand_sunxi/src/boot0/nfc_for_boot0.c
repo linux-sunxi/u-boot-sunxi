@@ -1322,7 +1322,7 @@ __s32 NFC_SetDefaultParam(__u32 chip,__u8* default_value,__u32 read_retry_type)
         {
             if((read_retry_mode == 0x0)||(read_retry_mode == 0x1))
                 default_value[i] = read_retry_default_val[chip][i];
-            else if(read_retry_mode == 0x2)    
+            else if((read_retry_mode == 0x2)||(read_retry_mode == 0x3)) 
                 default_value[i] = hynix_read_retry_otp_value[chip][0][i];
         }
         ret =_vender_set_param(default_value, &read_retry_reg_adr[0], read_retry_reg_num);
