@@ -177,6 +177,7 @@
 #define CONFIG_AUTO_COMPLETE
 
 #define CONFIG_CMD_FAT			/* with this we can access fat bootfs */
+#define CONFIG_FAT_WRITE		/* enable write access */ 
 #define CONFIG_CMD_EXT2			/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
