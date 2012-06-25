@@ -40,6 +40,8 @@ endif
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
+COBJS   += cmd_fel.o
+COBJS   += cmd_watchdog.o
 endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
