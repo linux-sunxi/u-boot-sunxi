@@ -95,12 +95,12 @@ int sunxi_gpio_input(u32 pin) {
 
 	return (dat & 0x1);
 }
-
+/*
 int gpio_request(unsigned gpio, const char *label) {
 
 	return 0;
 }
-
+*/
 int gpio_free(unsigned gpio) {
 
 	return 0;

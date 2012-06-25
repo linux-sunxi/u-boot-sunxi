@@ -19,7 +19,7 @@
 **********************************************************************************************************************
 */
 #include <common.h>
-#include <asm/arch/nand_fspart.h>
+#include <asm/arch/partition.h>
 #include <asm/arch/nand_bsp.h>
 #include <fastboot.h>
 

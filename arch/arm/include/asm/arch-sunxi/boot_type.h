@@ -1,7 +1,7 @@
 /*
  * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
- * Tom Cubie <tangliang@allwinnertech.com>
+ * panlong <panlong@allwinnertech.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,10 +22,9 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _SYS_PROTO_H_
-#define _SYS_PROTO_H_
+#ifndef _BOOT_TYPE_H_
+#define _BOOT_TYPE_H_
 
-void sr32(u32 *, u32, u32, u32);
-void sdelay(unsigned long);
-
+extern int mmc_card;
+extern int uart_console;
 #endif
