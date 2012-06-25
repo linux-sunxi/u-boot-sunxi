@@ -95,7 +95,11 @@ void fastboot_mmc_partition_init(void) {
 }
 
 void fastboot_partition_init(void) {
-	if(AW_MMC_NAND){
+#ifdef DEBUG
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
+			        mmc_card = 0;
+#endif
+	if(mmc_card){
 		fastboot_mmc_partition_init();
 	}else{
 		fastboot_nand_partition_init();
@@ -199,7 +203,11 @@ int nand_check_android_misc() {
 
 int check_android_misc(void){
 	int ret;
-	if(AW_MMC_NAND){
+#ifdef DEBUG
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
+		mmc_card = 0;
+#endif
+	if(mmc_card){
 		ret= mmc_check_android_misc();
 	}else{
 		ret= nand_check_android_misc();
@@ -215,37 +223,42 @@ int board_init(void) {
 
 	gd->bd->bi_arch_number = 3495;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
-	if(AW_MMC_NAND)
+#ifdef DEBUG
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int))){
+		mmc_card=0;
+		printf("script_parser_fetch err!\n");
+	}
+	printf("mmc_card is %d\n",mmc_card);
+#endif
+	if(mmc_card)
 		save_boot_type();
 	return 0;
 }
 
-/* Partition init must be after NAND or MMC init, so we put the fastboot
+/* Partition init must be after NAND init, so we put the fastboot
  * partition init here in the board late init.
  */
-int board_late_init(void) {
-
+int board_late_init(void)
+{
 	fastboot_partition_init();
 	check_android_misc();
-
 	return 0;
 }
-
-void dram_init_banksize(void) {
-
+void dram_init_banksize(void)
+{
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
 
-int dram_init(void) {
-
+int dram_init(void)
+{
 	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 	return 0;
 }
 
 #ifdef CONFIG_GENERIC_MMC
-int board_mmc_init(bd_t *bis) {
-
+int board_mmc_init(bd_t *bis)
+{
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
 	check_android_misc();
 	return 0;
