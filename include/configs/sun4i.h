@@ -170,7 +170,7 @@
 	" source 0x44000000;" \
 	" fi;" \
 	" true\0" \
-	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
+	"boot_mmc=fatload mmc 0 0x43000000 script.bin && fatload mmc 0 0x48000000 ${kernel} && watchdog 0 && bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
@@ -209,5 +209,8 @@
 
 #define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
 #define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
+
+#define CONFIG_WATCHDOG			/* automatic watchdog support */
+#define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
 
 #endif /* __CONFIG_H */

@@ -22,10 +22,40 @@
 #include <asm/armv7.h>
 #include <asm/io.h>
 
+#if defined(CONFIG_CMD_WATCHDOG) || defined(CONFIG_WATCHDOG)
+static struct sunxi_wdog * const wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+
+void watchdog_reset(void)
+{
+	/* a little magic to reload the watchdog */
+	writel(0xA57 << 1 | 1 << 0, &wdog->ctl);
+}
+
+static void watchdog_set(int interval)
+{
+	/* Set timeout, reset & enable */
+	writel(interval << 2 | 1 << 1 | 1 << 0, &wdog->mode);
+	watchdog_reset();
+}
+
+#endif
+
+#ifdef CONFIG_WATCHDOG
+void watchdog_init(void)
+{
+	watchdog_set(23); /* max possible timeout */
+}
+#endif
+
+#ifdef CONFIG_CMD_WATCHDOG
+static void watchdog_stop(void)
+{
+	writel(0, &wdog->mode);
+}
+
 int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	long interval;
 
 	if (argc < 2) {
@@ -40,10 +70,10 @@ int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	interval = simple_strtoul(argv[1], NULL, 10);
 	if (interval > (1 << 6) - 1)
 		interval = (1 << 6) - 1;
-	writel(0, &wdog->mode); /* make sure bit 0 is 0 to reset counter */
-	CP15DMB;
 	if (interval)
-		writel(interval << 2 | 1 << 1 | 1 << 0, &wdog->mode);
+		watchdog_set(interval);
+	else
+		watchdog_stop();
 	return 0;
 }
 
@@ -52,3 +82,4 @@ U_BOOT_CMD(
 	"Set watchdog. 0 disables",
 	""
 );
+#endif
