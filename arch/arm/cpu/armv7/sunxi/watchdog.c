@@ -22,6 +22,10 @@
 #include <asm/armv7.h>
 #include <asm/io.h>
 
+#if CONFIG_SPL_BUILD
+#undef CONFIG_CMD_WATCHDOG
+#endif
+
 #if defined(CONFIG_CMD_WATCHDOG) || defined(CONFIG_WATCHDOG)
 static struct sunxi_wdog * const wdog =
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
