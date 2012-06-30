@@ -159,7 +159,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
-	"root=/dev/mmcblk0p2\0" \
+	"root=/dev/mmcblk0p2 rootwait\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
 	"loglevel=8\0" \
