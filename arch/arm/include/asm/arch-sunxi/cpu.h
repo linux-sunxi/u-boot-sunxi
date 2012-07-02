@@ -142,7 +142,18 @@
 
 #define SUNXI_BROM_BASE				0XFFFF0000		/* 32K */
 
+#ifndef __ASSEMBLY__
+/* boot type */
+typedef enum {
+	SUNXI_BOOT_TYPE_NULL,
+	SUNXI_BOOT_TYPE_MMC0,
+	SUNXI_BOOT_TYPE_NAND,
+	SUNXI_BOOT_TYPE_MMC2,
+	SUNXI_BOOT_TYPE_SPI
+} sunxi_boot_type_t;
 
+sunxi_boot_type_t get_boot_type(void);
+#endif /* __ASSEMBLY__ */
 
 #define SUNXI_GET_BITS(value, start_bit, bits_num) ( (value >> start_bit) & \
 													((1 << bits_num) - 1) )

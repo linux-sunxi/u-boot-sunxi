@@ -615,7 +615,6 @@ out:
 int sunxi_mmc_init(int sdc_no)
 {
 	struct mmc *mmc;
-
 	memset(&mmc_dev[sdc_no], 0, sizeof(struct mmc));
 	memset(&mmc_host[sdc_no], 0, sizeof(struct sunxi_mmc_host));
 	mmc = &mmc_dev[sdc_no];

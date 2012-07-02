@@ -26,6 +26,7 @@
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/key.h>
+#include <asm/arch/sys_proto.h>
 
 #undef SUNXI_KEY_DEBUG
 

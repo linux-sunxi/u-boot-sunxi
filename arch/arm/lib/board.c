@@ -78,6 +78,12 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+extern void sw_gpio_init(void);
+extern int script_parser_fetch(char *main_name, char *sub_name, int value[], int count);
+extern int script_parser_init_early(void);
+#endif
 
 /************************************************************************
  * Coloured LED functionality
@@ -410,7 +416,11 @@ void board_init_f(ulong bootflag)
 	/* Ram ist board specific, so move it to board code ... */
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
-
+#ifdef DEBUG
+	puts("mmc_card is");
+	print_size(mmc_card,"\n");
+	puts("in dram_init!\n");
+#endif
 	gd->relocaddr = addr;
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;
@@ -457,6 +467,16 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	enable_caches();
 
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
+#ifdef CONFIG_ALLWINNER
+#ifdef DEBUG
+	printf("sunxi script init\n");
+#endif
+	sw_gpio_init();
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
+		mmc_card = 0;
+	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
+		uart_console = 0;
+#endif
 	board_init();	/* Setup chipselects */
 
 #ifdef CONFIG_SERIAL_MULTI
@@ -504,19 +524,42 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif
 
+#ifdef CONFIG_ALLWINNER
+	if(!mmc_card){
+		puts("NAND:  ");
+		nand_init();		/* go init the NAND */
+	}
+#else
 #if defined(CONFIG_CMD_NAND)
 	puts("NAND:  ");
-	nand_init();		/* go init the NAND */
-#endif
+	nand_init();        /* go init the NAND */
+#endif/*CONFIG_CMD_NAND*/
+#endif/*CONFIG_ALLWINNER*/
+
 
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
 #endif
-
-#ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_ALLWINNER
+	if(mmc_card){
        puts("MMC:   ");
        mmc_initialize(bd);
-#endif
+	}
+#ifdef DEBUG
+printf("\nret is %d\n",script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)));
+printf("\nmmc_card is %d\n",mmc_card);
+#endif/*DEBUG*/
+#else
+#ifdef CONFIG_GENERIC_MMC
+	puts("MMC:   ");
+	mmc_initialize(bd);
+#endif/*CONFIG_GENERIC_MMC*/
+#endif/*CONFIG_ALLWINNER*/
+
+#ifdef DEBUG
+printf("\nmmc_card is %d\n",mmc_card);
+printf("\nuart_console is %d\n",uart_console);
+#endif/*DEBUG*/
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();

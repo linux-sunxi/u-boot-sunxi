@@ -31,7 +31,9 @@
 #include <fdt_support.h>
 #include <fastboot.h>
 #include <asm/arch/clock.h>
-
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+#endif
 DECLARE_GLOBAL_DATA_PTR;
 
 #if defined (CONFIG_SETUP_MEMORY_TAGS) || \
@@ -166,7 +168,10 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	ulong initrd_start, initrd_end;
 	void (*kernel_entry)(int zero, int arch, uint params);
 	bd_t *bd = gd->bd;
-
+#if DEBUG
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
+		mmc_card = 0;
+#endif
 	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);
 
 #ifdef CONFIG_CMDLINE_TAG
@@ -208,12 +213,13 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 #endif
 	setup_end_tag (bd);
 #endif
-
-	/* nand exit */
-	NAND_Exit();
-
+	if(!mmc_card){
+		/* nand exit */
+		NAND_Exit();
+	}
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
+	sr32(SUNXI_CCM_APB1_GATING, 16, 2, 0);
 	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
 
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);

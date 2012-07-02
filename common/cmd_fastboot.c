@@ -60,19 +60,20 @@
 #include <fastboot.h>
 #include <environment.h>
 #include <sparse.h>
-
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+#endif
 #ifdef CONFIG_FASTBOOT
 
 /* Use do_reset for fastboot's 'reboot' command */
 extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 /* Use do_nand for fastboot's flash commands */
-#if defined(CONFIG_STORAGE_NAND)
+
 extern int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[]);
-#elif defined(CONFIG_STORAGE_EMMC)
-extern int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+extern int do_mmcops (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 extern env_t *env_ptr;
-#endif
-/* Use do_setenv and do_saveenv to permenantly save data */
+
+/* Use do_setenv and do_env_save to permenantly save data */
 extern int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 extern int do_env_set ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 /* Use do_bootm and do_go for fastboot's 'boot' command */
@@ -725,7 +726,11 @@ static int tx_handler(void)
 static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 {
 	int ret = 1;
-
+#ifdef DEBUG
+	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
+		mmc_card = 0;
+	printf("mmc_card is %d\n",mmc_card);
+#endif
 	/* Use 65 instead of 64
 	   null gets dropped  
 	   strcpy's need the extra byte */
@@ -894,103 +899,87 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   Board has to set up flash partitions */
 
 		if(memcmp(cmdbuf, "erase:", 6) == 0){
-#if defined(CONFIG_STORAGE_NAND)
-			struct fastboot_ptentry *ptn;
+		/*#if defined(CONFIG_STORAGE_NAND)*/
+			if(!mmc_card){
+				struct fastboot_ptentry *ptn;
 
-			ptn = fastboot_flash_find_ptn(cmdbuf + 6);
-			if(ptn == 0) 
-			{
-				printf("FAIL: partition does not exist\n");
-				sprintf(response, "FAILpartition does not exist");
-			}
-			else
-			{
-				char start[32], length[32];
-				int status, repeat, repeat_max;
-			
-				printf("erasing '%s'\n", ptn->name);   
-
-				char *lock[5]   = { "nand", "lock",   NULL, NULL, NULL, };
-				char *unlock[5] = { "nand", "unlock", NULL, NULL, NULL,	};
-				char *erase[5]  = { "nand", "erase",  NULL, NULL, NULL, };
-			
-				lock[2] = unlock[2] = erase[2] = start;
-				lock[3] = unlock[3] = erase[3] = length;
-
-				repeat_max = 1;
-				if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_REPEAT_MASK)
-					repeat_max = ptn->flags & FASTBOOT_PTENTRY_FLAGS_REPEAT_MASK;
-
-				sprintf (length, "0x%x", ptn->length);
-				for (repeat = 0; repeat < repeat_max; repeat++) 
+				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
+				if(ptn == 0)
 				{
-					sprintf (start, "0x%x", ptn->start + (repeat * ptn->length));
-				
-					do_nand (NULL, 0, 4, unlock);
-					status = do_nand (NULL, 0, 4, erase);
-					do_nand (NULL, 0, 4, lock);
+					printf("FAIL: partition does not exist\n");
+					sprintf(response, "FAILpartition does not exist");
+				}else{
+					char start[32], length[32];
+					int status, repeat, repeat_max;
+			
+					printf("erasing '%s'\n", ptn->name);
+
+					char *lock[5]   = { "nand", "lock",   NULL, NULL, NULL, };
+					char *unlock[5] = { "nand", "unlock", NULL, NULL, NULL,	};
+					char *erase[5]  = { "nand", "erase",  NULL, NULL, NULL, };
+			
+					lock[2] = unlock[2] = erase[2] = start;
+					lock[3] = unlock[3] = erase[3] = length;
+
+					repeat_max = 1;
+					if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_REPEAT_MASK)
+						repeat_max = ptn->flags & FASTBOOT_PTENTRY_FLAGS_REPEAT_MASK;
+
+					sprintf (length, "0x%x", ptn->length);
+					for (repeat = 0; repeat < repeat_max; repeat++)
+					{
+						sprintf (start, "0x%x", ptn->start + (repeat * ptn->length));
+
+						do_nand (NULL, 0, 4, unlock);
+						status = do_nand (NULL, 0, 4, erase);
+						do_nand (NULL, 0, 4, lock);
+
+						if (status)
+							break;
+					}
 
 					if (status)
-						break;
+					{
+						printf("FAIL: failed to erase partition\n");
+						sprintf(response,"FAILfailed to erase partition");
+					}else{
+						printf("partition '%s' erased\n", ptn->name);
+						sprintf(response, "OKAY");
+					}
 				}
+/*#elif defined(CONFIG_STORAGE_EMMC)*/
+			}else{/*mmc branch*/
+				struct fastboot_ptentry *ptn;
+				/* Find the partition and erase it */
+				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 
-				if (status)
-				{
-					printf("FAIL: failed to erase partition\n");
-					sprintf(response,"FAILfailed to erase partition");
-				} 
-				else 
-				{
-					printf("partition '%s' erased\n", ptn->name);
-					sprintf(response, "OKAY");
-				}
-			
-			}
-#elif defined(CONFIG_STORAGE_EMMC)
-			struct fastboot_ptentry *ptn;
-
-			/* Save the MMC controller number */
-			mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
-
-			/* Find the partition and erase it */
-			ptn = fastboot_flash_find_ptn(cmdbuf + 6);
-
-			if (ptn == 0) {
-				printf("FAIL: partition doesn't exist\n");
-				sprintf(response, "FAIL: partition doesn't exist");
-			} else {
-				/* Call MMC erase function here */
-				char start[32], length[32];
-				char slot_no[32];
-
-				char *erase[5]  = { "mmc", NULL, "erase", NULL, NULL, };
-				char *mmc_init[2] = {"mmcinit", NULL,};
-
-				mmc_init[1] = slot_no;
-				erase[1] = slot_no;
-				erase[3] = start;
-				erase[4] = length;
-
-				sprintf(slot_no, "%d", mmc_controller_no);
-				sprintf(length, "0x%x", ptn->length);
-				sprintf(start, "0x%x", ptn->start);
-
-				printf("Initializing '%s'\n", ptn->name);
-				if (do_mmc(NULL, 0, 2, mmc_init))
-					sprintf(response, "FAIL: Init of MMC card");
-				else
-					sprintf(response, "OKAY");
-
-				printf("Erasing '%s'\n", ptn->name);
-				if (do_mmc(NULL, 0, 5, erase)) {
-					printf("Erasing '%s' FAILED!\n", ptn->name);
-					sprintf(response, "FAIL: Erase partition");
+				if (ptn == 0) {
+					printf("FAIL: partition doesn't exist\n");
+					sprintf(response, "FAIL: partition doesn't exist");
 				} else {
-					printf("Erasing '%s' DONE!\n", ptn->name);
-					sprintf(response, "OKAY");
+					/* Call MMC erase function here */
+					char start[32], length[32];
+					char slot_no[32];
+
+					char *erase[4]  = { "mmc", "erase", NULL, NULL, };
+
+					erase[2] = start;
+					erase[3] = length;
+
+					sprintf(length, "0x%x", ALIGN(ptn->length, 512) / 512);
+					sprintf(start, "0x%x", ALIGN(ptn->start, 512) / 512);
+
+					printf("Erasing '%s'\n", ptn->name);
+					if (do_mmcops(NULL, 0, 4, erase)) {
+						printf("Erasing '%s' FAILED!\n", ptn->name);
+						sprintf(response, "FAIL: Erase partition");
+					} else {
+						printf("Erasing '%s' DONE!\n", ptn->name);
+						sprintf(response, "OKAY");
+					}
 				}
+/*#endif*/
 			}
-#endif
 			ret = 0;
 		}
 
@@ -1124,142 +1113,128 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   Flash what was downloaded */
 
 		if(memcmp(cmdbuf, "flash:", 6) == 0) {
-#if defined(CONFIG_STORAGE_NAND)
-			if (download_bytes) 
-			{
-				struct fastboot_ptentry *ptn;
-			
-				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
-				if (ptn == 0) {
-					sprintf(response, "FAILpartition does not exist");
-				} else if ((download_bytes > ptn->length) &&
-					   !(ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV)) {
-					sprintf(response, "FAILimage too large for partition");
-					/* TODO : Improve check for yaffs write */
-				} else {
-					/* Check if this is not really a flash write
-					   but rather a saveenv */
-					if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV) {
-						/* Since the response can only be 64 bytes,
-						   there is no point in having a large error message. */
-						char err_string[32];
-						if (saveenv_to_ptn(ptn, &err_string[0])) {
-							printf("savenv '%s' failed : %s\n", ptn->name, err_string);
-							sprintf(response, "FAIL%s", err_string);
-						} else {
-							printf("partition '%s' saveenv-ed\n", ptn->name);
-							sprintf(response, "OKAY");
-						}
+/*#if defined(CONFIG_STORAGE_NAND)*/
+			if(!mmc_card){
+				if (download_bytes)
+				{
+					struct fastboot_ptentry *ptn;
+
+					ptn = fastboot_flash_find_ptn(cmdbuf + 6);
+					if (ptn == 0) {
+						sprintf(response, "FAILpartition does not exist");
+					} else if ((download_bytes > ptn->length) &&
+						!(ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV)) {
+						sprintf(response, "FAILimage too large for partition");
+						/* TODO : Improve check for yaffs write */
 					} else {
-							/* Check if we have sparse compressed image */
-							if ( ((sparse_header_t *)interface.transfer_buffer)->magic
-									== SPARSE_HEADER_MAGIC) {
-								printf("fastboot: %s is in sparse format\n", ptn->name);
-								if (!do_unsparse(interface.transfer_buffer,
-										ptn->start,
-										ptn->length,
-										NULL)) {
-									printf("Writing sparsed: '%s' DONE!\n", ptn->name);
-									sprintf(response, "OKAY");
-								} else {
-									printf("Writing sparsed '%s' FAILED!\n", ptn->name);
-									sprintf(response, "FAIL: Sparsed Write");
-								}
+						/* Check if this is not really a flash write
+						but rather a saveenv */
+						if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV) {
+							/* Since the response can only be 64 bytes,
+							there is no point in having a large error message. */
+							char err_string[32];
+							if (saveenv_to_ptn(ptn, &err_string[0])) {
+								printf("savenv '%s' failed : %s\n", ptn->name, err_string);
+								sprintf(response, "FAIL%s", err_string);
 							} else {
-							/* Normal image: no sparse */
-							if (write_to_ptn(ptn)) {
-								printf("flashing '%s' failed\n", ptn->name);
-								sprintf(response, "FAILfailed to flash partition");
-							} else {
-								printf("partition '%s' flashed\n", ptn->name);
+								printf("partition '%s' saveenv-ed\n", ptn->name);
 								sprintf(response, "OKAY");
+							}
+						} else {
+								/* Check if we have sparse compressed image */
+								if ( ((sparse_header_t *)interface.transfer_buffer)->magic
+										== SPARSE_HEADER_MAGIC) {
+									printf("fastboot: %s is in sparse format\n", ptn->name);
+									if (!do_unsparse(interface.transfer_buffer,
+											ptn->start,
+											ptn->length,
+											NULL)) {
+										printf("Writing sparsed: '%s' DONE!\n", ptn->name);
+										sprintf(response, "OKAY");
+									} else {
+										printf("Writing sparsed '%s' FAILED!\n", ptn->name);
+										sprintf(response, "FAIL: Sparsed Write");
+									}
+								} else {
+								/* Normal image: no sparse */
+								if (write_to_ptn(ptn)) {
+									printf("flashing '%s' failed\n", ptn->name);
+									sprintf(response, "FAILfailed to flash partition");
+								} else {
+									printf("partition '%s' flashed\n", ptn->name);
+									sprintf(response, "OKAY");
+								}
 							}
 						}
 					}
+				}else{
+					sprintf(response, "FAILno image downloaded");
 				}
-			}
-			else
-			{
-				sprintf(response, "FAILno image downloaded");
-			}
-#elif defined(CONFIG_STORAGE_EMMC)
-			if (download_bytes) {
+/*#elif defined(CONFIG_STORAGE_EMMC)*/
+			}else{
+				if (download_bytes) {
 
-				struct fastboot_ptentry *ptn;
+					struct fastboot_ptentry *ptn;
 
-				/* Save the MMC controller number */
-				mmc_controller_no = CONFIG_FASTBOOT_MMC_NO;
+					/* Next is the partition name */
+					ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 
-				/* Next is the partition name */
-				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
-
-				if (ptn == 0) {
-					printf("Partition:'%s' does not exist\n", ptn->name);
-					sprintf(response, "FAILpartition does not exist");
-				} else if ((download_bytes > ptn->length) &&
-						!(ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV)) {
-					printf("Image too large for the partition\n");
-					sprintf(response, "FAILimage too large for partition");
-				} else if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV) {
-					/* Check if this is not really a flash write,
-					 * but instead a saveenv
-					 */
-					unsigned int i = 0;
-					/* Env file is expected with a NULL delimeter between
-					 * env variables So replace New line Feeds (0x0a) with
-					 * NULL (0x00)
-					 */
-					for (i = 0; i < download_bytes; i++) {
-						if (interface.transfer_buffer[i] == 0x0a)
-							interface.transfer_buffer[i] = 0x00;
-					}
-					memset(env_ptr->data, 0, ENV_SIZE);
-					memcpy(env_ptr->data, interface.transfer_buffer, download_bytes);
-					do_saveenv(NULL, 0, 1, NULL);
-					printf("saveenv to '%s' DONE!\n", ptn->name);
-					sprintf(response, "OKAY");
-				} else {
-				/* Normal case */
-
-					char source[32], dest[32], length[32];
-					char slot_no[32];
-
-					printf("writing to partition '%s'\n", ptn->name);
-					char *mmc_write[6]  = {"mmc", NULL, "write", NULL, NULL, NULL};
-					char *mmc_init[2] = {"mmcinit", NULL,};
-
-					mmc_init[1] = slot_no;
-					mmc_write[1] = slot_no;
-					mmc_write[3] = source;
-					mmc_write[4] = dest;
-					mmc_write[5] = length;
-
-					sprintf(slot_no, "%d", mmc_controller_no);
-					sprintf(source, "0x%x", interface.transfer_buffer);
-					sprintf(dest, "0x%x", ptn->start);
-					sprintf(length, "0x%x", download_bytes);
-
-					printf("Initializing '%s'\n", ptn->name);
-					if (do_mmc(NULL, 0, 2, mmc_init))
-						sprintf(response, "FAIL:Init of MMC card");
-					else
+					if (ptn == 0) {
+						printf("Partition:'%s' does not exist\n", ptn->name);
+						sprintf(response, "FAILpartition does not exist");
+					} else if ((download_bytes > ptn->length) &&
+							!(ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV)) {
+						printf("Image too large for the partition\n");
+						sprintf(response, "FAILimage too large for partition");
+					} else if (ptn->flags & FASTBOOT_PTENTRY_FLAGS_WRITE_ENV) {
+						/* Check if this is not really a flash write,
+						* but instead a saveenv
+						*/
+						unsigned int i = 0;
+						/* Env file is expected with a NULL delimeter between
+						* env variables So replace New line Feeds (0x0a) with
+						* NULL (0x00)
+						*/
+						for (i = 0; i < download_bytes; i++) {
+							if (interface.transfer_buffer[i] == 0x0a)
+								interface.transfer_buffer[i] = 0x00;
+						}
+						memset(env_ptr->data, 0, ENV_SIZE);
+						memcpy(env_ptr->data, interface.transfer_buffer, download_bytes);
+						do_env_save(NULL, 0, 1, NULL);
+						printf("saveenv to '%s' DONE!\n", ptn->name);
 						sprintf(response, "OKAY");
-
-
-					printf("Writing '%s'\n", ptn->name);
-					if (do_mmc(NULL, 0, 6, mmc_write)) {
-						printf("Writing '%s' FAILED!\n", ptn->name);
-						sprintf(response, "FAIL: Write partition");
 					} else {
-						printf("Writing '%s' DONE!\n", ptn->name);
-						sprintf(response, "OKAY");
-					}
-				}
+					/* Normal case */
 
-		} else {
-			sprintf(response, "FAILno image downloaded");
-		}
-#endif
+						char source[32], dest[32], length[32];
+
+						printf("writing to partition '%s'\n", ptn->name);
+						char *mmc_write[5]  = {"mmc", "write", NULL, NULL, NULL};
+
+						mmc_write[2] = source;
+						mmc_write[3] = dest;
+						mmc_write[4] = length;
+
+						sprintf(source, "0x%x", interface.transfer_buffer);
+						sprintf(dest, "0x%x", ALIGN(ptn->start, 512) / 512);
+						sprintf(length, "0x%x", ALIGN(download_bytes, 512) / 512);
+
+						printf("Writing '%s'\n", ptn->name);
+						if (do_mmcops(NULL, 0, 5, mmc_write)) {
+							printf("Writing '%s' FAILED!\n", ptn->name);
+							sprintf(response, "FAIL: Write partition");
+						} else {
+							printf("Writing '%s' DONE!\n", ptn->name);
+							sprintf(response, "OKAY");
+						}
+					}
+
+				} else {
+				sprintf(response, "FAILno image downloaded");
+				}
+/*#endif*/
+			}
 			ret = 0;
 		}
 
@@ -1275,7 +1250,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   Upload just the data in a partition */
 		if ((memcmp(cmdbuf, "upload:", 7) == 0) ||
 		    (memcmp(cmdbuf, "uploadraw:", 10) == 0)) {
-#if defined(CONFIG_STORAGE_NAND)
+/*#if defined(CONFIG_STORAGE_NAND)*/
+			if(!mmc_card){
 			unsigned int adv, delim_index, len;
 			struct fastboot_ptentry *ptn;
 			unsigned int is_raw = 0;
@@ -1412,7 +1388,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					sprintf(response, "DATA%08x", size);
 				}
 			}
-#endif
+/*#endif*/}
 			ret = 0;
 		}
 

@@ -63,4 +63,98 @@ struct sunxi_gpio_reg {
 	struct sunxi_gpio_int gpio_int;
 };
 
-#endif
+#define GPIO_BANK(pin)		((pin) >> 5)
+#define GPIO_NUM(pin)		((pin) & 0x1F)
+
+#define GPIO_CFG_INDEX(pin)		(((pin) & 0x1F) >> 3)
+#define GPIO_CFG_OFFSET(pin)		((((pin) & 0x1F) & 0x7) << 2)
+
+/* GPIO bank sizes */
+#define SUNXI_GPIO_A_NR    (32)
+#define SUNXI_GPIO_B_NR    (32)
+#define SUNXI_GPIO_C_NR    (32)
+#define SUNXI_GPIO_D_NR    (32)
+#define SUNXI_GPIO_E_NR    (32)
+#define SUNXI_GPIO_F_NR    (32)
+#define SUNXI_GPIO_G_NR    (32)
+#define SUNXI_GPIO_H_NR    (32)
+#define SUNXI_GPIO_I_NR    (32)
+
+#define SUNXI_GPIO_NEXT(__gpio) \
+	((__gpio##_START) + (__gpio##_NR) + 0)
+
+enum sunxi_gpio_number {
+	SUNXI_GPIO_A_START = 0,
+	SUNXI_GPIO_B_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_A),
+	SUNXI_GPIO_C_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_B),
+	SUNXI_GPIO_D_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_C),
+	SUNXI_GPIO_E_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_D),
+	SUNXI_GPIO_F_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_E),
+	SUNXI_GPIO_G_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_F),
+	SUNXI_GPIO_H_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_G),
+	SUNXI_GPIO_I_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_H),
+};
+
+/* SUNXI GPIO number definitions */
+#define SUNXI_GPA(_nr)	(SUNXI_GPIO_A_START + (_nr))
+#define SUNXI_GPB(_nr)	(SUNXI_GPIO_B_START + (_nr))
+#define SUNXI_GPC(_nr)	(SUNXI_GPIO_C_START + (_nr))
+#define SUNXI_GPD(_nr)	(SUNXI_GPIO_D_START + (_nr))
+#define SUNXI_GPE(_nr)	(SUNXI_GPIO_E_START + (_nr))
+#define SUNXI_GPF(_nr)	(SUNXI_GPIO_F_START + (_nr))
+#define SUNXI_GPG(_nr)	(SUNXI_GPIO_G_START + (_nr))
+#define SUNXI_GPH(_nr)	(SUNXI_GPIO_H_START + (_nr))
+#define SUNXI_GPI(_nr)	(SUNXI_GPIO_I_START + (_nr))
+
+/* GPIO pin function config */
+#define SUNXI_GPIO_INPUT        (0)
+#define SUNXI_GPIO_OUTPUT       (1)
+
+#define SUNXI_GPA0_ERXD3        (2)
+#define SUNXI_GPA0_SPI1_CS0     (3)
+#define SUNXI_GPA0_UART2_RTS    (4)
+
+#define SUNXI_GPA1_ERXD2        (2)
+#define SUNXI_GPA1_SPI1_CLK     (3)
+#define SUNXI_GPA1_UART2_CTS    (4)
+
+#define SUNXI_GPA2_ERXD1        (2)
+#define SUNXI_GPA2_SPI1_MOSI    (3)
+#define SUNXI_GPA2_UART2_TX     (4)
+
+#define SUNXI_GPA10_UART1_TX    (4)
+#define SUNXI_GPA11_UART1_RX    (4)
+
+#define SUNXI_GPC2_NCLE         (2)
+#define SUNXI_GPC2_SPI0_CLK     (3)
+
+#define SUNXI_GPC6_NRB0         (2)
+#define SUNXI_GPC6_SDC2_CMD     (3)
+
+#define SUNXI_GPC7_NRB1         (2)
+#define SUNXI_GPC7_SDC2_CLK     (3)
+
+#define SUNXI_GPC8_NDQ0         (2)
+#define SUNXI_GPC8_SDC2_D0      (3)
+
+#define SUNXI_GPC9_NDQ1         (2)
+#define SUNXI_GPC9_SDC2_D1      (3)
+
+#define SUNXI_GPC10_NDQ2        (2)
+#define SUNXI_GPC10_SDC2_D2     (3)
+
+#define SUNXI_GPC11_NDQ3        (2)
+#define SUNXI_GPC11_SDC2_D3     (3)
+
+#define SUNXI_GPF2_SDC0_CLK     (2)
+#define SUNXI_GPF2_UART0_TX     (4)
+
+#define SUNXI_GPF4_SDC0_D3      (2)
+#define SUNXI_GPF4_UART0_RX     (4)
+
+int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
+int sunxi_gpio_get_cfgpin(u32 pin);
+int sunxi_gpio_output(u32 pin, u32 val);
+int sunxi_gpio_input(u32 pin);
+
+#endif /* _SUNXI_GPIO_H */
