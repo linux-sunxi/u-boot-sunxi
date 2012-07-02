@@ -32,7 +32,7 @@
 #define __NAND_LOGIC_H__
 
 #include "nand_type.h"
-//#include "nand_physic.h"
+#include "nand_physic.h"
 
 
 //==============================================================================
@@ -567,6 +567,7 @@ __s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage);
 __s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage);
 
 __s32 NAND_CacheFlush(void);
+__s32 NAND_CacheFlushDev(__u32 dev_num);
 __s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf);
 __s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf);
 __s32 NAND_CacheOpen(void);
