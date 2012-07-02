@@ -214,13 +214,17 @@ inline int read_env(struct mmc *mmc, unsigned long size,
 			unsigned long offset, const void *buffer)
 {
 	uint blk_start, blk_cnt, n;
+#ifdef DEBUG
 	printf("\n\n\n\n\noffset is %d\n\n\n\n\n",offset);
-offset+= 128 * 1024;
+#endif/*DEBUG*/
+	offset+= 128 * 1024;
 	blk_start = ALIGN(offset, mmc->read_bl_len) / mmc->read_bl_len;
 	blk_cnt   = ALIGN(size, mmc->read_bl_len) / mmc->read_bl_len;
-printf("new offset: %d\n",offset);
-printf("blk_start: %d blk_cnt %d\n",blk_start,blk_cnt);
-printf("mmc->read_bl_len: %d\n",mmc->read_bl_len);
+#ifdef DEBUG
+	printf("new offset: %d\n",offset);
+	printf("blk_start: %d blk_cnt %d\n",blk_start,blk_cnt);
+	printf("mmc->read_bl_len: %d\n",mmc->read_bl_len);
+#endif/*DEBUG*/
 	n = mmc->block_dev.block_read(CONFIG_SYS_MMC_ENV_DEV, blk_start,
 					blk_cnt, (uchar *)buffer);
 

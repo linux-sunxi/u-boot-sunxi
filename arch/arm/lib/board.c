@@ -556,10 +556,10 @@ printf("\nmmc_card is %d\n",mmc_card);
 #endif/*CONFIG_GENERIC_MMC*/
 #endif/*CONFIG_ALLWINNER*/
 
-
+#ifdef DEBUG
 printf("\nmmc_card is %d\n",mmc_card);
 printf("\nuart_console is %d\n",uart_console);
-
+#endif/*DEBUG*/
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();
