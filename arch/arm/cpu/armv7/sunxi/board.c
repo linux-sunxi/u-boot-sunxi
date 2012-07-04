@@ -26,133 +26,198 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <serial.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/ccmu.h>
+#include <errno.h>
+#include <netdev.h>
+#ifdef CONFIG_SPL_BUILD
+DECLARE_GLOBAL_DATA_PTR;
+
+/* Define global data structure pointer to it*/
+static gd_t gdata __attribute__ ((section(".data")));
+static bd_t bdata __attribute__ ((section(".data")));
+#endif
 
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
+#define	CLK_PLL1 		1032
+#define	L2_PERIPH_DIV	1
+#define	L2_DIV			1
+#define	AXI_DIV			1
+#define	AHB1_CLK_SRC	1
+#define	APB2_CLK		300000000
+
+#ifdef CONFIG_CMD_NET
+extern int gmac_initialize(bd_t *bis);
+int cpu_eth_init(bd_t *bis)
+{
+	int rc = -ENODEV;
+
+	rc = gmac_initialize(bis);
+
+	return rc;
+}
+#endif
 sunxi_boot_type_t boot_from(void) {
-
-	u32 cfg;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
-	if( cfg == SUNXI_GPC7_SDC2_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
-	if( cfg == SUNXI_GPC2_NCLE )
-		return SUNXI_BOOT_TYPE_NAND;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
-	if( cfg == SUNXI_GPF2_SDC0_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
-
-	/* if we are here, something goes wrong */
 	return SUNXI_BOOT_TYPE_NULL;
 }
 
 int watchdog_init(void)
 {
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	/* disable watchdog */
-	writel(0, &(wdog->mode));
-
 	return 0;
 }
 
 int clock_init(void)
 {
-	/* set clock source to OSC24M */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, CPU_CLK_SRC_OSC24M);		/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* set the pll1 factors, pll1 out = 24MHz*n*k/m/p */	
-
-	sr32(SUNXI_CCM_PLL1_CFG, 8, 5, PLL1_FACTOR_N);		/* PLL1_FACTOR_N [12:8] */
-	sr32(SUNXI_CCM_PLL1_CFG, 4, 2, PLL1_FACTOR_K);		/* PLL1_FACTOR_K [5:4] */
-	sr32(SUNXI_CCM_PLL1_CFG, 0, 2, PLL1_FACTOR_M);		/* PLL1_FACTOR_M [1:0] */
-	sr32(SUNXI_CCM_PLL1_CFG, 16, 2, PLL1_FACTOR_P);		/* PLL1_FACTOR_P [17:16] */
-
-	/* wait for clock to be stable*/	
-	sdelay(0x4000);
-	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
-#ifdef CONFIG_SUN5I
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
-#endif
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
-
-	/* change cpu clock source to pll1 */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-	/* 
-	 * if the clock source is changed,
-	 * at most wait for 8 present running clock cycles
-	 */
-	sdelay(10);
-
-	/* config apb1 clock */
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 24, 2, APB1_CLK_SRC_OSC24M);
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 16, 2, APB1_FACTOR_N);
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 0, 5, APB1_FACTOR_M);
-
-	/* open the clock for uart0 */
-	sr32(SUNXI_CCM_APB1_GATING, 16, 1, CLK_GATE_OPEN);
-
-	/* config nand clock */
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 24, 2, NAND_CLK_SRC_OSC24);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 16, 2, NAND_CLK_DIV_N);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 0, 4, NAND_CLK_DIV_M);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 31, 1, CLK_GATE_OPEN);
-	/* open clock for nand */
-	sr32(SUNXI_CCM_AHB_GATING0, 13, 1, CLK_GATE_OPEN);
-
+	/* set cpu clk and init uart  nand (or dram if possible) clk */
 	return 0;
 }
 
 int gpio_init(void)
 {
+	/*
 	u32 i;
 	static struct sunxi_gpio *gpio_c =
 		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-
+	*/
 	/* set nand controller pin */
+	/*
 	for(i=0; i < 4; i++) {
 		writel(0x22222222, &gpio_c->cfg[i]);
 	}
 	writel(0x55555555, &gpio_c->drv[0]);
 	writel(0x15555, &gpio_c->drv[1]);
-
+	*/
+	/*set uart pin */ 
+	gpio_set_cfg(GPIO_B(22), 2, 2);
+	gpio_set_pull(GPIO_B(22), 2, 1);
+#if 0
+	gpio_set_cfg(GPIO_H(20), 2, 2);
+	gpio_set_pull(GPIO_H(20), 2, PIO_PULLDOWN); 
+#endif
 	return 0;
 }
-
+void clock_init_u_boot(void)
+{
+	ccm_setup_pll1_cpux_clk(CLK_PLL1);
+	ccm_set_cpu_l2_axi_div(L2_PERIPH_DIV,L2_DIV,AXI_DIV);
+	ccm_set_ahb1_clk_src(AHB1_CLK_SRC);
+	ccm_set_apb2_clk(APB2_CLK);
+	ccm_clock_enable(UART0_CKID);
+	ccm_module_enable(UART0_CKID);	
+}
+void sunxi_dram_init(void){
+}
 /* do some early init */
 void s_init(void)
 {
-	watchdog_init();
-	sunxi_key_init();
-#if 0 /* disable for a13 now, a13 need config */
-	clock_init();
+	//watchdog_init();
+	//sunxi_key_init();
+	clock_init_u_boot();
 	gpio_init();
+#ifdef CONFIG_SPL_BUILD
+	sunxi_dram_init();
+	puts("\n init over ###\n");
 #endif
 }
 
-void reset_cpu(ulong addr)
-{
-	sunxi_nand_flush_opts();
-	sunxi_reset();
+
+extern void sunxi_reset(void);
+void reset_cpu(ulong addr) {
+
+	//sunxi_reset();
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
-void enable_caches(void)
-{
+void enable_caches(void) {
+
 	/* Enable D-cache. I-cache is already enabled in start.S */
-	/* dcache_enable(); */
+	dcache_enable();
 }
 #endif
+
+#ifdef CONFIG_SPL_BUILD
+void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
+
+inline void hang(void)
+{
+	puts("\n### ERROR ### Please RESET the board ###\n");
+	for (;;)
+		;
+}
+
+void board_init_f(unsigned long bootflag)
+{
+	/*
+	 * We call relocate_code() with relocation target same as the
+	 * CONFIG_SYS_SPL_TEXT_BASE. This will result in relocation getting
+	 * skipped. Instead, only .bss initialization will happen. That's
+	 * all we need
+	 */
+	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
+}
+
+void board_init_r(gd_t *id, ulong dest_addr)
+{
+	__attribute__((noreturn)) void (*uboot)(void);
+#ifdef CONFIG_MMC_SUNXI
+	struct mmc *mmc;
+	int err;
+#endif /* CONFIG_MMC_SUNXI */
+
+	gd = &gdata;
+	gd->bd = &bdata;
+	gd->flags |= GD_FLG_RELOC;
+	gd->baudrate = CONFIG_BAUDRATE;
+	timer_init();
+	serial_init();
+/*
+	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
+		U_BOOT_TIME);
+*/
+#ifdef CONFIG_MMC_SUNXI
+	puts("MMC:   ");
+	mmc_initialize(gd->bd);
+	/* We register only one device. So, the dev id is always 0 */
+	mmc = find_mmc_device(0);
+	if (!mmc) {
+		puts("spl: mmc device not found!!\n");
+		hang();
+	}
+
+	err = mmc_init(mmc);
+	if (err) {
+		printf("spl: mmc init failed: err - %d\n", err);
+		hang();
+	}
+
+	puts("Loading U-Boot...   ");
+
+	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
+			CONFIG_MMC_U_BOOT_SECTOR_START,
+			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
+			(uchar *)CONFIG_SYS_TEXT_BASE);
+
+	if(err == CONFIG_MMC_U_BOOT_SECTOR_COUNT) {
+		puts("OK!\n");
+	} else {
+		hang();
+	}
+#endif /* CONFIG_MMC_SUNXI */
+
+	puts("Jumping to U-Boot...\n");
+	/* Jump to U-Boot image */
+	uboot = (void *)CONFIG_SYS_TEXT_BASE;
+	(*uboot)();
+	/* Never returns Here */
+}
+#endif /* CONFIG_SPL_BUILD */

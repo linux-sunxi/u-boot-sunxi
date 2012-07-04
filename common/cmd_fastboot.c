@@ -66,12 +66,9 @@
 /* Use do_reset for fastboot's 'reboot' command */
 extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 /* Use do_nand for fastboot's flash commands */
-#if defined(CONFIG_STORAGE_NAND)
 extern int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[]);
-#elif defined(CONFIG_STORAGE_EMMC)
 extern int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 extern env_t *env_ptr;
-#endif
 /* Use do_setenv and do_saveenv to permenantly save data */
 extern int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 extern int do_env_set ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);

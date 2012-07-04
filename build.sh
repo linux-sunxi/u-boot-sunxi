@@ -36,8 +36,4 @@ if [ -z "$MODULE" ]; then
 	MODULE="all"
 fi
 
-if [ "$PLATFORM" = "sun4i_crane" ]; then
-	make distclean && make -j4 sun4i CROSS_COMPILE=arm-none-linux-gnueabi-
-else
-	make distclean && make -j4 $PLATFORM CROSS_COMPILE=arm-none-linux-gnueabi-
-fi
+	make distclean CROSS_COMPILE=arm-linux-gnueabi- && make -j8 $PLATFORM CROSS_COMPILE=arm-linux-gnueabi-

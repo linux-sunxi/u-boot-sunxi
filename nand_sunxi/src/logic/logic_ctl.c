@@ -28,6 +28,10 @@
 *
 ************************************************************************************************************************
 */
+#include "../include/nand_oal.h"
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_logic.h"
 
 struct __NandDriverGlobal_t     NandDriverInfo;
@@ -366,7 +370,7 @@ __s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32
 
     //calculate physical operation parameter successful
     return 0;
-}  
+}
 #elif(1)
 __s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nBlock, __u32 nPage)
 {
@@ -434,7 +438,7 @@ __s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32
     //calculate physical operation parameter successful
     return 0;
 }
-  
+
 #endif
 
 
@@ -649,7 +653,7 @@ __s32 LML_VirtualBlkErase(__u32 nZone, __u32 nSuperBlk)
 
         PHY_BlockErase(&tmpPhyBlk);
     }
-	
+
     //check the result of the block erase
     for(i=0; i<INTERLEAVE_BANK_CNT; i++)
     {
@@ -704,7 +708,7 @@ static __s32 _CloseWritePage(void)
             result = LML_BadBlkManage(&LogicalCtl.LogBlkNum, LogicalCtl.ZoneNum, LogicalCtl.LogPageNum + 1, &LogicalCtl.LogBlkNum);
             if(result < 0)
             {
-                LOGICCTL_ERR("[LOGICCTL_ERR] Bad block proecess failed when close write page, Err:0x%x\n", result);
+                LOGICCTL_ERR("[LOGICCTL_ERR] Bad block proecess failed when close write page, Err:0x$x\n", result);
                 return -1;
             }
 
@@ -866,7 +870,7 @@ __s32 LML_PageWrite(__u32 nPage, __u32 nBitmap, void* pBuf)
     struct __NandUserData_t tmpSpare[2];
     struct __LogBlkType_t tmpLogBlk;
 
-		
+
     //check if the bitmap of valid sectors is full, if not, report error
     if(nBitmap != FULL_BITMAP_OF_LOGIC_PAGE)
     {
@@ -985,7 +989,7 @@ __TRY_WRITE_PHYSIC_PAGE:
     tmpPhyPage.SDataPtr = (void *)tmpSpare;
 
     #if !CFG_SUPPORT_CHECK_WRITE_SYNCH
-	
+
 	if (LogicalCtl.OpMode == 'w')
     {
     	//synch currently write bank
@@ -994,13 +998,13 @@ __TRY_WRITE_PHYSIC_PAGE:
     	{
         	//the last write operation on current bank is failed, the block is bad, need proccess it
         	LOGICCTL_DBG("[LOGICCTL_DBG] Find a bad block when write logical page! bank:0x%x, block:0x%x, page:0x%x\n",
-                tmpPhyPage.BankNum, tmpPhyPage.BlkNum, tmpPhyPage.PageNum);			
-			
+                tmpPhyPage.BankNum, tmpPhyPage.BlkNum, tmpPhyPage.PageNum);
+
         	//process the bad block
         	result = LML_BadBlkManage(&LogicalCtl.LogBlkNum, LogicalCtl.ZoneNum, LogicalCtl.LogPageNum, &LogicalCtl.LogBlkNum);
         	if(result < 0)
         	{
-            	LOGICCTL_ERR("[LOGICCTL_ERR] Bad block proecess failed when write page, Err:0x%x\n", result);
+            	LOGICCTL_ERR("[LOGICCTL_ERR] Bad block proecess failed when write page, Err:0x$x\n", result);
             	return -1;
         	}
 
@@ -1114,16 +1118,10 @@ __s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 
     LOGICCTL_DBG("[LOGICCTL_DBG] LML_Read, sector number:0x%x, sector cnt:0x%x, Buffer:0x%x\n", nSectNum, nSectorCnt, pBuf);
 
-		if(((__u32)pBuf)&0x3)
-	  {
-	      LOGICCTL_ERR("[LOGICCTL_ERR] LML_Write, invalid bufaddr: 0x%x \n", (__u32)(pBuf));
-				return -ERR_ADDRBEYOND;
-	  }
-	  
     //check if the parameter is valid
-    if(((nSectNum + nSectorCnt) > LogicalCtl.DiskCap)||(nSectNum>LogicalCtl.DiskCap-1)||(nSectorCnt>LogicalCtl.DiskCap-1))
+    if((nSectNum + nSectorCnt) > LogicalCtl.DiskCap)
     {
-        LOGICCTL_ERR("[LOGICCTL_ERR] LML_Read, the addr of read(start:%x, cnt:%x) is beyond the disk volume %x!!!\n", 
+        LOGICCTL_ERR("[LOGICCTL_ERR] LML_Read, the addr of read(start:%x, cnt:%x) is beyond the disk volume %x!!!\n",
 						nSectNum, nSectorCnt,LogicalCtl.DiskCap);
         return -ERR_ADDRBEYOND;
     }
@@ -1165,7 +1163,7 @@ __s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
         {
             //get page data failed!
             LOGICCTL_ERR("[LOGICCTL_ERR] LML_Read, read page data faild! the page number:0x%x, sector bitmap:0x%x, buffer:0x%x, "
-                    "error number:0x%x\n",tmpPageNum, tmpBitmap, (__u32)tmpBuf, result);
+                    "error number:0x%x\n",tmpPageNum, tmpBitmap, tmpBuf, result);
             return -1;
         }
 
@@ -1201,11 +1199,11 @@ __s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 }
 
 /*
-extern dump(void * buf, __u32 len, __u8 nbyte, __u8 linelen);
+extern dump(void * buf, uint len, __u8 nbyte, __u8 linelen);
 
-void echo_write_data (__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
+void echo_write_data (uint nSectNum, uint nSectorCnt, void* pBuf)
 {
-	__u32 i,j;
+	uint i,j;
 	__u8 *buf;
 
 	for (i = 0,j = nSectNum; i < nSectorCnt; i++,j++)
@@ -1216,7 +1214,7 @@ void echo_write_data (__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 	}
 
 	return;
-	
+
 }*/
 
 /*
@@ -1240,18 +1238,11 @@ __s32 LML_Write(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
     __u32   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
     __u8    *tmpBuf;
     struct __GlobalLogicPageType_t tmpHeadPage, tmpTailPage;
-    
-	 	if(((__u32)pBuf)&0x3)
-	  {
-	      LOGICCTL_ERR("[LOGICCTL_ERR] LML_Write, invalid bufaddr: 0x%x \n", (__u32)(pBuf));
-				return -ERR_ADDRBEYOND;
-	  }
-	
-    if(((nSectNum + nSectorCnt) > LogicalCtl.DiskCap)||(nSectNum>LogicalCtl.DiskCap-1)||(nSectorCnt>LogicalCtl.DiskCap-1))
+
+    if((nSectNum + nSectorCnt) > LogicalCtl.DiskCap)
     {
-        LOGICCTL_ERR("[LOGICCTL_ERR] LML_Write, the addr of write(start:%x, cnt:%x) is beyond the disk volume %x!!!\n", 
+        LOGICCTL_ERR("[LOGICCTL_ERR] LML_Write, the addr of write(start:%x, cnt:%x) is beyond the disk volume %x!!!\n",
 						nSectNum, nSectorCnt,LogicalCtl.DiskCap);
-				return -ERR_ADDRBEYOND;
     }
     if(!nSectorCnt)
     {
@@ -1368,8 +1359,8 @@ __s32 LML_Init(void)
     LogicalCtl.DiskCap = SECTOR_CNT_OF_SINGLE_PAGE * PAGE_CNT_OF_PHY_BLK * BLOCK_CNT_OF_DIE * \
             DIE_CNT_OF_CHIP * NandDriverInfo.NandStorageInfo->ChipCnt  / BLOCK_CNT_OF_ZONE * DATA_BLK_CNT_OF_ZONE;
 
-		
-    //request page buffer for process data    
+
+    //request page buffer for process data
     NandDriverInfo.PageCachePool->PageCache1 = (__u8 *)MALLOC(SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
     if(!NandDriverInfo.PageCachePool->PageCache1)
     {

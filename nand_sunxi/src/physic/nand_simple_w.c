@@ -7,13 +7,15 @@
 *history :
 *	v0.1  2008-03-26 Richard
 * v0.2  2009-9-3 penggang modified for 1615
-*			
+*
 *********************************************************************************************************/
+#include "../include/nand_oal.h"
+#include "../include/nand_drv_cfg.h"
 #include "../include/nand_type.h"
-#include "../include/nand_physic.h"
 #include "../include/nand_simple.h"
-#include "../include/nfc.h"
-
+#include "../include/nand_physic.h"
+#include "../include/nand_ndfc.h"
+#include "../include/nand_reg.h"
 
 extern __s32 _read_status(__u32 cmd_value, __u32 nBank);
 extern void _add_cmd_list(NFC_CMD_LIST *cmd,__u32 value,__u32 addr_cycle,__u8 *addr,__u8 data_fetch_flag,
@@ -35,8 +37,8 @@ __s32 _write_signle_page (struct boot_physical_param *writeop,__u32 program1,__u
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
-	__u8 addr[5];
+	__u8 sparebuf[4*16] __attribute__ ((aligned));
+	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
 
@@ -90,8 +92,8 @@ __s32 _write_signle_page_seq (struct boot_physical_param *writeop,__u32 program1
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
-	__u8 addr[5];
+	__u8 sparebuf[4*16] __attribute__ ((aligned));
+	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
 
@@ -146,8 +148,8 @@ __s32 _write_signle_page_1K (struct boot_physical_param *writeop,__u32 program1,
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
-	__u8 addr[5];
+	__u8 sparebuf[4*16] __attribute__ ((aligned));
+	__u8 addr[5] __attribute__ ((aligned));
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
 
@@ -229,10 +231,12 @@ __s32 PHY_SimpleWrite (struct boot_physical_param *writeop)
 	__u32 rb;
 
 	__s32 ret;
+	
+	NandIndex = 0;
 
 	ret = _write_signle_page(writeop,0x80,0x10,0,0);
 	if (ret)
-		return -1;
+		return FAIL;
 	rb = _cal_real_rb(writeop->chip);
 	NFC_SelectChip(writeop->chip);
 	NFC_SelectRb(rb);
@@ -246,7 +250,7 @@ __s32 PHY_SimpleWrite (struct boot_physical_param *writeop)
 			break;
 	}
 	if (status & NAND_OPERATE_FAIL)
-		ret = -2;
+		ret = BADBLOCK;
 	NFC_DeSelectChip(writeop->chip);
 	NFC_DeSelectRb(rb);
 
@@ -259,10 +263,12 @@ __s32 PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 	__u32 rb;
 
 	__s32 ret;
+	
+	NandIndex = 0;
 
 	ret = _write_signle_page_seq(writeop,0x80,0x10,0,0);
 	if (ret)
-		return -1;
+		return FAIL;
 	rb = _cal_real_rb(writeop->chip);
 	NFC_SelectChip(writeop->chip);
 	NFC_SelectRb(rb);
@@ -276,7 +282,7 @@ __s32 PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 			break;
 	}
 	if (status & NAND_OPERATE_FAIL)
-		ret = -2;
+		ret = BADBLOCK;
 	NFC_DeSelectChip(writeop->chip);
 	NFC_DeSelectRb(rb);
 
@@ -289,10 +295,12 @@ __s32 PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
 	__u32 rb;
 
 	__s32 ret;
+	
+	NandIndex = 0;
 
 	ret = _write_signle_page_1K(writeop,0x80,0x10,0,0);
 	if (ret)
-		return -1;
+		return FAIL;
 	rb = _cal_real_rb(writeop->chip);
 	NFC_SelectChip(writeop->chip);
 	NFC_SelectRb(rb);
@@ -306,7 +314,7 @@ __s32 PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
 			break;
 	}
 	if (status & NAND_OPERATE_FAIL)
-		ret = -2;
+		ret = BADBLOCK;
 	NFC_DeSelectChip(writeop->chip);
 	NFC_DeSelectRb(rb);
 
@@ -319,24 +327,30 @@ __s32 PHY_SimpleErase (struct boot_physical_param *eraseop )
 	__s32 ret;
 	__u32 rb;
 
+	for(NandIndex = 0; NandIndex<CHANNEL_CNT;NandIndex++)
+	{
+		ret = _erase_single_block(eraseop);
+		//PRINT("_erase_single_block, NandIndex: %d, chip 0x%x, block %x\n", NandIndex, eraseop->chip, eraseop->block);
+		if (ret)
+			return FAIL;
+		rb = _cal_real_rb(eraseop->chip);
+		NFC_SelectChip(eraseop->chip);
+		NFC_SelectRb(rb);
+		/*get status*/
+		while(1){
+			status = _read_status(0x70,eraseop->chip);
+			if (status & NAND_STATUS_READY)
+				break;
+		}
+		if (status & NAND_OPERATE_FAIL)
+			ret = BADBLOCK;
 
-	ret = _erase_single_block(eraseop);
-	if (ret)
-		return -1;
-	rb = _cal_real_rb(eraseop->chip);
-	NFC_SelectChip(eraseop->chip);
-	NFC_SelectRb(rb);
-	/*get status*/
-	while(1){
-		status = _read_status(0x70,eraseop->chip);
-		if (status & NAND_STATUS_READY)
-			break;
+		NFC_DeSelectChip(eraseop->chip);
+		NFC_DeSelectRb(rb);
 	}
-	if (status & NAND_OPERATE_FAIL)
-		ret = -2;
 
-	NFC_DeSelectChip(eraseop->chip);
-	NFC_DeSelectRb(rb);
+	NandIndex = 0;
+	
 	return ret;
 
 }

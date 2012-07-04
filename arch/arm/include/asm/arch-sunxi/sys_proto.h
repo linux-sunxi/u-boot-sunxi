@@ -24,8 +24,8 @@
 
 #ifndef _SYS_PROTO_H_
 #define _SYS_PROTO_H_
-
-void sr32(u32, u32, u32, u32);
+#include "type.h"
+void sr32(u32 *, u32, u32, u32);
 void sdelay(unsigned long);
 
 #endif

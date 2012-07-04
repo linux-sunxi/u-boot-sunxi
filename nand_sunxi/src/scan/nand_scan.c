@@ -28,9 +28,13 @@
 *
 ************************************************************************************************************************
 */
-
+#include "../include/nand_oal.h"
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_scan.h"
-#include"../include/nfc.h"
+#include "../include/nand_ndfc.h"
+
 
 
 extern  struct __NandStorageInfo_t  NandStorageInfo;
@@ -44,7 +48,7 @@ extern struct __NandPhyInfoPar_t StNandTbl;
 extern struct __NandPhyInfoPar_t DefaultNandTbl;
 extern struct __NandPhyInfoPar_t SpansionNandTbl;
 extern struct __NandPhyInfoPar_t PowerNandTbl;
-
+extern __u32 NandIndex;
 
 __u32 NAND_GetValidBlkRatio(void)
 {
@@ -53,9 +57,14 @@ __u32 NAND_GetValidBlkRatio(void)
 
 __s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio)
 {
+    __u32 cpu_sr = 0;
+
+    OSAL_IrqLock(&cpu_sr);
     NandStorageInfo.ValidBlkRatio = (__u16)ValidBlkRatio;
+    OSAL_IrqUnLock(cpu_sr);
+
     return 0;
-    
+
 }
 
 __u32 NAND_GetFrequencePar(void)
@@ -65,21 +74,26 @@ __u32 NAND_GetFrequencePar(void)
 
 __s32 NAND_SetFrequencePar(__u32 FrequencePar)
 {
+    __u32 cpu_sr = 0;
+
+    OSAL_IrqLock(&cpu_sr);
     NandStorageInfo.FrequencePar = (__u8)FrequencePar;
+    OSAL_IrqUnLock(cpu_sr);
+
     return 0;
-    
+
 }
 
 __u32 NAND_GetNandVersion(void)
 {
     __u32 nand_version;
-	
+
 	nand_version = 0;
 	nand_version |= 0xff;
 	nand_version |= 0x00<<8;
 	nand_version |= NAND_VERSION_0<<16;
 	nand_version |= NAND_VERSION_1<<24;
-    
+
 	return nand_version;
 }
 
@@ -265,6 +279,11 @@ __s32  SCN_AnalyzeNandSystem(void)
     struct __NandPhyInfoPar_t tmpNandPhyInfo;
 
     //init nand flash storage information to default value
+#ifdef CONFIG_SUN6I_FPGA
+	NandStorageInfo.ChannelCnt = 1;
+#else   
+	NandStorageInfo.ChannelCnt = 2;
+#endif
     NandStorageInfo.ChipCnt = 1;
     NandStorageInfo.ChipConnectInfo = 1;
     NandStorageInfo.RbConnectMode= 1;
@@ -383,13 +402,14 @@ __s32  SCN_AnalyzeNandSystem(void)
     {
         NandStorageInfo.BankCntPerChip = 1;
     }
-  
+
      //process the rb connect infomation
-    for(i=1; i<MAX_CHIP_SELECT_CNT; i++)
+
+     for(i=1; i<MAX_CHIP_SELECT_CNT; i++)
     {
         //reset current nand flash chip
         PHY_ResetChip((__u32)i);
-    
+
         //read the nand chip ID from current nand flash chip
         PHY_ReadNandId((__u32)i, tmpChipID);
         //check if the nand flash id same as the boot chip
@@ -401,51 +421,51 @@ __s32  SCN_AnalyzeNandSystem(void)
             NandStorageInfo.ChipCnt++;
             NandStorageInfo.ChipConnectInfo |= (1<<i);
         }
-    }
+     	}
 
     //process the rb connect infomation
     {
         NandStorageInfo.RbConnectMode = 0xff;
-		
+
         if((NandStorageInfo.ChipCnt == 1) && (NandStorageInfo.ChipConnectInfo & (1<<0)))
         {
              NandStorageInfo.RbConnectMode =1;
-        }	     
+        }
         else if(NandStorageInfo.ChipCnt == 2)
         {
     	      if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<1)))
-		    NandStorageInfo.RbConnectMode =2; 
+		    NandStorageInfo.RbConnectMode =2;
 	      else if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<2)))
-		    NandStorageInfo.RbConnectMode =3; 	
+		    NandStorageInfo.RbConnectMode =3;
 		else if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<7)))
-		    NandStorageInfo.RbConnectMode =0; 	//special use, only one rb 
-		  
+		    NandStorageInfo.RbConnectMode =0; 	//special use, only one rb
+
         }
-		
+
         else if(NandStorageInfo.ChipCnt == 4)
         {
-    	      if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<1)) 
+    	      if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<1))
 			  	&&  (NandStorageInfo.ChipConnectInfo & (1<<2)) &&  (NandStorageInfo.ChipConnectInfo & (1<<3)) )
-		    NandStorageInfo.RbConnectMode =4; 
-	      else if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<2)) 
+		    NandStorageInfo.RbConnectMode =4;
+	      else if((NandStorageInfo.ChipConnectInfo & (1<<0)) && (NandStorageInfo.ChipConnectInfo & (1<<2))
 			  	&&  (NandStorageInfo.ChipConnectInfo & (1<<4)) &&  (NandStorageInfo.ChipConnectInfo & (1<<6)) )
-		    NandStorageInfo.RbConnectMode =5; 			
+		    NandStorageInfo.RbConnectMode =5;
         }
         else if(NandStorageInfo.ChipCnt == 8)
         {
-	      NandStorageInfo.RbConnectMode =8; 			
+	      NandStorageInfo.RbConnectMode =8;
         }
-		
+
 		if( NandStorageInfo.RbConnectMode == 0xff)
-            {   
+            {
         	    SCAN_ERR("%s : check nand rb connect fail, ChipCnt =  %x, ChipConnectInfo = %x \n",__FUNCTION__, NandStorageInfo.ChipCnt, NandStorageInfo.ChipConnectInfo);
         	    return -1;
 		}
 
-	 
+
     }
 
-	
+
     //process the external inter-leave operation
     if(CFG_SUPPORT_EXT_INTERLEAVE)
     {
@@ -479,10 +499,14 @@ __s32  SCN_AnalyzeNandSystem(void)
 		nand_info.rb_sel = 1;
 		nand_info.serial_access_mode = 1;
 		nand_info.ddr_type = DDR_TYPE;
-		NFC_ChangMode(&nand_info);
+		if((__u32)CHANNEL_CNT>2)
+				PHY_ERR("[PHY_GetDefaultParam]:Invalid nand CHANNEL_CNT :0x%x\n", CHANNEL_CNT);
+
+		for(NandIndex = 0; NandIndex<CHANNEL_CNT;NandIndex++)
+			NFC_ChangMode(&nand_info);
+
+		NandIndex = 0;
 	}
-	
-	PHY_ChangeMode(1);
 
 	if(SUPPORT_READ_RETRY)
 	{
@@ -503,6 +527,7 @@ __s32  SCN_AnalyzeNandSystem(void)
         | (NandStorageInfo.NandChipId[2] << 16) | (NandStorageInfo.NandChipId[3] << 24), 
         (NandStorageInfo.NandChipId[4] << 0) | (NandStorageInfo.NandChipId[5] << 8)
         | (NandStorageInfo.NandChipId[6] << 16) | (NandStorageInfo.NandChipId[7] << 24));
+    SCAN_DBG("[SCAN_DBG]    Nand Channel Count:   0x%x\n", NandStorageInfo.ChannelCnt);
     SCAN_DBG("[SCAN_DBG]    Nand Chip Count:      0x%x\n", NandStorageInfo.ChipCnt);
     SCAN_DBG("[SCAN_DBG]    Nand Chip Connect:    0x%x\n", NandStorageInfo.ChipConnectInfo);
 	SCAN_DBG("[SCAN_DBG]    Nand Rb Connect Mode:      0x%x\n", NandStorageInfo.RbConnectMode);

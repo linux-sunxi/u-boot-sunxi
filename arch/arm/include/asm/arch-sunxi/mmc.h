@@ -60,4 +60,5 @@ struct sunxi_mmc {
 	u32 fifo;          /* (0x100) SMC FIFO Access Address */
 };
 
+int sunxi_mmc_init(int sdc_no);
 #endif /* _SUNXI_MMC_H */

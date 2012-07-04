@@ -177,7 +177,7 @@ COBJS-$(CONFIG_UPDATE_TFTP) += update.o
 COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
 endif
 
-COBJS-$(CONFIG_FASTBOOT) += cmd_fastboot.o
+#COBJS-$(CONFIG_FASTBOOT) += cmd_fastboot.o
 
 COBJS-y += console.o
 COBJS-y += memsize.o

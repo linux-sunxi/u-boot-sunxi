@@ -37,8 +37,8 @@ COBJS	:= ./nand_drv/nand_for_uboot.o  		\
 		   ./src/logic/merge.o					\
 		   ./src/logic/read_reclaim.o			\
 		   ./src/logic/wear_levelling.o			\
-		   ./src/nfc/nfc_r.o					\
-		   ./src/nfc/nfc_w.o					\
+		   ./src/ndfc/nfc_r.o					\
+		   ./src/ndfc/nfc_w.o					\
 		   ./src/physic/nand_phy.o				\
 		   ./src/physic/nand_simple_r.o			\
 		   ./src/physic/nand_simple_w.o			\

@@ -50,8 +50,9 @@ struct __OptionalPhyOpPar_t
     __u16       MultiPlaneBlockOffset;              //the value of the block number offset between the left-plane block and the right pane block
 };
 
-typedef struct 
+typedef struct
 {
+	__u8		ChannelCnt;
     __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
     __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
 	__u8		RbCnt;
@@ -85,8 +86,9 @@ typedef struct boot_flash_info{
 //define the nand flash storage system information
 struct __NandStorageInfo_t
 {
+	__u8		ChannelCnt;
     __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
-    __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
+    __u16        ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
 	__u8		RbCnt;
 	__u8		RbConnectInfo;						//the connect  information of the all rb  chips are connected
     __u8        RbConnectMode;						//the rb connect  mode
@@ -118,7 +120,7 @@ struct __NandPageCachePool_t
 	__u8		*TmpPageCache;
 };
 
-#ifdef __OS_LINUX_SYSTEM__
+
 //define the User Data structure for nand flash driver
 struct __NandUserData_t
 {
@@ -129,18 +131,6 @@ struct __NandUserData_t
     __u8        PageStatus;                         //the logical information of the physical page
     __u8        Reserved1;                          //reserved for 32bit align
 } __attribute__ ((packed));
-#else
-__packed struct __NandUserData_t
-{
-    __u8        BadBlkFlag;                         //the flag that marks if a physic block is a valid block or a invalid block
-    __u16       LogicInfo;                          //the logical information of the physical block
-    __u8        Reserved0;                          //reserved for 32bit align
-    __u16       LogicPageNum;                       //the value of the logic page number, which the physic page is mapping to
-    __u8        PageStatus;                         //the logical information of the physical page
-    __u8        Reserved1;                          //reserved for 32bit align
-} ;
-
-#endif
 
 
 //define the paramter structure for physic operation function
@@ -153,6 +143,14 @@ struct __PhysicOpPara_t
     void        *MDataPtr;                          //the pointer to main data buffer, it is the start address of a page size based buffer
     void        *SDataPtr;                          //the pointer to spare data buffer, it will be set to NULL if needn't access spare data
 };
+
+
+////define the parameter structure for nand BSP function
+//struct __NandBspOpPara_t
+//{
+//    //to be desided
+//};
+
 
 
 //==============================================================================
@@ -168,6 +166,18 @@ struct __LogicArchitecture_t
     __u8        ZoneCntPerDie;                      //the counter that marks how many zones in one die
     __u16       Reserved;                           //reserved for 32bit align
 };
+
+
+/*
+//define the logical information for the physical block
+struct __PhyBlkLogicInfo_t
+{
+    __u16       LogicBlkNum:10;                     //the number mark that which logic block is this physic block mapping to
+    __u16       ZoneNum:4;                          //the number of the zone which this physic block is belonged to
+    __u16       PhyBlkType:1;                       //the type of the physic block, 0 - means normal data block, 1 - means special block
+    __u16       Reserved:1;                         //reserved for extending in the future
+};
+*/
 
 //define the super block type
 struct __SuperPhyBlkType_t
@@ -318,11 +328,10 @@ struct __NandDriverGlobal_t
 #define NAND_PAGE_COPYBACK      (1<<4)              //nand flash support page copy-back command mode operation
 #define NAND_INT_INTERLEAVE     (1<<5)              //nand flash support internal inter-leave operation, it based multi-bank
 #define NAND_EXT_INTERLEAVE     (1<<6)              //nand flash support external inter-leave operation, it based multi-chip
-#define NAND_RANDOM		        (1<<7)			    //nand flash support RANDOMIZER
+#define NAND_RANDOM		        (1<<7)			    // nand flash support RANDOMIZER
 #define NAND_READ_RETRY	        (1<<8)			    //nand falsh support READ RETRY
 #define NAND_READ_UNIQUE_ID	    (1<<9)			    //nand falsh support READ UNIQUE_ID
 #define NAND_PAGE_ADR_NO_SKIP	(1<<10)			    //nand falsh page adr no skip is requiered
-#define NAND_DIE_SKIP           (1<<11)             //nand flash die adr skip
 
 
 //define the mask for the nand flash operation status

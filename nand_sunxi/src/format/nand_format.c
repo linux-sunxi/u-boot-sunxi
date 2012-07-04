@@ -29,6 +29,10 @@
 *
 ************************************************************************************************************************
 */
+#include "../include/nand_oal.h"
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_format.h"
 #include "../include/nand_logic.h"
 
@@ -305,7 +309,7 @@ static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 S
     }
 
 	return result;
-	
+
     #if 0
     if(result < 0)
     {
@@ -998,7 +1002,7 @@ static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
                     //set the bad flag of the physical block
                     tmpBadFlag = 1;
                 }
-			
+
                 if(tmpPage == 0)
                 {
                     //get the logical information of the physical block
@@ -1793,7 +1797,7 @@ static __s32 _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
     for( ; tmpPhyBlk<SuperBlkCntOfDie; tmpPhyBlk++)
     {
         tmpLogicInfo = pDieInfo->pPhyBlk[tmpPhyBlk];
-        
+
         //added by penggang 20101206
         //the last block is degenrous, if it is free block, kick it as a bad block
         if(tmpPhyBlk == SuperBlkCntOfDie-1)
@@ -1803,13 +1807,13 @@ static __s32 _FillZoneTblInfo(struct __ScanDieInfo_t *pDieInfo)
                 FORMAT_DBG("[FORMAT_DBG] mark the last block as bad block \n");
                 pDieInfo->pPhyBlk[tmpPhyBlk] = BAD_BLOCK_INFO;
                 _WriteBadBlkFlag(pDieInfo->nDie, tmpPhyBlk);
-                
+
             }
         }
-        
+
         tmpLogicInfo = pDieInfo->pPhyBlk[tmpPhyBlk];
-        
-        
+
+
         //check if the block is a bad block
         if(tmpLogicInfo == BAD_BLOCK_INFO)
         {
@@ -2495,12 +2499,12 @@ __s32 FMT_Init(void)
 
     //init the logical architecture paramters
     LogicArchiPar.LogicBlkCntPerZone = NandStorageInfo.ValidBlkRatio;
-    LogicArchiPar.SectCntPerLogicPage = NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie;
+    LogicArchiPar.SectCntPerLogicPage = NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie* NandStorageInfo.ChannelCnt;
     LogicArchiPar.PageCntPerLogicBlk = NandStorageInfo.PageCntPerPhyBlk * NandStorageInfo.BankCntPerChip;
     if(SUPPORT_EXT_INTERLEAVE)
     {
        if(NandStorageInfo.ChipCnt >=2)
-          LogicArchiPar.PageCntPerLogicBlk *= 2; 	
+          LogicArchiPar.PageCntPerLogicBlk *= 2;
     }
     LogicArchiPar.ZoneCntPerDie = (NandStorageInfo.BlkCntPerDie / NandStorageInfo.PlaneCntPerDie) / BLOCK_CNT_OF_ZONE;
 
@@ -2582,14 +2586,12 @@ __s32 FMT_FormatNand(void)
     struct __ScanDieInfo_t tmpDieInfo;
 
 	result = 0;
-
     //process tables in every die in the nand storage system
     for(tmpDie=0; tmpDie<DieCntOfNand; tmpDie++)
     {
         //init the die information data structure
         MEMSET(&tmpDieInfo, 0, sizeof(struct __ScanDieInfo_t));
         tmpDieInfo.nDie = tmpDie;
-
         //search zone tables on the nand flash from several blocks in front of the die
         result = _SearchZoneTbls(&tmpDieInfo);
 		//tmpDieInfo.TblBitmap = 0;
@@ -2601,24 +2603,21 @@ __s32 FMT_FormatNand(void)
             {
                 //search zone tables from the nand flash failed, need repair or build it
                 result = _RebuildZoneTbls(&tmpDieInfo);
-
                 if(result != RET_FORMAT_TRY_AGAIN)
                 {
+					printf("RET_FORMAT_TRY_AGAIN !\n");
                     break;
                 }
-
                 tmpTryAgain--;
             }
         }
     }
-
     if(result < 0)
     {
         //format nand disk failed, report error
         FORMAT_ERR("[FORMAT_ERR] Format nand disk failed!\n");
         return -1;
     }
-
     //format nand disk successful
     return 0;
 }
@@ -2627,6 +2626,7 @@ void ClearNandStruct( void )
 {
     MEMSET(&PageCachePool, 0x00, sizeof(struct __NandPageCachePool_t));
 }
+
 
 
 

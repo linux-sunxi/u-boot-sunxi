@@ -14,7 +14,7 @@
 *
 * Date : 2008.03.25
 *
-* Description : This file define the function __s32erface and some data structure export
+* Description : This file define the function interface and some data structure export
 *               for the nand flash scan module.
 *
 * Others : None at present.
@@ -31,8 +31,8 @@
 #ifndef __NAND_SCAN_H__
 #define __NAND_SCAN_H__
 
-#include "nand_type.h"
-#include "nand_physic.h"
+//#include "nand_type.h"
+//#include "nand_physic.h"
 
 //==============================================================================
 //  define nand flash manufacture ID number
@@ -48,7 +48,7 @@
 #define POWER_NAND              0x92                //power nand flash manufacture number
 
 //==============================================================================
-//  define the function __s32erface for nand storage scan module
+//  define the function interface for nand storage scan module
 //==============================================================================
 
 /*
@@ -73,5 +73,7 @@ __u32 NAND_GetFrequencePar(void);
 __s32 NAND_SetFrequencePar(__u32 FrequencePar);
 __u32 NAND_GetNandVersion(void);
 __s32 NAND_GetParam(boot_nand_para_t * nand_param);
+//__s32 NAND_GetFlashInfo(struct boot_flash_info *param);
+//__s32 NAND_GetConnectInfo(boot_nand_info_t * info);
 
 #endif  //ifndef __NAND_SCAN_H__

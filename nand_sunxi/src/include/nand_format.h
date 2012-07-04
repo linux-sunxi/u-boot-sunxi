@@ -31,8 +31,8 @@
 #ifndef __NAND_FORMAT_H__
 #define __NAND_FORMAT_H__
 
-#include "nand_type.h"
-#include "nand_physic.h"
+//#include "nand_type.h"
+//#include "nand_physic.h"
 
 
 //define the structure for a zone detail information
@@ -172,8 +172,6 @@ __s32 FMT_Exit(void);
 ************************************************************************************************************************
 */
 __s32 FMT_FormatNand(void);
-
-void ClearNandStruct( void );
 
 
 #endif  //ifndef __NAND_FORMAT_H__
