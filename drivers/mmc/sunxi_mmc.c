@@ -100,7 +100,7 @@ struct sunxi_mmc_des {
 	u32	data_buf1_sz:13,
 	    data_buf2_sz:13,
     				:6;
-#elif defined CONFIG_SUN5I
+#else 
 #define SDXC_DES_NUM_SHIFT 16
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32 data_buf1_sz:16,
@@ -153,7 +153,7 @@ static int mmc_resource_init(int sdc_no)
 			break;
 	}
 	mmchost->hclkbase = SUNXI_CCM_AHB_GATING0;
-	mmchost->database = (unsigned int)mmchost->reg + 0x100;
+	mmchost->database = (unsigned int)mmchost->reg + 0x200;
 	mmchost->mmc_no = sdc_no;
 
 	return 0;
@@ -189,18 +189,6 @@ static int mmc_clk_io_on(int sdc_no)
             break;
 
         case 1:
-            #if 0
-            /* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
-            writel(0x444444, &gpio_g->cfg[0]);
-            writel(0x555, &gpio_g->pull[0]);
-            writel(0xaaa, &gpio_g->drv[0]);
-            #else
-            /* PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5 */
-            writel(0x55<<24, &gpio_h->cfg[2]);
-            writel(0x5555, &gpio_h->cfg[3]);
-            writel(0x555<<12, &gpio_h->pull[1]);
-            writel(0xaaa<<12, &gpio_h->drv[1]);
-            #endif
             break;
 
         case 2:
@@ -212,11 +200,6 @@ static int mmc_clk_io_on(int sdc_no)
             break;
 
         case 3:
-            /* PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2 */
-            writel(0x2222<<16, &gpio_i->cfg[0]);
-            writel(0x22, &gpio_i->cfg[1]);
-            writel(0x555<<8, &gpio_i->pull[0]);
-            writel(0x555<<8, &gpio_i->drv[0]);
             break;
 
         default:
