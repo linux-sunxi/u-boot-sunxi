@@ -474,6 +474,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	sw_gpio_init();
 	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
 		mmc_card = 0;
+	if((mmc_card < 0) || (mmc_card > 2))
+	{
+	    mmc_card = 0;
+	}
 	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
 		uart_console = 0;
 #endif
