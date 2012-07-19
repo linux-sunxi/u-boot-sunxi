@@ -37,8 +37,10 @@
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
-int mmc_card = -1;
-int uart_console = -1;
+int storage_type = 0;
+int uart_console = 0;
+int mmc_card_no  = 2;
+
 sunxi_boot_type_t boot_from(void) {
 
 	u32 cfg;
@@ -70,7 +72,7 @@ int watchdog_init(void) {
 }
 
 int clock_init(void) {
-
+#if 0
 	struct sunxi_ccm_reg *ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
@@ -116,12 +118,12 @@ int clock_init(void) {
 	sr32((u32 *)SUNXI_CCM_NAND_SCLK_CFG, 31, 1, CLK_GATE_OPEN);
 	/* open clock for nand */
 	sr32((u32 *)SUNXI_CCM_AHB_GATING0, 13, 1, CLK_GATE_OPEN);
-
+#endif
 	return 0;
 }
 
 void gpio_init(void) {
-
+#if 0
 	u32 i;
 	static struct sunxi_gpio *gpio_c =
 		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
@@ -132,7 +134,7 @@ void gpio_init(void) {
 	}
 	writel(0x55555555, &gpio_c->drv[0]);
 	writel(0x15555, &gpio_c->drv[1]);
-
+#endif
 }
 
 int sdram_init(void) {
@@ -167,10 +169,6 @@ void s_init(void)
 #endif
 	watchdog_init();
 	sw_gpio_init();
-if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
-	mmc_card = 0;
-if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
-	uart_console = 0;
 	clock_init();
 	gpio_init();
 #ifdef CONFIG_SPL
@@ -181,8 +179,7 @@ if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int
 
 extern int sunxi_reset(void);
 void reset_cpu(ulong addr) {
-	if(!mmc_card)
-		sunxi_nand_flush_opts();
+	sunxi_flash_exit();
 	sunxi_reset();
 }
 

@@ -90,7 +90,7 @@ u64 sunxi_partition_get_offset(int part_index)
 		return -1;
 	}
 
-	return mbr->array[part_index].addrlo * 512;
+	return mbr->array[part_index].addrlo;
 }
 
 u64 sunxi_partition_get_size(int part_index)
@@ -102,7 +102,7 @@ u64 sunxi_partition_get_size(int part_index)
 		return -1;
 	}
 
-	return mbr->array[part_index].lenlo * 512;
+	return mbr->array[part_index].lenlo;
 }
 
 u64 sunxi_partition_get_offset_byname(const char *part_name)
@@ -114,7 +114,7 @@ u64 sunxi_partition_get_offset_byname(const char *part_name)
 	{
 		if(!strcmp(part_name, (const char *)mbr->array[i].name))
 		{
-			return mbr->array[i].addrlo * 512;
+			return mbr->array[i].addrlo;
 		}
 	}
 
@@ -130,7 +130,7 @@ u64 sunxi_partition_get_size_byname(const char *part_name)
 	{
 		if(!strcmp(part_name, (const char *)mbr->array[i].name))
 		{
-			return mbr->array[i].lenlo * 512;
+			return mbr->array[i].lenlo;
 		}
 	}
 
@@ -150,8 +150,8 @@ int sunxi_partition_get_info_byname(const char *part_name, loff_t *part_offset, 
 	{
 		if(!strcmp(part_name, (const char *)mbr->array[i].name))
 		{
-			*part_offset = mbr->array[i].addrlo * 512;
-			*part_size = mbr->array[i].lenlo * 512;
+			*part_offset = mbr->array[i].addrlo;
+			*part_size = mbr->array[i].lenlo;
 			return 0;
 		}
 	}
@@ -159,44 +159,20 @@ int sunxi_partition_get_info_byname(const char *part_name, loff_t *part_offset, 
 	return -1;
 }
 
-
-#ifdef CONFIG_STORAGE_EMMC
-static inline int read_mbr_mmc(void) {
-
-   uint blk_start, blk_cnt, n;
-   struct mmc *mmc = find_mmc_device(CONFIG_MMC_SUNXI_SLOT);
-
-   blk_start = ALIGN(SUNXI_MBR_OFFSET_ADDR, mmc->read_bl_len) / mmc->read_bl_len;
-   blk_cnt   = ALIGN(MBR_SIZE, mmc->read_bl_len) / mmc->read_bl_len;
-
-   n = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT, blk_start,
-					blk_cnt, (uchar *)mbr_buf);
-   return (n == blk_cnt) ? 0 : -1;
-}
-
-static inline u64 get_mmc_capacity(void) {
-
-   struct mmc *mmc = find_mmc_device(CONFIG_MMC_SUNXI_SLOT);
-   return mmc->capacity;
-}
-#endif
-
 int sunxi_partition_init(void)
 {
-   int i, part_index = 0;
-   sunxi_mbr_t    *mbr;
+    int i, part_index = 0;
+    sunxi_mbr_t    *mbr;
 
-#ifdef CONFIG_STORAGE_EMMC
-   read_mbr_mmc();
-#elif defined CONFIG_STORAGE_NAND
-   NAND_LogicRead(0, MBR_SIZE >> 9 , mbr_buf);
-#else
-#error CONFIG_STORAGE_EMMC or CONFIG_STORAGE_NAND must be defined
-#endif
+    if(sunxi_flash_read(0, MBR_SIZE >> 9, mbr_buf)){
+		printf("read flash error\n");
 
-   mbr = (sunxi_mbr_t*)mbr_buf;
-   if(!strncmp((const char*)mbr->magic, MBR_MAGIC, 8))
-   {
+		return 0;
+	}
+
+	mbr = (sunxi_mbr_t*)mbr_buf;
+   	if(!strncmp((const char*)mbr->magic, MBR_MAGIC, 8))
+   	{
         int crc = 0;
 
         crc = calc_crc32(&mbr->version, MBR_SIZE-4);
@@ -217,11 +193,7 @@ int sunxi_partition_init(void)
 
 					if(!len)
 					{
-#ifdef CONFIG_STORAGE_EMMC
-						len = get_mmc_capacity() / 1024 - addr;
-#elif defined CONFIG_STORAGE_NAND
-						len = NAND_GetDiskSize() - addr;
-#endif
+						len = sunxi_flash_get_size() - addr;
 						pe->lenlo = len & 0xffffffff;
 					}
                     part_index ++;

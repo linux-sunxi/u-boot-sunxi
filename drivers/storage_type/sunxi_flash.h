@@ -1,7 +1,9 @@
 /*
- * (C) Copyright 2007-2012
+ * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
- * panlong <panlong@allwinnertech.com>
+ * Aaron <leafy.myeh@allwinnertech.com>
+ *
+ * MMC driver for allwinner sunxi platform.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,16 +24,9 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _BOOT_TYPE_H_
-#define _BOOT_TYPE_H_
+#ifndef __SUNXI_FLASH_H__
+#define __SUNXI_FLASH_H__
 
-extern int storage_type;
-extern int uart_console;
-extern int mmc_card_no;
 
-extern int (* sunxi_flash_read) (unsigned int start_block, unsigned int nblock, void *buffer);
-extern int (* sunxi_flash_write)(unsigned int start_block, unsigned int nblock, void *buffer);
-extern long long (* sunxi_flash_get_size)(void);
-extern int (* sunxi_flash_exit) (void);
 
-#endif
+#endif  /* __SUNXI_FLASH_H__ */

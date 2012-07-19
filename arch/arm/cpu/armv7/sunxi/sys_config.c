@@ -128,7 +128,6 @@ int script_parser_init(char *script_buf)
     script_head_t   *script_head;
 
 	script_mod_buf = NULL;
-    /*printf("%s(%d)-%s, script_buf addr is %p:\n",__FILE__,__LINE__,__FUNCTION__, script_buf);*/
     if(script_buf)
     {
         script_mod_buf = script_buf;
@@ -136,12 +135,10 @@ int script_parser_init(char *script_buf)
 
         script_main_key_count = script_head->main_key_count;
 
-      /*  printf("succeed: %s(%d)-%s\n",__FILE__,__LINE__,__FUNCTION__);*/
         return SCRIPT_PARSER_OK;
     }
     else
     {
-       /* printf("failed: %s(%d)-%s\n",__FILE__,__LINE__,__FUNCTION__);*/
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
 }

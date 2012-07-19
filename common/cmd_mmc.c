@@ -121,7 +121,7 @@ int do_mmcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if (curr_device < 0) {
 		if (get_mmc_num() > 0)
-			curr_device = CONFIG_MMC_SUNXI_SLOT;
+			curr_device = mmc_card_no;
 		else {
 			puts("No MMC device available\n");
 			return 1;
@@ -157,7 +157,7 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if (curr_device < 0) {
 		if (get_mmc_num() > 0)
-			curr_device = CONFIG_MMC_SUNXI_SLOT;
+			curr_device = mmc_card_no;
 		else {
 			puts("No MMC device available\n");
 			return 1;

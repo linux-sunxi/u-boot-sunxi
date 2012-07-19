@@ -103,9 +103,10 @@
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no		
 #define CONFIG_STORAGE_EMMC
-#define CONFIG_FASTBOOT_MMC_NO		CONFIG_MMC_SUNXI_SLOT
+#define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
+#define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
 
 #define CONFIG_DOS_PARTITION
 /*
@@ -117,8 +118,10 @@
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	(256 << 20)
 
+#define FASTBOOT_ERASE_BUFFER			0x40000000
+#define FASTBOOT_ERASE_BUFFER_SIZE      (16 << 20)
 /*
  * Miscellaneous configurable options
  */
