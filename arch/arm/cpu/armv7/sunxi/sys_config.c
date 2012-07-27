@@ -253,6 +253,96 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
 }
 
 
+int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size)
+{
+	char   main_bkname[32], sub_bkname[32];
+	char   *main_char, *sub_char;
+	script_main_key_t  *main_key = NULL;
+	script_sub_key_t   *sub_key = NULL;
+	int    i, j;
+	int    pattern, word_count;
+
+	//检查脚本buffer是否存在
+	if(!script_mod_buf)
+	{
+		return SCRIPT_PARSER_EMPTY_BUFFER;
+	}
+	//检查主键名称和子键名称是否为空
+	if((main_name == NULL) || (sub_name == NULL))
+	{
+		return SCRIPT_PARSER_KEYNAME_NULL;
+	}
+	//检查数据buffer是否为空
+	if(str == NULL)
+	{
+		return SCRIPT_PARSER_DATA_VALUE_NULL;
+	}
+	//保存主键名称和子键名称，如果超过31字节则截取31字节
+	main_char = main_name;
+	if(_test_str_length(main_name) > 31)
+	{
+	    memset(main_bkname, 0, 32);
+		strncpy(main_bkname, main_name, 31);
+		main_char = main_bkname;
+	}
+    sub_char = sub_name;
+	if(_test_str_length(sub_name) > 31)
+	{
+		memset(sub_bkname, 0, 32);
+		strncpy(sub_bkname, sub_name, 31);
+		sub_char = sub_bkname;
+	}
+	for(i=0;i<script_main_key_count;i++)
+	{
+		main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+		if(strcmp(main_key->main_name, main_char))    //如果主键不匹配，寻找下一个主键
+		{
+			continue;
+		}
+		//主键匹配，寻找子键名称匹配
+		for(j=0;j<main_key->lenth;j++)
+		{
+			sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
+			if(strcmp(sub_key->sub_name, sub_char))    //如果主键不匹配，寻找下一个主键
+			{
+				continue;
+			}
+			pattern    = (sub_key->pattern>>16) & 0xffff;             //获取数据的类型
+			word_count = (sub_key->pattern>> 0) & 0xffff;             //获取所占用的word个数
+			//取出数据
+			if(pattern == SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD)                      //单word数据类型
+			{
+				*(int *)(script_mod_buf + (sub_key->offset<<2)) = *(int *)str;
+
+    			return SCRIPT_PARSER_OK;
+    		}
+    		else if(pattern == SCIRPT_PARSER_VALUE_TYPE_GPIO_WORD)
+    		{
+    			script_gpio_set_t  *user_gpio_cfg = (script_gpio_set_t *)str;
+
+    			memset(script_mod_buf + (sub_key->offset<<2), 0, 24);
+    			memcpy(script_mod_buf + (sub_key->offset<<2), &user_gpio_cfg->port, 24);
+
+    			return SCRIPT_PARSER_OK;
+    		}
+    		else if(pattern == SCIRPT_PARSER_VALUE_TYPE_STRING)
+    		{
+    			if(str_size > word_count)
+				{
+					str_size = word_count;
+				}
+				memset(script_mod_buf + (sub_key->offset<<2), 0, word_count << 2);
+				memcpy(script_mod_buf + (sub_key->offset<<2), str, str_size << 2);
+
+				return SCRIPT_PARSER_OK;
+    		}
+		}
+	}
+
+	return SCRIPT_PARSER_KEY_NOT_FIND;
+}
+
+
 int script_parser_fetch_ex(char *main_name, char *sub_name, int value[], script_parser_value_type_t *type, int count)
 {
     char   main_bkname[32], sub_bkname[32];

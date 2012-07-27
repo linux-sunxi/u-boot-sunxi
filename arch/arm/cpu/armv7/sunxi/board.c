@@ -41,26 +41,6 @@ int storage_type = 0;
 int uart_console = 0;
 int mmc_card_no  = 2;
 
-sunxi_boot_type_t boot_from(void) {
-
-	u32 cfg;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
-	if( cfg == SUNXI_GPC7_SDC2_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
-	if( cfg == SUNXI_GPC2_NCLE )
-		return SUNXI_BOOT_TYPE_NAND;
-
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
-	if( cfg == SUNXI_GPF2_SDC0_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
-
-	/* if we are here, something goes wrong */
-	return SUNXI_BOOT_TYPE_NULL;
-}
-
 int watchdog_init(void) {
 
 	struct sunxi_wdog *wdog =

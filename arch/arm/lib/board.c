@@ -469,16 +469,47 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	sw_gpio_init();
 	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
 		storage_type = 0;
-	if((storage_type < 0) || (storage_type > 2)){
+	if((storage_type <= 0) || (storage_type > 2))
+	{
+		int used;
+
+		used = 1;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 0;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
 		storage_type = 0;
 	}
-	else if(1 == storage_type){
+	else if(1 == storage_type)
+	{
 		mmc_card_no = 0;
 	}
-	else{
+	else
+	{
+		int used;
+
+		used = 0;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 1;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
+
 		mmc_card_no = 2;
 	}
-	
+#ifdef DEBUG
+	{
+		int used;
+
+		printf("test storage_type=%d, mmc_card_no=%d\n", storage_type, mmc_card_no);
+		if(!script_parser_fetch("nand_para", "nand_used", &used, sizeof(int)))
+		{
+			printf("nand_para nand_used = %d\n", used);
+		}
+		if(!script_parser_fetch("mmc2_para", "sdc_used", &used, sizeof(int)))
+		{
+			printf("mmc2_para sdc_used = %d\n", used);
+		}
+		printf("test over\n");
+	}
+#endif	
 	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
 		uart_console = 0;
 #endif

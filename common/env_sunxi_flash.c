@@ -123,11 +123,6 @@ static void flash_env_relocate_spec(void)
 		return;
 	}
 
-	if(storage_type)
-	{
-		start += 128 * 1024/512;
-	}
-
 	if(sunxi_flash_read(start, CONFIG_ENV_SIZE/512, buf)){
 		use_default();
 		return;

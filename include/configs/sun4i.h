@@ -173,16 +173,18 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_normal\0" \
+	"bootcmd=run setargs_nand boot_normal\0" \
 	"console=ttyS0,115200\0" \
 	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
-	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"setargs_nand=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"setargs_mmc=setenv bootargs console=${console} root=${mmc_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"boot_normal=sunxi_flash read 40007800 boot 0xa00000;boota 40007800\0" \
+	"boot_recovery=sunxi_flash read 40007800 recovery 0xa00000;boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1

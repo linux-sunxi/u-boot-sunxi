@@ -33,7 +33,7 @@ int print_boot_type(void) {
 
 	puts("BOOT:  "); 
 
-	type = get_boot_type();
+	type = storage_type;
 	switch (type) {
 	case SUNXI_BOOT_TYPE_MMC0:
 		puts("MMC0\n");
