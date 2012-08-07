@@ -155,19 +155,18 @@
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_BOOTCOMMAND		"run boot.scr setargs boot_mmc"
 #define CONFIG_BOOTCOMMAND \
 	"if run loadbootenv; then " \
 		"echo Loaded environment from ${bootenv};" \
-		"run importbootenv;" \
+		"env import -t ${scriptaddr} ${filesize};" \
 	"fi;" \
-	"if test -n $uenvcmd; then " \
+	"if test -n ${uenvcmd}; then " \
 		"echo Running uenvcmd ...;" \
 		"run uenvcmd;" \
 	"fi;" \
 	"if run loadbootscr; then "\
 		"echo Jumping to ${bootscr};" \
-		"source $scriptaddr;" \
+		"source ${scriptaddr};" \
 	"fi;" \
 	"run setargs boot_mmc;" \
 
@@ -182,7 +181,6 @@
 	" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
 	"kernel=uImage\0" \
 	"bootenv=uEnv.txt\0" \
-	"importbootenv=env import -t $scriptaddr $filesize\0" \
 	"bootscr=boot.scr\0" \
 	"loadbootscr=fatload mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr boot/${bootscr}\0" \
 	"loadbootenv=fatload mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr boot/${bootenv}\0" \
