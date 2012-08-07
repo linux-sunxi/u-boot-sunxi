@@ -156,6 +156,20 @@
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_BOOTCOMMAND		"run boot.scr setargs boot_mmc"
+#define CONFIG_BOOTCOMMAND \
+	"if run loadbootenv; then " \
+		"echo Loaded environment from ${bootenv};" \
+		"run importbootenv;" \
+	"fi;" \
+	"if test -n $uenvcmd; then " \
+		"echo Running uenvcmd ...;" \
+		"run uenvcmd;" \
+	"fi;" \
+	"if run loadbootscr; then "\
+		"echo Jumping to ${bootscr};" \
+		"source $scriptaddr;" \
+	"fi;" \
+	"run setargs boot_mmc;" \
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
@@ -163,13 +177,15 @@
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
 	"loglevel=8\0" \
+	"scriptaddr=0x44000000\0" \
 	"setargs=setenv bootargs console=${console} root=${root}" \
 	" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
 	"kernel=uImage\0" \
-	"boot.scr=if fatload mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot.scr || ext2load mmc 0 0x44000000 boot/boot.scr; then" \
-	" source 0x44000000;" \
-	" fi;" \
-	" true\0" \
+	"bootenv=uEnv.txt\0" \
+	"importbootenv=env import -t $scriptaddr $filesize\0" \
+	"bootscr=boot.scr\0" \
+	"loadbootscr=fatload mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr boot/${bootscr}\0" \
+	"loadbootenv=fatload mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr boot/${bootenv}\0" \
 	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	3
