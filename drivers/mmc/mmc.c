@@ -1221,6 +1221,7 @@ int mmc_init(struct mmc *mmc)
 		mmc->has_init = 0;
 	else
 		mmc->has_init = 1;
+	
 	return err;
 }
 
@@ -1261,7 +1262,7 @@ int get_mmc_num(void)
 int mmc_initialize(bd_t *bis)
 {
 	INIT_LIST_HEAD (&mmc_devices);
-	cur_dev_num = 0;
+	cur_dev_num = mmc_card_no;
 
 	if (board_mmc_init(bis) < 0)
 		cpu_mmc_init(bis);

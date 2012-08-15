@@ -170,8 +170,10 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size)
 	int ret;
 
 	*idx = 0;
-	ret = sunxi_nand_getpart_info_byname(partname, off, size);
+	ret = sunxi_partition_get_info_byname(partname, off, size);
 
+	*off  *= 512;
+	*size *= 512;
 	if(ret) {
 		printf("Can not find partition \'%s\'\n", partname);
 		return ret;

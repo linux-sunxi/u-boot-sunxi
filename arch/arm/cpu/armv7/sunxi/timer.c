@@ -34,7 +34,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TIMER_RELOAD (1 << 1)   /* reload internal value */
 #define TIMER_EN     (1 << 0)   /* enable timer */
 
-#ifdef CONFIG_SUN6I_FPGA
+#ifdef CONFIG_FPGA
 #define TIMER_CLOCK	       (32 * 1000)
 #else
 #define TIMER_CLOCK	       (24 * 1000 * 1000)
@@ -45,7 +45,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TICKS_PER_HZ		(TIMER_CLOCK / CONFIG_SYS_HZ)
 #define TICKS_TO_HZ(x)		((x) / TICKS_PER_HZ)
 
-#ifdef CONFIG_SUN6I_FPGA
+#ifdef CONFIG_FPGA
 #define TIMER_LOAD_VAL     0xffff
 #else
 #define TIMER_LOAD_VAL     0xffffffff
@@ -62,7 +62,7 @@ static struct sunxi_timer *timer_base =
 /* init timer register */
 int timer_init(void)
 {
-#ifndef CONFIG_SUN6I_FPGA
+#ifndef CONFIG_FPGA
 	writel(TIMER_LOAD_VAL, &timer_base->inter);
 	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC | TIMER_RELOAD | TIMER_EN, &timer_base->ctl);
 #endif /* CONFIG_SUN6I_FPGA */

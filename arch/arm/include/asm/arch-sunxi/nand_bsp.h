@@ -162,12 +162,12 @@ int sunxi_nand_getpart_name(int index, char *buf);
 int sunxi_nand_getpart_offset_byname(const char *part_name);
 int sunxi_nand_getpart_size_byname(const char *part_name);
 int sunxi_nand_getpart_info_byname(const char *part_name, loff_t *part_offset, loff_t *part_size);
-/*
+
 int NAND_Init(void);
-int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length, u_char *buffer,int flags);
+int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length, u_char *buffer, int flags);
 int sunxi_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length, u_char *buffer, int flags);
 int sunxi_nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 int sunxi_nand_flush_opts(nand_info_t *meminfo);
-*/
+
 #endif  //ifndef __NAND_LOGIC_H__
 

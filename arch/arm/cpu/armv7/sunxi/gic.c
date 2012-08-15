@@ -7,7 +7,7 @@
 #include <asm/arch/gic.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>
-#include <asm/arch/ccmu.h>
+
 
 pIRQ_Handler irq_vector[GIC_IRQ_NUM];
 

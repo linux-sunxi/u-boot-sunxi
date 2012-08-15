@@ -100,7 +100,7 @@ struct sunxi_mmc_des {
 	u32	data_buf1_sz:13,
 	    data_buf2_sz:13,
     				:6;
-#elif defined CONFIG_SUN5I
+#elif defined CONFIG_SUN7I
 #define SDXC_DES_NUM_SHIFT 16
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32 data_buf1_sz:16,
@@ -173,11 +173,12 @@ static int mmc_clk_io_on(int sdc_no)
 	#if 0
 	static struct sunxi_gpio *gpio_g =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_G];
-	#endif
 	static struct sunxi_gpio *gpio_h =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_H];
 	static struct sunxi_gpio *gpio_i =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
+	#endif
+
 	MMCDBG("init mmc %d clock and io\n", sdc_no);
 	/* config gpio */
 	switch (sdc_no) {
@@ -189,18 +190,6 @@ static int mmc_clk_io_on(int sdc_no)
             break;
 
         case 1:
-            #if 0
-            /* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
-            writel(0x444444, &gpio_g->cfg[0]);
-            writel(0x555, &gpio_g->pull[0]);
-            writel(0xaaa, &gpio_g->drv[0]);
-            #else
-            /* PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5 */
-            writel(0x55<<24, &gpio_h->cfg[2]);
-            writel(0x5555, &gpio_h->cfg[3]);
-            writel(0x555<<12, &gpio_h->pull[1]);
-            writel(0xaaa<<12, &gpio_h->drv[1]);
-            #endif
             break;
 
         case 2:
@@ -212,11 +201,6 @@ static int mmc_clk_io_on(int sdc_no)
             break;
 
         case 3:
-            /* PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2 */
-            writel(0x2222<<16, &gpio_i->cfg[0]);
-            writel(0x22, &gpio_i->cfg[1]);
-            writel(0x555<<8, &gpio_i->pull[0]);
-            writel(0x555<<8, &gpio_i->drv[0]);
             break;
 
         default:
@@ -227,7 +211,7 @@ static int mmc_clk_io_on(int sdc_no)
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
-	
+
 	/* config mod clock */
 	rval = readl(SUNXI_CCM_PLL5_CFG);
 	n = (rval >> 8) &  0x1f;
@@ -334,7 +318,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 2)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
 			timeout = 0xfffff;
@@ -343,7 +327,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 3)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
 			timeout = 0xfffff;

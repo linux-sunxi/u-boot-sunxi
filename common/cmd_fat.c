@@ -248,6 +248,3 @@ U_BOOT_CMD(
 	"<interface> <dev[:part]>\n"
 	"    - print information about filesystem from 'dev' on 'interface'"
 );
-
-
-

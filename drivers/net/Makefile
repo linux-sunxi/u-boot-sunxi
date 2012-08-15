@@ -24,7 +24,7 @@
 include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libnet.o
-COBJS-$(CONFIG_SUN6I_GMAC) += sun6i_gmac.o
+
 COBJS-$(CONFIG_DRIVER_3C589) += 3c589.o
 COBJS-$(CONFIG_PPC4xx_EMAC) += 4xx_enet.o
 COBJS-$(CONFIG_ALTERA_TSE) += altera_tse.o

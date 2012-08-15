@@ -158,7 +158,7 @@ export	ARCH CPU BOARD VENDOR SOC
 
 # set default to nothing for native builds
 ifeq ($(HOSTARCH),$(ARCH))
-CROSS_COMPILE ?= arm-none-linux-gnueabi-
+CROSS_COMPILE ?= ../buildroot/output/external-toolchain/bin/arm-linux-gnueabi-
 endif
 
 # load other configuration
@@ -240,6 +240,7 @@ LIBS += drivers/i2c/libi2c.o
 LIBS += drivers/input/libinput.o
 LIBS += drivers/misc/libmisc.o
 LIBS += drivers/mmc/libmmc.o
+LIBS += drivers/storage_type/libstorage_type.o
 LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/onenand/libonenand.o
@@ -294,7 +295,7 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
 ifeq ($(SOC),sunxi)
-LIBS += nand_sunxi/libsunxi-nand.o
+LIBS += nand_sunxi/libnand
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))

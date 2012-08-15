@@ -3,7 +3,7 @@ set -e
 
 PLATFORM=""
 MODULE=""
-
+TOOLSPATH=`pwd`
 show_help()
 {
 	printf "\nbuild.sh - Top level build scritps\n"
@@ -35,5 +35,6 @@ fi
 if [ -z "$MODULE" ]; then
 	MODULE="all"
 fi
-
+	echo $TOOLSPATH
+	export PATH=$PATH:$TOOLSPATH/../buildroot/output/external-toolchain/bin/
 	make distclean CROSS_COMPILE=arm-linux-gnueabi- && make -j8 $PLATFORM CROSS_COMPILE=arm-linux-gnueabi-
