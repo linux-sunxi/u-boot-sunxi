@@ -183,8 +183,8 @@
 	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
 	"setargs_mmc=setenv bootargs console=${console} root=${mmc_root}" \
 	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
-	"boot_normal=sunxi_flash read 40007800 boot 0xa00000;boota 40007800\0" \
-	"boot_recovery=sunxi_flash read 40007800 recovery 0xa00000;boota 40007800\0" \
+	"boot_normal=sunxi_flash read 40007800 boot;boota 40007800\0" \
+	"boot_recovery=sunxi_flash read 40007800 recovery;boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1

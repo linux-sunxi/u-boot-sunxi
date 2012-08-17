@@ -461,10 +461,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-	debug("monitor flash len: %08lX\n", monitor_flash_len);
+//	debug("monitor flash len: %08lX\n", monitor_flash_len);
 #ifdef CONFIG_ALLWINNER
 #ifdef DEBUG
-	printf("sunxi script init\n");
+//	printf("sunxi script init\n");
 #endif
 	sw_gpio_init();
 	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))

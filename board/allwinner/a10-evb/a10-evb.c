@@ -42,18 +42,28 @@ void fastboot_flash_partition_init(void)
 {
 	fastboot_ptentry fb_part;
 	int index, part_total;
-	char partition_sets[128];
-	char part_name[16] = "nanda";
+	char partition_sets[256];
+	char part_name[16];
 	char *pa_index;
-	int boot_part_flag;
+	int  part_name_count;	
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
-	memset(partition_sets, ' ', 128);
-	boot_part_flag = 0;
-	
+	memset(partition_sets, ' ', 256);
+
+	memset(part_name, 0, 16);
+	if(!storage_type)
+	{
+		memcpy(part_name, "nanda", 5);
+		part_name_count = 0;
+	}
+	else
+	{
+		memcpy(part_name, "mmcblk0p2", 9);
+		part_name_count = 2;
+	}
 	pa_index = partition_sets;
 	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
 		sunxi_partition_get_name(index, &fb_part.name[0]);
@@ -72,10 +82,50 @@ void fastboot_flash_partition_init(void)
 		pa_index += strlen(part_name);
 		*pa_index = ':';
 		pa_index ++;			
-		
-		part_name[4] ++;
+
+		if(!storage_type)
+		{
+			if(index < 10)
+			{
+				part_name[4] ++;
+			}
+			else
+			{
+				part_name[4] = '1';
+				part_name[5] = '0' + index - 10;
+			}
+		}
+		else
+		{
+			part_name_count ++;
+			if(part_name_count < 5)
+			{
+				part_name_count = 5;
+				part_name[8] = '5';	
+			}
+			else if(part_name_count < 10)
+			{
+				part_name[8] ++;
+			}
+			else
+			{
+				part_name[8] = '1';
+				part_name[9] = '0' + part_name_count - 10;
+			}
+		}
 	}
 	pa_index--;
+	if(storage_type)
+	{
+		if(part_name_count > 10)
+		{
+			pa_index--;
+		}
+		else
+		{
+			*(pa_index - 1) = '1';
+		}
+	}
 	*pa_index = '\0';
 	printf("-----------------------------------\n");
 
@@ -93,19 +143,21 @@ static struct bootloader_message misc_message;
 
 int android_misc_flash_check(void) {
 
-	loff_t misc_offset = 0, misc_size = 0;
-	size_t count = sizeof(misc_message);
+	u32   misc_offset = 0;
+	char  buffer[2048];
 
-	sunxi_partition_get_info_byname("misc", &misc_offset, &misc_size);
-	if(!misc_offset || !misc_size) {
-		sunxi_partition_get_info_byname("MISC", &misc_offset, &misc_size);
-		if(!misc_offset || !misc_size) {
-			puts("no misc partition is found\n");
-			return 0;
-		}
-	}
-	sunxi_flash_read(misc_offset, count, (void *)&misc_message);
-
+	misc_offset = (u32)sunxi_partition_get_offset_byname("misc");
+	if(misc_offset == (u32)(-1))
+	{
+		puts("no misc partition is found\n");
+		return 0;
+	}	
+	memset(buffer, 0, 2048);
+#ifdef DEBUG
+	printf("misc_offset  : %d\n", (int )misc_offset);
+#endif
+	sunxi_flash_read(misc_offset, 2048/512, buffer);
+	memcpy(&misc_message, buffer, sizeof(misc_message));
 #ifdef DEBUG
 	printf("misc.command  : %s\n", misc_message.command);
 	printf("misc.status   : %s\n", misc_message.status);
@@ -129,8 +181,8 @@ int android_misc_flash_check(void) {
 			setenv("bootcmd", "run setargs_mmc boot_fastboot");
 			puts("Fastboot detected, will enter fastboot\n");
 			/* clean the misc partition ourself */
-			memset(&misc_message, 0, sizeof(misc_message));
-			sunxi_flash_write(misc_offset, count, (void *)&misc_message);
+			memset(buffer, 0, 2048);
+			sunxi_flash_write(misc_offset, 2048/512, buffer);
 		}
 	}
 	else
@@ -152,8 +204,8 @@ int android_misc_flash_check(void) {
 			setenv("bootcmd", "run setargs_nand boot_fastboot");
 			puts("Fastboot detected, will enter fastboot\n");
 			/* clean the misc partition ourself */
-			memset(&misc_message, 0, sizeof(misc_message));
-			sunxi_flash_write(misc_offset, count, (void *)&misc_message);
+			memset(buffer, 0, 2048);
+			sunxi_flash_write(misc_offset, 2048/512, buffer);
 		}
 	}
 
