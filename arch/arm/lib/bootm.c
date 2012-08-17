@@ -169,8 +169,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	void (*kernel_entry)(int zero, int arch, uint params);
 	bd_t *bd = gd->bd;
 #if DEBUG
-	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
-		mmc_card = 0;
+	printf("do_boota_linux storage_type = %d\n", storage_type);
 #endif
 	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);
 
@@ -213,10 +212,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 #endif
 	setup_end_tag (bd);
 #endif
-	if(!mmc_card){
-		/* nand exit */
-		NAND_Exit();
-	}
+	sunxi_flash_exit();
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
 	sr32(SUNXI_CCM_APB1_GATING, 16, 2, 0);

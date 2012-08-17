@@ -109,7 +109,6 @@ inline void __blue_LED_on(void) {}
 void blue_LED_on(void) __attribute__((weak, alias("__blue_LED_on")));
 inline void __blue_LED_off(void) {}
 void blue_LED_off(void) __attribute__((weak, alias("__blue_LED_off")));
-
 /*
  ************************************************************************
  * Init Utilities							*
@@ -416,11 +415,7 @@ void board_init_f(ulong bootflag)
 	/* Ram ist board specific, so move it to board code ... */
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
-#ifdef DEBUG
-	puts("mmc_card is");
-	print_size(mmc_card,"\n");
-	puts("in dram_init!\n");
-#endif
+
 	gd->relocaddr = addr;
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;
@@ -466,14 +461,55 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-	debug("monitor flash len: %08lX\n", monitor_flash_len);
+//	debug("monitor flash len: %08lX\n", monitor_flash_len);
 #ifdef CONFIG_ALLWINNER
 #ifdef DEBUG
-	printf("sunxi script init\n");
+//	printf("sunxi script init\n");
 #endif
 	sw_gpio_init();
-	if(script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)))
-		mmc_card = 0;
+	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
+		storage_type = 0;
+	if((storage_type <= 0) || (storage_type > 2))
+	{
+		int used;
+
+		used = 1;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 0;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
+		storage_type = 0;
+	}
+	else if(1 == storage_type)
+	{
+		mmc_card_no = 0;
+	}
+	else
+	{
+		int used;
+
+		used = 0;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 1;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
+
+		mmc_card_no = 2;
+	}
+#ifdef DEBUG
+	{
+		int used;
+
+		printf("test storage_type=%d, mmc_card_no=%d\n", storage_type, mmc_card_no);
+		if(!script_parser_fetch("nand_para", "nand_used", &used, sizeof(int)))
+		{
+			printf("nand_para nand_used = %d\n", used);
+		}
+		if(!script_parser_fetch("mmc2_para", "sdc_used", &used, sizeof(int)))
+		{
+			printf("mmc2_para sdc_used = %d\n", used);
+		}
+		printf("test over\n");
+	}
+#endif	
 	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
 		uart_console = 0;
 #endif
@@ -525,41 +561,37 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #ifdef CONFIG_ALLWINNER
-	if(!mmc_card){
+	if(!storage_type){
 		puts("NAND:  ");
 		nand_init();		/* go init the NAND */
 	}
+	else{
+		puts("MMC:   ");
+        mmc_initialize(bd);
+	}
+	sunxi_flash_handle_init();
+	sunxi_partition_init();
 #else
 #if defined(CONFIG_CMD_NAND)
-	puts("NAND:  ");
-	nand_init();        /* go init the NAND */
+	if(!storage_type){
+		puts("NAND:  ");
+		nand_init();        /* go init the NAND */
+	}
 #endif/*CONFIG_CMD_NAND*/
+
+
+#if defined(CONFIG_GENERIC_MMC)
+	if(storage_type){
+		puts("MMC:   ");
+		mmc_initialize(bd);
+	}
+#endif/*CONFIG_GENERIC_MMC*/
 #endif/*CONFIG_ALLWINNER*/
 
 
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
 #endif
-#ifdef CONFIG_ALLWINNER
-	if(mmc_card){
-       puts("MMC:   ");
-       mmc_initialize(bd);
-	}
-#ifdef DEBUG
-printf("\nret is %d\n",script_parser_fetch("target", "storage_type", &mmc_card, sizeof(int)));
-printf("\nmmc_card is %d\n",mmc_card);
-#endif/*DEBUG*/
-#else
-#ifdef CONFIG_GENERIC_MMC
-	puts("MMC:   ");
-	mmc_initialize(bd);
-#endif/*CONFIG_GENERIC_MMC*/
-#endif/*CONFIG_ALLWINNER*/
-
-#ifdef DEBUG
-printf("\nmmc_card is %d\n",mmc_card);
-printf("\nuart_console is %d\n",uart_console);
-#endif/*DEBUG*/
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();

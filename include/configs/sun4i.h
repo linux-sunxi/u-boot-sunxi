@@ -95,17 +95,20 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-#if 0
 /* mmc config */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
-#define CONFIG_MMC_SUNXI_SLOT			2		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_USE_DMA
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no		
+#define CONFIG_STORAGE_EMMC
+#define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
+#define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
 
 #define CONFIG_DOS_PARTITION
-#endif
-
 /*
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
@@ -115,8 +118,10 @@
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	(256 << 20)
 
+#define FASTBOOT_ERASE_BUFFER			0x40000000
+#define FASTBOOT_ERASE_BUFFER_SIZE      (16 << 20)
 /*
  * Miscellaneous configurable options
  */
@@ -162,12 +167,7 @@
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
-/*------------------------------------------------------------------------
- * we save the environment in a nand partition, the partition name is defined
- * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
- * if not, below CONFIG_ENV_ADDR and CONFIG_ENV_SIZE will be where to store env.
- * */
-#define CONFIG_ENV_ADDR				(256 << 20)
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 

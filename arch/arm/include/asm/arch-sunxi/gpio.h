@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2012
+ * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
@@ -27,7 +27,7 @@
 
 /*
  * sunxi has 9 banks of gpio, they are:
- * PA0 - PA17 | PB0 - PB23 | PC0 - PC24
+ * PA0 - PA17 | PB0 - PB23 | PC0 - PC23
  * PD0 - PD27 | PE0 - PE31 | PF0 - PF5
  * PG0 - PG9  | PH0 - PH27 | PI0 - PI12
  */
