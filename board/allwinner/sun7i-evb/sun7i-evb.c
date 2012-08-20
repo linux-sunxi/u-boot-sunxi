@@ -233,7 +233,7 @@ void set_boot_type_arg(void){
 /* add board specific code here */
 int board_init(void) {
 
-	gd->bd->bi_arch_number = 3495;
+	gd->bd->bi_arch_number = 3893;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 	serial_init();
 #ifdef DEBUG
