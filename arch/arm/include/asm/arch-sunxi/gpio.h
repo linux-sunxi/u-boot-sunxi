@@ -25,28 +25,23 @@
 #ifndef _SUNXI_GPIO_H
 #define _SUNXI_GPIO_H
 
-/*
- * sunxi has 9 banks of gpio, they are:
- * PA0 - PA17 | PB0 - PB23 | PC0 - PC23
- * PD0 - PD27 | PE0 - PE31 | PF0 - PF5
- * PG0 - PG9  | PH0 - PH27 | PI0 - PI12
- */
+#define SUNXI_GPIO_NULL 0
+#define SUNXI_GPIO_A    1
+#define SUNXI_GPIO_B    2
+#define SUNXI_GPIO_C    3
+#define SUNXI_GPIO_D    4
+#define SUNXI_GPIO_E    5
+#define SUNXI_GPIO_F    6
+#define SUNXI_GPIO_G    7
+#define SUNXI_GPIO_H    8
+#define SUNXI_GPIO_I    9
 
-#define SUNXI_GPIO_A    0
-#define SUNXI_GPIO_B    1
-#define SUNXI_GPIO_C    2
-#define SUNXI_GPIO_D    3
-#define SUNXI_GPIO_E    4
-#define SUNXI_GPIO_F    5
-#define SUNXI_GPIO_G    6
-#define SUNXI_GPIO_H    7
-#define SUNXI_GPIO_I    8
-
-struct sunxi_gpio {
-	u32 cfg[4];
-	u32 dat;
-	u32 drv[2];
-	u32 pull[2];
+struct sunxi_gpio 
+{
+	volatile u32 cfg[4];
+	volatile u32 dat;
+	volatile u32 drv[2];
+	volatile u32 pull[2];
 };
 
 /* gpio interrupt control */
@@ -57,10 +52,9 @@ struct sunxi_gpio_int {
 	u32 deb;			/* interrupt debounce */
 };
 
-struct sunxi_gpio_reg {
-	struct sunxi_gpio gpio_bank[9];
-	u8 res[0xbc];
-	struct sunxi_gpio_int gpio_int;
-};
+extern int sunxi_set_gpio_all(void  *user_gpio_list, u32 group_count_max);
 
-#endif
+
+#endif /* _SUNXI_GPIO_H */
+
+

@@ -25,28 +25,31 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
-SOBJS	:= lowlevel_init.o
-SOBJS	+= reset.o
+HEAD    := spare_head.o
 
+SOBJS	:= lowlevel_init.o
+
+COBJS	+= clock.o
 COBJS	+= timer.o
 COBJS	+= cpu_info.o
 COBJS	+= board.o
-COBJS	+= gpio.o
 COBJS	+= key.o
 COBJS	+= fastboot.o
 COBJS	+= sparse.o
+COBJS	+= partition.o
+COBJS	+= sys_config.o
 COBJS	+= usb/usbc.o \
            usb/usbc_dev.o \
            usb/usbc_host.o \
            usb/usbc_phy.o
-COBJS   += int/intc.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
+HEAD	:= $(addprefix $(obj),$(HEAD))
 
-all:	 $(obj).depend $(LIB)
+all:	 $(obj).depend $(HEAD) $(LIB)
 
 $(LIB):	$(OBJS)
 	$(call cmd_link_o_target, $(OBJS))

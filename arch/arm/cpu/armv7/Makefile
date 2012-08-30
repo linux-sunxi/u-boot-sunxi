@@ -32,10 +32,7 @@ COBJS	+= cache_v7.o
 COBJS	+= cpu.o
 endif
 
-SOBJS  := mmu_asm.o
-
 COBJS  += syslib.o
-COBJS  += mmu.o
 
 SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))

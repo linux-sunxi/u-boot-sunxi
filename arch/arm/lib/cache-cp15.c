@@ -67,10 +67,11 @@ static inline void dram_bank_mmu_setup(int bank)
 /* to activate the MMU we need to set up virtual memory: use 1M areas */
 static inline void mmu_setup(void)
 {
-	u32 *page_table = (u32 *)gd->tlb_addr;
+	//u32 *page_table = (u32 *)gd->tlb_addr;
+	u32 *page_table = (u32 *)MMU_BASE_ADDRESS;
 	int i;
 	u32 reg;
-
+#if 0
 	arm_init_before_mmu();
 	/* Set up an identity-mapping for all 4GB, rw for everyone */
 	for (i = 0; i < 4096; i++)
@@ -79,7 +80,16 @@ static inline void mmu_setup(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
 		dram_bank_mmu_setup(i);
 	}
-
+#endif
+	/* modified by jerry */
+	arm_init_before_mmu();
+	/* the front 1G of memory(treated as 4G for all) is set up as none cacheable */
+	for (i = 0; i < 1024; i++)
+		page_table[i] = i << 20 | (3 << 10) | (0 << 3) | 0x2;
+	/* Set up as write through and buffered(not write back) for other 3GB, rw for everyone */
+	for (i = 1024; i < 4096; i++)
+		page_table[i] = i << 20 | (3 << 10) | (1 << 3) | 0x2;
+	
 	/* Copy the page table address to cp15 */
 	asm volatile("mcr p15, 0, %0, c2, c0, 0"
 		     : : "r" (page_table) : "memory");
@@ -145,6 +155,7 @@ int icache_status (void)
 {
 	return 0;					/* always off */
 }
+
 #else
 void icache_enable(void)
 {
@@ -177,6 +188,13 @@ int dcache_status (void)
 {
 	return 0;					/* always off */
 }
+
+/* add by jerry */
+void dcache_flushregion(void *adr, uint bytes)
+{
+	return ;
+}
+
 #else
 void dcache_enable(void)
 {
@@ -192,4 +210,33 @@ int dcache_status(void)
 {
 	return (get_cr() & CR_C) != 0;
 }
+
+static inline unsigned int get_cache_line_size(void)
+{
+    unsigned int cache_line_reg;
+	unsigned int cache_line_size;
+
+	asm("mrc p15, 0, %0, c1, c0, 0	@ get cache line" : "=r" (cache_line_reg) : : "cc");
+	cache_line_size = (2 << ((cache_line_reg & 0x07) + 2)) * 4;
+	
+	return cache_line_size;
+}
+/* add by jerry */
+void dcache_flushregion(void *adr, uint bytes)
+{
+	unsigned int cache_line_size = get_cache_line_size();
+	unsigned int start, end;
+
+	start = (unsigned int)adr & (cache_line_size - 1);
+	end  = start + bytes;
+	while(start <= end)
+	{
+	    asm("mcr p15, 0, %0, c7, c14, 1	@ clean and invalidata data" : : "r" (start));
+		start += cache_line_size;
+	}
+
+	return ;
+}
+
 #endif
+

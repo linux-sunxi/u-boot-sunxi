@@ -24,10 +24,9 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
-#include "int/intc_reg.h"
-
-DECLARE_GLOBAL_DATA_PTR;
+#include <asm/arch/intc.h>
 
 #define TIMER_MODE   (0 << 7)   /* continuous mode */
 #define TIMER_DIV    (0 << 4)   /* pre scale 1 */
@@ -35,53 +34,63 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TIMER_RELOAD (1 << 1)   /* reload internal value */
 #define TIMER_EN     (1 << 0)   /* enable timer */
 
-#define TIMER_CLOCK	       (24 * 1000 * 1000)
-#define COUNT_TO_USEC(x)	((x) / 24)
-#define USEC_TO_COUNT(x)	((x) * 24)
-#define TICKS_PER_HZ		(TIMER_CLOCK / CONFIG_SYS_HZ)
-#define TICKS_TO_HZ(x)		((x) / TICKS_PER_HZ)
+static  int  timer_used_status;
 
-#define TIMER_LOAD_VAL     0xffffffff
-
-#define TIMER_NUM    (0)        /* we use timer 0 */
-#define TIMER_INT    (1)
-
-static struct sunxi_timer *timer_base =
-	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[TIMER_NUM];
-
-static struct sunxi_timer *timer_int =
-	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[TIMER_INT];
-
-/* macro to read the 32 bit timer: since it decrements, we invert read value */
-#define READ_TIMER() (~readl(&timer_base->val))
-
-void (* timer_callback)(int *para);
-int   timer_restart_flag = 0;
 /* init timer register */
 int timer_init(void)
 {
-	__u32  reg_val;
-	struct sunxi_timer_reg *timer_reg;
-	
-	writel(TIMER_LOAD_VAL, &timer_base->inter);
-	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC | TIMER_RELOAD | TIMER_EN, &timer_base->ctl);
+	struct sunxi_timer_reg *timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
-	reg_val = readl(SUNXI_CCM_BASE + 0x144);
-	reg_val |= (1U << 31);
-	writel(reg_val, SUNXI_CCM_BASE + 0x144);
-
-	timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
-	timer_reg->avs.ctl  = 1;
-	timer_reg->avs.div  = 0x2ee0;
+	timer_reg->tirqen  = 0;
+	timer_reg->tirqsta = 0;
+	/* start avs as counter */
+	ccm_reg->avs_clk_cfg |= (1 << 31);
+	/* avs0 counted by ms */
+	timer_reg->avs.ctl  = 3;		
+	timer_reg->avs.div  = 0xc2ee0;
 	timer_reg->avs.cnt0 = 0;
 	
 	return 0;
 }
 
+void timer_exit(void)
+{
+	struct sunxi_timer_reg *timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	timer_reg->tirqen  = 0;
+	timer_reg->tirqsta = 0;	
+	ccm_reg->avs_clk_cfg &= ~(1U << 31);
+
+	return ;
+}
+
+void watchdog_disable(void)
+{
+	struct sunxi_wdog *wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+	/* disable watchdog */
+	writel(0, &(wdog->mode));
+
+	return ;	
+}
+
+void watchdog_enable(void)
+{
+	struct sunxi_wdog *wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+	/* enable watchdog */
+	writel(1, &(wdog->mode));
+
+	return ;	
+	
+}
 /* timer without interrupts */
+/* count the delay by seconds */
 ulong get_timer(ulong base)
 {
-	return get_timer_masked() - base;
+	return get_timer_masked()/1000 - base;
 }
 
 int runtime_tick(void)
@@ -94,42 +103,50 @@ int runtime_tick(void)
 ulong get_timer_masked(void)
 {
 	/* current tick value */
-	ulong now = TICKS_TO_HZ(READ_TIMER());
-
+	ulong now = runtime_tick();
+	/* notice:  this function doesnt consider if the timer count overrage */
+#if 0
 	if (now >= gd->lastinc)	/* normal (non rollover) */
 		gd->tbl += (now - gd->lastinc);
 	else			/* rollover */
 		gd->tbl += (TICKS_TO_HZ(TIMER_LOAD_VAL) - gd->lastinc) + now;
 	gd->lastinc = now;
 	return gd->tbl;
+#endif
+	return now;
 }
 
 /* delay x useconds */
 void __udelay(unsigned long usec)
 {
-	long tmo = usec * (TIMER_CLOCK / 1000) / 1000;
-	ulong now, last = READ_TIMER();
+	u32 t1, t2;
+	struct sunxi_timer_reg *timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	timer_reg->avs.cnt1 = 0;
 
-	while (tmo > 0) {
-		now = READ_TIMER();
-		if (now > last)	/* normal (non rollover) */
-			tmo -= now - last;
-		else		/* rollover */
-			tmo -= TIMER_LOAD_VAL - last + now;
-		last = now;
+	t1 = timer_reg->avs.cnt1;
+	t2 = t1 + usec;
+	do
+	{
+		t1 = timer_reg->avs.cnt1;
 	}
+	while(t2 >= t1);
+
+	return ;
 }
 
-void msdelay(unsigned long msec)
+/* delay x mseconds */
+void __msdelay(unsigned long msec)
 {
-	unsigned long t1, t2;
+	u32 t1, t2;
+	struct sunxi_timer_reg *timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 
-	t1 = runtime_tick();
+	t1 = timer_reg->avs.cnt0;
 	t2 = t1 + msec;
-	while(t2 > t1)
+	do
 	{
-		t1 = runtime_tick();
+		t1 = timer_reg->avs.cnt0;
 	}
+	while(t2 >= t1);
 
 	return ;
 }
@@ -154,83 +171,141 @@ ulong get_tbclk(void)
 	return tbclk;
 }
 
-static void timer_install(void *para)
-{
-	struct sunxi_timer_reg *timer_tcontrol;
+static void timerX_callback_default(void *data);
 
-	timer_tcontrol = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
-	irq_disableInt(INTC_IRQNO_TIMER1);
-	timer_tcontrol->tirqen  &= ~(1<<1);		
-	timer_tcontrol->tirqsta |=  (1<<1);
-	timer_callback (para);
-	if(!timer_restart_flag)
+struct __timer_callback
+{
+	void (*func_back)( void *data);
+	unsigned int data;
+};
+
+struct __timer_callback timer_callback[2] = 
+{
+    	{timerX_callback_default, 0},
+    	{timerX_callback_default, 1}
+};
+
+static void timerX_callback_default(void *data)
+{
+    printf("this is only for test, timer number=%d\n", (u32)data);
+
+	return ;
+}
+
+void timer0_func(void *data)
+{
+	struct sunxi_timer_reg *timer_control = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+
+	if(!(timer_control->tirqsta & 0x01))
+    {
+        return ;
+    }
+	timer_control->tirqen  &= ~0x01;
+    timer_control->tirqsta |=  0x01;
+    irq_disable(INTC_IRQNO_TIMER0);
+
+    timer_callback[0].func_back((void *)timer_callback[0].data); 
+
+	return ;
+}
+
+void timer1_func(void *data)
+{
+	struct sunxi_timer_reg *timer_control = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+
+	if(!(timer_control->tirqsta & 0x02))
+    {
+        return ;
+    }
+	timer_control->tirqen  &= ~0x02;
+    timer_control->tirqsta |=  0x02;
+    irq_disable(INTC_IRQNO_TIMER1);
+
+    timer_callback[1].func_back((void *)timer_callback[1].data); 
+
+	return ;
+}
+
+
+void init_timer(struct timer_list *timer)
+{
+    return ;
+}
+
+void add_timer(struct timer_list *timer)
+{
+	u32 reg_val;	
+	int timer_num;
+	struct sunxi_timer     *timer_tcontrol;
+	struct sunxi_timer_reg *timer_reg;
+	
+	if(timer->expires <= 0)
 	{
-		timer_int->ctl &= ~1;
+		timer->expires = 1000;
+	}
+	if(!(timer_used_status & 0x01))
+	{
+		timer_used_status |= 0x01;
+		timer_num = 0;
+	}
+	else if(!(timer_used_status & 0x02))
+	{
+		timer_used_status |= 0x02;
+		timer_num = 1;
 	}
 	else
 	{
-		printf("timer restart\n");
-		irq_enableInt(INTC_IRQNO_TIMER1);
-		timer_tcontrol->tirqen  |= 1<<1;	
-	}
-}
-/*
-* 
-* 
-*/
-int timer_run (void *func, void *para, int delay_time, int auto_restart)
-{
-	__u32 reg_val;	
-	struct sunxi_timer_reg *timer_tcontrol;
-	
-	if(!func)
-	{
-		printf("timer err: callback function is null\n");
+		printf("timer err: there is no timer cound be used\n");
 
-		return -1;
+		return ;
 	}
-	if(delay_time <= 0)
-	{
-		printf("timer err: timer delay time is invalid\n");
-
-		return -1;
-	}
-	timer_tcontrol = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
-	auto_restart = (auto_restart > 0)?0:1;
-	
+	debug("timer status = %x, number = %d\n", timer_used_status, timer_num);
+	timer->timer_num = timer_num;
+	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[timer_num];	
 	reg_val =   (0 << 0)  |            // 不启动TIMER              
 				(1 << 1)  |            // 使用单次模式              
 				(1 << 2)  |            // 使用高频晶振24M              
 				(5 << 4)  |            // 除频系统32，保证当设置时间是1的时候，触发延时1ms    			  
-				(auto_restart << 7);	
+				(1 << 7);	
 	
-	timer_int->ctl = reg_val;
-	timer_int->inter = delay_time * (24000 / 32);	
+	timer_tcontrol->ctl = reg_val;
+	timer_tcontrol->inter = timer->expires * (24000 / 32);	
+	timer_callback[timer_num].func_back = timer->function;
+	irq_install_handler(INTC_IRQNO_TIMER0 + timer_num, timer_callback[timer_num].func_back, (void *)&timer->data);
+	debug("timer number = %d\n", timer_num);
+	irq_enable(INTC_IRQNO_TIMER0 + timer_num);
+	timer_tcontrol->ctl |= (1 << timer_num);
+	timer_reg->tirqsta |= (1 << timer_num);
+	timer_reg->tirqen  |= (1 << timer_num);
+	debug("timer number = %d\n", timer_num);
 
-	timer_restart_flag = !auto_restart;
-	timer_callback = func;
-	irq_install_handler(INTC_IRQNO_TIMER1, timer_install, para);
-
-	irq_enableInt(INTC_IRQNO_TIMER1);
-	timer_int->ctl |= 1;
-	timer_tcontrol->tirqsta |= 1<<1;
-	timer_tcontrol->tirqen  |= 1<<1;
-
-	return 0;	
+	return ;	    
 }
-int timer_halt (void)
+
+
+void del_timer(struct timer_list *timer)
 {
-	struct sunxi_timer_reg *timer_tcontrol;
+	struct sunxi_timer *timer_tcontrol;
+	struct sunxi_timer_reg *timer_reg;
+	int    num = timer->timer_num;
 
-	timer_tcontrol = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	debug("timer status at delling begin = %x, number = %d\n", timer_used_status, num);
+	
+	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];	
 
-	irq_disableInt(INTC_IRQNO_TIMER1);
-	timer_restart_flag = 0;
-	timer_int->ctl = 0;
-	timer_tcontrol->tirqsta |= 1<<1;
-	timer_tcontrol->tirqen  &= ~(1<<1);
+	irq_disable(INTC_IRQNO_TIMER0 + num);
+	timer_tcontrol->ctl = 0;
+	timer_reg->tirqsta |= (1<<num);
+	timer_reg->tirqen  &= ~(1<<num);
 
-	return 0;
+	timer_callback[num].data = num;
+	timer_callback[num].func_back = timerX_callback_default;
+	timer_used_status &= ~(1 << num);
+	debug("timer status at delling end = %x\n", timer_used_status);
+
+	return ;
 }
 
 

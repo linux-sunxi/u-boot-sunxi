@@ -228,12 +228,12 @@ LIBS += arch/$(ARCH)/lib/lib$(ARCH).o
 LIBS += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs2.o \
 	fs/reiserfs/libreiserfs.o fs/ext2/libext2fs.o fs/yaffs2/libyaffs2.o \
 	fs/ubifs/libubifs.o
-LIBS += script/libscript.o
 LIBS += net/libnet.o
 LIBS += disk/libdisk.o
 LIBS += drivers/bios_emulator/libatibiosemu.o
 LIBS += drivers/block/libblock.o
 LIBS += drivers/dma/libdma.o
+LIBS += drivers/int/libint.o
 LIBS += drivers/fpga/libfpga.o
 LIBS += drivers/gpio/libgpio.o
 LIBS += drivers/hwmon/libhwmon.o
@@ -241,6 +241,7 @@ LIBS += drivers/i2c/libi2c.o
 LIBS += drivers/input/libinput.o
 LIBS += drivers/misc/libmisc.o
 LIBS += drivers/mmc/libmmc.o
+LIBS += drivers/storage_type/libstorage_type.o
 LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/onenand/libonenand.o
@@ -252,7 +253,6 @@ LIBS += drivers/pci/libpci.o
 LIBS += drivers/pcmcia/libpcmcia.o
 LIBS += drivers/power/libpower.o
 LIBS += drivers/spi/libspi.o
-LIBS += drivers/pmu/libpmu.o
 ifeq ($(CPU),mpc83xx)
 LIBS += drivers/qe/libqe.o
 LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
@@ -296,7 +296,7 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 
 ifeq ($(SOC),sunxi)
-LIBS += nand_sunxi/libsunxi-nand.o
+LIBS += nand_sunxi/libnand
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))

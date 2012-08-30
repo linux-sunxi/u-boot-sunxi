@@ -7,8 +7,6 @@ typedef unsigned short umode_t;
  * __xx is ok: it doesn't pollute the POSIX namespace. Use these in the
  * header files exported to user space
  */
-#define __REG(x)    (*(volatile unsigned int   *)(x))
-
 
 typedef __signed__ char __s8;
 typedef unsigned char __u8;

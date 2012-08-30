@@ -58,11 +58,10 @@ typedef struct  boot_nand_para_set_t
     unsigned short       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     unsigned char        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
     unsigned char        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
-    unsigned char        NandChipId[8];                      //the nand chip id of current connecting nand chip
+    unsigned char        NandChipId[5];                      //the nand chip id of current connecting nand chip
     unsigned short        ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
 	unsigned int 		 good_block_ratio;					//good block ratio get from hwscan
 	unsigned int		 ReadRetryType;						//the read retry type
-	unsigned int         DDRType;
 	unsigned int		 Reserved[32];
 }boot_nand_para_t;
 

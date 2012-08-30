@@ -23,7 +23,9 @@
 
 #include <common.h>
 #include <linux/compiler.h>
-
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+#endif
 #include <ns16550.h>
 #ifdef CONFIG_NS87308
 #include <ns87308.h>
@@ -171,6 +173,7 @@ int serial_init (void)
 	initialise_ns87308();
 #endif
 
+#if 0
 #ifdef CONFIG_SYS_NS16550_COM1
 	clock_divisor = calc_divisor(serial_ports[0]);
 	NS16550_init(serial_ports[0], clock_divisor);
@@ -186,6 +189,16 @@ int serial_init (void)
 #ifdef CONFIG_SYS_NS16550_COM4
 	clock_divisor = calc_divisor(serial_ports[3]);
 	NS16550_init(serial_ports[3], clock_divisor);
+#endif
+#else
+	uart_console = uboot_spare_head.boot_data.uart_port;
+	if((uart_console < 0) || (uart_console > 4))
+	{
+		uart_console = 0;
+	}
+	sunxi_set_gpio_all((void *)uboot_spare_head.boot_data.uart_gpio, 2);
+	clock_divisor = calc_divisor(serial_ports[uart_console]);
+	NS16550_init(serial_ports[uart_console], clock_divisor);
 #endif
 
 	return (0);
@@ -247,7 +260,11 @@ serial_putc_dev(unsigned int dev_index,const char c)
 void
 serial_putc(const char c)
 {
+#ifdef CONFIG_ALLWINNER
+	_serial_putc(c,uart_console+1);
+#else
 	_serial_putc(c,CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -261,7 +278,11 @@ serial_putc_raw_dev(unsigned int dev_index,const char c)
 void
 serial_putc_raw(const char c)
 {
+#ifdef CONFIG_ALLWINNER
+	_serial_putc_raw(c,uart_console+1);
+#else
 	_serial_putc_raw(c,CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -275,7 +296,11 @@ serial_puts_dev(unsigned int dev_index,const char *s)
 void
 serial_puts(const char *s)
 {
+#ifdef CONFIG_ALLWINNER
+	_serial_puts(s,uart_console+1);
+#else
 	_serial_puts(s,CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -289,7 +314,11 @@ serial_getc_dev(unsigned int dev_index)
 int
 serial_getc(void)
 {
+#ifdef CONFIG_ALLWINNER
+	return _serial_getc(uart_console+1);
+#else
 	return _serial_getc(CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -303,7 +332,11 @@ serial_tstc_dev(unsigned int dev_index)
 int
 serial_tstc(void)
 {
+#ifdef CONFIG_ALLWINNER
+	return _serial_tstc(uart_console+1);
+#else
 	return _serial_tstc(CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -317,7 +350,11 @@ serial_setbrg_dev(unsigned int dev_index)
 void
 serial_setbrg(void)
 {
+#ifdef CONFIG_ALLWINNER
+	_serial_setbrg(uart_console+1);
+#else
 	_serial_setbrg(CONFIG_CONS_INDEX);
+#endif
 }
 #endif
 
@@ -338,6 +375,20 @@ struct serial_device eserial4_device =
 
 __weak struct serial_device *default_serial_console(void)
 {
+#ifdef CONFIG_ALLWINNER
+	switch (uart_console) {
+	case 0:
+		return &eserial1_device;
+	case 1:
+		return &eserial2_device;
+	case 2:
+		return &eserial3_device;
+	case 3:
+		return &eserial4_device;
+	default:
+		#error "Bad CONFIG_CONS_INDEX."
+	}
+#else
 #if CONFIG_CONS_INDEX == 1
 	return &eserial1_device;
 #elif CONFIG_CONS_INDEX == 2
@@ -348,6 +399,7 @@ __weak struct serial_device *default_serial_console(void)
 	return &eserial4_device;
 #else
 #error "Bad CONFIG_CONS_INDEX."
+#endif
 #endif
 }
 

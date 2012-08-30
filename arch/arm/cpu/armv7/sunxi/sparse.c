@@ -30,6 +30,7 @@
 #include <nand.h>
 
 #include <asm/arch/nand_bsp.h>
+#include <asm/arch/boot_type.h>
 
 #define SPARSE_HEADER_MAJOR_VER 1
 
@@ -56,9 +57,7 @@ int mmc_compare(unsigned mmcc, unsigned char *src, unsigned offset, unsigned len
 #endif
 
 int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
-	      unsigned id,
-	      int (*WRITE)(nand_info_t *nand, loff_t offset, size_t *length,
-			u_char *buffer, int flags))
+	      unsigned id)
 {
 	sparse_header_t *header = (void*) source;
 	u32 i, outlen = 0;
@@ -116,7 +115,9 @@ int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
 			printf("sparse: RAW blk=%d bsz=%d: write(offset=0x%x,len=0x%x)\n",
 			       chunk->chunk_sz, header->blk_sz, offset, len);
 #endif
-			r = WRITE(&nand_info[0], offset, &len, source, 0);
+			//if(!storage_type)
+			//r = WRITE(&nand_info[0], offset, &len, source, 0);
+			r = sunxi_flash_write(offset>>9, len>>9, source);
 			if (r < 0) {
 				printf("sparse: mmc write failed\n");
 				return 1;
@@ -160,14 +161,13 @@ int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
 u8 do_unsparse(unsigned char *source, u32 offset, u32 partition_size, char *slot_no)
 {
 	unsigned mmcc = simple_strtoul(slot_no, NULL, 16);
-#if defined(CONFIG_STORAGE_NAND)
-	if (_unsparse(source, offset, partition_size, mmcc, sunxi_nand_write_opts))
-		return 1;
-#elif defined(CONFIG_STORAGE_EMMC)
-	if (_unsparse(source, offset, partition_size, mmcc, mmc_write))
-		return 1;
+#ifdef DEBUG
+	printf("do_unsparse storage_type = %d\n", storage_type);
 #endif
+	if (_unsparse(source, offset, partition_size, mmcc))
+		return 1;
 
+	printf("flash sparse ok!\n");
 #if 0
 	if (_unsparse(source, offset, partition_size, mmcc, mmc_compare))
 		return 1;

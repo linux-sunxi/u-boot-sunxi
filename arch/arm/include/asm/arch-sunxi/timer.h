@@ -23,56 +23,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-
-
 #ifndef _SUNXI_TIMER_H_
 #define _SUNXI_TIMER_H_
 
-#ifndef __ASSEMBLY__
-
 /* General purpose timer */
 struct sunxi_timer {
-	u32 ctl;
-	u32 inter;
-	u32 val;
-	u8  res[4];	
+	volatile u32 ctl;
+	volatile u32 inter;
+	volatile u32 val;
+	u8  res[4];
 };
 
 /* Audio video sync*/
 struct sunxi_avs {
-	u32 ctl;		/* 0x80 */
-	u32 cnt0;		/* 0x84 */
-	u32 cnt1;		/* 0x88 */
-	u32 div;		/* 0x8c */
+	volatile u32 ctl;		/* 0x80 */
+	volatile u32 cnt0;		/* 0x84 */
+	volatile u32 cnt1;		/* 0x88 */
+	volatile u32 div;		/* 0x8c */
 };
 
 /* 64 bit counter */
 struct sunxi_64cnt {
-	u32 ctl;		/* 0xa0 */
-	u32 lo;			/* 0xa4 */
-	u32 hi;			/* 0xa8 */
+	volatile u32 ctl;		/* 0xa0 */
+	volatile u32 lo;			/* 0xa4 */
+	volatile u32 hi;			/* 0xa8 */
 };
 
 /* Watchdog */
 struct sunxi_wdog {
-	u32 ctl;		/* 0x90 */
-	u32 mode;		/* 0x94 */
+	volatile u32 ctl;		/* 0x90 */
+	volatile u32 mode;		/* 0x94 */
 };
 
 /* Rtc */
 struct sunxi_rtc {
-	u32 ctl;		/* 0x100 */
-	u32 yymmdd;		/* 0x104 */
-	u32 hhmmss;		/* 0x108 */
+	volatile u32 ctl;		/* 0x100 */
+	volatile u32 yymmdd;		/* 0x104 */
+	volatile u32 hhmmss;		/* 0x108 */
 };
 
 /* Alarm */
 struct sunxi_alarm {
-	u32 ddhhmmss;	/* 0x10c */
-	u32 hhmmss;		/* 0x110 */
-	u32 en;			/* 0x114 */
-	u32 irqen;		/* 0x118 */
-	u32 irqsta;		/* 0x11c */
+	volatile u32 ddhhmmss;	/* 0x10c */
+	volatile u32 hhmmss;		/* 0x110 */
+	volatile u32 en;			/* 0x114 */
+	volatile u32 irqen;		/* 0x118 */
+	volatile u32 irqsta;		/* 0x11c */
 };
 
 /* Timer general purpose register */
@@ -81,8 +77,8 @@ struct sunxi_tgp {
 };
 
 struct sunxi_timer_reg {
-	u32 tirqen;		/* 0x00 */
-	u32 tirqsta;	/* 0x04 */
+	volatile u32 tirqen;		/* 0x00 */
+	volatile u32 tirqsta;	/* 0x04 */
 	u8  res1[8];
 	struct sunxi_timer timer[6];	/* We have 6 timers */
 	u8  res2[16];
@@ -96,7 +92,13 @@ struct sunxi_timer_reg {
 	struct sunxi_tgp tgp[4];
 };
 
-
-#endif /* __ASSEMBLY__ */
+struct timer_list
+{
+	unsigned long expires;
+	void (*function)(unsigned long data);
+	unsigned long data;
+	int   timer_num;
+};
 
 #endif
+

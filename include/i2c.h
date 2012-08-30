@@ -89,7 +89,7 @@
  * future, we'll define these in all 8xx board config files.
  */
 #ifndef	CONFIG_SYS_I2C_SPEED
-#define	CONFIG_SYS_I2C_SPEED	50000
+#define	CONFIG_SYS_I2C_SPEED	400000
 #endif
 #endif
 
@@ -100,32 +100,18 @@
  * support a slave interface.
  */
 #ifndef	CONFIG_SYS_I2C_SLAVE
-#define	CONFIG_SYS_I2C_SLAVE	0xfe
+#define	CONFIG_SYS_I2C_SLAVE	0x68
 #endif
 
 /*
  * Initialization, must be called once on start up, may be called
  * repeatedly to change the speed and slave addresses.
  */
-//void i2c_init(int speed, int slaveaddr);
-int  i2c_init(void);
+void i2c_init(int speed, int slaveaddr);
 void i2c_init_board(void);
 #ifdef CONFIG_SYS_I2C_BOARD_LATE_INIT
 void i2c_board_late_init(void);
 #endif
-
-typedef struct  i2c_parameters_t
-{
-    __u32    slave_addr;             //从设备地址
-    __u32    slave_addr_flag;        //从设置地址宽度  0：7bit； 1：10bit
-	__u8    *byte_addr;              //需要读写的数据在从设备中的地址
-	__u32    byte_addr_width;        //从设置地址宽度  0或1：8 bit; 其它：数字代表字节数
-	__u32    byte_count;             //一次读写要完成的字节数
-	__u32    if_restart;             //是否需要发送restart命令
-	__u8    *data;                   //数据的地址
-}
-i2c_parameters;
-
 
 #if defined(CONFIG_I2C_MUX)
 

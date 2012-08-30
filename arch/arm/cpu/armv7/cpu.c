@@ -82,8 +82,10 @@ int cleanup_before_linux(void)
 }
 
 int arch_cpu_init (void)
-{
-	mmu_create(MMU_BASE_ADDRESS);
+{	
+	icache_enable();
+	dcache_enable();
 
 	return 0;
 }
+

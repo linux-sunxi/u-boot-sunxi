@@ -135,11 +135,15 @@ extern inline void __raw_readsl(unsigned int addr, void *data, int longlen)
 
 #define writeb(v,c)	({ u8  __v = v; __iowmb(); __arch_putb(__v,c); __v; })
 #define writew(v,c)	({ u16 __v = v; __iowmb(); __arch_putw(__v,c); __v; })
-#define writel(v,c)	({ u32 __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+//#define writel(v,c)	({ u32 __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+#define writel(v,c)		(*(volatile unsigned int *)(c) = (v))
+
 
 #define readb(c)	({ u8  __v = __arch_getb(c); __iormb(); __v; })
 #define readw(c)	({ u16 __v = __arch_getw(c); __iormb(); __v; })
-#define readl(c)	({ u32 __v = __arch_getl(c); __iormb(); __v; })
+//#define readl(c)	({ u32 __v = __arch_getl(c); __iormb(); __v; })
+#define readl(c)	(*(volatile unsigned int *)(c))
+
 
 /*
  * The compiler seems to be incapable of optimising constants

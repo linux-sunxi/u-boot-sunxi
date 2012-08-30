@@ -78,6 +78,12 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+extern void sw_gpio_init(void);
+extern int script_parser_fetch(char *main_name, char *sub_name, int value[], int count);
+extern int script_parser_init_early(void);
+#endif
 
 /************************************************************************
  * Coloured LED functionality
@@ -195,6 +201,10 @@ static int arm_pci_init(void)
 }
 #endif /* CONFIG_CMD_PCI || CONFIG_PCI */
 
+#if defined(CONFIG_SUNXI_AXP)
+extern int power_init(void);
+#endif
+extern int display_inner(void);
 /*
  * Breathe some life into the board...
  *
@@ -246,6 +256,7 @@ init_fnc_t *init_sequence[] = {
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
 	display_banner,		/* say that we are here */
+	display_inner,      /* show the inner version */
 #if defined(CONFIG_DISPLAY_CPUINFO)
 	print_cpuinfo,		/* display cpu info (and speed) */
 #endif
@@ -254,6 +265,9 @@ init_fnc_t *init_sequence[] = {
 #endif
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	init_func_i2c,
+#if defined(CONFIG_SUNXI_AXP)
+	power_init,
+#endif	
 #endif
 	dram_init,		/* configure available RAM banks */
 	NULL,
@@ -275,12 +289,12 @@ void board_init_f(ulong bootflag)
 
 	gd->mon_len = _bss_end_ofs;
 
+	//while((*(volatile unsigned int *)(0)) != 1);
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0) {
 			hang ();
 		}
 	}
-	gpio_script_init();
 
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
@@ -457,7 +471,58 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-	debug("monitor flash len: %08lX\n", monitor_flash_len);
+//	debug("monitor flash len: %08lX\n", monitor_flash_len);
+#ifdef CONFIG_ALLWINNER
+#ifdef DEBUG
+//	printf("sunxi script init\n");
+#endif
+	sw_gpio_init();
+	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
+		storage_type = 0;
+	if((storage_type <= 0) || (storage_type > 2))
+	{
+		int used;
+
+		used = 1;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 0;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
+		storage_type = 0;
+	}
+	else if(1 == storage_type)
+	{
+		mmc_card_no = 0;
+	}
+	else
+	{
+		int used;
+
+		used = 0;
+		script_parser_patch("nand_para", "nand_used", &used, 1);
+		used = 1;
+		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
+
+		mmc_card_no = 2;
+	}
+#ifdef DEBUG
+	{
+		int used;
+
+		printf("test storage_type=%d, mmc_card_no=%d\n", storage_type, mmc_card_no);
+		if(!script_parser_fetch("nand_para", "nand_used", &used, sizeof(int)))
+		{
+			printf("nand_para nand_used = %d\n", used);
+		}
+		if(!script_parser_fetch("mmc2_para", "sdc_used", &used, sizeof(int)))
+		{
+			printf("mmc2_para sdc_used = %d\n", used);
+		}
+		printf("test over\n");
+	}
+#endif
+	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
+		uart_console = 0;
+#endif
 	board_init();	/* Setup chipselects */
 
 #ifdef CONFIG_SERIAL_MULTI
@@ -505,19 +570,33 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif
 
+#ifdef CONFIG_ALLWINNER
+	if(!storage_type){
+		puts("NAND:  ");
+		nand_init();		/* go init the NAND */
+	}
+	else{
+		puts("MMC:   ");
+        mmc_initialize(bd);
+	}
+	sunxi_flash_handle_init();
+	sunxi_partition_init();
+#else
 #if defined(CONFIG_CMD_NAND)
-	puts("NAND:  ");
-	nand_init();		/* go init the NAND */
-#endif
+	if(!storage_type){
+		puts("NAND:  ");
+		nand_init();        /* go init the NAND */
+	}
+#endif/*CONFIG_CMD_NAND*/
 
-#if defined(CONFIG_CMD_ONENAND)
-	onenand_init();
-#endif
 
-#ifdef CONFIG_GENERIC_MMC
-       puts("MMC:   ");
-       mmc_initialize(bd);
-#endif
+#if defined(CONFIG_GENERIC_MMC)
+	if(storage_type){
+		puts("MMC:   ");
+		mmc_initialize(bd);
+	}
+#endif/*CONFIG_GENERIC_MMC*/
+#endif/*CONFIG_ALLWINNER*/
 
  	/* set up exceptions */
 	interrupt_init();

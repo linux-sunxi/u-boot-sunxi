@@ -27,6 +27,14 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define DEBUG    1
+
+#ifndef __KERNEL__
+#define __KERNEL__
+#endif
+
+#define UBOOT_VERSION			"1.0.0"
+#define UBOOT_PLATFORM		    "0.0.0"
 /*
  * High Level Configuration Options
  */
@@ -39,7 +47,7 @@
 
 #define BOARD_LATE_INIT				/* init the fastboot partitions */
 
-#define CONFIG_USE_IRQ				1
+#define INT_MAX_SOURCE				84
 
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
@@ -59,9 +67,13 @@
 /* Clock Defines */
 #define MMU_BASE_ADDRESS			0x20000
 
-#define CONFIG_SUNXI_I2C			1
-#define CONFIG_SUNXI_PMU_209		1
+#define CONFIG_SUNXI_GPIO           1
 
+#define CONFIG_SYS_I2C_SPEED        400000
+#define CONFIG_SYS_I2C_SLAVE        0x68
+#define CONFIG_SUNXI_I2C			1
+#define CONFIG_SUNXI_AXP			1
+#define CONFIG_HARD_I2C			    1
 /* Serial & console */
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
@@ -105,37 +117,40 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-#if 0
 /* mmc config */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
-#define CONFIG_MMC_SUNXI_SLOT			2		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_USE_DMA
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no		
+#define CONFIG_STORAGE_EMMC
+#define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
+#define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
 
 #define CONFIG_DOS_PARTITION
-#endif
-
 /*
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
-
-#define CONFIG_SCRIPT_DATA_BASE     (0x40400000)
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (20 << 20))
 
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	(256 << 20)
 
+#define FASTBOOT_ERASE_BUFFER			0x40000000
+#define FASTBOOT_ERASE_BUFFER_SIZE      (16 << 20)
 /*
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_LONGHELP				/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"sun4i#"
+#define CONFIG_SYS_PROMPT		"sunxi#"
 #define CONFIG_SYS_CBSIZE	256			/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384			/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16			/* max number of command args */
@@ -183,16 +198,28 @@
  * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
  * if not, below CONFIG_ENV_ADDR and CONFIG_ENV_SIZE will be where to store env.
  * */
-#define CONFIG_ENV_ADDR				(256 << 20)
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
-#define CONFIG_EXTRA_ENV_SETTINGS "bootargs=console=ttyS0,115200 " \
-                                  "init=/init rw " \
-								  "fbmem=32M@0x5a000000 loglevel=9;\0"
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootdelay=3\0" \
+	"bootcmd=run setargs_nand boot_normal\0" \
+	"console=ttyS0,115200\0" \
+	"nand_root=/dev/nandd\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
+	"init=/init\0" \
+	"loglevel=8\0" \
+	"setargs_nand=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"setargs_mmc=setenv bootargs console=${console} root=${mmc_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"boot_normal=sunxi_flash read 40007800 boot;boota 40007800\0" \
+	"boot_recovery=sunxi_flash read 40007800 recovery;boota 40007800\0" \
+	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 kernel;boota 50000000"
+#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 

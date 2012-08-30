@@ -29,91 +29,93 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
+#include <asm/arch/key.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/boot_type.h>
+/* The sunxi internal brom will try to loader external bootloader
+ * from mmc0, nannd flash, mmc2.
+ * We check where we boot from by checking the config
+ * of the gpio pin.
+ */
+int storage_type = 0;
+int uart_console = 0;
+int mmc_card_no  = 2;
 
-int watchdog_init(void)
+u32 get_base(void) 
 {
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-	/* disable watchdog */
-	writel(0, &(wdog->mode));
 
-	return 0;
-}
+	u32 val;
 
-int clock_init(void)
-{
-	/* set clock source to OSC24M */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, CPU_CLK_SRC_OSC24M);		/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* set the pll1 factors, pll1 out = 24MHz*n*k/m/p */	
-
-	sr32(SUNXI_CCM_PLL1_CFG, 8, 5, PLL1_FACTOR_N);		/* PLL1_FACTOR_N [12:8] */
-	sr32(SUNXI_CCM_PLL1_CFG, 4, 2, PLL1_FACTOR_K);		/* PLL1_FACTOR_K [5:4] */
-	sr32(SUNXI_CCM_PLL1_CFG, 0, 2, PLL1_FACTOR_M);		/* PLL1_FACTOR_M [1:0] */
-	sr32(SUNXI_CCM_PLL1_CFG, 16, 2, PLL1_FACTOR_P);		/* PLL1_FACTOR_P [17:16] */
-
-	/* wait for clock to be stable*/	
-	sdelay(0x4000);
-	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
-#ifdef CONFIG_SUN5I
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
-#endif
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 9, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
-
-	/* change cpu clock source to pll1 */
-	sr32(SUNXI_CCM_CPU_AHB_APB0_CFG, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-	/* 
-	 * if the clock source is changed,
-	 * at most wait for 8 present running clock cycles
-	 */
-	sdelay(10);
-
-	/* config apb1 clock */
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 24, 2, APB1_CLK_SRC_OSC24M);
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 16, 2, APB1_FACTOR_N);
-	sr32(SUNXI_CCM_APB1_CLK_DIV, 0, 5, APB1_FACTOR_M);
-
-	/* open the clock for uart0 */
-	sr32(SUNXI_CCM_APB1_GATING, 16, 1, CLK_GATE_OPEN);
-
-	/* config nand clock */
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 24, 2, NAND_CLK_SRC_OSC24);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 16, 2, NAND_CLK_DIV_N);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 0, 4, NAND_CLK_DIV_M);
-	sr32(SUNXI_CCM_NAND_SCLK_CFG, 31, 1, CLK_GATE_OPEN);
-	/* open clock for nand */
-	sr32(SUNXI_CCM_AHB_GATING0, 13, 1, CLK_GATE_OPEN);
-
-	return 0;
-}
-
-void gpio_init()
-{
-	u32 i;
-	static struct sunxi_gpio *gpio_c =
-		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-
-	/* set nand controller pin */
-	for(i=0; i < 4; i++) {
-		writel(0x22222222, &gpio_c->cfg[i]);
-	}
-	writel(0x55555555, &gpio_c->drv[0]);
-	writel(0x15555, &gpio_c->drv[1]);
+	__asm__ __volatile__("mov %0, pc \n":"=r"(val)::"memory");
+	val &= 0xF0000000;
+	val >>= 28;
+	return val;
 }
 
 /* do some early init */
 void s_init(void)
 {
-	watchdog_init();
-	clock_init();
-	gpio_init();
-	sunxi_key_init();
+	watchdog_disable();
 }
 
-void reset_cpu(ulong addr)
+void reset_cpu(ulong addr) 
 {
-	sunxi_nand_flush_opts();
-	sunxi_reset();
+	sunxi_flash_exit();
+	watchdog_enable();
+loop_to_die:
+	goto loop_to_die;
 }
+
+void v7_outer_cache_enable(void)
+{
+	return ;
+}
+
+void v7_outer_cache_inval_all(void)
+{
+	return ;
+}
+
+void enable_caches(void)
+{
+}
+
+int display_inner(void)
+{
+	printf("uboot inner version : %s\n", uboot_spare_head.boot_head.version);
+
+	return 0;
+}
+
+int power_init(void)
+{
+	int clock;
+	int set_vol;
+	int set_clock;
+
+	set_vol = uboot_spare_head.boot_data.run_core_vol;
+	set_clock = uboot_spare_head.boot_data.run_clock;
+
+	if(!axp_probe())
+	{
+		if(!axp_probe_power_supply_condition())
+		{
+			if(!axp_set_dcdc2(set_vol))
+			{
+				clock = sunxi_clock_set_corepll(set_clock, set_vol);
+			}
+			else
+			{
+				clock = sunxi_clock_get_corepll();
+			}
+			printf("set dcdc2 clock = %d\n", clock);	
+
+			return 0;
+		}
+	}
+	
+	puts("set both dcdc2 and clock as default\n");
+	
+	return 0;
+}
+

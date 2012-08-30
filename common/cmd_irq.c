@@ -23,72 +23,46 @@
 #include <common.h>
 #include <config.h>
 #include <command.h>
-
-#define TMRC_REGS_BASE			(0x1c20c00)
-
-
-#define CFG_SW_TIMER_MAX       2
-#define CFG_SW_TIMER_CTL0	   (TMRC_REGS_BASE + 0x0010)	      /* timer0 */
-#define CFG_SW_TIMER_CTL1	   (TMRC_REGS_BASE + 0x0020)          /* timer1 */
-
-#define CFG_SW_TIMER_INT_CTRL   (*(volatile unsigned int *)(TMRC_REGS_BASE + 0x0000))         /* timer int status */
-#define CFG_SW_TIMER_INT_STATS  (*(volatile unsigned int *)(TMRC_REGS_BASE + 0x0004))         /* timer int status */
-#define CFG_SW_WATCHDOG_CTRL    (*(volatile unsigned int *)(TMRC_REGS_BASE + 0x0030))         /* watchdog control */
-#define CFG_SW_WATCHDOG_INTERVAL   (*(volatile unsigned int *)(TMRC_REGS_BASE + 0x0034))      /* watchdog interval */
-
-#define CFG_SW_TIMER0_CTRL      (*(volatile unsigned int *)(CFG_SW_TIMER_CTL0 + 0x0000))
-#define CFG_SW_TIMER0_COUNT     (*(volatile unsigned int *)(CFG_SW_TIMER_CTL0 + 0x0004))
-
+#include <asm/arch/intc.h>
+#include <asm/arch/timer.h>
 
 static  void  timer_test_func(void *p)
 {
+	struct timer_list *timer_t;
+
+	timer_t = (struct timer_list *)p;
+	debug("timer number = %d\n", timer_t->timer_num);
 	printf("this is timer test\n");
-	printf("delay time = %d\n", (__u32)p);
+
+	del_timer(timer_t);
 	return;
 }
 
 int do_timer_test (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	__u32 base_count = 1000;
-	__u32 restart = 0;
+	int  base_count;
+	struct timer_list timer_t;
 
-	if(argc > 1)
+	if(argc == 1)
+	{
+		base_count = 1000;
+	}
+	else if(argc == 2)
 	{
 		base_count = simple_strtol(argv[1], NULL, 10);
 	}
-	if(argc > 2)
-	{
-		restart = simple_strtol(argv[2], NULL, 10);
-	}
+	timer_t.data = (void *)&timer_t;
+	timer_t.expires = base_count;
+	timer_t.function = timer_test_func;
 	
-	return timer_run(timer_test_func, (void *)base_count, base_count, restart);
+	init_timer(&timer_t);
+	add_timer(&timer_t);
 }
 
 U_BOOT_CMD(
-	timer_test, 5, 0, do_timer_test,
-	"enable or disable interrupts",
-	"[on, off]"
-);
-
-int do_interrupts(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-
-	if (argc != 2)
-		return cmd_usage(cmdtp);
-
-	/* on */
-	if (strncmp(argv[1], "on", 2) == 0)
-		enable_interrupts();
-	else
-		disable_interrupts();
-
-	return 0;
-}
-
-U_BOOT_CMD(
-	interrupts, 5, 0, do_interrupts,
-	"enable or disable interrupts",
-	"[on, off]"
+	timer_test, 2, 0, do_timer_test,
+	"do a timer and int test",
+	"[delay time]"
 );
 
 
