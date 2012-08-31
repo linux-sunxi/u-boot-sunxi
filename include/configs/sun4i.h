@@ -209,7 +209,7 @@
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
-#define CONFIG_SPL_TEXT_BASE       0x0          /* sram start */
+#define CONFIG_SPL_TEXT_BASE       0x30          /* sram start + header */
 #define CONFIG_SPL_MAX_SIZE        0x8000       /* 32 KB */
 
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
