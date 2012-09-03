@@ -57,22 +57,32 @@ void fastboot_partition_init(void)
 }
 
 int check_android_misc() {
-	loff_t misc_offset = 0, misc_size = 0;
+	int misc_offset = 0, misc_size = 0;
+	char buffer[1024];
 	size_t count = sizeof(misc_message);
 
-	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
-
-	if(!misc_offset || !misc_size) {
-		sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
-		if(!misc_offset || !misc_size) {
-			puts("no misc partition is found\n");
-			return 0;
-		}
-	}
-
-	sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
-			(u_char *)&misc_message, 0);
-
+    memset(buffer, 0, 1024);
+//	sunxi_nand_getpart_info_byname("misc", &misc_offset, &misc_size);
+//
+//	if(!misc_offset || !misc_size) {
+//		sunxi_nand_getpart_info_byname("MISC", &misc_offset, &misc_size);
+//		if(!misc_offset || !misc_size) {
+//			puts("no misc partition is found\n");
+//			return 0;
+//		}
+//	}
+    misc_offset = sunxi_nand_getpart_offset_byname("misc");
+    if(misc_offset == -1)
+    {
+        printf("there is no part named misc\n");
+        
+        return -1;
+    }
+//	sunxi_nand_read_opts(&nand_info[0], misc_offset, &count,
+//			(u_char *)&misc_message, 0);
+    NAND_LogicRead(misc_offset, 2, buffer);
+    
+    memcpy(&misc_message, buffer, 1024);
 #ifdef DEBUG
 	printf("misc.command  : %s\n", misc_message.command);
 	printf("misc.status   : %s\n", misc_message.status);
