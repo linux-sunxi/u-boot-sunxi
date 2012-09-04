@@ -105,8 +105,6 @@ struct sunxi_mmc_des {
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32 data_buf1_sz:16,
 	    data_buf2_sz:16;
-#else
-#error ">>>> Wrong Platform for MMC <<<<"
 #endif
 	u32	buf_addr_ptr1;
 	u32	buf_addr_ptr2;
