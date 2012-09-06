@@ -158,7 +158,7 @@ export	ARCH CPU BOARD VENDOR SOC
 
 # set default to nothing for native builds
 ifeq ($(HOSTARCH),$(ARCH))
-CROSS_COMPILE ?= arm-none-linux-gnueabi-
+CROSS_COMPILE ?= arm-linux-gnueabi-
 endif
 
 # load other configuration

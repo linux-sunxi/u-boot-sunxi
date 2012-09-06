@@ -33,8 +33,8 @@
 #include <malloc.h>
 #include <mmc.h>
 
-#undef SUNXI_MMCDBG
-
+//#undef SUNXI_MMCDBG
+#define SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
 
@@ -164,6 +164,7 @@ static int mmc_clk_io_on(int sdc_no)
 	unsigned int divider;
 	unsigned int n, k, p;
 	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
+#if 0
 	static struct sunxi_gpio *gpio_c =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
 	static struct sunxi_gpio *gpio_f =
@@ -224,7 +225,8 @@ static int mmc_clk_io_on(int sdc_no)
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
-    return 0;
+#endif
+	return 0;
 }
 
 static int mmc_update_clk(struct mmc *mmc)

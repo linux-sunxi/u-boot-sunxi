@@ -20,8 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA
 #
-
-CROSS_COMPILE ?= arm-none-linux-gnueabi-
+CROSS_COMPILE ?= arm-linux-gnueabi-
 
 ifndef CONFIG_STANDALONE_LOAD_ADDR
 ifeq ($(SOC),omap3)
