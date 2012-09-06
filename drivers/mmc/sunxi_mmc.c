@@ -33,8 +33,7 @@
 #include <malloc.h>
 #include <mmc.h>
 
-//#undef SUNXI_MMCDBG
-#define SUNXI_MMCDBG
+#undef SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
 
@@ -76,6 +75,8 @@ static void dumpmmcreg(struct sunxi_mmc *reg)
 	printf("dlba      0x%08x\n", reg->dlba      );
 	printf("idst      0x%08x\n", reg->idst      );
 	printf("idie      0x%08x\n", reg->idie      );
+	printf("cbcr      0x%08x\n", reg->cbcr      );
+	printf("bbcr      0x%08x\n", reg->bbcr      );
 }
 #else
 #define MMCDBG(fmt...)
@@ -84,27 +85,27 @@ static void dumpmmcreg(struct sunxi_mmc *reg)
 #endif /* SUNXI_MMCDBG */
 
 struct sunxi_mmc_des {
-	u32             :1,
-		dic         :1, /* disable interrupt on completion */
-		last_des    :1, /* 1-this data buffer is the last buffer */
-		first_des   :1, /* 1-data buffer is the first buffer,
+	u32			:1,
+		dic		:1, /* disable interrupt on completion */
+		last_des	:1, /* 1-this data buffer is the last buffer */
+		first_des	:1, /* 1-data buffer is the first buffer,
 						   0-data buffer contained in the next descriptor is 1st buffer */
-		des_chain   :1, /* 1-the 2nd address in the descriptor is the next descriptor address */
-		end_of_ring :1, /* 1-last descriptor flag when using dual data buffer in descriptor */
-					:24,
-		card_err_sum:1, /* transfer error flag */
-		own			:1; /* des owner:1-idma owns it, 0-host owns it */
+		des_chain	:1, /* 1-the 2nd address in the descriptor is the next descriptor address */
+		end_of_ring	:1, /* 1-last descriptor flag when using dual data buffer in descriptor */
+				:24,
+		card_err_sum	:1, /* transfer error flag */
+		own		:1; /* des owner:1-idma owns it, 0-host owns it */
 #if defined CONFIG_SUN4I
 #define SDXC_DES_NUM_SHIFT 13
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
-	u32	data_buf1_sz:13,
-	    data_buf2_sz:13,
+	u32	data_buf1_sz	:13,
+		data_buf2_sz	:13,
     				:6;
 #else 
-#define SDXC_DES_NUM_SHIFT 16
+#define SDXC_DES_NUM_SHIFT 15
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
-	u32 data_buf1_sz:16,
-	    data_buf2_sz:16;
+	u32	data_buf1_sz	:16,
+		data_buf2_sz	:16;
 #endif
 	u32	buf_addr_ptr1;
 	u32	buf_addr_ptr2;
@@ -169,14 +170,6 @@ static int mmc_clk_io_on(int sdc_no)
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
 	static struct sunxi_gpio *gpio_f =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_F];
-	#if 0
-	static struct sunxi_gpio *gpio_g =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_G];
-	#endif
-	static struct sunxi_gpio *gpio_h =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_H];
-	static struct sunxi_gpio *gpio_i =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
 	MMCDBG("init mmc %d clock and io\n", sdc_no);
 	/* config gpio */
 	switch (sdc_no) {
@@ -301,7 +294,7 @@ static int mmc_core_init(struct mmc *mmc)
 {
 	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	/* Reset controller */
-	writel(0x7, &mmchost->reg->gctrl);
+	writel(0x40000007, &mmchost->reg->gctrl);
 	return 0;
 }
 
@@ -367,7 +360,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		pdes[des_idx].own = 1;
 		pdes[des_idx].dic = 1;
 		if (buff_frag_num > 1 && i != buff_frag_num-1)
-			pdes[des_idx].data_buf1_sz = (SDXC_DES_BUFFER_MAX_LEN-1) & SDXC_DES_BUFFER_MAX_LEN;
+			pdes[des_idx].data_buf1_sz = SDXC_DES_BUFFER_MAX_LEN;
 		else
 			pdes[des_idx].data_buf1_sz = remain;
 
@@ -524,7 +517,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	if (data) {
 		unsigned done = 0;
-		timeout = usedma ? 0xffff*bytecnt : 0xffff;
+		timeout = usedma ? 0xfffff*bytecnt : 0xffff;
 		MMCDBG("cacl timeout %x\n", timeout);
 		do {
 			status = readl(&mmchost->reg->rint);
@@ -566,20 +559,20 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 out:
 	if (data && usedma) {
-	/* IDMASTAREG
-	 * IDST[0] : idma tx int
-	 * IDST[1] : idma rx int
-	 * IDST[2] : idma fatal bus error
-	 * IDST[4] : idma descriptor invalid
-	 * IDST[5] : idma error summary
-	 * IDST[8] : idma normal interrupt sumary
-	 * IDST[9] : idma abnormal interrupt sumary
-	 */
+		/* IDMASTAREG
+		 * IDST[0] : idma tx int
+		 * IDST[1] : idma rx int
+		 * IDST[2] : idma fatal bus error
+		 * IDST[4] : idma descriptor invalid
+		 * IDST[5] : idma error summary
+		 * IDST[8] : idma normal interrupt sumary
+		 * IDST[9] : idma abnormal interrupt sumary
+		 */
 		status = readl(&mmchost->reg->idst);
 		writel(status, &mmchost->reg->idst);
-        writel(0, &mmchost->reg->idie);
-        writel(0, &mmchost->reg->dmac);
-        writel(readl(&mmchost->reg->gctrl)&(~(1 << 5)), &mmchost->reg->gctrl);
+		writel(0, &mmchost->reg->idie);
+		writel(0, &mmchost->reg->dmac);
+		writel(readl(&mmchost->reg->gctrl)&(~(1 << 5)), &mmchost->reg->gctrl);
 	}
 	if (error) {
 		writel(0x7, &mmchost->reg->gctrl);
@@ -587,7 +580,7 @@ out:
 		MMCDBG("mmc cmd %d err 0x%08x\n", cmd->cmdidx, error);
 	}
 	writel(0xffffffff, &mmchost->reg->rint);
-    writel(readl(&mmchost->reg->gctrl)|(1 << 1), &mmchost->reg->gctrl);
+	writel(readl(&mmchost->reg->gctrl)|(1 << 1), &mmchost->reg->gctrl);
 
 	if (error)
 		return -1;
