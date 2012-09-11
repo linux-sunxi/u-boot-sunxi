@@ -173,7 +173,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
-	"root=/dev/mmcblk0p2\0" \
+	"root=/dev/mmcblk0p2 rootwait\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
 	"loglevel=8\0" \
@@ -185,7 +185,7 @@
 	"bootscr=boot.scr\0" \
 	"loadbootscr=fatload mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr ${bootscr} || ext2load mmc 0 $scriptaddr boot/${bootscr}\0" \
 	"loadbootenv=fatload mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr ${bootenv} || ext2load mmc 0 $scriptaddr boot/${bootenv}\0" \
-	"boot_mmc=fatload mmc 0 0x43000000 script.bin; fatload mmc 0 0x48000000 ${kernel}; bootm 0x48000000\0"
+	"boot_mmc=fatload mmc 0 0x43000000 script.bin && fatload mmc 0 0x48000000 ${kernel} && watchdog 0 && bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
@@ -224,5 +224,8 @@
 
 #define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
 #define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
+
+#define CONFIG_WATCHDOG			/* automatic watchdog support */
+#define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
 
 #endif /* __CONFIG_H */

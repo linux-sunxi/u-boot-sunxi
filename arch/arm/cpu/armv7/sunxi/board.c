@@ -71,16 +71,6 @@ sunxi_boot_type_t boot_from(void) {
 	return SUNXI_BOOT_TYPE_NULL;
 }
 
-int watchdog_init(void) {
-
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-	/* disable watchdog */
-	writel(0, &(wdog->mode));
-
-	return 0;
-}
-
 int gpio_init(void) {
 
 	/* config uart pin */
@@ -150,6 +140,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	timer_init();
 	serial_init();
+
+	gd->have_console = 1;
 
 	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
 		U_BOOT_TIME);
