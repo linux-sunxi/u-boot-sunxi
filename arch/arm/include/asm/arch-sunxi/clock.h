@@ -136,7 +136,10 @@ struct sunxi_ccm_reg {
 	u32 lvds_clk_cfg;         /* 0x14c */
 	u32 hdmi_clk_cfg;         /* 0x150 */
 	u32 mali_clk_cfg;         /* 0x154 */
+	u8  res7[0x4];
+	u32 mbus_clk_cfg;         /* 0x15c */
 };
+
 /* pll1 factors */
 #define PLL1_FACTOR_N			21
 #define PLL1_FACTOR_K			1
@@ -150,7 +153,7 @@ struct sunxi_ccm_reg {
 #define APB1_FACTOR_N			0
 
 /* pll5(for ddr) bit field */
-#define DDR_CLK_HZ				(360 * 1024 * 1024)
+#define DDR_CLK_HZ				(408 * 1024 * 1024)
 #define OSC24M_CLK_HZ			(24 * 1024 * 1024)
 
 #define PLL5_FACTOR_N			(DDR_CLK_HZ / OSC24M_CLK_HZ)
@@ -164,10 +167,10 @@ struct sunxi_ccm_reg {
 /* clock divide */
 #define CPU_CLK_SRC_OSC24M		1
 #define CPU_CLK_SRC_PLL1		2
-#define AXI_DIV					1
+#define AXI_DIV					2
 #define AHB_DIV					1
 #define APB0_DIV				1
-#ifdef SUN5I
+#ifdef CONFIG_SUN5I
 #define AHB_CLK_SRC_AXI			0
 #endif
 
@@ -194,6 +197,7 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_TS0			18
 #define AHB_GATE_OFFSET_EMAC		17
 #define AHB_GATE_OFFSET_ACE			16
+#define AHB_GATE_OFFSET_DLL		15
 #define AHB_GATE_OFFSET_SDRAM		14
 #define AHB_GATE_OFFSET_NAND		13
 #define AHB_GATE_OFFSET_MS			12

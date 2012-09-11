@@ -124,7 +124,7 @@ ALL-y	+= $(obj)$(BOARD)-spl.bin
 endif
 
 ifdef CONFIG_SUNXI
-ALL-y	+= $(obj)sun4i-spl.bin
+ALL-y	+= $(obj)sunxi-spl.bin
 endif
 
 all:	$(ALL-y)
@@ -136,9 +136,9 @@ $(obj)$(BOARD)-spl.bin: $(obj)u-boot-spl.bin
 endif
 
 ifdef CONFIG_SUNXI
-$(obj)sun4i-spl.bin: $(obj)u-boot-spl.bin
+$(obj)sunxi-spl.bin: $(obj)u-boot-spl.bin
 	$(OBJTREE)/tools/mksunxiboot \
-		$(obj)u-boot-spl.bin $(obj)sun4i-spl.bin
+		$(obj)u-boot-spl.bin $(obj)sunxi-spl.bin
 endif
 
 $(obj)u-boot-spl.bin:	$(obj)u-boot-spl

@@ -2,7 +2,7 @@
  * (C) Copyright 2012
  * Henrik Nordstrom <henrik@henriknordstrom.net>
  *
- * Configuration settings for the Allwinner A10 (sun4i) CPU
+ * Configuration settings for the Allwinner A13 (sun5i) CPU
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -32,16 +32,19 @@
 #include <configs/sunxi-common.h>
 
 /*
- * A10 specific configuration
+ * High Level Configuration Options
  */
-#define CONFIG_SUN4I				/* sun4i SoC generation */
+#define CONFIG_SUN5I				/* sun5i SoC generation */
 
-#define CONFIG_SYS_PROMPT		"sun4i#"
-#define CONFIG_MACH_TYPE			4104
+#define CONFIG_SYS_PROMPT		"sun5i#"
+#define CONFIG_MACH_TYPE			4138
 
-#define CONFIG_CONS_INDEX			1			/* which serial channel for console */
+#define CONFIG_CONS_INDEX			2			/* which serial channel for console */
 
-/* Define this to have console redirected to SD port */
+/* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
+
+/* Leave ICACHE off while debugging with OpenOCD */
+#define CONFIG_SYS_ICACHE_OFF
 
 #endif /* __CONFIG_H */

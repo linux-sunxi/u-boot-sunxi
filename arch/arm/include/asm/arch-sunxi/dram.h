@@ -108,7 +108,12 @@ struct dram_para {
 #define SDRAM_RST_PIN_HIGH        (1)
 #define SDRAM_RST_PIN_LOW         (0)
 
+#ifdef CONFIG_SUN4I
 #define DCLK_OUT_OFFSET           (15)
+#endif
+#ifdef CONFIG_SUN5I
+#define DCLK_OUT_OFFSET           (16)
+#endif
 #define DRAM_CTRL_SELECT_MAGIC    (0x16237495)
 
 #define MCR_ENABLE_MODE           (3)
@@ -151,6 +156,11 @@ struct dram_para {
 #define MR_POWER_DOWN             (1)
 #define MR_CAS_LATENCY            (2)
 #define MR_WRITE_RECOVERY         (5)
+
+/* For SUN5I I had tese set as follows for some reason
+#define MR_POWER_DOWN             (0)
+#define MR_CAS_LATENCY            (9-4)
+*/
 
 #define DQS_GATE_ON               (1)
 #define DQS_DRIFT_COMPENSATION    (0)

@@ -71,11 +71,26 @@ sunxi_boot_type_t boot_from(void) {
 	return SUNXI_BOOT_TYPE_NULL;
 }
 
-int gpio_init(void) {
+#define UART0_PINS_TO_SD 0
 
-	/* config uart pin */
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPB22_UART0_TX);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPB23_UART0_RX);
+int gpio_init(void) {
+#if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
+#ifdef CONFIG_SUN4I
+	/* disable GPB22,23 as uart0 tx,rx to avoid conflict */
+	gpio_direction_input(SUNXI_GPB(22));
+	gpio_direction_input(SUNXI_GPB(23));
+#endif
+	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
+	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
+#elif CONFIG_CONS_INDEX == 1 && defined(CONFIG_SUN4I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUN4I_GPB22_UART0_TX);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUN4I_GPB23_UART0_RX);
+#elif CONFIG_CONS_INDEX == 2 && defined(CONFIG_SUN5I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(3), SUN5I_GPG3_UART0_TX);
+	sunxi_gpio_set_cfgpin(SUNXI_GPG(4), SUN5I_GPG4_UART0_RX);
+#else
+#error Unsupported console port number. Please fix pin mux settings in board.c
+#endif
 
 	return 0;
 }
