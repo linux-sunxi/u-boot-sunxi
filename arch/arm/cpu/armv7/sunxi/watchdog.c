@@ -51,39 +51,3 @@ void watchdog_init(void)
 	watchdog_set(23); /* max possible timeout */
 }
 #endif
-
-#ifdef CONFIG_CMD_WATCHDOG
-static void watchdog_stop(void)
-{
-	writel(0, &wdog->mode);
-}
-
-int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	long interval;
-
-	if (argc < 2) {
-		int i;
-		u32 *wd = (void *)wdog;
-		printf("usage: watchdog seconds\n");
-		printf("0 to disable watchdog\n");
-		for (i = 0; i < 4; i++)
-			printf("%p: %08x\n", &wd[i],wd[i]);
-		return 1;
-	}
-	interval = simple_strtoul(argv[1], NULL, 10);
-	if (interval > (1 << 6) - 1)
-		interval = (1 << 6) - 1;
-	if (interval)
-		watchdog_set(interval);
-	else
-		watchdog_stop();
-	return 0;
-}
-
-U_BOOT_CMD(
-	watchdog, 2, 1, do_sunxi_watchdog,
-	"Set watchdog. 0 disables",
-	""
-);
-#endif
