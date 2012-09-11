@@ -25,6 +25,8 @@
 #include <asm/arch/hardware.h>
 #include <asm/io.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 /* offsets from PLL controller base */
 #define PLLC_PLLCTL	0x100
 #define PLLC_PLLM	0x110
@@ -115,9 +117,18 @@ int clk_get(enum davinci_clk_ids id)
 out:
 	return pll_out;
 }
-#endif /* CONFIG_SOC_DA8XX */
 
-#ifdef CONFIG_DISPLAY_CPUINFO
+int set_cpu_clk_info(void)
+{
+	gd->bd->bi_arm_freq = clk_get(DAVINCI_ARM_CLKID) / 1000000;
+	/* DDR PHY uses an x2 input clock */
+	gd->bd->bi_ddr_freq = cpu_is_da830() ? 0 :
+				(clk_get(DAVINCI_DDR_CLKID) / 1000000);
+	gd->bd->bi_dsp_freq = 0;
+	return 0;
+}
+
+#else /* CONFIG_SOC_DA8XX */
 
 static unsigned pll_div(volatile void *pllbase, unsigned offset)
 {
@@ -135,13 +146,15 @@ static inline unsigned pll_prediv(volatile void *pllbase)
 		return 8;
 	else
 		return pll_div(pllbase, PLLC_PREDIV);
+#elif defined(CONFIG_SOC_DM365)
+	return pll_div(pllbase, PLLC_PREDIV);
 #endif
 	return 1;
 }
 
 static inline unsigned pll_postdiv(volatile void *pllbase)
 {
-#ifdef CONFIG_SOC_DM355
+#if defined(CONFIG_SOC_DM355) || defined(CONFIG_SOC_DM365)
 	return pll_div(pllbase, PLLC_POSTDIV);
 #elif defined(CONFIG_SOC_DM6446)
 	if (pllbase == (volatile void *)DAVINCI_PLL_CNTRL0_BASE)
@@ -154,38 +167,22 @@ static unsigned pll_sysclk_mhz(unsigned pll_addr, unsigned div)
 {
 	volatile void	*pllbase = (volatile void *) pll_addr;
 #ifdef CONFIG_SOC_DM646X
-	unsigned	base = CFG_REFCLK_FREQ / 1000;
+	unsigned	base = CONFIG_REFCLK_FREQ / 1000;
 #else
 	unsigned	base = CONFIG_SYS_HZ_CLOCK / 1000;
 #endif
 
 	/* the PLL might be bypassed */
-	if (REG(pllbase + PLLC_PLLCTL) & BIT(0)) {
+	if (readl(pllbase + PLLC_PLLCTL) & BIT(0)) {
 		base /= pll_prediv(pllbase);
+#if defined(CONFIG_SOC_DM365)
+		base *=  2 * (readl(pllbase + PLLC_PLLM) & 0x0ff);
+#else
 		base *= 1 + (REG(pllbase + PLLC_PLLM) & 0x0ff);
+#endif
 		base /= pll_postdiv(pllbase);
 	}
 	return DIV_ROUND_UP(base, 1000 * pll_div(pllbase, div));
-}
-
-int print_cpuinfo(void)
-{
-	/* REVISIT fetch and display CPU ID and revision information
-	 * too ... that will matter as more revisions appear.
-	 */
-	printf("Cores: ARM %d MHz",
-			pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, ARM_PLLDIV));
-
-#ifdef DSP_PLLDIV
-	printf(", DSP %d MHz",
-			pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, DSP_PLLDIV));
-#endif
-
-	printf("\nDDR:   %d MHz\n",
-			/* DDR PHY uses an x2 input clock */
-			pll_sysclk_mhz(DAVINCI_PLL_CNTRL1_BASE, DDR_PLLDIV)
-				/ 2);
-	return 0;
 }
 
 #ifdef DAVINCI_DM6467EVM
@@ -194,7 +191,39 @@ unsigned int davinci_arm_clk_get()
 	return pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, ARM_PLLDIV) * 1000000;
 }
 #endif
+
+#if defined(CONFIG_SOC_DM365)
+unsigned int davinci_clk_get(unsigned int div)
+{
+	return pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, div) * 1000000;
+}
 #endif
+
+int set_cpu_clk_info(void)
+{
+	unsigned int pllbase = DAVINCI_PLL_CNTRL0_BASE;
+#if defined(CONFIG_SOC_DM365)
+	pllbase = DAVINCI_PLL_CNTRL1_BASE;
+#endif
+	gd->bd->bi_arm_freq = pll_sysclk_mhz(pllbase, ARM_PLLDIV);
+
+#ifdef DSP_PLLDIV
+	gd->bd->bi_dsp_freq =
+		pll_sysclk_mhz(DAVINCI_PLL_CNTRL0_BASE, DSP_PLLDIV);
+#else
+	gd->bd->bi_dsp_freq = 0;
+#endif
+
+	pllbase = DAVINCI_PLL_CNTRL1_BASE;
+#if defined(CONFIG_SOC_DM365)
+	pllbase = DAVINCI_PLL_CNTRL0_BASE;
+#endif
+	gd->bd->bi_ddr_freq = pll_sysclk_mhz(pllbase, DDR_PLLDIV) / 2;
+
+	return 0;
+}
+
+#endif /* !CONFIG_SOC_DA8XX */
 
 /*
  * Initializes on-chip ethernet controllers.

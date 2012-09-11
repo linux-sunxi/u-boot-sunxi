@@ -31,20 +31,23 @@
 #include <asm/processor.h>
 #include <ioports.h>
 #include <sata.h>
+#include <fm_eth.h>
 #include <asm/io.h>
 #include <asm/cache.h>
 #include <asm/mmu.h>
 #include <asm/fsl_law.h>
 #include <asm/fsl_serdes.h>
+#include <asm/fsl_srio.h>
+#include <linux/compiler.h>
 #include "mp.h"
-#ifdef CONFIG_SYS_QE_FW_IN_NAND
+#ifdef CONFIG_SYS_QE_FMAN_FW_IN_NAND
 #include <nand.h>
 #include <errno.h>
 #endif
 
-DECLARE_GLOBAL_DATA_PTR;
+#include "../../../../drivers/block/fsl_sata.h"
 
-extern void srio_init(void);
+DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_QE
 extern qe_iop_conf_t qe_iop_conf_tab[];
@@ -225,7 +228,9 @@ void cpu_init_f (void)
 #ifdef CONFIG_SYS_DCSRBAR_PHYS
 	ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 #endif
-
+#if defined(CONFIG_SECURE_BOOT)
+	struct law_entry law;
+#endif
 #ifdef CONFIG_MPC8548
 	ccsr_local_ecm_t *ecm = (void *)(CONFIG_SYS_MPC85xx_ECM_ADDR);
 	uint svr = get_svr();
@@ -242,6 +247,13 @@ void cpu_init_f (void)
 
 	disable_tlb(14);
 	disable_tlb(15);
+
+#if defined(CONFIG_SECURE_BOOT)
+	/* Disable the LAW created for NOR flash by the PBI commands */
+	law = find_law(CONFIG_SYS_PBI_FLASH_BASE);
+	if (law.index != -1)
+		disable_law(law.index);
+#endif
 
 #ifdef CONFIG_CPM2
 	config_8560_ioports((ccsr_cpm_t *)CONFIG_SYS_MPC85xx_CPM_ADDR);
@@ -291,14 +303,23 @@ __attribute__((weak, alias("__fsl_serdes__init"))) void fsl_serdes_init(void);
  */
 int cpu_init_r(void)
 {
+	__maybe_unused u32 svr = get_svr();
 #ifdef CONFIG_SYS_LBC_LCRR
 	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
 #endif
 
-#if defined(CONFIG_SYS_P4080_ERRATUM_CPU22)
-	flush_dcache();
-	mtspr(L1CSR2, (mfspr(L1CSR2) | L1CSR2_DCWS));
-	sync();
+#if defined(CONFIG_SYS_P4080_ERRATUM_CPU22) || \
+	defined(CONFIG_SYS_FSL_ERRATUM_NMG_CPU_A011)
+	/*
+	 * CPU22 applies to P4080 rev 1.0, 2.0, fixed in 3.0
+	 * NMG_CPU_A011 applies to P4080 rev 1.0, 2.0, fixed in 3.0
+	 * also applies to P3041 rev 1.0, 1.1, P2041 rev 1.0, 1.1
+	 */
+	if (SVR_SOC_VER(svr) != SVR_P4080 || SVR_MAJ(svr) < 3) {
+		flush_dcache();
+		mtspr(L1CSR2, (mfspr(L1CSR2) | L1CSR2_DCWS));
+		sync();
+	}
 #endif
 
 	puts ("L2:    ");
@@ -306,11 +327,9 @@ int cpu_init_r(void)
 #if defined(CONFIG_L2_CACHE)
 	volatile ccsr_l2cache_t *l2cache = (void *)CONFIG_SYS_MPC85xx_L2_ADDR;
 	volatile uint cache_ctl;
-	uint svr, ver;
-	uint l2srbar;
+	uint ver;
 	u32 l2siz_field;
 
-	svr = get_svr();
 	ver = SVR_SOC_VER(svr);
 
 	asm("msync;isync");
@@ -343,8 +362,7 @@ int cpu_init_r(void)
 		break;
 	case 0x1:
 		if (ver == SVR_8540 || ver == SVR_8560   ||
-		    ver == SVR_8541 || ver == SVR_8541_E ||
-		    ver == SVR_8555 || ver == SVR_8555_E) {
+		    ver == SVR_8541 || ver == SVR_8555) {
 			puts("128 KB ");
 			/* set L2E=1, L2I=1, & L2BLKSZ=1 (128 Kbyte) */
 			cache_ctl = 0xc4000000;
@@ -355,8 +373,7 @@ int cpu_init_r(void)
 		break;
 	case 0x2:
 		if (ver == SVR_8540 || ver == SVR_8560   ||
-		    ver == SVR_8541 || ver == SVR_8541_E ||
-		    ver == SVR_8555 || ver == SVR_8555_E) {
+		    ver == SVR_8541 || ver == SVR_8555) {
 			puts("256 KB ");
 			/* set L2E=1, L2I=1, & L2BLKSZ=2 (256 Kbyte) */
 			cache_ctl = 0xc8000000;
@@ -375,8 +392,8 @@ int cpu_init_r(void)
 
 	if (l2cache->l2ctl & MPC85xx_L2CTL_L2E) {
 		puts("already enabled");
-		l2srbar = l2cache->l2srbar0;
 #if defined(CONFIG_SYS_INIT_L2_ADDR) && defined(CONFIG_SYS_FLASH_BASE)
+		u32 l2srbar = l2cache->l2srbar0;
 		if (l2cache->l2ctl & MPC85xx_L2CTL_L2SRAM_ENTIRE
 				&& l2srbar >= CONFIG_SYS_FLASH_BASE) {
 			l2srbar = CONFIG_SYS_INIT_L2_ADDR;
@@ -392,8 +409,7 @@ int cpu_init_r(void)
 		puts("enabled\n");
 	}
 #elif defined(CONFIG_BACKSIDE_L2_CACHE)
-	if ((SVR_SOC_VER(get_svr()) == SVR_P2040) ||
-	    (SVR_SOC_VER(get_svr()) == SVR_P2040_E)) {
+	if (SVR_SOC_VER(svr) == SVR_P2040) {
 		puts("N/A\n");
 		goto skip_l2;
 	}
@@ -431,6 +447,12 @@ skip_l2:
 
 #ifdef CONFIG_SYS_SRIO
 	srio_init();
+#ifdef CONFIG_SRIOBOOT_MASTER
+	srio_boot_master();
+#ifdef CONFIG_SRIOBOOT_SLAVE_HOLDOFF
+	srio_boot_master_release_slave();
+#endif
+#endif
 #endif
 
 #if defined(CONFIG_MP)
@@ -453,6 +475,9 @@ skip_l2:
 	clrsetbits_be32(&lbc->lcrr, LCRR_CLKDIV, CONFIG_SYS_LBC_LCRR);
 	__raw_readl(&lbc->lcrr);
 	isync();
+#ifdef CONFIG_SYS_FSL_ERRATUM_NMG_LBC103
+	udelay(100);
+#endif
 #endif
 
 #ifdef CONFIG_SYS_FSL_USB1_PHY_ENABLE
@@ -472,6 +497,34 @@ skip_l2:
 	}
 #endif
 
+#ifdef CONFIG_FMAN_ENET
+	fman_enet_init();
+#endif
+
+#if defined(CONFIG_FSL_SATA_V2) && defined(CONFIG_FSL_SATA_ERRATUM_A001)
+	/*
+	 * For P1022/1013 Rev1.0 silicon, after power on SATA host
+	 * controller is configured in legacy mode instead of the
+	 * expected enterprise mode. Software needs to clear bit[28]
+	 * of HControl register to change to enterprise mode from
+	 * legacy mode.  We assume that the controller is offline.
+	 */
+	if (IS_SVR_REV(svr, 1, 0) &&
+	    ((SVR_SOC_VER(svr) == SVR_P1022) ||
+	     (SVR_SOC_VER(svr) == SVR_P1013))) {
+		fsl_sata_reg_t *reg;
+
+		/* first SATA controller */
+		reg = (void *)CONFIG_SYS_MPC85xx_SATA1_ADDR;
+		clrbits_le32(&reg->hcontrol, HCONTROL_ENTERPRISE_EN);
+
+		/* second SATA controller */
+		reg = (void *)CONFIG_SYS_MPC85xx_SATA2_ADDR;
+		clrbits_le32(&reg->hcontrol, HCONTROL_ENTERPRISE_EN);
+	}
+#endif
+
+
 	return 0;
 }
 
@@ -487,7 +540,7 @@ void arch_preboot_os(void)
 	 * disabled by the time we get called.
 	 */
 	msr = mfmsr();
-	msr &= ~(MSR_ME|MSR_CE|MSR_DE);
+	msr &= ~(MSR_ME|MSR_CE);
 	mtmsr(msr);
 
 	setup_ivors();
@@ -507,17 +560,17 @@ void cpu_secondary_init_r(void)
 {
 #ifdef CONFIG_QE
 	uint qe_base = CONFIG_SYS_IMMR + 0x00080000; /* QE immr base */
-#ifdef CONFIG_SYS_QE_FW_IN_NAND
+#ifdef CONFIG_SYS_QE_FMAN_FW_IN_NAND
 	int ret;
-	size_t fw_length = CONFIG_SYS_QE_FW_LENGTH;
+	size_t fw_length = CONFIG_SYS_QE_FMAN_FW_LENGTH;
 
 	/* load QE firmware from NAND flash to DDR first */
-	ret = nand_read(&nand_info[0], (loff_t)CONFIG_SYS_QE_FW_IN_NAND,
-			&fw_length, (u_char *)CONFIG_SYS_QE_FW_ADDR);
+	ret = nand_read(&nand_info[0], (loff_t)CONFIG_SYS_QE_FMAN_FW_IN_NAND,
+			&fw_length, (u_char *)CONFIG_SYS_QE_FMAN_FW_ADDR);
 
 	if (ret && ret == -EUCLEAN) {
 		printf ("NAND read for QE firmware at offset %x failed %d\n",
-				CONFIG_SYS_QE_FW_IN_NAND, ret);
+				CONFIG_SYS_QE_FMAN_FW_IN_NAND, ret);
 	}
 #endif
 	qe_init(qe_base);

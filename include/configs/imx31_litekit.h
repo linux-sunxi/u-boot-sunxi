@@ -41,6 +41,8 @@
 
 #define CONFIG_SYS_TEXT_BASE	0xa0000000
 
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX31LITE
+
 /* Temporarily disabled */
 #if 0
 #define CONFIG_OF_LIBFDT		1
@@ -61,8 +63,8 @@
  * Hardware drivers
  */
 
-#define CONFIG_MXC_UART	1
-#define CONFIG_SYS_MX31_UART1		1
+#define CONFIG_MXC_UART
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_MXC_GPIO
 
 #define CONFIG_HARD_SPI		1
@@ -70,19 +72,21 @@
 #define CONFIG_DEFAULT_SPI_BUS	1
 #define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
 
-#define CONFIG_FSL_PMIC
+/* PMIC Controller */
+#define CONFIG_PMIC
+#define CONFIG_PMIC_SPI
+#define CONFIG_PMIC_FSL
 #define CONFIG_FSL_PMIC_BUS	1
 #define CONFIG_FSL_PMIC_CS	0
 #define CONFIG_FSL_PMIC_CLK	1000000
 #define CONFIG_FSL_PMIC_MODE	(SPI_MODE_0 | SPI_CS_HIGH)
-
-#define CONFIG_RTC_MC13783	1
+#define CONFIG_FSL_PMIC_BITLEN	32
+#define CONFIG_RTC_MC13XXX
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
 
 /***********************************************************
  * Command definition
@@ -110,7 +114,6 @@
 	"prg_uboot=tftpboot 0x80000000 u-boot-imx31_litekit.bin; protect off all; erase 0xa00d0000 0xa01effff; cp.b 0x80000000 0xa00d0000 $(filesize)\0"
 
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC911X		1
 #define CONFIG_SMC911X_BASE	(CS4_BASE + 0x00020000)
 #define CONFIG_SMC911X_32_BIT	1
@@ -136,13 +139,6 @@
 #define CONFIG_CMDLINE_EDITING	1
 
 /*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024) /* regular stack */
-
-/*-----------------------------------------------------------------------
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS	1
@@ -150,7 +146,7 @@
 #define PHYS_SDRAM_1_SIZE	(128 * 1024 * 1024)
 #define CONFIG_BOARD_EARLY_INIT_F
 
-#define CONFIG_SYS_SDRAM_BASE		CSD0_BASE
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_INIT_RAM_ADDR	IRAM_BASE_ADDR
 #define CONFIG_SYS_INIT_RAM_SIZE		IRAM_SIZE
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)

@@ -41,6 +41,8 @@
 #define CONFIG_MISC_INIT_R
 #define CONFIG_BOARD_EARLY_INIT_F
 
+#define MACH_TYPE_EB_CPUX9K2		1977
+#define CONFIG_MACH_TYPE		MACH_TYPE_EB_CPUX9K2
 /*--------------------------------------------------------------------------*/
 #define CONFIG_SYS_TEXT_BASE 		0x00000000
 #define CONFIG_SYS_LOAD_ADDR		0x21000000  /* default load address */
@@ -58,8 +60,6 @@
 #define CONFIG_SYS_MAXARGS	32		/* max number of command args */
 #define CONFIG_SYS_PBSIZE	\
 	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size */
-
-#define CONFIG_STACKSIZE	(32*1024)	/* regular stack */
 
 /*
  * ARM asynchronous clock
@@ -137,6 +137,8 @@
 #define CONFIG_CMD_PING
 #define CONFIG_I2C_CMD_NO_FLAT
 #define CONFIG_I2C_CMD_TREE
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_FAT
 
 #define CONFIG_SYS_LONGHELP
 
@@ -167,12 +169,22 @@
 /*
  * Hardware drivers
  */
+#define CONFIG_USB_ATMEL
+#define CONFIG_USB_OHCI_NEW
+#define CONFIG_AT91C_PQFP_UHPBUG
+#define CONFIG_USB_STORAGE
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+#define CONFIG_EFI_PARTITION
+
+#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#define CONFIG_SYS_USB_OHCI_CPU_INIT
+#define CONFIG_SYS_USB_OHCI_REGS_BASE		0x00300000
+#define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91rm9200"
 
 /*
  * UART/CONSOLE
  */
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 19200, 38400, 57600, 9600 }
 
 #define CONFIG_BAUDRATE 115200
 #define CONFIG_ATMEL_USART
@@ -182,7 +194,6 @@
 /*
  * network
  */
-#define CONFIG_NET_MULTI		1
 
 #define CONFIG_NET_RETRY_COUNT		10
 #define CONFIG_RESET_PHY_R		1
@@ -269,12 +280,9 @@
 
 /* NAND */
 
-#define CONFIG_SYS_NAND_MAX_CHIPS	1
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x40000000
 #define CONFIG_SYS_NAND_DBW_8		1
-
-#define CONFIG_SYS_64BIT_VSPRINTF	1
 
 /* Status LED's */
 

@@ -40,7 +40,25 @@ ulong get_timer (ulong base)
 }
 #endif
 
-#ifdef CONFIG_SYS_INTC_0
+#ifdef CONFIG_SYS_TIMER_0
+void __udelay(unsigned long usec)
+{
+	int i;
+
+	i = get_timer(0);
+	while ((get_timer(0) - i) < (usec / 1000))
+		;
+}
+#else
+void __udelay(unsigned long usec)
+{
+	unsigned int i;
+
+	for (i = 0; i < (usec * CONFIG_XILINX_CLOCK_FREQ / 10000000); i++)
+		;
+}
+#endif
+
 #ifdef CONFIG_SYS_TIMER_0
 microblaze_timer_t *tmr = (microblaze_timer_t *) (CONFIG_SYS_TIMER_0_ADDR);
 
@@ -61,4 +79,21 @@ int timer_init (void)
 	return 0;
 }
 #endif
-#endif
+
+/*
+ * This function is derived from PowerPC code (read timebase as long long).
+ * On Microblaze it just returns the timer value.
+ */
+unsigned long long get_ticks(void)
+{
+	return get_timer(0);
+}
+
+/*
+ * This function is derived from PowerPC code (timebase clock frequency).
+ * On Microblaze it returns the number of timer ticks per second.
+ */
+ulong get_tbclk(void)
+{
+	return CONFIG_SYS_HZ;
+}

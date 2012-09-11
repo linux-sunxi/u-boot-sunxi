@@ -104,17 +104,40 @@ HOSTCFLAGS	+= -pedantic
 
 #########################################################################
 #
-# Option checker (courtesy linux kernel) to ensure
+# Option checker, gcc version (courtesy linux kernel) to ensure
 # only supported compiler options are used
 #
-cc-option = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
-		> /dev/null 2>&1; then echo "$(1)"; else echo "$(2)"; fi ;)
+CC_OPTIONS_CACHE_FILE := $(OBJTREE)/include/generated/cc_options.mk
+CC_TEST_OFILE := $(OBJTREE)/include/generated/cc_test_file.o
+
+-include $(CC_OPTIONS_CACHE_FILE)
+
+cc-option-sys = $(shell mkdir -p $(dir $(CC_TEST_OFILE)); \
+		if $(CC) $(CFLAGS) $(1) -S -xc /dev/null -o $(CC_TEST_OFILE) \
+		> /dev/null 2>&1; then \
+		echo 'CC_OPTIONS += $(strip $1)' >> $(CC_OPTIONS_CACHE_FILE); \
+		echo "$(1)"; fi)
+
+ifeq ($(CONFIG_CC_OPT_CACHE_DISABLE),y)
+cc-option = $(strip $(if $(call cc-option-sys,$1),$1,$2))
+else
+cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,\
+		$(if $(call cc-option-sys,$1),$1,$2)))
+endif
+
+# cc-version
+# Usage gcc-ver := $(call cc-version)
+cc-version = $(shell $(SHELL) $(SRCTREE)/tools/gcc-version.sh $(CC))
 
 #
 # Include the make variables (CC, etc...)
 #
 AS	= $(CROSS_COMPILE)as
-LD	= $(CROSS_COMPILE)ld
+
+# Always use GNU ld
+LD	= $(shell if $(CROSS_COMPILE)ld.bfd -v > /dev/null 2>&1; \
+		then echo "$(CROSS_COMPILE)ld.bfd"; else echo "$(CROSS_COMPILE)ld"; fi;)
+
 CC	= $(CROSS_COMPILE)gcc
 CPP	= $(CC) -E
 AR	= $(CROSS_COMPILE)ar
@@ -124,6 +147,7 @@ STRIP	= $(CROSS_COMPILE)strip
 OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 RANLIB	= $(CROSS_COMPILE)RANLIB
+DTC	= dtc
 
 #########################################################################
 
@@ -157,11 +181,9 @@ endif
 
 #########################################################################
 
-ifneq (,$(findstring s,$(MAKEFLAGS)))
-ARFLAGS = cr
-else
-ARFLAGS = crv
-endif
+# We don't actually use $(ARFLAGS) anywhere anymore, so catch people
+# who are porting old code to latest mainline but not updating $(AR).
+ARFLAGS = $(error update your Makefile to use cmd_link_o_target and not AR)
 RELFLAGS= $(PLATFORM_RELFLAGS)
 DBGFLAGS= -g # -DDEBUG
 OPTFLAGS= -Os #-fomit-frame-pointer
@@ -187,6 +209,10 @@ ifneq ($(CONFIG_SPL_TEXT_BASE),)
 CPPFLAGS += -DCONFIG_SPL_TEXT_BASE=$(CONFIG_SPL_TEXT_BASE)
 endif
 
+ifneq ($(CONFIG_SPL_PAD_TO),)
+CPPFLAGS += -DCONFIG_SPL_PAD_TO=$(CONFIG_SPL_PAD_TO)
+endif
+
 ifeq ($(CONFIG_SPL_BUILD),y)
 CPPFLAGS += -DCONFIG_SPL_BUILD
 endif
@@ -210,11 +236,17 @@ else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
 endif
 
-CFLAGS += $(call cc-option,-fno-stack-protector)
+CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
+CFLAGS += $(CFLAGS_SSP)
 # Some toolchains enable security related warning flags by default,
 # but they don't make much sense in the u-boot world, so disable them.
-CFLAGS += $(call cc-option,-Wno-format-nonliteral)
-CFLAGS += $(call cc-option,-Wno-format-security)
+CFLAGS_WARN := $(call cc-option,-Wno-format-nonliteral) \
+	       $(call cc-option,-Wno-format-security)
+CFLAGS += $(CFLAGS_WARN)
+
+# Report stack usage if supported
+CFLAGS_STACK := $(call cc-option,-fstack-usage)
+CFLAGS += $(CFLAGS_STACK)
 
 # $(CPPFLAGS) sets -g, which causes gcc to pass a suitable -g<format>
 # option to the assembler.
@@ -277,6 +309,13 @@ export	CONFIG_SYS_TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS 
 BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:$(obj)%=%))
 ALL_AFLAGS = $(AFLAGS) $(AFLAGS_$(BCURDIR)/$(@F)) $(AFLAGS_$(BCURDIR))
 ALL_CFLAGS = $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR))
+EXTRA_CPPFLAGS = $(CPPFLAGS_$(BCURDIR)/$(@F)) $(CPPFLAGS_$(BCURDIR))
+ALL_CFLAGS += $(EXTRA_CPPFLAGS)
+
+# The _DEP version uses the $< file target (for dependency generation)
+# See rules.mk
+EXTRA_CPPFLAGS_DEP = $(CPPFLAGS_$(BCURDIR)/$(addsuffix .o,$(basename $<))) \
+		$(CPPFLAGS_$(BCURDIR))
 $(obj)%.s:	%.S
 	$(CPP) $(ALL_AFLAGS) -o $@ $<
 $(obj)%.o:	%.S

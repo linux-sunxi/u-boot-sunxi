@@ -63,6 +63,10 @@
 /*
  * STATUS LED
  */
+#define CONFIG_ALTERA_PIO
+#define CONFIG_SYS_ALTERA_PIO_NUM	1
+#define CONFIG_SYS_ALTERA_PIO_GPIO_NUM	LED_PIO_WIDTH
+
 #define CONFIG_STATUS_LED		/* Enable status driver */
 #define CONFIG_GPIO_LED		/* Enable GPIO LED driver */
 #define CONFIG_GPIO			/* Enable GPIO driver */
@@ -92,7 +96,6 @@
 #undef CONFIG_CMD_XIMG
 
 #ifdef CONFIG_CMD_NET
-# define CONFIG_NET_MULTI
 # define CONFIG_CMD_DHCP
 # define CONFIG_CMD_PING
 #endif
@@ -114,10 +117,9 @@
 
 /*
  * MEMORY ORGANIZATION
- *	-Monitor at top of sdram.
- *	-The heap is placed below the monitor
- *	-Global data is placed below the heap.
- *	-The stack is placed below global data (&grows down).
+ * -Monitor at top of sdram.
+ * -The heap is placed below the monitor
+ * -The stack is placed below the heap (&grows down).
  */
 #define CONFIG_MONITOR_IS_IN_RAM
 #define CONFIG_SYS_MONITOR_LEN		0x40000	/* Reserve 256k */
@@ -127,9 +129,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 0x20000)
 #define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_MONITOR_BASE - \
 					 CONFIG_SYS_MALLOC_LEN)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - \
-					 GENERATED_GBL_DATA_SIZE)
-#define CONFIG_SYS_INIT_SP		CONFIG_SYS_GBL_DATA_OFFSET
+#define CONFIG_SYS_INIT_SP		CONFIG_SYS_MALLOC_BASE
 
 /*
  * MISC
@@ -148,6 +148,5 @@
 #define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #endif /* __CONFIG_H */

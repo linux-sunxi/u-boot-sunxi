@@ -158,7 +158,7 @@ static int initialized	= 0;
 
 
 static int inca_switch_init(struct eth_device *dev, bd_t * bis);
-static int inca_switch_send(struct eth_device *dev, volatile void *packet, int length);
+static int inca_switch_send(struct eth_device *dev, void *packet, int length);
 static int inca_switch_recv(struct eth_device *dev);
 static void inca_switch_halt(struct eth_device *dev);
 static void inca_init_switch_chip(void);
@@ -291,9 +291,7 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 	/* Initialize RxDMA.
 	 */
 	DMA_READ_REG(INCA_IP_DMA_DMA_RXISR, v);
-#if 0
-	printf("RX status = 0x%08X\n", v);
-#endif
+	debug("RX status = 0x%08X\n", v);
 
 	/* Writing to the FRDA of CHANNEL.
 	 */
@@ -306,9 +304,7 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 	/* Initialize TxDMA.
 	 */
 	DMA_READ_REG(INCA_IP_DMA_DMA_TXISR, v);
-#if 0
-	printf("TX status = 0x%08X\n", v);
-#endif
+	debug("TX status = 0x%08X\n", v);
 
 	/* Writing to the FRDA of CHANNEL.
 	 */
@@ -338,7 +334,7 @@ static int inca_switch_init(struct eth_device *dev, bd_t * bis)
 }
 
 
-static int inca_switch_send(struct eth_device *dev, volatile void *packet, int length)
+static int inca_switch_send(struct eth_device *dev, void *packet, int length)
 {
 	int		       i;
 	int		       res	= -1;

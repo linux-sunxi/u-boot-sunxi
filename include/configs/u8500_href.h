@@ -35,7 +35,7 @@
 #define CONFIG_SYS_HZ		1000		/* must be 1000 */
 
 #define CONFIG_BOARD_EARLY_INIT_F
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 /*
  * Size of malloc() pool
@@ -70,7 +70,6 @@
 				  (void *)CFG_SERIAL2 }
 #define CONFIG_CONS_INDEX	2
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Devices and file systems
@@ -95,7 +94,6 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
-#define CONFIG_CMD_EMMC
 #define CONFIG_CMD_SOURCE
 #define CONFIG_CMD_I2C
 
@@ -157,7 +155,6 @@
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_SETUP_MEMORY_TAGS	2
@@ -181,16 +178,6 @@
 
 #define CONFIG_SYS_I2C_GPIOE_ADDR	0x42	/* GPIO expander chip addr */
 #define CONFIG_TC35892_GPIO
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ		(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ		(4*1024)	/* FIQ stack */
-#endif
 
 /*
  * Physical Memory Map

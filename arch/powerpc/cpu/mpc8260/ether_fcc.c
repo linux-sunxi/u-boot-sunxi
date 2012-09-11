@@ -53,8 +53,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET) && \
-	defined(CONFIG_NET_MULTI)
+#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET)
 
 static struct ether_fcc_info_s
 {
@@ -143,7 +142,7 @@ static RTXBD rtx __attribute__ ((aligned(8)));
 #error "rtx must be 64-bit aligned"
 #endif
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length)
+static int fec_send(struct eth_device *dev, void *packet, int length)
 {
     int i;
     int result = 0;
@@ -687,7 +686,7 @@ eth_loopback_test (void)
 	immr->im_cpmux.cmx_fcr = CMXFCR_RF1CS_CLK10|CMXFCR_TF1CS_CLK11|\
 	    CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14|\
 	    CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16;
-#elif defined(CONFIG_SBC8260) || defined(CONFIG_SACSng)
+#elif defined(CONFIG_SACSng)
 	/*
 	 * Attention: this is board-specific
 	 * 1, FCC2
@@ -1050,11 +1049,11 @@ eth_loopback_test (void)
 					}
 					else {
 						ushort datlen = bdp->cbd_datlen;
-						Ethernet_t *ehp;
+						struct ethernet_hdr *ehp;
 						ushort prot;
 						int ours, tb, n, nbytes;
 
-						ehp = (Ethernet_t *) \
+						ehp = (struct ethernet_hdr *) \
 							&ecp->rxbufs[i][0];
 
 						ours = memcmp (ehp->et_src, \
@@ -1064,9 +1063,8 @@ eth_loopback_test (void)
 						tb = prot & 0x8000;
 						n = prot & 0x7fff;
 
-						nbytes = ELBT_BUFSZ - \
-							offsetof (Ethernet_t, \
-								et_dsap) - \
+						nbytes = ELBT_BUFSZ -
+							ETHER_HDR_SIZE -
 							ELBT_CRCSZ;
 
 						/* check the frame is correct */
@@ -1081,10 +1079,10 @@ eth_loopback_test (void)
 								patwords[n];
 							uint nbb;
 
-							nbb = badbits ( \
-								&ehp->et_dsap, \
-								nbytes, \
-								patword);
+							nbb = badbits(
+							    ((uchar *)&ehp) +
+							    ETHER_HDR_SIZE,
+							    nbytes, patword);
 
 							ecp->rxeacc.badbit += \
 								nbb;

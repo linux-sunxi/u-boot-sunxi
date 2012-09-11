@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Freescale Semiconductor, Inc.
+ * Copyright 2011,2012 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -32,6 +32,7 @@
 #include <asm/fsl_serdes.h>
 #include <asm/fsl_portals.h>
 #include <asm/fsl_liodn.h>
+#include <fm_eth.h>
 
 extern void pci_of_setup(void *blob, bd_t *bd);
 
@@ -52,10 +53,6 @@ int checkboard(void)
 
 	sw = CPLD_READ(fbank_sel);
 	printf("vBank: %d\n", sw & 0x1);
-
-#ifdef CONFIG_PHYS_64BIT
-	puts("36-bit Addressing\n");
-#endif
 
 	/*
 	 * Display the RCW, so that no one gets confused as to what RCW
@@ -82,10 +79,12 @@ int checkboard(void)
 	puts("SERDES Reference Clocks: ");
 	sw = in_8(&CPLD_SW(2)) >> 2;
 	for (i = 0; i < 2; i++) {
-		static const char * const freq[] = {"0", "100", "125"};
+		static const char * const freq[][3] = {{"0", "100", "125"},
+						{"100", "156.25", "125"}
+		};
 		unsigned int clock = (sw >> (2 * i)) & 3;
 
-		printf("Bank%u=%sMhz ", i+1, freq[clock]);
+		printf("Bank%u=%sMhz ", i+1, freq[i][clock]);
 	}
 	puts("\n");
 
@@ -129,6 +128,20 @@ int board_early_init_r(void)
 	return 0;
 }
 
+unsigned long get_board_sys_clk(unsigned long dummy)
+{
+	u8 sysclk_conf = CPLD_READ(sysclk_sw1);
+
+	switch (sysclk_conf & 0x7) {
+	case CPLD_SYSCLK_83:
+		return 83333333;
+	case CPLD_SYSCLK_100:
+		return 100000000;
+	default:
+		return 66666666;
+	}
+}
+
 static const char *serdes_clock_to_string(u32 clock)
 {
 	switch (clock) {
@@ -151,22 +164,25 @@ int misc_init_r(void)
 	u32 actual[NUM_SRDS_BANKS];
 	unsigned int i;
 	u8 sw;
+	static const int freq[][3] = {
+		{0, SRDS_PLLCR0_RFCK_SEL_100, SRDS_PLLCR0_RFCK_SEL_125},
+		{SRDS_PLLCR0_RFCK_SEL_100, SRDS_PLLCR0_RFCK_SEL_156_25,
+			SRDS_PLLCR0_RFCK_SEL_125}
+	};
 
 	sw = in_8(&CPLD_SW(2)) >> 2;
 	for (i = 0; i < NUM_SRDS_BANKS; i++) {
 		unsigned int clock = (sw >> (2 * i)) & 3;
-		switch (clock) {
-		case 1:
-			actual[i] = SRDS_PLLCR0_RFCK_SEL_100;
-			break;
-		case 2:
-			actual[i] = SRDS_PLLCR0_RFCK_SEL_125;
-			break;
-		default:
+		if (clock == 0x3) {
 			printf("Warning: SDREFCLK%u switch setting of '11' is "
 			       "unsupported\n", i + 1);
 			break;
 		}
+		if (i == 0 && clock == 0)
+			puts("Warning: SDREFCLK1 switch setting of"
+				"'00' is unsupported\n");
+		else
+			actual[i] = freq[i][clock];
 	}
 
 	for (i = 0; i < NUM_SRDS_BANKS; i++) {
@@ -195,9 +211,16 @@ void ft_board_setup(void *blob, bd_t *bd)
 
 	fdt_fixup_memory(blob, (u64)base, (u64)size);
 
+#if defined(CONFIG_HAS_FSL_DR_USB) || defined(CONFIG_HAS_FSL_MPH_USB)
+	fdt_fixup_dr_usb(blob, bd);
+#endif
+
 #ifdef CONFIG_PCI
 	pci_of_setup(blob, bd);
 #endif
 
 	fdt_fixup_liodn(blob);
+#ifdef CONFIG_SYS_DPAA_FMAN
+	fdt_fixup_fman_ethernet(blob);
+#endif
 }

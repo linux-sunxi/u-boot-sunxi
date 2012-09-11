@@ -69,7 +69,7 @@ static void boot_jump_linux(bootm_headers_t *images)
 	debug ("## Transferring control to Linux (at address %08lx) ...\n",
 		(ulong)kernel);
 
-	show_boot_progress (15);
+	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
 
 #if defined(CONFIG_SYS_INIT_RAM_LOCK) && !defined(CONFIG_E500)
 	unlock_ram_in_cache();
@@ -172,6 +172,18 @@ void arch_lmb_reserve(struct lmb *lmb)
 #endif
 
 	return ;
+}
+
+static void boot_prep_linux(bootm_headers_t *images)
+{
+#ifdef CONFIG_MP
+	/*
+	 * if we are MP make sure to flush the device tree so any changes are
+	 * made visibile to all other cores.  In AMP boot scenarios the cores
+	 * might not be HW cache coherent with each other.
+	 */
+	flush_cache((unsigned long)images->ft_addr, images->ft_len);
+#endif
 }
 
 static int boot_cmdline_linux(bootm_headers_t *images)
@@ -329,19 +341,17 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 		return 0;
 	}
 
-	/*
-	 * We do nothing & report success to retain compatiablity with older
-	 * versions of u-boot in which this use to flush the dcache on MP
-	 * systems
-	 */
-	if (flag & BOOTM_STATE_OS_PREP)
+	if (flag & BOOTM_STATE_OS_PREP) {
+		boot_prep_linux(images);
 		return 0;
+	}
 
 	if (flag & BOOTM_STATE_OS_GO) {
 		boot_jump_linux(images);
 		return 0;
 	}
 
+	boot_prep_linux(images);
 	ret = boot_body_linux(images);
 	if (ret)
 		return ret;

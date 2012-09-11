@@ -26,6 +26,7 @@
 
 #include <common.h>
 #include <netdev.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/kirkwood.h>
 #include <asm/arch/mpp.h>
 #include "mv88f6281gtw_ge.h"
@@ -97,7 +98,7 @@ int board_early_init_f(void)
 		MPP49_GPIO,
 		0
 	};
-	kirkwood_mpp_conf(kwmpp_config);
+	kirkwood_mpp_conf(kwmpp_config, NULL);
 	return 0;
 }
 

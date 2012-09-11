@@ -26,17 +26,12 @@
 const omap3_sysinfo sysinfo = {
 	DDR_STACKED,
 	"IGEP v2 board",
+#if defined(CONFIG_ENV_IS_IN_ONENAND)
 	"ONENAND",
+#else
+	"NAND",
+#endif
 };
-
-/* GPMC CS 5 connected to an SMSC LAN9221 ethernet controller */
-#define NET_LAN9221_GPMC_CONFIG1    0x00001000
-#define NET_LAN9221_GPMC_CONFIG2    0x00080701
-#define NET_LAN9221_GPMC_CONFIG3    0x00020201
-#define NET_LAN9221_GPMC_CONFIG4    0x08030703
-#define NET_LAN9221_GPMC_CONFIG5    0x00060908
-#define NET_LAN9221_GPMC_CONFIG6    0x87030000
-#define NET_LAN9221_GPMC_CONFIG7    0x00000f6c
 
 static void setup_net_chip(void);
 

@@ -261,7 +261,6 @@
 /*
  * Ethernet configuration
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT 5
 
 #define CONFIG_E1000
@@ -275,7 +274,6 @@
  */
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_CMDLINE_EDITING
-#define CONFIG_SYS_PROMPT_HUSH_PS2 	"> "
 #undef 	CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_PROMPT		"=> "
 #ifdef CONFIG_CMD_KGDB

@@ -37,6 +37,8 @@
 #define CONFIG_APOLLON		1
 #define CONFIG_APOLLON_PLUS	1 /* If you have apollon plus 1.x */
 
+#define CONFIG_ONENAND_U_BOOT	y
+
 /* Clock config to target*/
 #define PRCM_CONFIG_I		1
 /* #define PRCM_CONFIG_II	1 */
@@ -64,7 +66,6 @@
 /* the OMAP2420 H4 has 12MHz, 13MHz, or 19.2Mhz crystal input */
 #define	CONFIG_SYS_CLK_FREQ	V_SCLK
 
-#undef	CONFIG_USE_IRQ	/* no support for IRQs */
 #define	CONFIG_MISC_INIT_R
 
 #define	CONFIG_CMDLINE_TAG	1	/* enable passing of ATAGs */
@@ -86,7 +87,6 @@
 /*
  * SMC91c96 Etherent
  */
-#define CONFIG_NET_MULTI
 #define	CONFIG_LAN91C96
 #define	CONFIG_LAN91C96_BASE	(APOLLON_CS1_BASE+0x300)
 #define	CONFIG_LAN91C96_EXT_PHY
@@ -111,7 +111,6 @@
 #define	CONFIG_ENV_OVERWRITE
 #define	CONFIG_CONS_INDEX	1
 #define	CONFIG_BAUDRATE		115200
-#define	CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
 
 /* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include	<config_cmd_default.h>
@@ -205,17 +204,6 @@
 #define	CONFIG_SYS_TIMERBASE	OMAP2420_GPT2
 #define	CONFIG_SYS_PTV		7	/* 2^(PTV+1) */
 #define	CONFIG_SYS_HZ		((CONFIG_SYS_CLK_FREQ)/(2 << CONFIG_SYS_PTV))
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define	CONFIG_STACKSIZE SZ_128K	/* regular stack */
-#ifdef	CONFIG_USE_IRQ
-# define	CONFIG_STACKSIZE_IRQ SZ_4K	/* IRQ stack */
-# define	CONFIG_STACKSIZE_FIQ SZ_4K	/* FIQ stack */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

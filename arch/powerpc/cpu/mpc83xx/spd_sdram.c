@@ -46,10 +46,19 @@ void board_add_ram_info(int use_default)
 	printf(" (DDR%d", ((ddr->sdram_cfg & SDRAM_CFG_SDRAM_TYPE_MASK)
 			   >> SDRAM_CFG_SDRAM_TYPE_SHIFT) - 1);
 
+#if defined(CONFIG_MPC8308) || defined(CONFIG_MPC831x)
+	if ((ddr->sdram_cfg & SDRAM_CFG_DBW_MASK) == SDRAM_CFG_DBW_16)
+		puts(", 16-bit");
+	else if ((ddr->sdram_cfg & SDRAM_CFG_DBW_MASK) == SDRAM_CFG_DBW_32)
+		puts(", 32-bit");
+	else
+		puts(", unknown width");
+#else
 	if (ddr->sdram_cfg & SDRAM_CFG_32_BE)
 		puts(", 32-bit");
 	else
 		puts(", 64-bit");
+#endif
 
 	if (ddr->sdram_cfg & SDRAM_CFG_ECC_EN)
 		puts(", ECC on");
@@ -140,7 +149,7 @@ long int spd_sdram()
 	unsigned int memsize;
 	unsigned int law_size;
 	unsigned char caslat, caslat_ctrl;
-	unsigned int trfc, trfc_clk, trfc_low, trfc_high;
+	unsigned int trfc, trfc_clk, trfc_low;
 	unsigned int trcd_clk, trtp_clk;
 	unsigned char cke_min_clk;
 	unsigned char add_lat, wr_lat;
@@ -533,7 +542,6 @@ long int spd_sdram()
 	 * so preadjust it down 8 first before splitting it up.
 	 */
 	trfc_low = (trfc_clk - 8) & 0xf;
-	trfc_high = ((trfc_clk - 8) >> 4) & 0x3;
 
 	ddr->timing_cfg_1 =
 	    (((picos_to_clk(spd.trp * 250) & 0x07) << 28 ) |	/* PRETOACT */

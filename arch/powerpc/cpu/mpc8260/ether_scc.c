@@ -43,10 +43,6 @@
 #include <command.h>
 #include <config.h>
 
-#ifndef CONFIG_NET_MULTI
-#error "CONFIG_NET_MULTI must be defined."
-#endif
-
 #if (CONFIG_ETHER_INDEX == 1)
 #  define PROFF_ENET            PROFF_SCC1
 #  define CPM_CR_ENET_PAGE      CPM_CR_SCC1_PAGE
@@ -109,7 +105,7 @@ typedef volatile struct CommonBufferDescriptor {
 static RTXBD *rtx;
 
 
-static int sec_send(struct eth_device *dev, volatile void *packet, int length)
+static int sec_send(struct eth_device *dev, void *packet, int length)
 {
     int i;
     int result = 0;

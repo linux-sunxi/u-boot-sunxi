@@ -45,6 +45,8 @@
 
 #include "fw_env.h"
 
+#include <config.h>
+
 #define WHITESPACE(c) ((c == '\t') || (c == ' '))
 
 #define min(x, y) ({				\
@@ -175,7 +177,7 @@ static char default_environment[] = {
 	"autoload=" CONFIG_SYS_AUTOLOAD "\0"
 #endif
 #ifdef	CONFIG_ROOTPATH
-	"rootpath=" MK_STR (CONFIG_ROOTPATH) "\0"
+	"rootpath=" CONFIG_ROOTPATH "\0"
 #endif
 #ifdef	CONFIG_GATEWAYIP
 	"gatewayip=" MK_STR (CONFIG_GATEWAYIP) "\0"
@@ -187,7 +189,7 @@ static char default_environment[] = {
 	"hostname=" MK_STR (CONFIG_HOSTNAME) "\0"
 #endif
 #ifdef	CONFIG_BOOTFILE
-	"bootfile=" MK_STR (CONFIG_BOOTFILE) "\0"
+	"bootfile=" CONFIG_BOOTFILE "\0"
 #endif
 #ifdef	CONFIG_LOADADDR
 	"loadaddr=" MK_STR (CONFIG_LOADADDR) "\0"
@@ -390,15 +392,22 @@ int fw_env_write(char *name, char *value)
 	 * Delete any existing definition
 	 */
 	if (oldval) {
+#ifndef CONFIG_ENV_OVERWRITE
 		/*
 		 * Ethernet Address and serial# can be set only once
 		 */
-		if ((strcmp (name, "ethaddr") == 0) ||
-			(strcmp (name, "serial#") == 0)) {
+		if (
+		    (strcmp(name, "serial#") == 0) ||
+		    ((strcmp(name, "ethaddr") == 0)
+#if defined(CONFIG_OVERWRITE_ETHADDR_ONCE) && defined(CONFIG_ETHADDR)
+		    && (strcmp(oldval, MK_STR(CONFIG_ETHADDR)) != 0)
+#endif /* CONFIG_OVERWRITE_ETHADDR_ONCE && CONFIG_ETHADDR */
+		   ) ) {
 			fprintf (stderr, "Can't overwrite \"%s\"\n", name);
 			errno = EROFS;
 			return -1;
 		}
+#endif /* CONFIG_ENV_OVERWRITE */
 
 		if (*++nxt == '\0') {
 			*env = '\0';
@@ -488,7 +497,7 @@ int fw_setenv(int argc, char *argv[])
 			value = (char *)malloc(len - strlen(name));
 			if (!value) {
 				fprintf(stderr,
-				"Cannot malloc %u bytes: %s\n",
+				"Cannot malloc %zu bytes: %s\n",
 				len - strlen(name), strerror(errno));
 				return -1;
 			}
@@ -802,7 +811,7 @@ static int flash_write_buf (int dev, int fd, void *buf, size_t count,
 		data = malloc (erase_len);
 		if (!data) {
 			fprintf (stderr,
-				 "Cannot malloc %u bytes: %s\n",
+				 "Cannot malloc %zu bytes: %s\n",
 				 erase_len, strerror (errno));
 			return -1;
 		}

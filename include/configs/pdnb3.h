@@ -33,6 +33,8 @@
 #define CONFIG_IXP425		1       /* This is an IXP425 CPU	*/
 #define CONFIG_PDNB3		1       /* on an PDNB3 board		*/
 
+#define	CONFIG_MACH_TYPE	1002
+
 #define CONFIG_DISPLAY_CPUINFO	1	/* display cpu info (and speed)	*/
 #define CONFIG_DISPLAY_BOARDINFO 1	/* display board info		*/
 
@@ -40,7 +42,6 @@
  * Ethernet
  */
 #define CONFIG_IXP4XX_NPE	1	/* include IXP4xx NPE support	*/
-#define CONFIG_NET_MULTI	1
 #define	CONFIG_PHY_ADDR		16	/* NPE0 PHY address		*/
 #define CONFIG_HAS_ETH1
 #define CONFIG_PHY1_ADDR	18	/* NPE1 PHY address		*/
@@ -116,19 +117,6 @@
 
 #define CONFIG_IXP425_TIMER_CLK		66666666
 #define CONFIG_SYS_HZ			1000		/* decrementer freq: 1 ms ticks */
-						/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE      { 9600, 19200, 38400, 57600, 115200 }
-
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE        (128*1024)      /* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ    (4*1024)        /* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ    (4*1024)        /* FIQ stack */
-#endif
 
 /***************************************************************
  * Platform/Board specific defines start here.

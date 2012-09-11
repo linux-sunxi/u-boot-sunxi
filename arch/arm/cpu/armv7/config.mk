@@ -22,12 +22,18 @@
 #
 PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -msoft-float
 
-# Make ARMv5 to allow more compilers to work, even though its v7a.
-PLATFORM_CPPFLAGS += -march=armv5
+# If armv7-a is not supported by GCC fall-back to armv5, which is
+# supported by more tool-chains
+PF_CPPFLAGS_ARMV7 := $(call cc-option, -march=armv7-a, -march=armv5)
+PLATFORM_CPPFLAGS += $(PF_CPPFLAGS_ARMV7)
+
 # =========================================================================
 #
 # Supply options according to compiler version
 #
 # =========================================================================
-PLATFORM_RELFLAGS +=$(call cc-option,-mshort-load-bytes,\
-		    $(call cc-option,-malignment-traps,))
+PF_RELFLAGS_SLB_AT := $(call cc-option,-mshort-load-bytes,$(call cc-option,-malignment-traps,))
+PLATFORM_RELFLAGS += $(PF_RELFLAGS_SLB_AT)
+ifneq ($(CONFIG_IMX_CONFIG),)
+ALL-y	+= $(obj)u-boot.imx
+endif

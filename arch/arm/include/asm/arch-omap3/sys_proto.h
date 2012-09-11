@@ -34,10 +34,14 @@ struct emu_hal_params {
 
 void prcm_init(void);
 void per_clocks_enable(void);
+void ehci_clocks_enable(void);
 
 void memif_init(void);
 void sdrc_init(void);
 void do_sdrc_init(u32, u32);
+void get_board_mem_timings(u32 *mcfg, u32 *ctrla, u32 *ctrlb, u32 *rfr_ctrl,
+		u32 *mr);
+void identify_nand_chip(int *mfr, int *id);
 void emif4_init(void);
 void gpmc_init(void);
 void enable_gpmc_cs_config(const u32 *gpmc_config, struct gpmc_cs *cs, u32 base,
@@ -49,7 +53,6 @@ void set_muxconf_regs(void);
 u32 get_cpu_family(void);
 u32 get_cpu_rev(void);
 u32 get_sku_id(void);
-u32 get_mem_type(void);
 u32 get_sysboot_value(void);
 u32 is_gpmc_muxed(void);
 u32 get_gpmc0_type(void);
@@ -71,4 +74,5 @@ void power_init_r(void);
 void dieid_num_r(void);
 void do_omap3_emu_romcode_call(u32 service_id, u32 parameters);
 void omap3_gp_romcode_call(u32 service_id, u32 parameter);
+u32 warm_reset(void);
 #endif

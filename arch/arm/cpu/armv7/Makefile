@@ -27,15 +27,17 @@ LIB	= $(obj)lib$(CPU).o
 
 START	:= start.o
 
-ifndef CONFIG_SPL_BUILD
 COBJS	+= cache_v7.o
+
 COBJS	+= cpu.o
+COBJS	+= syslib.o
+
+ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX)$(CONFIG_TEGRA20),)
+SOBJS	+= lowlevel_init.o
 endif
 
-COBJS  += syslib.o
-
 SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
+OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
 START	:= $(addprefix $(obj),$(START))
 
 all:	$(obj).depend $(START) $(LIB)

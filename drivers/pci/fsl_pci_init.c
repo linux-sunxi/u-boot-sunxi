@@ -47,12 +47,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define FSL_PCIE_CFG_RDY	0x4b0
 #define FSL_PROG_IF_AGENT	0x1
 
-void pciauto_prescan_setup_bridge(struct pci_controller *hose,
-				pci_dev_t dev, int sub_bus);
-void pciauto_postscan_setup_bridge(struct pci_controller *hose,
-				pci_dev_t dev, int sub_bus);
-void pciauto_config_init(struct pci_controller *hose);
-
 #ifndef CONFIG_SYS_PCI_MEMORY_BUS
 #define CONFIG_SYS_PCI_MEMORY_BUS 0
 #endif
@@ -305,10 +299,10 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
 	inbound = fsl_pci_setup_inbound_windows(hose, out_lo, pcie_cap, pi);
 
 	for (r = 0; r < hose->region_count; r++)
-		debug("PCI reg:%d %016llx:%016llx %016llx %08x\n", r,
+		debug("PCI reg:%d %016llx:%016llx %016llx %08lx\n", r,
 			(u64)hose->regions[r].phys_start,
-			hose->regions[r].bus_start,
-			hose->regions[r].size,
+			(u64)hose->regions[r].bus_start,
+			(u64)hose->regions[r].size,
 			hose->regions[r].flags);
 
 	pci_register_hose(hose);
@@ -344,7 +338,7 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
 			setbits_be32(&pci->pdb_stat, 0x08000000);
 			(void) in_be32(&pci->pdb_stat);
 			udelay(100);
-			debug("  Asserting PCIe reset @%x = %x\n",
+			debug("  Asserting PCIe reset @%p = %x\n",
 			      &pci->pdb_stat, in_be32(&pci->pdb_stat));
 			/* clear PCIe reset */
 			clrbits_be32(&pci->pdb_stat, 0x08000000);

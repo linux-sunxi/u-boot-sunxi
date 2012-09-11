@@ -25,6 +25,12 @@
 #include <asm/arch/a320.h>
 
 /*
+ * mach-type definition
+ */
+#define MACH_TYPE_FARADAY	758
+#define CONFIG_MACH_TYPE	MACH_TYPE_FARADAY
+
+/*
  * Linux kernel tagged list
  */
 #define CONFIG_CMDLINE_TAG
@@ -33,8 +39,6 @@
 /*
  * CPU and Board Configuration Options
  */
-#undef CONFIG_USE_IRQ		/* we don't need IRQ/FIQ stuff */
-
 #undef CONFIG_SKIP_LOWLEVEL_INIT
 
 /*
@@ -65,13 +69,9 @@
 #define CONFIG_SYS_NS16550_REG_SIZE	-4
 #define CONFIG_SYS_NS16550_CLK		18432000
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /*
  * Ethernet
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_FTMAC100
 
 #define CONFIG_BOOTDELAY	3
@@ -101,17 +101,6 @@
 
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
 
 /*
  * Size of malloc() pool

@@ -56,6 +56,8 @@
 #define CLK_SRC_PERIL0_OFFSET	0xC250
 #define CLK_DIV_PERIL0_OFFSET	0xC550
 
+#define CLK_SRC_LCD0_OFFSET	0xC234
+
 #define APLL_LOCK_OFFSET	0x14000
 #define MPLL_LOCK_OFFSET	0x14008
 #define APLL_CON0_OFFSET	0x14100
@@ -98,8 +100,8 @@
 #define INFORM1_OFFSET			0x804
 
 /* GPIO Offsets for UART: GPIO Contol Register */
-#define S5PC210_GPIO_A0_CON_OFFSET	0x00
-#define S5PC210_GPIO_A1_CON_OFFSET	0x20
+#define EXYNOS4_GPIO_A0_CON_OFFSET	0x00
+#define EXYNOS4_GPIO_A1_CON_OFFSET	0x20
 
 /* UART Register offsets */
 #define ULCON_OFFSET		0x00
@@ -351,6 +353,16 @@
 				| (UART1_RATIO << 4) \
 				| (UART0_RATIO << 0))
 
+/* CLK_SRC_LCD0 */
+#define FIMD_SEL_SCLKMPLL	6
+#define MDNIE0_SEL_XUSBXTI	1
+#define MDNIE_PWM0_SEL_XUSBXTI	1
+#define MIPI0_SEL_XUSBXTI	1
+#define CLK_SRC_LCD0_VAL	((MIPI0_SEL_XUSBXTI << 12) \
+				| (MDNIE_PWM0_SEL_XUSBXTI << 8) \
+				| (MDNIE0_SEL_XUSBXTI << 4) \
+				| (FIMD_SEL_SCLKMPLL << 0))
+
 /* Required period to generate a stable clock output */
 /* PLL_LOCK_TIME */
 #define PLL_LOCKTIME		0x1C20
@@ -416,8 +428,8 @@
  * UART GPIO_A0/GPIO_A1 Control Register Value
  * 0x2: UART Function
  */
-#define S5PC210_GPIO_A0_CON_VAL	0x22222222
-#define S5PC210_GPIO_A1_CON_VAL	0x222222
+#define EXYNOS4_GPIO_A0_CON_VAL	0x22222222
+#define EXYNOS4_GPIO_A1_CON_VAL	0x222222
 
 /* ULCON: UART Line Control Value 8N1 */
 #define WORD_LEN_5_BIT		0x00

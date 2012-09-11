@@ -82,7 +82,6 @@ int pwm_config(int pwm_id, int duty_ns, int period_ns)
 	unsigned long period;
 	unsigned long tcon;
 	unsigned long tcnt;
-	unsigned long timer_rate_hz;
 	unsigned long tcmp;
 
 	/*
@@ -100,7 +99,6 @@ int pwm_config(int pwm_id, int duty_ns, int period_ns)
 
 	/* Check to see if we are changing the clock rate of the PWM */
 	tin_rate = pwm_calc_tin(pwm_id, period);
-	timer_rate_hz = tin_rate;
 
 	tin_ns = NS_IN_HZ / tin_rate;
 	tcnt = period_ns / tin_ns;
@@ -172,7 +170,7 @@ int pwm_init(int pwm_id, int div, int invert)
 	timer_rate_hz = get_pwm_clk() / ((prescaler + 1) *
 			(div + 1));
 
-	timer_rate_hz = timer_rate_hz / 100;
+	timer_rate_hz = timer_rate_hz / CONFIG_SYS_HZ;
 
 	/* set count value */
 	offset = pwm_id * 3;

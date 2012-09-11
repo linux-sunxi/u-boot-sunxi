@@ -25,6 +25,7 @@
 #include <version.h>
 #include <watchdog.h>
 #include <net.h>
+#include <mmc.h>
 #include <environment.h>
 
 #ifdef CONFIG_BITBANGMII
@@ -99,14 +100,6 @@ static int sh_mem_env_init(void)
 	return 0;
 }
 
-#if defined(CONFIG_CMD_NET)
-static int sh_net_init(void)
-{
-	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
-	return 0;
-}
-#endif
-
 #if defined(CONFIG_CMD_MMC)
 static int sh_mmc_init(void)
 {
@@ -141,11 +134,8 @@ init_fnc_t *init_sequence[] =
 	stdio_init,
 	console_init_r,
 	interrupt_init,
-#ifdef BOARD_LATE_INIT
+#ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init,
-#endif
-#if defined(CONFIG_CMD_NET)
-	sh_net_init,		/* SH specific eth init */
 #endif
 #if defined(CONFIG_CMD_MMC)
 	sh_mmc_init,
@@ -200,15 +190,8 @@ void sh_generic_init(void)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-	{
-		char *s;
-		puts("Net:   ");
-		eth_initialize(gd->bd);
-
-		s = getenv("bootfile");
-		if (s != NULL)
-			copy_filename(BootFile, s, sizeof(BootFile));
-	}
+	puts("Net:   ");
+	eth_initialize(gd->bd);
 #endif /* CONFIG_CMD_NET */
 
 	while (1) {

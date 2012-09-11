@@ -444,6 +444,9 @@ int phy_init(void)
 #ifdef CONFIG_PHY_REALTEK
 	phy_realtek_init();
 #endif
+#ifdef CONFIG_PHY_SMSC
+	phy_smsc_init();
+#endif
 #ifdef CONFIG_PHY_TERANETICS
 	phy_teranetics_init();
 #endif
@@ -720,16 +723,21 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 	return phydev;
 }
 
+/*
+ * Start the PHY.  Returns 0 on success, or a negative error code.
+ */
 int phy_startup(struct phy_device *phydev)
 {
 	if (phydev->drv->startup)
-		phydev->drv->startup(phydev);
+		return phydev->drv->startup(phydev);
 
 	return 0;
 }
 
 static int __board_phy_config(struct phy_device *phydev)
 {
+	if (phydev->drv->config)
+		return phydev->drv->config(phydev);
 	return 0;
 }
 
@@ -738,9 +746,6 @@ int board_phy_config(struct phy_device *phydev)
 
 int phy_config(struct phy_device *phydev)
 {
-	if (phydev->drv->config)
-		phydev->drv->config(phydev);
-
 	/* Invoke an optional board-specific helper */
 	board_phy_config(phydev);
 

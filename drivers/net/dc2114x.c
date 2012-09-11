@@ -175,7 +175,7 @@ static void  read_hw_addr(struct eth_device* dev, bd_t * bis);
 static void  send_setup_frame(struct eth_device* dev, bd_t * bis);
 
 static int   dc21x4x_init(struct eth_device* dev, bd_t* bis);
-static int   dc21x4x_send(struct eth_device* dev, volatile void *packet, int length);
+static int   dc21x4x_send(struct eth_device *dev, void *packet, int length);
 static int   dc21x4x_recv(struct eth_device* dev);
 static void  dc21x4x_halt(struct eth_device* dev);
 #ifdef CONFIG_TULIP_SELECT_MEDIA
@@ -245,15 +245,17 @@ int dc21x4x_initialize(bd_t *bis)
 		pci_write_config_word(devbusfn, PCI_COMMAND, status);
 
 		pci_read_config_word(devbusfn, PCI_COMMAND, &status);
+#ifdef CONFIG_TULIP_USE_IO
 		if (!(status & PCI_COMMAND_IO)) {
 			printf("Error: Can not enable I/O access.\n");
 			continue;
 		}
-
-		if (!(status & PCI_COMMAND_IO)) {
-			printf("Error: Can not enable I/O access.\n");
+#else
+		if (!(status & PCI_COMMAND_MEMORY)) {
+			printf("Error: Can not enable MEMORY access.\n");
 			continue;
 		}
+#endif
 
 		if (!(status & PCI_COMMAND_MASTER)) {
 			printf("Error: Can not enable Bus Mastering.\n");
@@ -388,7 +390,7 @@ static int dc21x4x_init(struct eth_device* dev, bd_t* bis)
 	return 0;
 }
 
-static int dc21x4x_send(struct eth_device* dev, volatile void *packet, int length)
+static int dc21x4x_send(struct eth_device *dev, void *packet, int length)
 {
 	int		status = -1;
 	int		i;

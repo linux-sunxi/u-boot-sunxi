@@ -24,13 +24,29 @@
 #ifndef _NAND_H_
 #define _NAND_H_
 
+#include <config.h>
+
+/*
+ * All boards using a given driver must convert to self-init
+ * at the same time, so do it here.  When all drivers are
+ * converted, this will go away.
+ */
+#if defined(CONFIG_NAND_FSL_ELBC) || defined(CONFIG_NAND_ATMEL)
+#define CONFIG_SYS_NAND_SELF_INIT
+#endif
+
 extern void nand_init(void);
 
-#include <linux/mtd/compat.h>
+#include <linux/compat.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/nand.h>
 
+#ifdef CONFIG_SYS_NAND_SELF_INIT
+void board_nand_init(void);
+int nand_register(int devnum);
+#else
 extern int board_nand_init(struct nand_chip *nand);
+#endif
 
 typedef struct mtd_info nand_info_t;
 
@@ -131,6 +147,9 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 int nand_lock( nand_info_t *meminfo, int tight );
 int nand_unlock( nand_info_t *meminfo, ulong start, ulong length );
 int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
+
+int nand_spl_load_image(uint32_t offs, unsigned int size, void *dst);
+void nand_deselect(void);
 
 #ifdef CONFIG_SYS_NAND_SELECT_DEVICE
 void board_nand_select_device(struct nand_chip *nand, int chip);

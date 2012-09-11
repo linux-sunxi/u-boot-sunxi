@@ -40,7 +40,6 @@
 
 /* CPU */
 #define CONFIG_ARCH_CPU_INIT
-#undef CONFIG_USE_IRQ
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -75,7 +74,6 @@
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R
 #define CONFIG_TFTP_PORT
@@ -105,7 +103,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 #define CONFIG_SYS_PROMPT		"Snapper> "
 
 /* I2C - Bit-bashed */
@@ -158,15 +155,12 @@
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE +		\
 					 sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_EXTBDINFO
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /* U-Boot memory settings */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)
-#define CONFIG_STACKSIZE		(256 << 10)
 
 /* Command line configuration */
 #include <config_cmd_default.h>

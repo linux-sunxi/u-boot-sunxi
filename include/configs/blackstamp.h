@@ -30,7 +30,6 @@
 /*
  * Board settings
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111	1
 #define CONFIG_SMC91111_BASE	0x20300300
 
@@ -76,7 +75,7 @@
 #define CONFIG_GATEWAYIP	192.168.0.1
 #define CONFIG_SERVERIP		192.168.0.2
 #define CONFIG_HOSTNAME		blackstamp
-#define CONFIG_ROOTPATH		/checkout/uClinux-dist/romfs
+#define CONFIG_ROOTPATH		"/checkout/uClinux-dist/romfs"
 #define CONFIG_SYS_AUTOLOAD		"no"
 
 /* To remove hardcoding and enable MAC storage in EEPROM  */

@@ -28,15 +28,6 @@
 #ifdef CONFIG_NS87308
 #include <ns87308.h>
 #endif
-#ifdef CONFIG_KIRKWOOD
-#include <asm/arch/kirkwood.h>
-#elif defined(CONFIG_ORION5X)
-#include <asm/arch/orion5x.h>
-#elif defined(CONFIG_ARMADA100)
-#include <asm/arch/armada100.h>
-#elif defined(CONFIG_PANTHEON)
-#include <asm/arch/pantheon.h>
-#endif
 
 #if defined (CONFIG_SERIAL_MULTI)
 #include <serial.h>
@@ -93,9 +84,6 @@ static NS16550_t serial_ports[4] = {
 };
 
 #define PORT	serial_ports[port-1]
-#if defined(CONFIG_CONS_INDEX)
-#define CONSOLE	(serial_ports[CONFIG_CONS_INDEX-1])
-#endif
 
 #if defined(CONFIG_SERIAL_MULTI)
 

@@ -27,14 +27,20 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).o
 
-COBJS-y				+= cpu.o timer.o psc.o
+COBJS-y				+= cpu.o misc.o timer.o psc.o pinmux.o reset.o
+COBJS-$(CONFIG_DA850_LOWLEVEL)	+= da850_lowlevel.o
 COBJS-$(CONFIG_SOC_DM355)	+= dm355.o
 COBJS-$(CONFIG_SOC_DM365)	+= dm365.o
 COBJS-$(CONFIG_SOC_DM644X)	+= dm644x.o
 COBJS-$(CONFIG_SOC_DM646X)	+= dm646x.o
-COBJS-$(CONFIG_DRIVER_TI_EMAC)	+= lxt972.o dp83848.o et1011c.o
+COBJS-$(CONFIG_SOC_DA850)	+= da850_pinmux.o
+COBJS-$(CONFIG_DRIVER_TI_EMAC)	+= lxt972.o dp83848.o et1011c.o ksz8873.o
 
-SOBJS	= reset.o
+ifdef CONFIG_SPL_BUILD
+COBJS-y	+= spl.o
+COBJS-$(CONFIG_SOC_DM365)	+= dm365_lowlevel.o
+COBJS-$(CONFIG_SOC_DA8XX)	+= da850_lowlevel.o
+endif
 
 ifndef CONFIG_SKIP_LOWLEVEL_INIT
 SOBJS	+= lowlevel_init.o

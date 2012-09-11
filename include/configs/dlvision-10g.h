@@ -34,10 +34,12 @@
  * Include common defines/options for all AMCC eval boards
  */
 #define CONFIG_HOSTNAME		dlvsion-10g
-#define CONFIG_IDENT_STRING	" dlvision-10g 0.01"
+#define CONFIG_IDENT_STRING	" dlvision-10g 0.03"
 #include "amcc-common.h"
 
-#define CONFIG_BOARD_EARLY_INIT_F	/* call board_early_init_f */
+#define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_EARLY_INIT_R
+#define CONFIG_MISC_INIT_R
 #define CONFIG_LAST_STAGE_INIT
 
 #define CONFIG_SYS_CLK_FREQ	33333333 /* external frequency to pll   */
@@ -80,6 +82,7 @@
  * Commands additional to the ones defined in amcc-common.h
  */
 #define CONFIG_CMD_CACHE
+#define CONFIG_CMD_DTT
 #undef CONFIG_CMD_EEPROM
 
 /*
@@ -115,10 +118,10 @@
 
 /* Temp sensor/hwmon/dtt */
 #define CONFIG_DTT_LM63		1	/* National LM63	*/
-#define CONFIG_DTT_SENSORS	{ 0x4c, 0x4e }	/* Sensor addresses	*/
+#define CONFIG_DTT_SENSORS	{ 0x4c, 0x4e, 0x18 } /* Sensor addresses */
 #define CONFIG_DTT_PWM_LOOKUPTABLE	\
-		{ { 40, 10 }, { 43, 13 }, { 46, 16 },  \
-		  { 50, 20 }, { 53, 27 }, { 56, 34 }, { 60, 40 } }
+		{ { 46, 10 }, { 48, 14 }, { 50, 19 }, { 52, 23 },\
+		  { 54, 27 }, { 56, 31 }, { 58, 36 }, { 60, 40 } }
 #define CONFIG_DTT_TACH_LIMIT	0xa10
 
 /* EBC peripherals */

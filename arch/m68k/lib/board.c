@@ -119,13 +119,8 @@ typedef int (init_fnc_t) (void);
 
 static int init_baudrate (void)
 {
-	char tmp[64];	/* long enough for environment variables */
-	int i = getenv_f("baudrate", tmp, sizeof (tmp));
-
-	gd->baudrate = (i > 0)
-			? (int) simple_strtoul (tmp, NULL, 10)
-			: CONFIG_BAUDRATE;
-	return (0);
+	gd->baudrate = getenv_ulong("baudrate", 10, CONFIG_BAUDRATE);
+	return 0;
 }
 
 /***********************************************************************/
@@ -221,9 +216,7 @@ board_init_f (ulong bootflag)
 	gd_t *id;
 	init_fnc_t **init_fnc_ptr;
 #ifdef CONFIG_PRAM
-	int i;
 	ulong reg;
-	char tmp[64];		/* long enough for environment variables */
 #endif
 
 	/* Pointer is writable since we allocated a register for it */
@@ -264,8 +257,7 @@ board_init_f (ulong bootflag)
 	/*
 	 * reserve protected RAM
 	 */
-	i = getenv_f("pram", tmp, sizeof (tmp));
-	reg = (i > 0) ? simple_strtoul (tmp, NULL, 10) : CONFIG_PRAM;
+	reg = getenv_ulong("pram", 10, CONFIG_PRAM);
 	addr -= (reg << 10);		/* size is in kB */
 	debug ("Reserving %ldk for protected RAM at %08lx\n", reg, addr);
 #endif /* CONFIG_PRAM */
@@ -515,15 +507,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* relocate environment function pointers etc. */
 	env_relocate ();
 
-	/*
-	 * Fill in missing fields of bd_info.
-	 * We do this here, where we have "normal" access to the
-	 * environment; we used to do this still running from ROM,
-	 * where had to use getenv_f(), which can be pretty slow when
-	 * the environment is in EEPROM.
-	 */
-	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-
 	WATCHDOG_RESET ();
 
 #if defined(CONFIG_PCI)
@@ -575,14 +558,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* Insert function pointers now that we have relocated the code */
 
 	/* Initialize from environment */
-	if ((s = getenv ("loadaddr")) != NULL) {
-		load_addr = simple_strtoul (s, NULL, 16);
-	}
-#if defined(CONFIG_CMD_NET)
-	if ((s = getenv ("bootfile")) != NULL) {
-		copy_filename (BootFile, s, sizeof (BootFile));
-	}
-#endif
+	load_addr = getenv_ulong("loadaddr", 16, load_addr);
 
 	WATCHDOG_RESET ();
 
@@ -606,10 +582,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #if defined(FEC_ENET)
 	eth_init(bd);
 #endif
-#if defined(CONFIG_NET_MULTI)
 	puts ("Net:   ");
 	eth_initialize (bd);
-#endif
 #endif
 
 #ifdef CONFIG_POST
@@ -650,18 +624,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 * taking into account the protected RAM at top of memory
 	 */
 	{
-		ulong pram;
+		ulong pram = 0;
 		char memsz[32];
-#ifdef CONFIG_PRAM
-		char *s;
 
-		if ((s = getenv ("pram")) != NULL) {
-			pram = simple_strtoul (s, NULL, 10);
-		} else {
-			pram = CONFIG_PRAM;
-		}
-#else
-		pram=0;
+#ifdef CONFIG_PRAM
+		pram = getenv_ulong("pram", 10, CONFIG_PRAM);
 #endif
 #ifdef CONFIG_LOGBUFFER
 		/* Also take the logbuffer into account (pram is in kB) */

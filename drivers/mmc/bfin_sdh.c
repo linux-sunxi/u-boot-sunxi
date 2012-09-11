@@ -250,12 +250,12 @@ int bfin_mmc_init(bd_t *bis)
 	mmc->send_cmd = bfin_sdh_request;
 	mmc->set_ios = bfin_sdh_set_ios;
 	mmc->init = bfin_sdh_init;
+	mmc->getcd = NULL;
 	mmc->host_caps = MMC_MODE_4BIT;
 
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 	mmc->f_max = get_sclk();
 	mmc->f_min = mmc->f_max >> 9;
-	mmc->block_dev.part_type = PART_TYPE_DOS;
 
 	mmc->b_max = 0;
 

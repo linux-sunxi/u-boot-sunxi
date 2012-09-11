@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the AT91SAM9263EK board.
@@ -33,7 +33,11 @@
  */
 #include <asm/hardware.h>
 
+#ifndef CONFIG_SYS_USE_BOOT_NORFLASH
 #define CONFIG_SYS_TEXT_BASE		0x21F00000
+#else
+#define CONFIG_SYS_TEXT_BASE		0x0000000
+#endif
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	16367660 /* 16.367 MHz crystal */
@@ -43,7 +47,6 @@
 #define CONFIG_AT91SAM9263EK	1	/* It's an AT91SAM9263EK Board */
 
 #define CONFIG_ARCH_CPU_INIT
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
 #define CONFIG_CMDLINE_TAG	1	/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS 1
@@ -71,7 +74,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200, 19200, 38400, 57600, 9600}
 
 /* LCD */
 #define CONFIG_LCD			1
@@ -148,11 +150,11 @@
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_FLASH_BASE
 #define CONFIG_SYS_MONITOR_LEN	(256 << 10)
 #define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x007FE000)
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x007E0000)
 #define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR - CONFIG_ENV_SIZE)
 
 /* Address and size of Primary Environment Sector */
-#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_ENV_SIZE		0x10000
 
 #define xstr(s)   str(s)
 #define str(s)	#s
@@ -162,7 +164,7 @@
 	"update=" \
 		"protect off ${monitor_base} +${filesize};" \
 		"erase ${monitor_base} +${filesize};" \
-		"cp.b ${load_addr} ${monitor_base} ${filesize};" \
+		"cp.b ${fileaddr} ${monitor_base} ${filesize};" \
 		"protect on ${monitor_base} +${filesize}\0"
 
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
@@ -283,14 +285,11 @@
 #define CONFIG_SYS_NAND_MASK_CLE		(1 << 22)
 #define CONFIG_SYS_NAND_ENABLE_PIN		AT91_PIN_PD15
 #define CONFIG_SYS_NAND_READY_PIN		AT91_PIN_PA22
-
-#define CONFIG_SYS_64BIT_VSPRINTF		/* needed for nand_util.c */
 #endif
 
 /* Ethernet */
 #define CONFIG_MACB			1
 #define CONFIG_RMII			1
-#define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R		1
 
@@ -318,7 +317,7 @@
 #define CONFIG_ENV_OFFSET		0x4200
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_DATAFLASH_LOGIC_ADDR_CS0 + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x4200
-#define CONFIG_BOOTCOMMAND	"cp.b 0xC0042000 0x22000000 0x210000; bootm"
+#define CONFIG_BOOTCOMMAND	"cp.b 0xC0084000 0x22000000 0x210000; bootm"
 #define CONFIG_BOOTARGS		"console=ttyS0,115200 " \
 				"root=/dev/mtdblock0 " \
 				"mtdparts=atmel_nand:-(root) "\
@@ -347,15 +346,10 @@
 #define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
-
-#define CONFIG_STACKSIZE	(32*1024)	/* regular stack */
-
-#undef CONFIG_USE_IRQ
 
 #endif

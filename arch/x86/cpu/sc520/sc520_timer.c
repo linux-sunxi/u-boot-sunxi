@@ -27,7 +27,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/interrupt.h>
-#include <asm/ic/sc520.h>
+#include <asm/arch/sc520.h>
 
 void sc520_timer_isr(void)
 {
@@ -38,7 +38,7 @@ void sc520_timer_isr(void)
 int timer_init(void)
 {
 	/* Register the SC520 specific timer interrupt handler */
-	register_timer_isr (sc520_timer_isr);
+	register_timer_isr(sc520_timer_isr);
 
 	/* Install interrupt handler for GP Timer 1 */
 	irq_install_handler (0, timer_isr, NULL);
@@ -62,7 +62,7 @@ int timer_init(void)
 	writew(100, &sc520_mmcr->gptmr1maxcmpa);
 	writew(0xe009, &sc520_mmcr->gptmr1ctl);
 
-	unmask_irq (0);
+	unmask_irq(0);
 
 	/* Clear the GP Timer 1 status register to get the show rolling*/
 	writeb(0x02, &sc520_mmcr->gptmrsta);
@@ -78,10 +78,9 @@ void sc520_udelay(unsigned long usec)
 {
 	int m = 0;
 	long u;
-	long temp;
 
-	temp = readw(&sc520_mmcr->swtmrmilli);
-	temp = readw(&sc520_mmcr->swtmrmicro);
+	readw(&sc520_mmcr->swtmrmilli);
+	readw(&sc520_mmcr->swtmrmicro);
 
 	do {
 		m += readw(&sc520_mmcr->swtmrmilli);

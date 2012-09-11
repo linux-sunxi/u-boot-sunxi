@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Copyright (C) 2009
@@ -83,14 +83,6 @@ static void tny_a9260_nand_hw_init(void)
 
 int board_init(void)
 {
-	/* Enable Ctrlc */
-	console_init_f();
-
-#if defined(CONFIG_TNY_A9260)
-	gd->bd->bi_arch_number = MACH_TYPE_TNY_A9260;
-#elif defined(CONFIG_TNY_A9G20)
-	gd->bd->bi_arch_number = MACH_TYPE_TNY_A9G20;
-#endif
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 

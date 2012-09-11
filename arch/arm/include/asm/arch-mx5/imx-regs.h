@@ -23,9 +23,12 @@
 #ifndef __ASM_ARCH_MX5_IMX_REGS_H__
 #define __ASM_ARCH_MX5_IMX_REGS_H__
 
+#define ARCH_MXC
+
 #if defined(CONFIG_MX51)
 #define IRAM_BASE_ADDR		0x1FFE0000	/* internal ram */
-#define IPU_CTRL_BASE_ADDR	0x40000000
+#define IPU_SOC_BASE_ADDR	0x40000000
+#define IPU_SOC_OFFSET		0x1E000000
 #define SPBA0_BASE_ADDR         0x70000000
 #define AIPS1_BASE_ADDR         0x73F00000
 #define AIPS2_BASE_ADDR         0x83F00000
@@ -34,7 +37,8 @@
 #define NFC_BASE_ADDR_AXI       0xCFFF0000
 #define CS1_BASE_ADDR           0xB8000000
 #elif defined(CONFIG_MX53)
-#define IPU_CTRL_BASE_ADDR      0x18000000
+#define IPU_SOC_BASE_ADDR	0x18000000
+#define IPU_SOC_OFFSET		0x06000000
 #define SPBA0_BASE_ADDR         0x50000000
 #define AIPS1_BASE_ADDR         0x53F00000
 #define AIPS2_BASE_ADDR         0x63F00000
@@ -43,6 +47,7 @@
 #define NFC_BASE_ADDR_AXI       0xF7FF0000
 #define IRAM_BASE_ADDR          0xF8000000
 #define CS1_BASE_ADDR           0xF4000000
+#define SATA_BASE_ADDR		0x10000000
 #else
 #error "CPU_TYPE not defined"
 #endif
@@ -54,7 +59,7 @@
  */
 #define MMC_SDHC1_BASE_ADDR	(SPBA0_BASE_ADDR + 0x00004000)
 #define MMC_SDHC2_BASE_ADDR	(SPBA0_BASE_ADDR + 0x00008000)
-#define UART3_BASE_ADDR 	(SPBA0_BASE_ADDR + 0x0000C000)
+#define UART3_BASE		(SPBA0_BASE_ADDR + 0x0000C000)
 #define CSPI1_BASE_ADDR 	(SPBA0_BASE_ADDR + 0x00010000)
 #define SSI2_BASE_ADDR		(SPBA0_BASE_ADDR + 0x00014000)
 #define MMC_SDHC3_BASE_ADDR	(SPBA0_BASE_ADDR + 0x00020000)
@@ -83,8 +88,8 @@
 #define EPIT2_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000B0000)
 #define PWM1_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000B4000)
 #define PWM2_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000B8000)
-#define UART1_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000BC000)
-#define UART2_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000C0000)
+#define UART1_BASE		(AIPS1_BASE_ADDR + 0x000BC000)
+#define UART2_BASE		(AIPS1_BASE_ADDR + 0x000C0000)
 #define SRC_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000D0000)
 #define CCM_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000D4000)
 #define GPC_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000D8000)
@@ -93,6 +98,8 @@
 #define GPIO5_BASE_ADDR         (AIPS1_BASE_ADDR + 0x000DC000)
 #define GPIO6_BASE_ADDR         (AIPS1_BASE_ADDR + 0x000E0000)
 #define GPIO7_BASE_ADDR         (AIPS1_BASE_ADDR + 0x000E4000)
+#define I2C3_BASE_ADDR		(AIPS1_BASE_ADDR + 0x000EC000)
+#define UART4_BASE_ADDR         (AIPS1_BASE_ADDR + 0x000F0000)
 #endif
 /*
  * AIPS 2
@@ -100,6 +107,9 @@
 #define PLL1_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00080000)
 #define PLL2_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00084000)
 #define PLL3_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00088000)
+#ifdef	CONFIG_MX53
+#define PLL4_BASE_ADDR		(AIPS2_BASE_ADDR + 0x0008c000)
+#endif
 #define AHBMAX_BASE_ADDR	(AIPS2_BASE_ADDR + 0x00094000)
 #define IIM_BASE_ADDR		(AIPS2_BASE_ADDR + 0x00098000)
 #define CSU_BASE_ADDR		(AIPS2_BASE_ADDR + 0x0009C000)
@@ -129,6 +139,10 @@
 #define TVE_BASE_ADDR		(AIPS2_BASE_ADDR + 0x000F0000)
 #define VPU_BASE_ADDR		(AIPS2_BASE_ADDR + 0x000F4000)
 #define SAHARA_BASE_ADDR	(AIPS2_BASE_ADDR + 0x000F8000)
+
+#if defined(CONFIG_MX53)
+#define UART5_BASE_ADDR         (AIPS2_BASE_ADDR + 0x00090000)
+#endif
 
 /*
  * WEIM CSnGCR1
@@ -220,6 +234,36 @@
 #define CS0_32M_CS1_32M_CS2_32M_CS3_32M		3
 
 /*
+ * CSPI register definitions
+ */
+#define MXC_ECSPI
+#define MXC_CSPICTRL_EN		(1 << 0)
+#define MXC_CSPICTRL_MODE	(1 << 1)
+#define MXC_CSPICTRL_XCH	(1 << 2)
+#define MXC_CSPICTRL_CHIPSELECT(x)	(((x) & 0x3) << 12)
+#define MXC_CSPICTRL_BITCOUNT(x)	(((x) & 0xfff) << 20)
+#define MXC_CSPICTRL_PREDIV(x)	(((x) & 0xF) << 12)
+#define MXC_CSPICTRL_POSTDIV(x)	(((x) & 0xF) << 8)
+#define MXC_CSPICTRL_SELCHAN(x)	(((x) & 0x3) << 18)
+#define MXC_CSPICTRL_MAXBITS	0xfff
+#define MXC_CSPICTRL_TC		(1 << 7)
+#define MXC_CSPICTRL_RXOVF	(1 << 6)
+#define MXC_CSPIPERIOD_32KHZ	(1 << 15)
+#define MAX_SPI_BYTES	32
+
+/* Bit position inside CTRL register to be associated with SS */
+#define MXC_CSPICTRL_CHAN	18
+
+/* Bit position inside CON register to be associated with SS */
+#define MXC_CSPICON_POL		4
+#define MXC_CSPICON_PHA		0
+#define MXC_CSPICON_SSPOL	12
+#define MXC_SPI_BASE_ADDRESSES \
+	CSPI1_BASE_ADDR, \
+	CSPI2_BASE_ADDR, \
+	CSPI3_BASE_ADDR,
+
+/*
  * Number of GPIO pins per port
  */
 #define GPIO_NUM_PIN            32
@@ -281,8 +325,6 @@
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
-
-extern void imx_get_mac_from_fuse(unsigned char *mac);
 
 #define __REG(x)	(*((volatile u32 *)(x)))
 #define __REG16(x)	(*((volatile u16 *)(x)))
@@ -419,6 +461,24 @@ struct src {
 	u32	simr;
 };
 
+struct srtc_regs {
+	u32	lpscmr;		/* 0x00 */
+	u32	lpsclr;		/* 0x04 */
+	u32	lpsar;		/* 0x08 */
+	u32	lpsmcr;		/* 0x0c */
+	u32	lpcr;		/* 0x10 */
+	u32	lpsr;		/* 0x14 */
+	u32	lppdr;		/* 0x18 */
+	u32	lpgr;		/* 0x1c */
+	u32	hpcmr;		/* 0x20 */
+	u32	hpclr;		/* 0x24 */
+	u32	hpamr;		/* 0x28 */
+	u32	hpalr;		/* 0x2c */
+	u32	hpcr;		/* 0x30 */
+	u32	hpisr;		/* 0x34 */
+	u32	hpienr;		/* 0x38 */
+};
+
 /* CSPI registers */
 struct cspi_regs {
 	u32 rxdata;
@@ -452,6 +512,11 @@ struct iim_regs {
 		u32	fuse_regs[0x20];
 		u32	fuse_rsvd[0xe0];
 	} bank[4];
+};
+
+struct fuse_bank0_regs {
+	u32	fuse0_23[24];
+	u32	gp[8];
 };
 
 struct fuse_bank1_regs {

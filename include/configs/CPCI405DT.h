@@ -62,7 +62,6 @@
 #define CONFIG_LXT971_NO_SLEEP  1       /* disable sleep mode in LXT971 */
 #define CONFIG_RESET_PHY_R      1       /* use reset_phy() to disable phy sleep mode */
 
-#define CONFIG_NET_MULTI	1
 #undef  CONFIG_HAS_ETH1
 
 #define CONFIG_RTC_M48T35A	1		/* ST Electronics M48 timekeeper */
@@ -115,9 +114,6 @@
 #define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #undef	CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/

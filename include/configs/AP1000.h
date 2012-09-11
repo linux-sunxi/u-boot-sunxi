@@ -39,7 +39,6 @@
 
 #define CONFIG_SYS_HUSH_PARSER 1		/* use "hush" command parser	*/
 #define CONFIG_SYS_PROMPT		"0> "
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_COMMAND_EDIT	1
 #define CONFIG_COMPLETE_ADDRESSES 1
@@ -239,7 +238,6 @@
 #define CONFIG_SYS_JFFS2_NUM_BANKS	1
 #define CONFIG_SYS_JFFS2_FIRST_SECTOR	1
 
-#define CONFIG_NET_MULTI
 #define CONFIG_E1000
 
 #define CONFIG_SYS_ETH_DEV_FN		0x0800

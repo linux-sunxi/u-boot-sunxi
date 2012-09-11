@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the AT91SAM9M10G45EK board(and AT91SAM9G45EKES).
@@ -39,8 +39,6 @@
 
 #define CONFIG_AT91SAM9M10G45EK
 #define CONFIG_AT91FAMILY
-#define CONFIG_ARCH_CPU_INIT
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -58,17 +56,6 @@
 #define CONFIG_ATMEL_USART
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define	CONFIG_USART_ID			ATMEL_ID_SYS
-
-/*
- * This needs to be defined for the OHCI code to work but it is defined as
- * ATMEL_ID_UHPHS in the CPU specific header files.
- */
-#define ATMEL_ID_UHP		ATMEL_ID_UHPHS
-
-/*
- * Specify the clock enable bit in the PMC_SCER register.
- */
-#define ATMEL_PMC_UHP		AT91SAM926x_PMC_UHP
 
 /* LCD */
 #define CONFIG_LCD
@@ -107,7 +94,6 @@
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_IMI
 #undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_LOADS
 
 #define CONFIG_CMD_PING
@@ -128,7 +114,6 @@
 
 /* NAND flash */
 #ifdef CONFIG_CMD_NAND
-#define CONFIG_NAND_MAX_CHIPS			1
 #define CONFIG_NAND_ATMEL
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_SYS_NAND_BASE			ATMEL_BASE_CS3
@@ -145,18 +130,14 @@
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_RESET_PHY_R
 
 /* USB */
-#define CONFIG_USB_ATMEL
-#define CONFIG_USB_OHCI_NEW
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_ATMEL
+#define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	2
 #define CONFIG_DOS_PARTITION
-#define CONFIG_SYS_USB_OHCI_CPU_INIT
-#define CONFIG_SYS_USB_OHCI_REGS_BASE	ATMEL_BASE_HCI
-#define CONFIG_SYS_USB_OHCI_SLOT_NAME	"at91sam9g45"
-#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 #define CONFIG_USB_STORAGE
 
 #define CONFIG_SYS_LOAD_ADDR		0x22000000	/* load address */
@@ -181,7 +162,6 @@
 	"rw rootfstype=jffs2"
 
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 
 #define CONFIG_SYS_PROMPT		"U-Boot> "
 #define CONFIG_SYS_CBSIZE		256
@@ -191,17 +171,10 @@
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
-
-#define CONFIG_STACKSIZE	(32*1024)	/* regular stack */
-
-#ifdef CONFIG_USE_IRQ
-#error CONFIG_USE_IRQ not supported
-#endif
 
 #endif

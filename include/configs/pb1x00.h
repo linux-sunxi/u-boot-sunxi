@@ -46,14 +46,13 @@
 #endif
 #endif
 
+#define CONFIG_SYS_LITTLE_ENDIAN
+
 #define CONFIG_ETHADDR		DE:AD:BE:EF:01:01    /* Ethernet address */
 
 #define CONFIG_BOOTDELAY	2	/* autoboot after 2 seconds	*/
 
 #define CONFIG_BAUDRATE		115200
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define	CONFIG_TIMESTAMP		/* Print image info with timestamp */
 #undef	CONFIG_BOOTARGS
@@ -126,7 +125,6 @@
 
 #define CONFIG_NR_DRAM_BANKS	2
 
-#define CONFIG_NET_MULTI
 
 #define CONFIG_MEMSIZE_IN_BYTES
 

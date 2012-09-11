@@ -572,6 +572,22 @@ void prcm_init(void)
 	}
 
 	if (get_cpu_family() == CPU_OMAP36XX) {
+		/*
+		 * In warm reset conditions on OMAP36xx/AM/DM37xx
+		 * the rom code incorrectly sets the DPLL4 clock
+		 * input divider to /6.5. Section 3.5.3.3.3.2.1 of
+		 * the AM/DM37x TRM explains that the /6.5 divider
+		 * is used only when the input clock is 13MHz.
+		 *
+		 * If the part is in this cpu family *and* the input
+		 * clock *is not* 13 MHz, then reset the DPLL4 clock
+		 * input divider to /1 as it should never set to /6.5
+		 * in this case.
+		 */
+		if (sys_clkin_sel != 1) /* 13 MHz */
+			/* Bit 8: DPLL4_CLKINP_DIV */
+			sr32(&prm_base->clksrc_ctrl, 8, 1, 0);
+
 		/* Unlock MPU DPLL (slows things down, and needed later) */
 		sr32(&prcm_base->clken_pll_mpu, 0, 3, PLL_LOW_POWER_BYPASS);
 		wait_on_value(ST_MPU_CLK, 0, &prcm_base->idlest_pll_mpu,
@@ -624,6 +640,26 @@ void prcm_init(void)
 	sr32(&prcm_base->clksel_wkup, 0, 1, 1);
 
 	sdelay(5000);
+}
+
+/*
+ * Enable usb ehci uhh, tll clocks
+ */
+void ehci_clocks_enable(void)
+{
+	struct prcm *prcm_base = (struct prcm *)PRCM_BASE;
+
+	/* Enable USBHOST_L3_ICLK (USBHOST_MICLK) */
+	sr32(&prcm_base->iclken_usbhost, 0, 1, 1);
+	/*
+	 * Enable USBHOST_48M_FCLK (USBHOST_FCLK1)
+	 * and USBHOST_120M_FCLK (USBHOST_FCLK2)
+	 */
+	sr32(&prcm_base->fclken_usbhost, 0, 2, 3);
+	/* Enable USBTTL_ICLK */
+	sr32(&prcm_base->iclken3_core, 2, 1, 1);
+	/* Enable USBTTL_FCLK */
+	sr32(&prcm_base->fclken3_core, 2, 1, 1);
 }
 
 /******************************************************************************

@@ -29,6 +29,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+
+#define MACH_TYPE_MPL_VCMA9	227
+
 /*
  * High Level Configuration Options
  * (easy to change)
@@ -37,6 +40,7 @@
 #define CONFIG_S3C24X0		/* in a SAMSUNG S3C24x0-type SoC */
 #define CONFIG_S3C2410		/* specifically a SAMSUNG S3C2410 SoC */
 #define CONFIG_VCMA9		/* on a MPL VCMA9 Board  */
+#define CONFIG_MACH_TYPE	MACH_TYPE_MPL_VCMA9 /* Machine type */
 
 #define CONFIG_SYS_TEXT_BASE	0x0
 
@@ -44,8 +48,6 @@
 
 /* input clock of PLL (VCMA9 has 12MHz input clock) */
 #define CONFIG_SYS_CLK_FREQ	12000000
-
-#undef CONFIG_USE_IRQ		/* we don't need IRQ/FIQ stuff */
 
 #define CONFIG_CMDLINE_TAG	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -76,10 +78,9 @@
 #define CONFIG_CMD_BSP
 #define CONFIG_CMD_NAND
 
-#define BOARD_LATE_INIT
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #define CONFIG_CMDLINE_EDITING
 
 /*
@@ -111,7 +112,6 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900			/* we have a CS8900 on-board */
 #define CONFIG_CS8900_BASE		0x20000300
 #define CONFIG_CS8900_BUS16
@@ -166,8 +166,7 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
-/* to be activated as soon as s3c24x0 has print_cpuinfo support */
-/*#define CONFIG_DISPLAY_CPUINFO*/			/* Display cpu info */
+#define CONFIG_DISPLAY_CPUINFO				/* Display cpu info */
 #define CONFIG_DISPLAY_BOARDINFO			/* Display board info */
 
 #define CONFIG_SYS_MEMTEST_START	0x30000000	/* memtest works on */
@@ -179,9 +178,6 @@
 /* we configure PWM Timer 4 to 1ms 1000Hz  */
 #define CONFIG_SYS_HZ			1000
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /* support additional compression methods */
 #define CONFIG_BZIP2
 #define CONFIG_LZO
@@ -192,16 +188,6 @@
 #define VERSION_TAG "unstable"
 #define CONFIG_IDENT_STRING "\n(c) 2003 - 2011 by MPL AG Switzerland, " \
 			    "MEV-10080-001 " VERSION_TAG
-
-/*
- * Stack sizes
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */
@@ -234,7 +220,6 @@
 #define CONFIG_NAND_S3C2410
 #define CONFIG_SYS_S3C2410_NAND_HWECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define NAND_MAX_CHIPS			1
 #define CONFIG_SYS_NAND_BASE		0x4E000000
 #define CONFIG_S3C24XX_CUSTOM_NAND_TIMING
 #define CONFIG_S3C24XX_TACLS		1

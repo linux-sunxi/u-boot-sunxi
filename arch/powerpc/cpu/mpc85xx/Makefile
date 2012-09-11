@@ -67,8 +67,10 @@ COBJS-$(CONFIG_P2020)	+= ddr-gen3.o
 COBJS-$(CONFIG_PPC_P2040)	+= ddr-gen3.o
 COBJS-$(CONFIG_PPC_P2041)	+= ddr-gen3.o
 COBJS-$(CONFIG_PPC_P3041)	+= ddr-gen3.o
+COBJS-$(CONFIG_PPC_P3060)	+= ddr-gen3.o
 COBJS-$(CONFIG_PPC_P4080)	+= ddr-gen3.o
 COBJS-$(CONFIG_PPC_P5020)	+= ddr-gen3.o
+COBJS-$(CONFIG_BSC9131)		+= ddr-gen3.o
 
 COBJS-$(CONFIG_CPM2)	+= ether_fcc.o
 COBJS-$(CONFIG_OF_LIBFDT) += fdt.o
@@ -81,6 +83,7 @@ COBJS-$(CONFIG_SYS_DPAA_QBMAN) += portals.o
 COBJS-$(CONFIG_PPC_P2040) += p2041_ids.o
 COBJS-$(CONFIG_PPC_P2041) += p2041_ids.o
 COBJS-$(CONFIG_PPC_P3041) += p3041_ids.o
+COBJS-$(CONFIG_PPC_P3060) += p3060_ids.o
 COBJS-$(CONFIG_PPC_P4080) += p4080_ids.o
 COBJS-$(CONFIG_PPC_P5020) += p5020_ids.o
 
@@ -114,6 +117,7 @@ COBJS-$(CONFIG_P2020)	+= p2020_serdes.o
 COBJS-$(CONFIG_PPC_P2040) += p2041_serdes.o
 COBJS-$(CONFIG_PPC_P2041) += p2041_serdes.o
 COBJS-$(CONFIG_PPC_P3041) += p3041_serdes.o
+COBJS-$(CONFIG_PPC_P3060) += p3060_serdes.o
 COBJS-$(CONFIG_PPC_P4080) += p4080_serdes.o
 COBJS-$(CONFIG_PPC_P5020) += p5020_serdes.o
 
@@ -125,6 +129,9 @@ COBJS	+= interrupts.o
 COBJS	+= speed.o
 COBJS	+= tlb.o
 COBJS	+= traps.o
+
+# Stub implementations of cache management functions for USB
+COBJS += cache.o
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))

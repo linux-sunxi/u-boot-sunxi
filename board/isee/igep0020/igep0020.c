@@ -29,6 +29,7 @@
 #include <asm/arch/mmc_host_def.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/omap_gpmc.h>
 #include <asm/mach-types.h>
 #include "igep0020.h"
 
@@ -51,13 +52,51 @@ static const u32 gpmc_lan_config[] = {
 int board_init(void)
 {
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
-	/* board id for Linux */
-	gd->bd->bi_arch_number = MACH_TYPE_IGEP0020;
 	/* boot param addr */
 	gd->bd->bi_boot_params = (OMAP34XX_SDRC_CS0 + 0x100);
 
 	return 0;
 }
+
+#ifdef CONFIG_SPL_BUILD
+/*
+ * Routine: omap_rev_string
+ * Description: For SPL builds output board rev
+ */
+void omap_rev_string(void)
+{
+}
+
+/*
+ * Routine: get_board_mem_timings
+ * Description: If we use SPL then there is no x-loader nor config header
+ * so we have to setup the DDR timings ourself on both banks.
+ */
+void get_board_mem_timings(u32 *mcfg, u32 *ctrla, u32 *ctrlb, u32 *rfr_ctrl,
+		u32 *mr)
+{
+	*mr = MICRON_V_MR_165;
+#ifdef CONFIG_BOOT_NAND
+	*mcfg = MICRON_V_MCFG_200(256 << 20);
+	*ctrla = MICRON_V_ACTIMA_200;
+	*ctrlb = MICRON_V_ACTIMB_200;
+	*rfr_ctrl = SDP_3430_SDRC_RFR_CTRL_200MHz;
+#else
+	if (get_cpu_family() == CPU_OMAP34XX) {
+		*mcfg = NUMONYX_V_MCFG_165(256 << 20);
+		*ctrla = NUMONYX_V_ACTIMA_165;
+		*ctrlb = NUMONYX_V_ACTIMB_165;
+		*rfr_ctrl = SDP_3430_SDRC_RFR_CTRL_165MHz;
+
+	} else {
+		*mcfg = NUMONYX_V_MCFG_200(256 << 20);
+		*ctrla = NUMONYX_V_ACTIMA_200;
+		*ctrlb = NUMONYX_V_ACTIMB_200;
+		*rfr_ctrl = SDP_3430_SDRC_RFR_CTRL_200MHz;
+	}
+#endif
+}
+#endif
 
 /*
  * Routine: setup_net_chip
@@ -92,10 +131,10 @@ static void setup_net_chip(void)
 }
 #endif
 
-#ifdef CONFIG_GENERIC_MMC
+#if defined(CONFIG_GENERIC_MMC) && !defined(CONFIG_SPL_BUILD)
 int board_mmc_init(bd_t *bis)
 {
-	omap_mmc_init(0);
+	omap_mmc_init(0, 0, 0);
 	return 0;
 }
 #endif

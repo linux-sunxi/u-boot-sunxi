@@ -39,8 +39,10 @@
 #error "SOC Name not defined"
 #endif /* CONFIG_KW88F6281 */
 
+#include <asm/arch/kirkwood.h>
 #define CONFIG_ARM926EJS	1	/* Basic Architecture */
-
+#define CONFIG_SYS_CACHELINE_SIZE	32
+				/* default Dcache Line length for kirkwood */
 #define CONFIG_MD5	/* get_random_hex on krikwood needs MD5 support */
 #define CONFIG_KIRKWOOD_EGIGA_INIT	/* Enable GbePort0/1 for kernel */
 #define CONFIG_KIRKWOOD_RGMII_PAD_1V8	/* Set RGMII Pad voltage to 1.8V */
@@ -80,9 +82,15 @@
 #ifdef CONFIG_CMD_SF
 #define CONFIG_HARD_SPI			1
 #define CONFIG_KIRKWOOD_SPI		1
-#define CONFIG_ENV_SPI_BUS		0
-#define CONFIG_ENV_SPI_CS		0
-#define CONFIG_ENV_SPI_MAX_HZ		50000000	/*50Mhz */
+#ifndef CONFIG_ENV_SPI_BUS
+# define CONFIG_ENV_SPI_BUS		0
+#endif
+#ifndef CONFIG_ENV_SPI_CS
+# define CONFIG_ENV_SPI_CS		0
+#endif
+#ifndef CONFIG_ENV_SPI_MAX_HZ
+# define CONFIG_ENV_SPI_MAX_HZ		50000000
+#endif
 #endif
 
 /*
@@ -91,7 +99,6 @@
 #ifdef CONFIG_CMD_NET
 #define CONFIG_CMD_MII
 #define CONFIG_NETCONSOLE	/* include NetConsole support   */
-#define CONFIG_NET_MULTI	/* specify more that one ports available */
 #define CONFIG_MII		/* expose smi ove miiphy interface */
 #define CONFIG_MVGBE		/* Enable Marvell Gbe Controller Driver */
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN	/* detect link using phy */
@@ -103,7 +110,7 @@
  * USB/EHCI
  */
 #ifdef CONFIG_CMD_USB
-#define CONFIG_USB_EHCI_KIRKWOOD
+#define CONFIG_USB_EHCI_MARVELL
 #define CONFIG_EHCI_IS_TDI
 #endif /* CONFIG_CMD_USB */
 

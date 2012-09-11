@@ -28,6 +28,7 @@
 #include <common.h>
 #include <command.h>
 #include <asm/byteorder.h>
+#include <asm/unaligned.h>
 #include <part.h>
 #include <usb.h>
 
@@ -149,7 +150,8 @@ void usb_display_class_sub(unsigned char dclass, unsigned char subclass,
 
 void usb_display_string(struct usb_device *dev, int index)
 {
-	char buffer[256];
+	ALLOC_CACHE_ALIGN_BUFFER(char, buffer, 256);
+
 	if (index != 0) {
 		if (usb_string(dev, index, &buffer[0], 256) > 0)
 			printf("String: \"%s\"", buffer);
@@ -240,7 +242,7 @@ void usb_display_ep_desc(struct usb_endpoint_descriptor *epdesc)
 		printf("Interrupt");
 		break;
 	}
-	printf(" MaxPacket %d", epdesc->wMaxPacketSize);
+	printf(" MaxPacket %d", get_unaligned(&epdesc->wMaxPacketSize));
 	if ((epdesc->bmAttributes & 0x03) == 0x3)
 		printf(" Interval %dms", epdesc->bInterval);
 	printf("\n");
@@ -281,7 +283,7 @@ static inline char *portspeed(int speed)
 void usb_show_tree_graph(struct usb_device *dev, char *pre)
 {
 	int i, index;
-	int has_child, last_child, port;
+	int has_child, last_child;
 
 	index = strlen(pre);
 	printf(" %s", pre);
@@ -300,7 +302,6 @@ void usb_show_tree_graph(struct usb_device *dev, char *pre)
 				/* found our pointer, see if we have a
 				 * little sister
 				 */
-				port = i;
 				while (i++ < dev->parent->maxchild) {
 					if (dev->parent->children[i] != NULL) {
 						/* found a sister */
@@ -379,7 +380,7 @@ int do_usbboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		boot_device = argv[2];
 		break;
 	default:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	}
 
 	if (!boot_device) {
@@ -509,10 +510,11 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if ((strncmp(argv[1], "reset", 5) == 0) ||
 		 (strncmp(argv[1], "start", 5) == 0)) {
+		bootstage_mark_name(BOOTSTAGE_ID_USB_START, "usb_start");
 		usb_stop();
 		printf("(Re)start USB...\n");
 		i = usb_init();
@@ -694,18 +696,19 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 	}
 #endif /* CONFIG_USB_STORAGE */
-	return cmd_usage(cmdtp);
+	return CMD_RET_USAGE;
 }
 
 #ifdef CONFIG_USB_STORAGE
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
 	"USB sub-system",
-	"reset - reset (rescan) USB controller\n"
-	"usb stop [f]  - stop USB [f]=force stop\n"
-	"usb tree  - show USB device tree\n"
+	"start - start (scan) USB controller\n"
+	"usb reset - reset (rescan) USB controller\n"
+	"usb stop [f] - stop USB [f]=force stop\n"
+	"usb tree - show USB device tree\n"
 	"usb info [dev] - show available USB devices\n"
-	"usb storage  - show details of USB storage devices\n"
+	"usb storage - show details of USB storage devices\n"
 	"usb dev [dev] - show or set current USB storage device\n"
 	"usb part [dev] - print partition table of one or all USB storage"
 	" devices\n"
@@ -726,8 +729,9 @@ U_BOOT_CMD(
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
 	"USB sub-system",
-	"reset - reset (rescan) USB controller\n"
-	"usb  tree  - show USB device tree\n"
-	"usb  info [dev] - show available USB devices"
+	"start - start (scan) USB controller\n"
+	"usb reset - reset (rescan) USB controller\n"
+	"usb tree - show USB device tree\n"
+	"usb info [dev] - show available USB devices"
 );
 #endif

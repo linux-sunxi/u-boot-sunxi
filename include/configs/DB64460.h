@@ -78,7 +78,6 @@
 /*#define CONFIG_SYS_HUSH_PARSER */
 #undef CONFIG_SYS_HUSH_PARSER
 
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * The following defines let you select what serial you want to use
@@ -96,7 +95,6 @@
 #define CONFIG_MPSC_PORT	0
 
 /* to change the default ethernet port, use this define (options: 0, 1, 2) */
-#define CONFIG_NET_MULTI
 #define MV_ETH_DEVS 3
 
 /* #undef CONFIG_ETHER_PORT_MII	 */
@@ -140,7 +138,7 @@ ip=${ipaddr}:${serverip}${bootargs_end}; bootm 0x400000;\0"
 
 #define CONFIG_SERIAL		"No. 1"
 #define CONFIG_SERVERIP		10.2.1.126
-#define CONFIG_ROOTPATH /mnt/yellow_dog_mini
+#define CONFIG_ROOTPATH		"/mnt/yellow_dog_mini"
 
 
 #define CONFIG_TESTDRAMDATA	y

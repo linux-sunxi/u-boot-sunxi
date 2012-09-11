@@ -109,7 +109,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define DCSR13		0x40000034  /* DMA Control / Status Register for Channel 13 */
 #define DCSR14		0x40000038  /* DMA Control / Status Register for Channel 14 */
 #define DCSR15		0x4000003c  /* DMA Control / Status Register for Channel 15 */
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define DCSR16		0x40000040  /* DMA Control / Status Register for Channel 16 */
 #define DCSR17		0x40000044  /* DMA Control / Status Register for Channel 17 */
 #define DCSR18		0x40000048  /* DMA Control / Status Register for Channel 18 */
@@ -126,7 +126,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define DCSR29		0x40000074  /* DMA Control / Status Register for Channel 29 */
 #define DCSR30		0x40000078  /* DMA Control / Status Register for Channel 30 */
 #define DCSR31		0x4000007c  /* DMA Control / Status Register for Channel 31 */
-#endif /* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif /* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 #define DCSR(x)		(0x40000000 | ((x) << 2))
 
@@ -134,7 +134,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define DCSR_NODESC	(1 << 30)	/* No-Descriptor Fetch (read / write) */
 #define DCSR_STOPIRQEN	(1 << 29)	/* Stop Interrupt Enable (read / write) */
 
-#if defined(CONFIG_PXA27X) || defined (CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define DCSR_EORIRQEN	(1 << 28)	/* End of Receive Interrupt Enable (R/W) */
 #define DCSR_EORJMPEN	(1 << 27)	/* Jump to next descriptor on EOR */
 #define DCSR_EORSTOPEN	(1 << 26)	/* STOP on an EOR */
@@ -315,117 +315,6 @@ typedef void		(*ExcpHndlr) (void) ;
 
 /******************************************************************************/
 /*
- * UARTs
- */
-/* Full Function UART (FFUART) */
-#define FFUART		FFRBR
-#define FFRBR		0x40100000  /* Receive Buffer Register (read only) */
-#define FFTHR		0x40100000  /* Transmit Holding Register (write only) */
-#define FFIER		0x40100004  /* Interrupt Enable Register (read/write) */
-#define FFIIR		0x40100008  /* Interrupt ID Register (read only) */
-#define FFFCR		0x40100008  /* FIFO Control Register (write only) */
-#define FFLCR		0x4010000C  /* Line Control Register (read/write) */
-#define FFMCR		0x40100010  /* Modem Control Register (read/write) */
-#define FFLSR		0x40100014  /* Line Status Register (read only) */
-#define FFMSR		0x40100018  /* Modem Status Register (read only) */
-#define FFSPR		0x4010001C  /* Scratch Pad Register (read/write) */
-#define FFISR		0x40100020  /* Infrared Selection Register (read/write) */
-#define FFDLL		0x40100000  /* Divisor Latch Low Register (DLAB = 1) (read/write) */
-#define FFDLH		0x40100004  /* Divisor Latch High Register (DLAB = 1) (read/write) */
-
-/* Bluetooth UART (BTUART) */
-#define BTUART		BTRBR
-#define BTRBR		0x40200000  /* Receive Buffer Register (read only) */
-#define BTTHR		0x40200000  /* Transmit Holding Register (write only) */
-#define BTIER		0x40200004  /* Interrupt Enable Register (read/write) */
-#define BTIIR		0x40200008  /* Interrupt ID Register (read only) */
-#define BTFCR		0x40200008  /* FIFO Control Register (write only) */
-#define BTLCR		0x4020000C  /* Line Control Register (read/write) */
-#define BTMCR		0x40200010  /* Modem Control Register (read/write) */
-#define BTLSR		0x40200014  /* Line Status Register (read only) */
-#define BTMSR		0x40200018  /* Modem Status Register (read only) */
-#define BTSPR		0x4020001C  /* Scratch Pad Register (read/write) */
-#define BTISR		0x40200020  /* Infrared Selection Register (read/write) */
-#define BTDLL		0x40200000  /* Divisor Latch Low Register (DLAB = 1) (read/write) */
-#define BTDLH		0x40200004  /* Divisor Latch High Register (DLAB = 1) (read/write) */
-
-/* Standard UART (STUART) */
-#define STUART		STRBR
-#define STRBR		0x40700000  /* Receive Buffer Register (read only) */
-#define STTHR		0x40700000  /* Transmit Holding Register (write only) */
-#define STIER		0x40700004  /* Interrupt Enable Register (read/write) */
-#define STIIR		0x40700008  /* Interrupt ID Register (read only) */
-#define STFCR		0x40700008  /* FIFO Control Register (write only) */
-#define STLCR		0x4070000C  /* Line Control Register (read/write) */
-#define STMCR		0x40700010  /* Modem Control Register (read/write) */
-#define STLSR		0x40700014  /* Line Status Register (read only) */
-#define STMSR		0x40700018  /* Reserved */
-#define STSPR		0x4070001C  /* Scratch Pad Register (read/write) */
-#define STISR		0x40700020  /* Infrared Selection Register (read/write) */
-#define STDLL		0x40700000  /* Divisor Latch Low Register (DLAB = 1) (read/write) */
-#define STDLH		0x40700004  /* Divisor Latch High Register (DLAB = 1) (read/write) */
-
-#define IER_DMAE	(1 << 7)	/* DMA Requests Enable */
-#define IER_UUE		(1 << 6)	/* UART Unit Enable */
-#define IER_NRZE	(1 << 5)	/* NRZ coding Enable */
-#define IER_RTIOE	(1 << 4)	/* Receiver Time Out Interrupt Enable */
-#define IER_MIE		(1 << 3)	/* Modem Interrupt Enable */
-#define IER_RLSE	(1 << 2)	/* Receiver Line Status Interrupt Enable */
-#define IER_TIE		(1 << 1)	/* Transmit Data request Interrupt Enable */
-#define IER_RAVIE	(1 << 0)	/* Receiver Data Available Interrupt Enable */
-
-#define IIR_FIFOES1	(1 << 7)	/* FIFO Mode Enable Status */
-#define IIR_FIFOES0	(1 << 6)	/* FIFO Mode Enable Status */
-#define IIR_TOD		(1 << 3)	/* Time Out Detected */
-#define IIR_IID2	(1 << 2)	/* Interrupt Source Encoded */
-#define IIR_IID1	(1 << 1)	/* Interrupt Source Encoded */
-#define IIR_IP		(1 << 0)	/* Interrupt Pending (active low) */
-
-#define FCR_ITL2	(1 << 7)	/* Interrupt Trigger Level */
-#define FCR_ITL1	(1 << 6)	/* Interrupt Trigger Level */
-#define FCR_RESETTF	(1 << 2)	/* Reset Transmitter FIFO */
-#define FCR_RESETRF	(1 << 1)	/* Reset Receiver FIFO */
-#define FCR_TRFIFOE	(1 << 0)	/* Transmit and Receive FIFO Enable */
-#define FCR_ITL_1	(0)
-#define FCR_ITL_8	(FCR_ITL1)
-#define FCR_ITL_16	(FCR_ITL2)
-#define FCR_ITL_32	(FCR_ITL2|FCR_ITL1)
-
-#define LCR_DLAB	(1 << 7)	/* Divisor Latch Access Bit */
-#define LCR_SB		(1 << 6)	/* Set Break */
-#define LCR_STKYP	(1 << 5)	/* Sticky Parity */
-#define LCR_EPS		(1 << 4)	/* Even Parity Select */
-#define LCR_PEN		(1 << 3)	/* Parity Enable */
-#define LCR_STB		(1 << 2)	/* Stop Bit */
-#define LCR_WLS1	(1 << 1)	/* Word Length Select */
-#define LCR_WLS0	(1 << 0)	/* Word Length Select */
-
-#define LSR_FIFOE	(1 << 7)	/* FIFO Error Status */
-#define LSR_TEMT	(1 << 6)	/* Transmitter Empty */
-#define LSR_TDRQ	(1 << 5)	/* Transmit Data Request */
-#define LSR_BI		(1 << 4)	/* Break Interrupt */
-#define LSR_FE		(1 << 3)	/* Framing Error */
-#define LSR_PE		(1 << 2)	/* Parity Error */
-#define LSR_OE		(1 << 1)	/* Overrun Error */
-#define LSR_DR		(1 << 0)	/* Data Ready */
-
-#define MCR_LOOP	(1 << 4)	/* */
-#define MCR_OUT2	(1 << 3)	/* force MSR_DCD in loopback mode */
-#define MCR_OUT1	(1 << 2)	/* force MSR_RI in loopback mode */
-#define MCR_RTS		(1 << 1)	/* Request to Send */
-#define MCR_DTR		(1 << 0)	/* Data Terminal Ready */
-
-#define MSR_DCD		(1 << 7)	/* Data Carrier Detect */
-#define MSR_RI		(1 << 6)	/* Ring Indicator */
-#define MSR_DSR		(1 << 5)	/* Data Set Ready */
-#define MSR_CTS		(1 << 4)	/* Clear To Send */
-#define MSR_DDCD	(1 << 3)	/* Delta Data Carrier Detect */
-#define MSR_TERI	(1 << 2)	/* Trailing Edge Ring Indicator */
-#define MSR_DDSR	(1 << 1)	/* Delta Data Set Ready */
-#define MSR_DCTS	(1 << 0)	/* Delta Clear To Send */
-
-/******************************************************************************/
-/*
  * IrSR (Infrared Selection Register)
  */
 #define IrSR_OFFSET 0x20
@@ -549,7 +438,7 @@ typedef void		(*ExcpHndlr) (void) ;
 /*
  * USB Device Controller
  */
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 
 #define UDCCR		0x40600000	/* UDC Control Register */
 #define UDCCR_UDE	(1 << 0)		/* UDC enable */
@@ -756,7 +645,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UDCOTGICR_IEIDR		(1 << 1)	/* OTG ID Change Rising Edge Interrupt Enable */
 #define UDCOTGICR_IEIDF		(1 << 0)	/* OTG ID Change Falling Edge Interrupt Enable */
 
-#define UDCCSN(x)	__REG2(0x40600100, (x) << 2)
+#define UDCCSN(x)	(0x40600100 + ((x) << 2))
 #define UDCCSR0		0x40600100 /* UDC Control/Status register - Endpoint 0 */
 
 #define UDCCSR0_SA	(1 << 7)	/* Setup Active */
@@ -804,7 +693,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UDCCSR_PC	(1 << 1)	/* Packet Complete */
 #define UDCCSR_FS	(1 << 0)	/* FIFO needs service */
 
-#define UDCBCN(x)	__REG2(0x40600200, (x)<<2)
+#define UDCBCN(x)	(0x40600200 + ((x) << 2))
 #define UDCBCR0         0x40600200 /* Byte Count Register - EP0 */
 #define UDCBCRA         0x40600204 /* Byte Count Register - EPA */
 #define UDCBCRB         0x40600208 /* Byte Count Register - EPB */
@@ -830,7 +719,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UDCBCRW         0x40600258 /* Byte Count Register - EPW */
 #define UDCBCRX         0x4060025C /* Byte Count Register - EPX */
 
-#define UDCDN(x)	__REG2(0x40600300, (x)<<2)
+#define UDCDN(x)	(0x40600300 + ((x) << 2))
 #define UDCDR0          0x40600300 /* Data Register - EP0 */
 #define UDCDRA          0x40600304 /* Data Register - EPA */
 #define UDCDRB          0x40600308 /* Data Register - EPB */
@@ -856,7 +745,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UDCDRW          0x40600358 /* Data Register - EPW */
 #define UDCDRX          0x4060035C /* Data Register - EPX */
 
-#define UDCCN(x)	__REG2(0x40600400, (x)<<2)
+#define UDCCN(x)	(0x40600400 + ((x) << 2))
 #define UDCCRA          0x40600404 /* Configuration register EPA */
 #define UDCCRB          0x40600408 /* Configuration register EPB */
 #define UDCCRC          0x4060040C /* Configuration register EPC */
@@ -908,9 +797,9 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UDCCSR_WR_MASK		(UDCCSR_DME|UDCCSR_FST)
 #define UDC_BCR_MASK		(0x3ff)
 
-#endif /* CONFIG_PXA27X */
+#endif /* CONFIG_CPU_PXA27X */
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 
 /******************************************************************************/
 /*
@@ -945,6 +834,8 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UHCHR		0x4C000064
 #define UHCHIE		0x4C000068
 #define UHCHIT		0x4C00006C
+
+#define UHCCOMS_HCR	(1<<0)
 
 #define UHCHR_FSBIR	(1<<0)
 #define UHCHR_FHR	(1<<1)
@@ -981,7 +872,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define UP2OCR_CPVPE	(1<<1)
 #define UP2OCR_CPVEN	(1<<0)
 
-#endif	/* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif	/* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 /******************************************************************************/
 /*
@@ -1034,7 +925,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define OWER		0x40A00018  /* OS Timer Watchdog Enable Register */
 #define OIER		0x40A0001C  /* OS Timer Interrupt Enable Register */
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define OSCR4		0x40A00040  /* OS Timer Counter Register 4 */
 #define OSCR5		0x40A00044  /* OS Timer Counter Register 5 */
 #define OSCR6		0x40A00048  /* OS Timer Counter Register 6 */
@@ -1062,7 +953,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define OMCR10		0x40A000D8  /* OS Match Control Register 10 */
 #define OMCR11		0x40A000DC  /* OS Match Control Register 11 */
 
-#endif /* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif /* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 #define OSSR_M4		(1 << 4)	/* Match status channel 4 */
 #define OSSR_M3		(1 << 3)	/* Match status channel 3 */
@@ -1163,7 +1054,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define CKEN4_SSP3	(1 << 4)  /* SSP3 Unit Clock Enable */
 
 #define CCCR_N_MASK	0x0380		/* Run Mode Frequency to Turbo Mode Frequency Multiplier */
-#if !defined(CONFIG_PXA27X)
+#if !defined(CONFIG_CPU_PXA27X)
 #define CCCR_M_MASK	0x0060		/* Memory Frequency to Run Mode Frequency Multiplier */
 #endif
 #define CCCR_L_MASK	0x001f		/* Crystal Frequency to Memory Frequency Multiplier */
@@ -1182,7 +1073,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define CKEN13_FICP	(1 << 13)	/* FICP Unit Clock Enable */
 #define CKEN12_MMC	(1 << 12)	/* MMC Unit Clock Enable */
 #define CKEN11_USB	(1 << 11)	/* USB Unit Clock Enable */
-#if defined(CONFIG_PXA27X)
+#if defined(CONFIG_CPU_PXA27X)
 #define CKEN10_USBHOST	(1 << 10)	/* USB Host Unit Clock Enable */
 #define CKEN24_CAMERA	(1 << 24)	/* Camera Unit Clock Enable */
 #endif
@@ -1198,7 +1089,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define OSCC_OON	(1 << 1)	/* 32.768kHz OON (write-once only bit) */
 #define OSCC_OOK	(1 << 0)	/* 32.768kHz OOK (read-only bit) */
 
-#if !defined(CONFIG_PXA27X)
+#if !defined(CONFIG_CPU_PXA27X)
 #define	 CCCR_L09      (0x1F)
 #define	 CCCR_L27      (0x1)
 #define	 CCCR_L32      (0x2)
@@ -1231,7 +1122,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define PWM_PWDUTY1	0x40C00004  /* PWM 1 Duty Cycle Register */
 #define PWM_PERVAL1	0x40C00008  /* PWM 1 Period Control Register */
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define PWM_CTRL2	0x40B00010  /* PWM 2 Control Register */
 #define PWM_PWDUTY2	0x40B00014  /* PWM 2 Duty Cycle Register */
 #define PWM_PERVAL2	0x40B00018  /* PWM 2 Period Control Register */
@@ -1239,7 +1130,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define PWM_CTRL3	0x40C00010  /* PWM 3 Control Register */
 #define PWM_PWDUTY3	0x40C00014  /* PWM 3 Duty Cycle Register */
 #define PWM_PERVAL3	0x40C00018  /* PWM 3 Period Control Register */
-#endif /* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif /* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 /*
  * Interrupt Controller
@@ -1251,14 +1142,14 @@ typedef void		(*ExcpHndlr) (void) ;
 #define ICPR		0x40D00010  /* Interrupt Controller Pending Register */
 #define ICCR		0x40D00014  /* Interrupt Controller Control Register */
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define ICHP		0x40D00018  /* Interrupt Controller Highest Priority Register */
 #define ICIP2		0x40D0009C  /* Interrupt Controller IRQ Pending Register 2 */
 #define ICMR2		0x40D000A0  /* Interrupt Controller Mask Register 2 */
 #define ICLR2		0x40D000A4  /* Interrupt Controller Level Register 2 */
 #define ICFP2		0x40D000A8  /* Interrupt Controller FIQ Pending Register 2 */
 #define ICPR2		0x40D000AC  /* Interrupt Controller Pending Register 2 */
-#endif /* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif /* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 /******************************************************************************/
 /*
@@ -1299,7 +1190,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define GAFR2_L		0x40E00064  /* GPIO Alternate Function Select Register GPIO<79:64> */
 #define GAFR2_U		0x40E00068  /* GPIO Alternate Function Select Register GPIO 80 */
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define GPLR3		0x40E00100  /* GPIO Pin-Level Register GPIO<127:96> */
 #define GPDR3		0x40E0010C  /* GPIO Pin Direction Register GPIO<127:96> */
 #define GPSR3		0x40E00118  /* GPIO Pin Output Set Register GPIO<127:96> */
@@ -1309,7 +1200,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define GEDR3		0x40E00148  /* GPIO Edge Detect Status Register GPIO<127:96> */
 #define GAFR3_L		0x40E0006C  /* GPIO Alternate Function Select Register GPIO<111:96> */
 #define GAFR3_U		0x40E00070  /* GPIO Alternate Function Select Register GPIO<127:112> */
-#endif /* CONFIG_PXA27X || CONFIG_CPU_MONAHANS */
+#endif /* CONFIG_CPU_PXA27X || CONFIG_CPU_MONAHANS */
 
 #ifdef CONFIG_CPU_MONAHANS
 #define GSDR0		0x40E00400 /* Bit-wise Set of GPDR[31:0] */
@@ -1355,7 +1246,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define _GEDR(x)	(0x40E00048 + (((x) & 0x60) >> 3))
 #define _GAFR(x)	(0x40E00054 + (((x) & 0x70) >> 2))
 
-#if defined(CONFIG_PXA27X) || defined(CONFIG_CPU_MONAHANS)
+#if defined(CONFIG_CPU_PXA27X) || defined(CONFIG_CPU_MONAHANS)
 #define GPLR(x)		(((((x) & 0x7f) < 96) ? _GPLR(x) : GPLR3))
 #define GPDR(x)		(((((x) & 0x7f) < 96) ? _GPDR(x) : GPDR3))
 #define GPSR(x)		(((((x) & 0x7f) < 96) ? _GPSR(x) : GPSR3))
@@ -2234,7 +2125,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define LCCR0_PDD_S	12
 #define LCCR0_BM	(1 << 20)	/* Branch mask */
 #define LCCR0_OUM	(1 << 21)	/* Output FIFO underrun mask */
-#if defined(CONFIG_PXA27X)
+#if defined(CONFIG_CPU_PXA27X)
 #define LCCR0_LCDT	(1 << 22)	/* LCD Panel Type */
 #define LCCR0_RDSTM	(1 << 23)	/* Read Status Interrupt Mask */
 #define LCCR0_CMDIM	(1 << 24)	/* Command Interrupt Mask */
@@ -2360,7 +2251,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define LCSR1_IU6	(1 << 29)
 
 #define LDCMD_PAL	(1 << 26)	/* instructs DMA to load palette buffer */
-#if defined(CONFIG_PXA27X)
+#if defined(CONFIG_CPU_PXA27X)
 #define LDCMD_SOFINT	(1 << 22)
 #define LDCMD_EOFINT	(1 << 21)
 #endif
@@ -2591,7 +2482,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define MDREFR_K0RUN	(1 << 13)	/* SDCLK0 Run Control/Status */
 #define MDREFR_E0PIN	(1 << 12)	/* SDCKE0 Level Control/Status */
 
-#if defined(CONFIG_PXA27X)
+#if defined(CONFIG_CPU_PXA27X)
 
 #define ARB_CNTRL	0x48000048  /* Arbiter Control Register */
 
@@ -2605,7 +2496,7 @@ typedef void		(*ExcpHndlr) (void) ;
 #define ARB_CORE_PARK		(1<<24)	   /* Be parked with core when idle */
 #define ARB_LOCK_FLAG		(1<<23)	   /* Only Locking masters gain access to the bus */
 
-#endif /* CONFIG_PXA27X */
+#endif /* CONFIG_CPU_PXA27X */
 
 /* LCD registers */
 #define LCCR4		0x44000010  /* LCD Controller Control Register 4 */
@@ -2739,6 +2630,6 @@ typedef void		(*ExcpHndlr) (void) ;
 #define OSCR4		0x40A00040  /* OS Timer Counter Register */
 #define OMCR4		0x40A000C0  /* */
 
-#endif	/* CONFIG_PXA27X */
+#endif	/* CONFIG_CPU_PXA27X */
 
 #endif	/* _PXA_REGS_H_ */

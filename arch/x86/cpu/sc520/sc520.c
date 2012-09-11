@@ -27,7 +27,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/processor-flags.h>
-#include <asm/ic/sc520.h>
+#include <asm/arch/sc520.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -49,7 +49,7 @@ int cpu_init_f(void)
 	asm("movl	$0x2000, %%ecx\n"
 	    "0:		pushl %%ecx\n"
 	    "popl	%%ecx\n"
-	    "loop 0b\n": : : "ecx");
+	    "loop 0b\n" : : : "ecx");
 
 	return x86_cpu_init_f();
 }

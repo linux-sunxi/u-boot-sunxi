@@ -49,12 +49,8 @@
 
 #define	CONFIG_MISC_INIT_F	1	/* Use misc_init_f()			*/
 
-#define CONFIG_BCM570x		1	/* Use Broadcom BCM570x Ethernet Driver */
-#define	CONFIG_TIGON3		1
-
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		9600
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_CLOCKS_IN_MHZ	1	/* clocks passsed to Linux in MHz	*/
 
@@ -84,6 +80,8 @@
 
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_ELF
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
 
 
 #if 0

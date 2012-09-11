@@ -24,6 +24,8 @@
 #ifndef _IMX_REGS_H
 #define _IMX_REGS_H
 
+#include <asm/arch/regs-rtc.h>
+
 #ifndef __ASSEMBLY__
 
 extern void imx_gpio_mode (int gpio_mode);
@@ -34,7 +36,6 @@ extern void mx27_uart1_init_pins(void);
 
 #ifdef CONFIG_FEC_MXC
 extern void mx27_fec_init_pins(void);
-extern void imx_get_mac_from_fuse(unsigned char *mac);
 #endif /* CONFIG_FEC_MXC */
 
 #ifdef CONFIG_MXC_MMC
@@ -163,29 +164,6 @@ struct gpt_regs {
 #define PORTE 4
 #define PORTF 5
 
-struct gpio_regs {
-	struct {
-		u32 ddir;
-		u32 ocr1;
-		u32 ocr2;
-		u32 iconfa1;
-		u32 iconfa2;
-		u32 iconfb1;
-		u32 iconfb2;
-		u32 dr;
-		u32 gius;
-		u32 ssr;
-		u32 icr1;
-		u32 icr2;
-		u32 imr;
-		u32 isr;
-		u32 gpr;
-		u32 swr;
-		u32 puen;
-		u32 res[0x2f];
-	} port[6];
-};
-
 /* IIM Control Registers */
 struct iim_regs {
 	u32 iim_stat;
@@ -218,6 +196,8 @@ struct fuse_bank0_regs {
 
 #endif
 
+#define ARCH_MXC
+
 #define IMX_IO_BASE		0x10000000
 
 #define IMX_AIPI1_BASE		(0x00000 + IMX_IO_BASE)
@@ -225,10 +205,11 @@ struct fuse_bank0_regs {
 #define IMX_TIM1_BASE		(0x03000 + IMX_IO_BASE)
 #define IMX_TIM2_BASE		(0x04000 + IMX_IO_BASE)
 #define IMX_TIM3_BASE		(0x05000 + IMX_IO_BASE)
-#define IMX_UART1_BASE		(0x0a000 + IMX_IO_BASE)
-#define IMX_UART2_BASE		(0x0b000 + IMX_IO_BASE)
-#define IMX_UART3_BASE		(0x0c000 + IMX_IO_BASE)
-#define IMX_UART4_BASE		(0x0d000 + IMX_IO_BASE)
+#define IMX_RTC_BASE		(0x07000 + IMX_IO_BASE)
+#define UART1_BASE		(0x0a000 + IMX_IO_BASE)
+#define UART2_BASE		(0x0b000 + IMX_IO_BASE)
+#define UART3_BASE		(0x0c000 + IMX_IO_BASE)
+#define UART4_BASE		(0x0d000 + IMX_IO_BASE)
 #define IMX_I2C1_BASE		(0x12000 + IMX_IO_BASE)
 #define IMX_GPIO_BASE		(0x15000 + IMX_IO_BASE)
 #define IMX_TIM4_BASE		(0x19000 + IMX_IO_BASE)
@@ -471,6 +452,13 @@ struct fuse_bank0_regs {
 #define TPRER_PRES	0xff		/* Prescale */
 #define TSTAT_CAPT	(1 << 1)	/* Capture event */
 #define TSTAT_COMP	1		/* Compare event */
+
+#define GPIO1_BASE_ADDR 0x10015000
+#define GPIO2_BASE_ADDR 0x10015100
+#define GPIO3_BASE_ADDR 0x10015200
+#define GPIO4_BASE_ADDR 0x10015300
+#define GPIO5_BASE_ADDR 0x10015400
+#define GPIO6_BASE_ADDR 0x10015500
 
 #define GPIO_PIN_MASK	0x1f
 

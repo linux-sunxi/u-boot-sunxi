@@ -33,7 +33,9 @@
 #include <nand.h>
 #include <netdev.h>
 #include <miiphy.h>
+#include <spi.h>
 #include <asm/io.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/kirkwood.h>
 #include <asm/arch/mpp.h>
 
@@ -112,7 +114,7 @@ u32 kwmpp_config[] = {
 	0
 };
 
-#if defined(CONFIG_MGCOGE3UN)
+#if defined(CONFIG_KM_MGCOGE3UN)
 /*
  * Wait for startup OK from mgcoge3ne
  */
@@ -132,10 +134,10 @@ int startup_allowed(void)
 }
 #endif
 
-#if (defined(CONFIG_MGCOGE3UN)|defined(CONFIG_PORTL2))
+#if (defined(CONFIG_KM_PIGGY4_88E6061)|defined(CONFIG_KM_PIGGY4_88E6352))
 /*
- * These two boards have always ethernet present. Its connected to the mv
- * switch.
+ * All boards with PIGGY4 connected via a simple switch have ethernet always
+ * present.
  */
 int ethernet_present(void)
 {
@@ -200,14 +202,20 @@ int misc_init_r(void)
 		printf("Overwriting MACH_TYPE with %d!!!\n", mach_type);
 		gd->bd->bi_arch_number = mach_type;
 	}
-#if defined(CONFIG_MGCOGE3UN)
+#if defined(CONFIG_KM_MGCOGE3UN)
 	char *wait_for_ne;
 	wait_for_ne = getenv("waitforne");
 	if (wait_for_ne != NULL) {
 		if (strcmp(wait_for_ne, "true") == 0) {
 			int cnt = 0;
+			int abort = 0;
 			puts("NE go: ");
 			while (startup_allowed() == 0) {
+				if (tstc()) {
+					(void) getc(); /* consume input */
+					abort = 1;
+					break;
+				}
 				udelay(200000);
 				cnt++;
 				if (cnt == 5)
@@ -217,7 +225,10 @@ int misc_init_r(void)
 					puts("    \b\b\b\b");
 				}
 			}
-			puts("OK\n");
+			if (abort == 1)
+				printf("\nAbort waiting for ne\n");
+			else
+				puts("OK\n");
 		}
 	}
 #endif
@@ -232,32 +243,15 @@ int misc_init_r(void)
 
 int board_early_init_f(void)
 {
+#if defined(CONFIG_SOFT_I2C)
 	u32 tmp;
 
-	kirkwood_mpp_conf(kwmpp_config);
-
-	/*
-	 * The FLASH_GPIO_PIN switches between using a
-	 * NAND or a SPI FLASH. Set this pin on start
-	 * to NAND mode.
-	 */
-	tmp = readl(KW_GPIO0_BASE);
-	writel(tmp | FLASH_GPIO_PIN , KW_GPIO0_BASE);
+	/* set the 2 bitbang i2c pins as output gpios */
 	tmp = readl(KW_GPIO0_BASE + 4);
-	writel(tmp & (~FLASH_GPIO_PIN) , KW_GPIO0_BASE + 4);
-
-#if defined(CONFIG_SOFT_I2C)
-	/* init the GPIO for I2C Bitbang driver */
-	kw_gpio_set_valid(KM_KIRKWOOD_SDA_PIN, 1);
-	kw_gpio_set_valid(KM_KIRKWOOD_SCL_PIN, 1);
-	kw_gpio_direction_output(KM_KIRKWOOD_SDA_PIN, 0);
-	kw_gpio_direction_output(KM_KIRKWOOD_SCL_PIN, 0);
-#endif
-#if defined(CONFIG_SYS_EEPROM_WREN)
-	kw_gpio_set_valid(KM_KIRKWOOD_ENV_WP, 38);
-	kw_gpio_direction_output(KM_KIRKWOOD_ENV_WP, 1);
+	writel(tmp & (~KM_KIRKWOOD_SOFT_I2C_GPIOS) , KW_GPIO0_BASE + 4);
 #endif
 
+	kirkwood_mpp_conf(kwmpp_config, NULL);
 	return 0;
 }
 
@@ -271,51 +265,71 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = kw_sdram_bar(0) + 0x100;
 
-	return 0;
-}
+	/*
+	 * The KM_FLASH_GPIO_PIN switches between using a
+	 * NAND or a SPI FLASH. Set this pin on start
+	 * to NAND mode.
+	 */
+	kw_gpio_set_valid(KM_FLASH_GPIO_PIN, 1);
+	kw_gpio_direction_output(KM_FLASH_GPIO_PIN, 1);
 
-#if defined(CONFIG_CMD_SF)
-int do_spi_toggle(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	u32 tmp;
-	if (argc < 2)
-		return cmd_usage(cmdtp);
-
-	if ((strcmp(argv[1], "off") == 0)) {
-		printf("SPI FLASH disabled, NAND enabled\n");
-		/* Multi-Purpose Pins Functionality configuration */
-		kwmpp_config[0] = MPP0_NF_IO2;
-		kwmpp_config[1] = MPP1_NF_IO3;
-		kwmpp_config[2] = MPP2_NF_IO4;
-		kwmpp_config[3] = MPP3_NF_IO5;
-
-		kirkwood_mpp_conf(kwmpp_config);
-		tmp = readl(KW_GPIO0_BASE);
-		writel(tmp | FLASH_GPIO_PIN , KW_GPIO0_BASE);
-	} else if ((strcmp(argv[1], "on") == 0)) {
-		printf("SPI FLASH enabled, NAND disabled\n");
-		/* Multi-Purpose Pins Functionality configuration */
-		kwmpp_config[0] = MPP0_SPI_SCn;
-		kwmpp_config[1] = MPP1_SPI_MOSI;
-		kwmpp_config[2] = MPP2_SPI_SCK;
-		kwmpp_config[3] = MPP3_SPI_MISO;
-
-		kirkwood_mpp_conf(kwmpp_config);
-		tmp = readl(KW_GPIO0_BASE);
-		writel(tmp & (~FLASH_GPIO_PIN) , KW_GPIO0_BASE);
-	} else {
-		return cmd_usage(cmdtp);
-	}
-
-	return 0;
-}
-
-U_BOOT_CMD(
-	spitoggle,	2,	0,	do_spi_toggle,
-	"En-/disable SPI FLASH access",
-	"<on|off> - Enable (on) or disable (off) SPI FLASH access\n"
-	);
+#if defined(CONFIG_SOFT_I2C)
+	/*
+	 * Reinit the GPIO for I2C Bitbang driver so that the now
+	 * available gpio framework is consistent. The calls to
+	 * direction output in are not necessary, they are already done in
+	 * board_early_init_f
+	 */
+	kw_gpio_set_valid(KM_KIRKWOOD_SDA_PIN, 1);
+	kw_gpio_set_valid(KM_KIRKWOOD_SCL_PIN, 1);
 #endif
+
+#if defined(CONFIG_SYS_EEPROM_WREN)
+	kw_gpio_set_valid(KM_KIRKWOOD_ENV_WP, 38);
+	kw_gpio_direction_output(KM_KIRKWOOD_ENV_WP, 1);
+#endif
+
+#if defined(CONFIG_KM_FPGA_CONFIG)
+	trigger_fpga_config();
+#endif
+
+	return 0;
+}
+
+int board_late_init(void)
+{
+#if defined(CONFIG_KMCOGE5UN)
+/* I/O pin to erase flash RGPP09 = MPP43 */
+#define KM_FLASH_ERASE_ENABLE	43
+	u8 dip_switch = kw_gpio_get_value(KM_FLASH_ERASE_ENABLE);
+
+	/* if pin 1 do full erase */
+	if (dip_switch != 0) {
+		/* start bootloader */
+		puts("DIP:   Enabled\n");
+		setenv("actual_bank", "0");
+	}
+#endif
+
+#if defined(CONFIG_KM_FPGA_CONFIG)
+	wait_for_fpga_config();
+	fpga_reset();
+	toggle_eeprom_spi_bus();
+#endif
+	return 0;
+}
+
+int board_spi_claim_bus(struct spi_slave *slave)
+{
+	kw_gpio_set_value(KM_FLASH_GPIO_PIN, 0);
+
+	return 0;
+}
+
+void board_spi_release_bus(struct spi_slave *slave)
+{
+	kw_gpio_set_value(KM_FLASH_GPIO_PIN, 1);
+}
 
 int dram_init(void)
 {
@@ -337,15 +351,15 @@ void dram_init_banksize(void)
 	}
 }
 
-#if (defined(CONFIG_MGCOGE3UN)|defined(CONFIG_PORTL2))
+#if (defined(CONFIG_KM_PIGGY4_88E6061))
 
-#define	PHY_LED_SEL	0x18
-#define PHY_LED0_LINK	(0x5)
-#define PHY_LED1_ACT	(0x8<<4)
-#define PHY_LED2_INT	(0xe<<8)
-#define	PHY_SPEC_CTRL	0x1c
+#define	PHY_LED_SEL_REG		0x18
+#define PHY_LED0_LINK		(0x5)
+#define PHY_LED1_ACT		(0x8<<4)
+#define PHY_LED2_INT		(0xe<<8)
+#define	PHY_SPEC_CTRL_REG	0x1c
 #define PHY_RGMII_CLK_STABLE	(0x1<<10)
-#define PHY_CLSA	(0x1<<1)
+#define PHY_CLSA		(0x1<<1)
 
 /* Configure and enable MV88E3018 PHY */
 void reset_phy(void)
@@ -357,15 +371,15 @@ void reset_phy(void)
 		return;
 
 	/* RGMII clk transition on data stable */
-	if (miiphy_read(name, CONFIG_PHY_BASE_ADR, PHY_SPEC_CTRL, &reg) != 0)
+	if (!miiphy_read(name, CONFIG_PHY_BASE_ADR, PHY_SPEC_CTRL_REG, &reg))
 		printf("Error reading PHY spec ctrl reg\n");
-	if (miiphy_write(name, CONFIG_PHY_BASE_ADR, PHY_SPEC_CTRL,
-		reg | PHY_RGMII_CLK_STABLE | PHY_CLSA) != 0)
+	if (!miiphy_write(name, CONFIG_PHY_BASE_ADR, PHY_SPEC_CTRL_REG,
+		reg | PHY_RGMII_CLK_STABLE | PHY_CLSA))
 		printf("Error writing PHY spec ctrl reg\n");
 
 	/* leds setup */
-	if (miiphy_write(name, CONFIG_PHY_BASE_ADR, PHY_LED_SEL,
-		PHY_LED0_LINK | PHY_LED1_ACT | PHY_LED2_INT) != 0)
+	if (!miiphy_write(name, CONFIG_PHY_BASE_ADR, PHY_LED_SEL_REG,
+		PHY_LED0_LINK | PHY_LED1_ACT | PHY_LED2_INT))
 		printf("Error writing PHY LED reg\n");
 
 	/* reset the phy */
@@ -394,36 +408,6 @@ int hush_init_var(void)
 }
 #endif
 
-#if defined(CONFIG_BOOTCOUNT_LIMIT)
-void bootcount_store(ulong a)
-{
-	volatile ulong *save_addr;
-	volatile ulong size = 0;
-	int i;
-	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
-		size += gd->bd->bi_dram[i].size;
-	}
-	save_addr = (ulong*)(size - BOOTCOUNT_ADDR);
-	writel(a, save_addr);
-	writel(BOOTCOUNT_MAGIC, &save_addr[1]);
-}
-
-ulong bootcount_load(void)
-{
-	volatile ulong *save_addr;
-	volatile ulong size = 0;
-	int i;
-	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
-		size += gd->bd->bi_dram[i].size;
-	}
-	save_addr = (ulong*)(size - BOOTCOUNT_ADDR);
-	if (readl(&save_addr[1]) != BOOTCOUNT_MAGIC)
-		return 0;
-	else
-		return readl(save_addr);
-}
-#endif
-
 #if defined(CONFIG_SOFT_I2C)
 void set_sda(int state)
 {
@@ -445,6 +429,43 @@ int get_sda(void)
 int get_scl(void)
 {
 	return kw_gpio_get_value(KM_KIRKWOOD_SCL_PIN) ? 1 : 0;
+}
+#endif
+
+#if defined(CONFIG_POST)
+
+#define KM_POST_EN_L	44
+#define POST_WORD_OFF	8
+
+int post_hotkeys_pressed(void)
+{
+#if defined(CONFIG_KM_COGE5UN)
+	return kw_gpio_get_value(KM_POST_EN_L);
+#else
+	return !kw_gpio_get_value(KM_POST_EN_L);
+#endif
+}
+
+ulong post_word_load(void)
+{
+	void* addr = (void *) (gd->ram_size - BOOTCOUNT_ADDR + POST_WORD_OFF);
+	return in_le32(addr);
+
+}
+void post_word_store(ulong value)
+{
+	void* addr = (void *) (gd->ram_size - BOOTCOUNT_ADDR + POST_WORD_OFF);
+	out_le32(addr, value);
+}
+
+int arch_memory_test_prepare(u32 *vstart, u32 *size, phys_addr_t *phys_offset)
+{
+	*vstart = CONFIG_SYS_SDRAM_BASE;
+
+	/* we go up to relocation plus a 1 MB margin */
+	*size = CONFIG_SYS_TEXT_BASE - (1<<20);
+
+	return 0;
 }
 #endif
 

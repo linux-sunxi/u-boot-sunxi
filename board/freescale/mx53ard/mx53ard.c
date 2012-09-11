@@ -33,14 +33,9 @@
 #include <fsl_esdhc.h>
 #include <asm/gpio.h>
 
-#define ETHERNET_INT		(1 * 32 + 31)  /* GPIO2_31 */
+#define ETHERNET_INT		IMX_GPIO_NR(2, 31)
 
 DECLARE_GLOBAL_DATA_PTR;
-
-u32 get_board_rev(void)
-{
-	return get_cpu_rev();
-}
 
 int dram_init(void)
 {
@@ -84,20 +79,26 @@ static void setup_iomux_uart(void)
 
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg esdhc_cfg[2] = {
-	{MMC_SDHC1_BASE_ADDR, 1 },
-	{MMC_SDHC2_BASE_ADDR, 1 },
+	{MMC_SDHC1_BASE_ADDR},
+	{MMC_SDHC2_BASE_ADDR},
 };
 
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)
+int board_mmc_getcd(struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
+	int ret;
+
+	mxc_request_iomux(MX53_PIN_GPIO_1, IOMUX_CONFIG_ALT1);
+	gpio_direction_input(IMX_GPIO_NR(1, 1));
+	mxc_request_iomux(MX53_PIN_GPIO_4, IOMUX_CONFIG_ALT1);
+	gpio_direction_input(IMX_GPIO_NR(1, 4));
 
 	if (cfg->esdhc_base == MMC_SDHC1_BASE_ADDR)
-		*cd = gpio_get_value(1); /*GPIO1_1*/
+		ret = !gpio_get_value(IMX_GPIO_NR(1, 1));
 	else
-		*cd = gpio_get_value(4); /*GPIO1_4*/
+		ret = !gpio_get_value(IMX_GPIO_NR(1, 4));
 
-	return 0;
+	return ret;
 }
 
 int board_mmc_init(bd_t *bis)
@@ -278,7 +279,6 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	gd->bd->bi_arch_number = MACH_TYPE_MX53_ARD;
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 
@@ -287,7 +287,7 @@ int board_init(void)
 
 int board_eth_init(bd_t *bis)
 {
-	int rc = 0;
+	int rc = -ENODEV;
 
 	weim_smc911x_iomux();
 	weim_cs1_settings();

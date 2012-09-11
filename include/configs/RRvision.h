@@ -60,7 +60,7 @@
 #define CONFIG_IPADDR                 10.0.0.5
 #define CONFIG_SERVERIP               10.0.0.2
 #define CONFIG_NETMASK                255.0.0.0
-#define CONFIG_ROOTPATH               /opt/eldk/ppc_8xx
+#define CONFIG_ROOTPATH               "/opt/eldk/ppc_8xx"
 #define CONFIG_BOOTCOMMAND            "run flash_self"
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
@@ -179,8 +179,6 @@
 #define	CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings

@@ -34,21 +34,10 @@
 #include "spi_flash_internal.h"
 
 /* M25Pxx-specific commands */
-#define CMD_M25PXX_WREN		0x06	/* Write Enable */
-#define CMD_M25PXX_WRDI		0x04	/* Write Disable */
-#define CMD_M25PXX_RDSR		0x05	/* Read Status Register */
-#define CMD_M25PXX_WRSR		0x01	/* Write Status Register */
-#define CMD_M25PXX_READ		0x03	/* Read Data Bytes */
-#define CMD_M25PXX_FAST_READ	0x0b	/* Read Data Bytes at Higher Speed */
-#define CMD_M25PXX_PP		0x02	/* Page Program */
-#define CMD_M25PXX_SE		0xd8	/* Sector Erase */
-#define CMD_M25PXX_BE		0xc7	/* Bulk Erase */
-#define CMD_M25PXX_DP		0xb9	/* Deep Power-down */
 #define CMD_M25PXX_RES		0xab	/* Release from DP, and Read Signature */
 
 struct stmicro_spi_flash_params {
-	u8 idcode1;
-	u16 page_size;
+	u16 id;
 	u16 pages_per_sector;
 	u16 nr_sectors;
 	const char *name;
@@ -56,73 +45,79 @@ struct stmicro_spi_flash_params {
 
 static const struct stmicro_spi_flash_params stmicro_spi_flash_table[] = {
 	{
-		.idcode1 = 0x11,
-		.page_size = 256,
+		.id = 0x2011,
 		.pages_per_sector = 128,
 		.nr_sectors = 4,
 		.name = "M25P10",
 	},
 	{
-		.idcode1 = 0x15,
-		.page_size = 256,
+		.id = 0x2015,
 		.pages_per_sector = 256,
 		.nr_sectors = 32,
 		.name = "M25P16",
 	},
 	{
-		.idcode1 = 0x12,
-		.page_size = 256,
+		.id = 0x2012,
 		.pages_per_sector = 256,
 		.nr_sectors = 4,
 		.name = "M25P20",
 	},
 	{
-		.idcode1 = 0x16,
-		.page_size = 256,
+		.id = 0x2016,
 		.pages_per_sector = 256,
 		.nr_sectors = 64,
 		.name = "M25P32",
 	},
 	{
-		.idcode1 = 0x13,
-		.page_size = 256,
+		.id = 0x2013,
 		.pages_per_sector = 256,
 		.nr_sectors = 8,
 		.name = "M25P40",
 	},
 	{
-		.idcode1 = 0x17,
-		.page_size = 256,
+		.id = 0x2017,
 		.pages_per_sector = 256,
 		.nr_sectors = 128,
 		.name = "M25P64",
 	},
 	{
-		.idcode1 = 0x14,
-		.page_size = 256,
+		.id = 0x2014,
 		.pages_per_sector = 256,
 		.nr_sectors = 16,
 		.name = "M25P80",
 	},
 	{
-		.idcode1 = 0x18,
-		.page_size = 256,
+		.id = 0x2018,
 		.pages_per_sector = 1024,
 		.nr_sectors = 64,
 		.name = "M25P128",
 	},
+	{
+		.id = 0xba18,
+		.pages_per_sector = 256,
+		.nr_sectors = 256,
+		.name = "N25Q128",
+	},
+	{
+		.id = 0xbb18,
+		.pages_per_sector = 256,
+		.nr_sectors = 256,
+		.name = "N25Q128A",
+	},
+	{
+		.id = 0xba19,
+		.pages_per_sector = 256,
+		.nr_sectors = 512,
+		.name = "N25Q256",
+	},
 };
-
-static int stmicro_erase(struct spi_flash *flash, u32 offset, size_t len)
-{
-	return spi_flash_cmd_erase(flash, CMD_M25PXX_SE, offset, len);
-}
 
 struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 {
 	const struct stmicro_spi_flash_params *params;
 	struct spi_flash *flash;
 	unsigned int i;
+	u16 id;
 
 	if (idcode[0] == 0xff) {
 		i = spi_flash_cmd(spi, CMD_M25PXX_RES,
@@ -137,15 +132,17 @@ struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 			return NULL;
 	}
 
+	id = ((idcode[1] << 8) | idcode[2]);
+
 	for (i = 0; i < ARRAY_SIZE(stmicro_spi_flash_table); i++) {
 		params = &stmicro_spi_flash_table[i];
-		if (params->idcode1 == idcode[2]) {
+		if (params->id == id) {
 			break;
 		}
 	}
 
 	if (i == ARRAY_SIZE(stmicro_spi_flash_table)) {
-		debug("SF: Unsupported STMicro ID %02x\n", idcode[1]);
+		debug("SF: Unsupported STMicro ID %04x\n", id);
 		return NULL;
 	}
 
@@ -159,10 +156,10 @@ struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 	flash->name = params->name;
 
 	flash->write = spi_flash_cmd_write_multi;
-	flash->erase = stmicro_erase;
+	flash->erase = spi_flash_cmd_erase;
 	flash->read = spi_flash_cmd_read_fast;
-	flash->page_size = params->page_size;
-	flash->sector_size = params->page_size * params->pages_per_sector;
+	flash->page_size = 256;
+	flash->sector_size = 256 * params->pages_per_sector;
 	flash->size = flash->sector_size * params->nr_sectors;
 
 	return flash;

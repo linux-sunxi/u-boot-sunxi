@@ -30,6 +30,9 @@
 #include <asm/arch/crm_regs.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
+#ifdef CONFIG_FSL_ESDHC
+#include <fsl_esdhc.h>
+#endif
 #include <netdev.h>
 
 #define CLK_CODE(arm, ahb, sel) (((arm) << 16) + ((ahb) << 8) + (sel))
@@ -205,7 +208,7 @@ u32 imx_get_uartclk(void)
 	return freq;
 }
 
-unsigned int mxc_get_main_clock(enum mxc_main_clocks clk)
+unsigned int mxc_get_main_clock(enum mxc_main_clock clk)
 {
 	u32 nfc_pdf, hsp_podf;
 	u32 pll, ret_val = 0, usb_prdf, usb_podf;
@@ -240,7 +243,7 @@ unsigned int mxc_get_main_clock(enum mxc_main_clocks clk)
 		}
 		break;
 	case IPG_CLK:
-		ret_val = get_ipg_clk();;
+		ret_val = get_ipg_clk();
 		break;
 	case IPG_PER_CLK:
 		ret_val = get_ipg_per_clk();
@@ -270,7 +273,7 @@ unsigned int mxc_get_main_clock(enum mxc_main_clocks clk)
 
 	return ret_val;
 }
-unsigned int mxc_get_peri_clock(enum mxc_peri_clocks clk)
+unsigned int mxc_get_peri_clock(enum mxc_peri_clock clk)
 {
 	u32 ret_val = 0, pdf, pre_pdf, clk_sel;
 	struct ccm_regs *ccm =
@@ -393,7 +396,7 @@ unsigned int mxc_get_clock(enum mxc_clock clk)
 /*
  * The MX35 has no fuse for MAC, return a NULL MAC
  */
-void imx_get_mac_from_fuse(unsigned char *mac)
+void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
 	memset(mac, 0, 6);
 }
@@ -423,11 +426,38 @@ U_BOOT_CMD(
 );
 
 #if defined(CONFIG_DISPLAY_CPUINFO)
+static char *get_reset_cause(void)
+{
+	/* read RCSR register from CCM module */
+	struct ccm_regs *ccm =
+		(struct ccm_regs *)IMX_CCM_BASE;
+
+	u32 cause = readl(&ccm->rcsr) & 0x0F;
+
+	switch (cause) {
+	case 0x0000:
+		return "POR";
+	case 0x0002:
+		return "JTAG";
+	case 0x0004:
+		return "RST";
+	case 0x0008:
+		return "WDOG";
+	default:
+		return "unknown reset";
+	}
+}
+
 int print_cpuinfo(void)
 {
-	printf("CPU:   Freescale i.MX35 at %d MHz\n",
+	u32 srev = get_cpu_rev();
+
+	printf("CPU:   Freescale i.MX35 rev %d.%d at %d MHz.\n",
+		(srev & 0xF0) >> 4, (srev & 0x0F),
 		get_mcu_main_clk() / 1000000);
-	/* mxc_dump_clocks(); */
+
+	printf("Reset cause: %s\n", get_reset_cause());
+
 	return 0;
 }
 #endif
@@ -436,7 +466,6 @@ int print_cpuinfo(void)
  * Initializes on-chip ethernet controllers.
  * to override, implement board_eth_init()
  */
-
 int cpu_eth_init(bd_t *bis)
 {
 	int rc = -ENODEV;
@@ -447,6 +476,17 @@ int cpu_eth_init(bd_t *bis)
 
 	return rc;
 }
+
+#ifdef CONFIG_FSL_ESDHC
+/*
+ * Initializes on-chip MMC controllers.
+ * to override, implement board_mmc_init()
+ */
+int cpu_mmc_init(bd_t *bis)
+{
+	return fsl_esdhc_mmc_init(bis);
+}
+#endif
 
 int get_clocks(void)
 {

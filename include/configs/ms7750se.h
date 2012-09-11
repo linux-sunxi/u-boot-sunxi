@@ -38,14 +38,13 @@
  */
 /*#include <config_cmd_default.h>*/
 
-#define CONFIG_CMD_DFL
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_SCIF_CONSOLE	1
 #define CONFIG_BAUDRATE		38400
 #define CONFIG_CONS_SCIF1	1
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 
 #define CONFIG_BOOTDELAY	-1
 #define CONFIG_BOOTARGS		"console=ttySC0,38400"
@@ -61,8 +60,6 @@
 #define CONFIG_SYS_PBSIZE		256
 #define CONFIG_SYS_MAXARGS		16
 #define CONFIG_SYS_BARGSIZE		512
-/* List of legal baudrate settings for this board */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 115200, 57600, 38400, 19200, 9600 }
 
 #define CONFIG_SYS_TEXT_BASE		0x8FFC0000
 #define CONFIG_SYS_MEMTEST_START	(CONFIG_SYS_SDRAM_BASE)

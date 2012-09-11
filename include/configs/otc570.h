@@ -4,7 +4,7 @@
  * esd electronic system design gmbh <www.esd.eu>
  *
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the esd OTC570 board.
@@ -45,6 +45,13 @@
  */
 #define CONFIG_SYS_TEXT_BASE		0x20002000
 
+/*
+ * since a number of boards are not being listed in linux
+ * arch/arm/tools/mach-types any more, the mach-types have to be
+ * defined here
+ */
+#define MACH_TYPE_OTC570		2166
+
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_SLOW_CLOCK	32768	/* 32.768 kHz crystal */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	16000000/* 16.0 MHz crystal */
@@ -60,7 +67,6 @@
 #define CONFIG_REVISION_TAG
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
 #define CONFIG_MISC_INIT_R			/* Call misc_init_r */
-#undef	CONFIG_USE_IRQ				/* don't need IRQ/FIQ stuff */
 
 #define CONFIG_DISPLAY_BOARDINFO		/* call checkboard() */
 #define CONFIG_DISPLAY_CPUINFO			/* display cpu info and speed */
@@ -81,7 +87,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200, 19200, 38400, 57600, 9600}
 
 #define CONFIG_BOOTDELAY		3
 #define CONFIG_ZERO_BOOTDELAY_CHECK
@@ -208,13 +213,11 @@
 # define CONFIG_SYS_NAND_MASK_CLE		(1 << 22)
 # define CONFIG_SYS_NAND_ENABLE_PIN		AT91_PIO_PORTD, 15
 # define CONFIG_SYS_NAND_READY_PIN		AT91_PIO_PORTA, 22
-# define CONFIG_SYS_64BIT_VSPRINTF		/* needed for nand_util.c */
 #endif
 
 /* Ethernet */
 #define CONFIG_MACB
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_FIT
 #define CONFIG_NET_RETRY_COUNT			20
 #undef CONFIG_RESET_PHY_R
@@ -269,11 +272,5 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		ROUND(3 * CONFIG_ENV_SIZE + \
 					128*1024, 0x1000)
-
-#define CONFIG_STACKSIZE		(32 * 1024)	/* regular stack */
-
-#ifdef CONFIG_USE_IRQ
-# error CONFIG_USE_IRQ not supported
-#endif
 
 #endif

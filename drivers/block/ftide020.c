@@ -54,8 +54,6 @@
 #define WRITE_CMD(x)	outl((x), &ftide020->cmd_fifo)	/* 0x04 */
 #define READ_STATUS()	inl(&ftide020->cmd_fifo)	/* 0x04 */
 
-#define mdelay(n) ({unsigned long msec = (n); while (msec--) udelay(1000); })
-
 void ftide_set_device(int cx8, int dev)
 {
 	static struct ftide020_s *ftide020 = (struct ftide020_s *) FTIDE_BASE;
@@ -318,10 +316,9 @@ int ide_preinit(void)
 
 	/* auto-detect IDE controller */
 	if (ftide_controller_probe()) {
-		printf("Faraday %s driver version %s\n", FTIDE_IP_NAME,
-		FTIDE_DRIVER_VERSION);
+		printf("FTIDE020_S\n");
 	} else {
-		printf("Faraday ATA controller not found.\n");
+		printf("FTIDE020_S ATA controller not found.\n");
 		return API_ENODEV;
 	}
 

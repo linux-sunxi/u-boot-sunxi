@@ -128,7 +128,6 @@
 
 #define CONFIG_TIMESTAMP		/* Print image info with timestamp */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_EEPRO100
 
 /*
@@ -141,9 +140,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
-#endif
 
 /*
  * Flexbus Chipselect configuration

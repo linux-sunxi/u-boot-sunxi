@@ -52,8 +52,7 @@
 #include <miiphy.h>
 #endif
 
-#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET) && \
-	defined(CONFIG_NET_MULTI)
+#if defined(CONFIG_ETHER_ON_FCC) && defined(CONFIG_CMD_NET)
 
 static struct ether_fcc_info_s
 {
@@ -139,7 +138,7 @@ static RTXBD rtx __attribute__ ((aligned(8)));
 
 #undef ET_DEBUG
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length)
+static int fec_send(struct eth_device *dev, void *packet, int length)
 {
     int i = 0;
     int result = 0;

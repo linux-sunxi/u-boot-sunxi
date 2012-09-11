@@ -22,6 +22,7 @@
 #include <config.h>
 #include <asm/arch/imx-regs.h>
 #include <generated/asm-offsets.h>
+#include <linux/linkage.h>
 
 /*
  * L2CC Cache setup/invalidation/disable
@@ -35,9 +36,9 @@
 	/* reconfigure L2 cache aux control reg */
 	mov r0, #0xC0			/* tag RAM */
 	add r0, r0, #0x4		/* data RAM */
-	orr r0, r0, #(1 << 24)		/* disable write allocate delay */
-	orr r0, r0, #(1 << 23)		/* disable write allocate combine */
-	orr r0, r0, #(1 << 22)		/* disable write allocate */
+	orr r0, r0, #1 << 24		/* disable write allocate delay */
+	orr r0, r0, #1 << 23		/* disable write allocate combine */
+	orr r0, r0, #1 << 22		/* disable write allocate */
 
 #if defined(CONFIG_MX51)
 	ldr r1, =0x0
@@ -45,7 +46,7 @@
 	cmp r3, #0x10
 
 	/* disable write combine for TO 2 and lower revs */
-	orrls r0, r0, #(1 << 25)
+	orrls r0, r0, #1 << 25
 #endif
 
 	mcr 15, 1, r0, c9, c0, 2
@@ -180,6 +181,21 @@
 1:	ldr r1, [r0, #CLKCTL_CDHIPR]
 	cmp r1, #0x0
 	bne 1b
+#else
+	ldr r1, =0x3FFFFFFF
+	str r1, [r0, #CLKCTL_CCGR0]
+	ldr r1, =0x0
+	str r1, [r0, #CLKCTL_CCGR1]
+	str r1, [r0, #CLKCTL_CCGR2]
+	str r1, [r0, #CLKCTL_CCGR3]
+	str r1, [r0, #CLKCTL_CCGR7]
+
+	ldr r1, =0x00030000
+	str r1, [r0, #CLKCTL_CCGR4]
+	ldr r1, =0x00FFF030
+	str r1, [r0, #CLKCTL_CCGR5]
+	ldr r1, =0x0F00030F
+	str r1, [r0, #CLKCTL_CCGR6]
 #endif
 
 	/* Switch ARM to step clock */
@@ -231,9 +247,9 @@
 	movhi r1, #0
 #else
 	mov r1, #0
-
 #endif
 	str r1, [r0, #CLKCTL_CACRR]
+
 	/* Switch ARM back to PLL 1 */
 	mov r1, #0
 	str r1, [r0, #CLKCTL_CCSR]
@@ -269,10 +285,24 @@
 	ldr r1, =0x00C30321
 	str r1, [r0, #CLKCTL_CSCDR1]
 #elif defined(CONFIG_MX53)
+	/* Switch peripheral to PLL2 */
+	ldr r0, =CCM_BASE_ADDR
+	ldr r1, =0x00808145
+	orr r1, r1, #2 << 10
+	orr r1, r1, #0 << 16
+	orr r1, r1, #1 << 19
+	str r1, [r0, #CLKCTL_CBCDR]
+
+	ldr r1, =0x00016154
+	str r1, [r0, #CLKCTL_CBCMR]
+	/* Change uart clk parent to pll2*/
+	ldr r1, [r0, #CLKCTL_CSCMR1]
+	and r1, r1, #0xfcffffff
+	orr r1, r1, #0x01000000
+	str r1, [r0, #CLKCTL_CSCMR1]
 	ldr r1, [r0, #CLKCTL_CSCDR1]
-	orr r1, r1, #0x3f
-	eor r1, r1, #0x3f
-	orr r1, r1, #0x21
+	and r1, r1, #0xffffffc0
+	orr r1, r1, #0x0a
 	str r1, [r0, #CLKCTL_CSCDR1]
 #endif
 	/* make sure divider effective */
@@ -297,15 +327,14 @@
 
 .section ".text.init", "x"
 
-.globl lowlevel_init
-lowlevel_init:
+ENTRY(lowlevel_init)
 #if defined(CONFIG_MX51)
 	ldr r0, =GPIO1_BASE_ADDR
 	ldr r1, [r0, #0x0]
-	orr r1, r1, #(1 << 23)
+	orr r1, r1, #1 << 23
 	str r1, [r0, #0x0]
 	ldr r1, [r0, #0x4]
-	orr r1, r1, #(1 << 23)
+	orr r1, r1, #1 << 23
 	str r1, [r0, #0x4]
 #endif
 
@@ -319,18 +348,19 @@ lowlevel_init:
 
 	/* r12 saved upper lr*/
 	mov pc,lr
+ENDPROC(lowlevel_init)
 
 /* Board level setting value */
-W_DP_OP_864:              .word DP_OP_864
-W_DP_MFD_864:             .word DP_MFD_864
-W_DP_MFN_864:             .word DP_MFN_864
-W_DP_MFN_800_DIT:         .word DP_MFN_800_DIT
-W_DP_OP_800:              .word DP_OP_800
-W_DP_MFD_800:             .word DP_MFD_800
-W_DP_MFN_800:             .word DP_MFN_800
-W_DP_OP_665:              .word DP_OP_665
-W_DP_MFD_665:             .word DP_MFD_665
-W_DP_MFN_665:             .word DP_MFN_665
-W_DP_OP_216:              .word DP_OP_216
-W_DP_MFD_216:             .word DP_MFD_216
-W_DP_MFN_216:             .word DP_MFN_216
+W_DP_OP_864:		.word DP_OP_864
+W_DP_MFD_864:		.word DP_MFD_864
+W_DP_MFN_864:		.word DP_MFN_864
+W_DP_MFN_800_DIT:	.word DP_MFN_800_DIT
+W_DP_OP_800:		.word DP_OP_800
+W_DP_MFD_800:		.word DP_MFD_800
+W_DP_MFN_800:		.word DP_MFN_800
+W_DP_OP_665:		.word DP_OP_665
+W_DP_MFD_665:		.word DP_MFD_665
+W_DP_MFN_665:		.word DP_MFN_665
+W_DP_OP_216:		.word DP_OP_216
+W_DP_MFD_216:		.word DP_MFD_216
+W_DP_MFN_216:		.word DP_MFN_216

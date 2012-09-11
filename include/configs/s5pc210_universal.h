@@ -2,7 +2,7 @@
  * Copyright (C) 2010 Samsung Electronics
  * Minkyu Kang <mk7.kang@samsung.com>
  *
- * Configuation settings for the SAMSUNG Universal (s5pc100) board.
+ * Configuation settings for the SAMSUNG Universal (EXYNOS4210) board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -32,7 +32,7 @@
  */
 #define CONFIG_SAMSUNG		1	/* in a SAMSUNG core */
 #define CONFIG_S5P		1	/* which is in a S5P Family */
-#define CONFIG_S5PC210		1	/* which is in a S5PC210 */
+#define CONFIG_EXYNOS4210	1	/* which is in a EXYNOS4210 */
 #define CONFIG_UNIVERSAL	1	/* working with Universal */
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
@@ -47,8 +47,9 @@
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define CONFIG_SYS_TEXT_BASE		0x44800000
 
-/* input clock of PLL: Universal has 24MHz input clock at S5PC210 */
+/* input clock of PLL: Universal has 24MHz input clock at EXYNOS4210 */
 #define CONFIG_SYS_CLK_FREQ_C210	24000000
+#define CONFIG_SYS_CLK_FREQ		CONFIG_SYS_CLK_FREQ_C210
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
@@ -65,9 +66,10 @@
 #define CONFIG_BAUDRATE		115200
 
 /* MMC */
-#define CONFIG_GENERIC_MMC	1
-#define CONFIG_MMC		1
-#define CONFIG_S5P_MMC		1
+#define CONFIG_GENERIC_MMC
+#define CONFIG_MMC
+#define CONFIG_SDHCI
+#define CONFIG_S5P_SDHCI
 
 /* PWM */
 #define CONFIG_PWM			1
@@ -199,7 +201,6 @@
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser	*/
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT	"Universal # "
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
@@ -212,12 +213,6 @@
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4800000)
 
 #define CONFIG_SYS_HZ			1000
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
-/* Stack sizes */
-#define CONFIG_STACKSIZE	(256 << 10)	/* regular stack 256KB */
 
 /* Universal has 2 banks of DRAM */
 #define CONFIG_NR_DRAM_BANKS	2
@@ -232,6 +227,7 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
 #define CONFIG_USE_ONENAND_BOARD_INIT
+#define CONFIG_SAMSUNG_ONENAND
 #define CONFIG_SYS_ONENAND_BASE		0x0C000000
 
 #define CONFIG_ENV_IS_IN_MMC		1
@@ -242,5 +238,28 @@
 #define CONFIG_DOS_PARTITION		1
 
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - GENERATED_GBL_DATA_SIZE)
+
+#define CONFIG_SYS_CACHELINE_SIZE       32
+
+#include <asm/arch/gpio.h>
+/*
+ * I2C Settings
+ */
+#define CONFIG_SOFT_I2C_GPIO_SCL exynos4_gpio_part1_get_nr(b, 7)
+#define CONFIG_SOFT_I2C_GPIO_SDA exynos4_gpio_part1_get_nr(b, 6)
+
+#define CONFIG_SOFT_I2C
+#define CONFIG_SOFT_I2C_READ_REPEATED_START
+#define CONFIG_SYS_I2C_SPEED	50000
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_MAX_I2C_BUS	7
+
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_PMIC_MAX8998
+
+#define CONFIG_USB_GADGET
+#define CONFIG_USB_GADGET_S3C_UDC_OTG
+#define CONFIG_USB_GADGET_DUALSPEED
 
 #endif	/* __CONFIG_H */

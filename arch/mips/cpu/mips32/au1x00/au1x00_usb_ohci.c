@@ -1012,7 +1012,7 @@ static int ohci_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 urb_priv.actual_length = 0;
 pkt_print(dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 	if (usb_pipeint(pipe)) {
 		info("Root-Hub submit IRQ: NOT implemented");
@@ -1189,7 +1189,7 @@ pkt_print(dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 #ifdef	DEBUG
 	ohci_dump_roothub (&gohci, 1);
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 
 	len = min_t(int, len, leni);
@@ -1203,7 +1203,7 @@ pkt_print(dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 		urb_priv.actual_length = transfer_len;
 	pkt_print(dev, pipe, buffer, transfer_len, cmd, "RET(rh)", 0/*usb_pipein(pipe)*/);
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 
 	return stat;
@@ -1230,7 +1230,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	urb_priv.actual_length = 0;
 	pkt_print(dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 	if (!maxsize) {
 		err("submit_common_message: pipesize for pipe %lx is zero",
@@ -1243,7 +1243,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 		return -1;
 	}
 
-	wait_ms(10);
+	mdelay(10);
 	/* ohci_dump_status(&gohci); */
 
 	/* allow more time for a BULK device to react - some are slow */
@@ -1267,7 +1267,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 			break;
 		}
 		if (--timeout) {
-			udelay(250); /* wait_ms(1); */
+			udelay(250); /* mdelay(1); */
 		} else {
 			err("CTL:TIMEOUT ");
 			stat = USB_ST_CRC_ERR;
@@ -1302,7 +1302,7 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 #ifdef DEBUG
 	pkt_print(dev, pipe, buffer, transfer_len, setup, "RET(ctlr)", usb_pipein(pipe));
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 
 	/* free TDs in urb_priv */
@@ -1328,7 +1328,7 @@ int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	urb_priv.actual_length = 0;
 	pkt_print(dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 	if (!maxsize) {
 		err("submit_control_message: pipesize for pipe %lx is zero",
@@ -1367,7 +1367,7 @@ static int hc_reset (ohci_t *ohci)
 		writel (OHCI_OCR, &ohci->regs->cmdstatus); /* request ownership */
 		info("USB HC TakeOver from SMM");
 		while (readl (&ohci->regs->control) & OHCI_CTRL_IR) {
-			wait_ms (10);
+			mdelay (10);
 			if (--smm_timeout == 0) {
 				err("USB HC TakeOver failed!");
 				return -1;
@@ -1448,7 +1448,6 @@ static int hc_start (ohci_t * ohci)
 	writel (RH_HS_LPSC, &ohci->regs->roothub.status);
 #endif	/* OHCI_USE_NPS */
 
-#define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 	/* POTPGT delay is bits 24-31, in 2 ms units. */
 	mdelay ((roothub_a (ohci) >> 23) & 0x1fe);
 
@@ -1491,7 +1490,7 @@ hc_interrupt (void)
 #ifdef	DEBUG
 		ohci_dump (ohci, 1);
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 		/* FIXME: be optimistic, hope that bug won't repeat often. */
 		/* Make some non-interrupt context restart the controller. */
@@ -1502,7 +1501,7 @@ hc_interrupt (void)
 	}
 
 	if (ints & OHCI_INTR_WDH) {
-		wait_ms(1);
+		mdelay(1);
 		writel (OHCI_INTR_WDH, &regs->intrdisable);
 		stat = dl_done_list (&gohci, dl_reverse_done_list (&gohci));
 		writel (OHCI_INTR_WDH, &regs->intrenable);
@@ -1517,7 +1516,7 @@ hc_interrupt (void)
 	/* FIXME:  this assumes SOF (1/ms) interrupts don't get lost... */
 	if (ints & OHCI_INTR_SF) {
 		unsigned int frame = m16_swap (ohci->hcca->frame_no) & 1;
-		wait_ms(1);
+		mdelay(1);
 		writel (OHCI_INTR_SF, &regs->intrdisable);
 		if (ohci->ed_rm_list[frame] != NULL)
 			writel (OHCI_INTR_SF, &regs->intrenable);
@@ -1687,7 +1686,7 @@ int usb_lowlevel_init(void)
 
 	/* FIXME this is a second HC reset; why?? */
 	writel (gohci.hc_control = OHCI_USB_RESET, &gohci.regs->control);
-	wait_ms (10);
+	mdelay (10);
 
 	if (hc_start (&gohci) < 0)
 		goto errout;
@@ -1695,7 +1694,7 @@ int usb_lowlevel_init(void)
 #ifdef	DEBUG
 	ohci_dump (&gohci, 1);
 #else
-	wait_ms(1);
+	mdelay(1);
 #endif
 	ohci_inited = 1;
 	return 0;

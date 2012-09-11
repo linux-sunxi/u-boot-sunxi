@@ -10,15 +10,20 @@
 *.orig
 *.a
 *.o
+*.su
 *~
 *.swp
 *.patch
 *.bin
 
+# Build tree
+/build-*
+
 #
 # Top-level generic files
 #
 
+/MLO
 /System.map
 /u-boot
 /u-boot.hex
@@ -34,19 +39,22 @@
 /u-boot.dis
 /u-boot.lds
 /u-boot.ubl
+/u-boot.ais
+/u-boot.dtb
+/u-boot.sb
+/u-boot.geany
 
 #
 # Generated files
 #
 
-*.depend
+*.depend*
 /LOG
 /errlog
 /reloc_off
 
 /include/generated/
-/lib/asm-offsets.s
-/arch/*/cpu/asm-offsets.s
+asm-offsets.s
 
 # stgit generated dirs
 patches-*
@@ -71,3 +79,6 @@ cscope.*
 /onenand_ipl/onenand-ipl*
 /onenand_ipl/board/*/onenand*
 /onenand_ipl/board/*/*.S
+
+# spl ais files
+/spl/*.ais

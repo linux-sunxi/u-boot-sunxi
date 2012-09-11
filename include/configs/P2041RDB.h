@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Freescale Semiconductor, Inc.
+ * Copyright 2011-2012 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -66,16 +66,20 @@
 #define CONFIG_SYS_SRIO
 #define CONFIG_SRIO1			/* SRIO port 1 */
 #define CONFIG_SRIO2			/* SRIO port 2 */
+#define CONFIG_SYS_DPAA_RMAN		/* RMan */
 
 #define CONFIG_FSL_LAW			/* Use common FSL init code */
 
 #define CONFIG_ENV_OVERWRITE
 
 #ifdef CONFIG_SYS_NO_FLASH
+#ifndef CONFIG_RAMBOOT_PBL
 #define CONFIG_ENV_IS_NOWHERE
+#endif
 #else
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_CFI
+#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE
 #endif
 
 #if defined(CONFIG_SPIFLASH)
@@ -91,9 +95,17 @@
 #elif defined(CONFIG_SDCARD)
 	#define CONFIG_SYS_EXTRA_ENV_RELOC
 	#define CONFIG_ENV_IS_IN_MMC
+	#define CONFIG_FSL_FIXED_MMC_LOCATION
 	#define CONFIG_SYS_MMC_ENV_DEV          0
 	#define CONFIG_ENV_SIZE			0x2000
 	#define CONFIG_ENV_OFFSET		(512 * 1097)
+#elif defined(CONFIG_NAND)
+#define CONFIG_SYS_EXTRA_ENV_RELOC
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_SIZE			CONFIG_SYS_NAND_BLOCK_SIZE
+#define CONFIG_ENV_OFFSET		(5 * CONFIG_SYS_NAND_BLOCK_SIZE)
+#elif defined(CONFIG_ENV_IS_NOWHERE)
+	#define CONFIG_ENV_SIZE		0x2000
 #else
 	#define CONFIG_ENV_IS_IN_FLASH
 	#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE \
@@ -102,7 +114,10 @@
 	#define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) */
 #endif
 
-#define CONFIG_SYS_CLK_FREQ	66666666
+#ifndef __ASSEMBLY__
+unsigned long get_board_sys_clk(unsigned long dummy);
+#endif
+#define CONFIG_SYS_CLK_FREQ	get_board_sys_clk(0)
 
 /*
  * These can be toggled for performance analysis, otherwise use default.
@@ -137,20 +152,6 @@
 #endif
 #define CONFIG_SYS_L3_SIZE		(1024 << 10)
 #define CONFIG_SYS_INIT_L3_END (CONFIG_SYS_INIT_L3_ADDR + CONFIG_SYS_L3_SIZE)
-
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xfe000000	/* CCSRBAR Default */
-#define CONFIG_SYS_CCSRBAR		0xfe000000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS		0xffe000000ull
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS	CONFIG_SYS_CCSRBAR
-#endif
-/* PQII uses CONFIG_SYS_IMMR */
-#define CONFIG_SYS_IMMR		CONFIG_SYS_CCSRBAR
 
 #ifdef CONFIG_PHYS_64BIT
 #define CONFIG_SYS_DCSRBAR		0xf0000000
@@ -195,10 +196,11 @@
 #define CONFIG_SYS_FLASH_BASE_PHYS	CONFIG_SYS_FLASH_BASE
 #endif
 
-#define CONFIG_SYS_BR0_PRELIM \
+#define CONFIG_SYS_FLASH_BR_PRELIM \
 		(BR_PHYS_ADDR(CONFIG_SYS_FLASH_BASE_PHYS) | BR_PS_16 | BR_V)
-#define CONFIG_SYS_OR0_PRELIM ((0xf8000ff7 & ~OR_GPCM_SCY & ~OR_GPCM_EHTR) \
-				| OR_GPCM_SCY_8 | OR_GPCM_EHTR_CLEAR)
+#define CONFIG_SYS_FLASH_OR_PRELIM \
+		((0xf8000ff7 & ~OR_GPCM_SCY & ~OR_GPCM_EHTR) \
+		 | OR_GPCM_SCY_8 | OR_GPCM_EHTR_CLEAR)
 
 #define CONFIG_FSL_CPLD
 #define CPLD_BASE		0xffdf0000	/* CPLD registers */
@@ -229,6 +231,53 @@
 #if defined(CONFIG_RAMBOOT_PBL)
 #define CONFIG_SYS_RAMBOOT
 #endif
+
+#define CONFIG_NAND_FSL_ELBC
+/* Nand Flash */
+#ifdef CONFIG_NAND_FSL_ELBC
+#define CONFIG_SYS_NAND_BASE		0xffa00000
+#ifdef CONFIG_PHYS_64BIT
+#define CONFIG_SYS_NAND_BASE_PHYS	0xfffa00000ull
+#else
+#define CONFIG_SYS_NAND_BASE_PHYS	CONFIG_SYS_NAND_BASE
+#endif
+
+#define CONFIG_SYS_NAND_BASE_LIST     {CONFIG_SYS_NAND_BASE}
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_MTD_NAND_VERIFY_WRITE
+#define CONFIG_CMD_NAND
+#define CONFIG_SYS_NAND_BLOCK_SIZE    (128 * 1024)
+
+/* NAND flash config */
+#define CONFIG_SYS_NAND_BR_PRELIM  (BR_PHYS_ADDR(CONFIG_SYS_NAND_BASE_PHYS) \
+			       | (2<<BR_DECC_SHIFT)    /* Use HW ECC */ \
+			       | BR_PS_8	       /* Port Size = 8 bit */ \
+			       | BR_MS_FCM	       /* MSEL = FCM */ \
+			       | BR_V)		       /* valid */
+#define CONFIG_SYS_NAND_OR_PRELIM  (0xFFFC0000	      /* length 256K */ \
+			       | OR_FCM_PGS	       /* Large Page*/ \
+			       | OR_FCM_CSCT \
+			       | OR_FCM_CST \
+			       | OR_FCM_CHT \
+			       | OR_FCM_SCY_1 \
+			       | OR_FCM_TRLX \
+			       | OR_FCM_EHTR)
+
+#ifdef CONFIG_NAND
+#define CONFIG_SYS_BR0_PRELIM  CONFIG_SYS_NAND_BR_PRELIM /* NAND Base Address */
+#define CONFIG_SYS_OR0_PRELIM  CONFIG_SYS_NAND_OR_PRELIM /* NAND Options */
+#define CONFIG_SYS_BR1_PRELIM  CONFIG_SYS_FLASH_BR_PRELIM /* NOR Base Address */
+#define CONFIG_SYS_OR1_PRELIM  CONFIG_SYS_FLASH_OR_PRELIM /* NOR Options */
+#else
+#define CONFIG_SYS_BR0_PRELIM  CONFIG_SYS_FLASH_BR_PRELIM /* NOR Base Address */
+#define CONFIG_SYS_OR0_PRELIM  CONFIG_SYS_FLASH_OR_PRELIM /* NOR Options */
+#define CONFIG_SYS_BR1_PRELIM  CONFIG_SYS_NAND_BR_PRELIM /* NAND Base Address */
+#define CONFIG_SYS_OR1_PRELIM  CONFIG_SYS_NAND_OR_PRELIM /* NAND Options */
+#endif
+#else
+#define CONFIG_SYS_BR0_PRELIM  CONFIG_SYS_FLASH_BR_PRELIM /* NOR Base Address */
+#define CONFIG_SYS_OR0_PRELIM  CONFIG_SYS_FLASH_OR_PRELIM /* NOR Options */
+#endif /* CONFIG_NAND_FSL_ELBC */
 
 #define CONFIG_SYS_FLASH_EMPTY_INFO
 #define CONFIG_SYS_FLASH_AMD_CHECK_DQ7
@@ -285,7 +334,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 /* pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT
@@ -419,34 +467,39 @@
 #define CONFIG_SYS_DPAA_FMAN
 #define CONFIG_SYS_DPAA_PME
 /* Default address of microcode for the Linux Fman driver */
-#define CONFIG_SYS_FMAN_FW
 #if defined(CONFIG_SPIFLASH)
 /*
  * env is stored at 0x100000, sector size is 0x10000, ucode is stored after
  * env, so we got 0x110000.
  */
-#define CONFIG_SYS_QE_FW_IN_SPIFLASH	0x110000
+#define CONFIG_SYS_QE_FW_IN_SPIFLASH
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0x110000
 #elif defined(CONFIG_SDCARD)
 /*
  * PBL SD boot image should stored at 0x1000(8 blocks), the size of the image is
  * about 545KB (1089 blocks), Env is stored after the image, and the env size is
  * 0x2000 (16 blocks), 8 + 1089 + 16 = 1113, enlarge it to 1130.
  */
-#define CONFIG_SYS_QE_FW_IN_MMC		(512 * 1130)
+#define CONFIG_SYS_QE_FMAN_FW_IN_MMC
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	(512 * 1130)
 #elif defined(CONFIG_NAND)
-#define CONFIG_SYS_QE_FW_IN_NAND	(6 * CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_SYS_QE_FMAN_FW_IN_NAND
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	(6 * CONFIG_SYS_NAND_BLOCK_SIZE)
 #else
-#define CONFIG_SYS_FMAN_FW_ADDR		0xEF000000
+#define CONFIG_SYS_QE_FMAN_FW_IN_NOR
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xEF000000
 #endif
-#define CONFIG_SYS_FMAN_FW_LENGTH	0x10000
-#define CONFIG_SYS_FDT_PAD		(0x3000 + CONFIG_SYS_FMAN_FW_LENGTH)
+#define CONFIG_SYS_QE_FMAN_FW_LENGTH	0x10000
+#define CONFIG_SYS_FDT_PAD		(0x3000 + CONFIG_SYS_QE_FMAN_FW_LENGTH)
 
 #ifdef CONFIG_SYS_DPAA_FMAN
 #define CONFIG_FMAN_ENET
+#define CONFIG_PHYLIB_10G
+#define CONFIG_PHY_VITESSE
+#define CONFIG_PHY_TERANETICS
 #endif
 
 #ifdef CONFIG_PCI
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_E1000
 
@@ -455,10 +508,9 @@
 #endif	/* CONFIG_PCI */
 
 /* SATA */
-#define CONFIG_FSL_SATA_V2
-#ifdef CONFIG_FSL_SATA_V2
-#define CONFIG_LIBATA
 #define CONFIG_FSL_SATA
+#ifdef CONFIG_FSL_SATA
+#define CONFIG_LIBATA
 
 #define CONFIG_SYS_SATA_MAX_DEVICE	2
 #define CONFIG_SATA1
@@ -485,6 +537,8 @@
 #define CONFIG_SYS_FM1_DTSEC2_RISER_PHY_ADDR	0x1d
 #define CONFIG_SYS_FM1_DTSEC3_RISER_PHY_ADDR	0x1e
 #define CONFIG_SYS_FM1_DTSEC4_RISER_PHY_ADDR	0x1f
+
+#define CONFIG_SYS_FM1_10GEC1_PHY_ADDR	0
 
 #define CONFIG_SYS_TBIPA_VALUE	8
 #define CONFIG_MII		/* MII PHY management */
@@ -521,11 +575,17 @@
 /*
 * USB
 */
+#define CONFIG_HAS_FSL_DR_USB
+#define CONFIG_HAS_FSL_MPH_USB
+
+#if defined(CONFIG_HAS_FSL_DR_USB) || defined(CONFIG_HAS_FSL_MPH_USB)
 #define CONFIG_CMD_USB
 #define CONFIG_USB_STORAGE
 #define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_FSL
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
+#endif
+
 #define CONFIG_CMD_EXT2
 
 #define CONFIG_MMC
@@ -578,8 +638,8 @@
 /*
  * Environment Configuration
  */
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin
 
 /* default location for tftp and bootm */

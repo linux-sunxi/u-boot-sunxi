@@ -848,8 +848,10 @@ void ubifs_umount(struct ubifs_info *c)
 	ubifs_debugging_exit(c);
 
 	/* Finally free U-Boot's global copy of superblock */
-	free(ubifs_sb->s_fs_info);
-	free(ubifs_sb);
+	if (ubifs_sb != NULL) {
+		free(ubifs_sb->s_fs_info);
+		free(ubifs_sb);
+	}
 }
 
 /**
@@ -1189,7 +1191,7 @@ int ubifs_mount(char *vol_name)
 	mnt = NULL;
 	ret = ubifs_get_sb(&ubifs_fs_type, flags, name, data, mnt);
 	if (ret) {
-		printf("Error reading superblock on volume '%s'!\n", name);
+		ubifs_err("Error reading superblock on volume '%s' errno=%d!\n", name, ret);
 		return -1;
 	}
 

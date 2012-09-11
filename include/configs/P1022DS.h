@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Freescale Semiconductor, Inc.
+ * Copyright 2010-2012 Freescale Semiconductor, Inc.
  * Authors: Srikanth Srinivasan <srikanth.srinivasan@freescale.com>
  *          Timur Tabi <timur@freescale.com>
  *
@@ -16,6 +16,22 @@
 
 #ifdef CONFIG_36BIT
 #define CONFIG_PHYS_64BIT
+#endif
+
+#ifdef CONFIG_SDCARD
+#define CONFIG_RAMBOOT_SDCARD
+#define CONFIG_SYS_RAMBOOT
+#define CONFIG_SYS_EXTRA_ENV_RELOC
+#define CONFIG_SYS_TEXT_BASE		0x11000000
+#define CONFIG_RESET_VECTOR_ADDRESS	0x1107fffc
+#endif
+
+#ifdef CONFIG_SPIFLASH
+#define CONFIG_RAMBOOT_SPIFLASH
+#define CONFIG_SYS_RAMBOOT
+#define CONFIG_SYS_EXTRA_ENV_RELOC
+#define CONFIG_SYS_TEXT_BASE		0x11000000
+#define CONFIG_RESET_VECTOR_ADDRESS	0x1107fffc
 #endif
 
 /* High Level Configuration Options */
@@ -43,8 +59,9 @@
 #define CONFIG_FSL_PCIE_RESET		/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT		/* enable 64-bit PCI resources */
 
-#ifdef CONFIG_PHYS_64BIT
 #define CONFIG_ENABLE_36BIT_PHYS
+
+#ifdef CONFIG_PHYS_64BIT
 #define CONFIG_ADDR_MAP
 #define CONFIG_SYS_NUM_ADDR_MAP		16	/* number of TLB1 entries */
 #endif
@@ -64,18 +81,8 @@
 #define CONFIG_SYS_MEMTEST_START	0x00000000
 #define CONFIG_SYS_MEMTEST_END		0x7fffffff
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
-#define CONFIG_SYS_CCSRBAR		0xffe00000	/* relocated CCSRBAR */
-#ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_CCSRBAR_PHYS		0xfffe00000ull
-#else
-#define CONFIG_SYS_CCSRBAR_PHYS		CONFIG_SYS_CCSRBAR
-#endif
-#define CONFIG_SYS_IMMR			CONFIG_SYS_CCSRBAR
+#define CONFIG_SYS_CCSRBAR		0xffe00000
+#define CONFIG_SYS_CCSRBAR_PHYS_LOW	CONFIG_SYS_CCSRBAR
 
 /* DDR Setup */
 #define CONFIG_DDR_SPD
@@ -127,7 +134,7 @@
 #endif
 
 #define CONFIG_FLASH_BR_PRELIM  \
-	(BR_PHYS_ADDR((CONFIG_SYS_FLASH_BASE_PHYS + 0x8000000)) | BR_PS_16 | BR_V)
+	(BR_PHYS_ADDR(CONFIG_SYS_FLASH_BASE_PHYS + 0x8000000) | BR_PS_16 | BR_V)
 #define CONFIG_FLASH_OR_PRELIM	(OR_AM_128MB | 0xff7)
 
 #define CONFIG_SYS_BR0_PRELIM	CONFIG_FLASH_BR_PRELIM  /* NOR Base Address */
@@ -182,7 +189,7 @@
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
-#define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
 
 /*
  * Serial Port
@@ -201,7 +208,6 @@
 
 /* Use the HUSH parser */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 /* Video */
 #define CONFIG_FSL_DIU_FB
@@ -346,7 +352,6 @@
 #define CONFIG_SYS_PCIE3_IO_SIZE	0x00010000	/* 64k */
 
 #ifdef CONFIG_PCI
-#define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 #define CONFIG_E1000			/* Define e1000 pci Ethernet card */
@@ -355,7 +360,6 @@
 /* SATA */
 #define CONFIG_LIBATA
 #define CONFIG_FSL_SATA
-#define CONFIG_FSL_SATA_V2
 
 #define CONFIG_SYS_SATA_MAX_DEVICE	2
 #define CONFIG_SATA1
@@ -390,7 +394,6 @@
 #ifdef CONFIG_TSEC_ENET
 
 #define CONFIG_TSECV2
-#define CONFIG_NET_MULTI
 
 #define CONFIG_MII			/* MII PHY management */
 #define CONFIG_TSEC1		1
@@ -415,11 +418,40 @@
 /*
  * Environment
  */
-#define CONFIG_ENV_IS_IN_FLASH
-#define CONFIG_ENV_OVERWRITE
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
+#ifdef CONFIG_SYS_RAMBOOT
+#ifdef CONFIG_RAMBOOT_SPIFLASH
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_SPI_BUS	0
+#define CONFIG_ENV_SPI_CS	0
+#define CONFIG_ENV_SPI_MAX_HZ	10000000
+#define CONFIG_ENV_SPI_MODE	0
+#define CONFIG_ENV_SIZE		0x2000	/* 8KB */
+#define CONFIG_ENV_OFFSET	0x100000	/* 1MB */
+#define CONFIG_ENV_SECT_SIZE	0x10000
+#elif defined(CONFIG_RAMBOOT_SDCARD)
+#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_SIZE		0x2000
-#define CONFIG_ENV_SECT_SIZE	0x20000
+#define CONFIG_SYS_MMC_ENV_DEV	0
+#elif defined(CONFIG_NAND_U_BOOT)
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
+#define CONFIG_ENV_OFFSET	((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
+#define CONFIG_ENV_RANGE	(3 * CONFIG_ENV_SIZE)
+#else
+#define CONFIG_ENV_IS_NOWHERE	/* Store ENV in memory only */
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - 0x1000)
+#define CONFIG_ENV_SIZE		0x2000
+#endif
+#else
+#define CONFIG_ENV_IS_IN_FLASH
+#if CONFIG_SYS_MONITOR_BASE > 0xfff80000
+#define CONFIG_ENV_ADDR	0xfff80000
+#else
+#define CONFIG_ENV_ADDR	(CONFIG_SYS_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
+#endif
+#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) */
+#endif
 
 #define CONFIG_LOADS_ECHO
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
@@ -446,6 +478,8 @@
 /*
  * USB
  */
+#define CONFIG_HAS_FSL_DR_USB
+#ifdef CONFIG_HAS_FSL_DR_USB
 #define CONFIG_USB_EHCI
 
 #ifdef CONFIG_USB_EHCI
@@ -454,6 +488,7 @@
 #define CONFIG_USB_EHCI_FSL
 #define CONFIG_USB_STORAGE
 #define CONFIG_CMD_FAT
+#endif
 #endif
 
 /*
@@ -493,42 +528,37 @@
  */
 
 #define CONFIG_HOSTNAME		p1022ds
-#define CONFIG_ROOTPATH		/opt/nfsroot
-#define CONFIG_BOOTFILE		uImage
+#define CONFIG_ROOTPATH		"/opt/nfsroot"
+#define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 
 #define CONFIG_LOADADDR		1000000
 
 #define CONFIG_BOOTDELAY	10	/* -1 disables auto-boot */
-#define CONFIG_BOOTARGS
 
 #define CONFIG_BAUDRATE	115200
 
-#define	CONFIG_EXTRA_ENV_SETTINGS					\
-	"perf_mode=stable\0"						\
-	"memctl_intlv_ctl=2\0"						\
-	"netdev=eth0\0"							\
-	"uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
-	"tftpflash=tftpboot $loadaddr $uboot; "				\
-		"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	\
-		"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-		"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; "	\
-		"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "		\
-		"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0"	\
-	"consoledev=ttyS0\0"						\
-	"ramdiskaddr=2000000\0"						\
-	"ramdiskfile=uramdisk\0"  		      	        	\
-	"fdtaddr=c00000\0"	  			      		\
-	"fdtfile=p1022ds.dtb\0"	  					\
-	"bdev=sda3\0"		  			      		\
-	"diuregs=md e002c000 1d\0"			 		\
-	"dium=mw e002c01c\0" 						\
-	"diuerr=md e002c014 1\0" 					\
+#define	CONFIG_EXTRA_ENV_SETTINGS				\
+	"netdev=eth0\0"						\
+	"uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"			\
+	"ubootaddr=" MK_STR(CONFIG_SYS_TEXT_BASE) "\0"		\
+	"tftpflash=tftpboot $loadaddr $uboot && "		\
+		"protect off $ubootaddr +$filesize && "		\
+		"erase $ubootaddr +$filesize && "		\
+		"cp.b $loadaddr $ubootaddr $filesize && "	\
+		"protect on $ubootaddr +$filesize && "		\
+		"cmp.b $loadaddr $ubootaddr $filesize\0"	\
+	"consoledev=ttyS0\0"					\
+	"ramdiskaddr=2000000\0"					\
+	"ramdiskfile=rootfs.ext2.gz.uboot\0"			\
+	"fdtaddr=c00000\0"	  			      	\
+	"fdtfile=p1022ds.dtb\0"	  				\
+	"bdev=sda3\0"		  			      	\
 	"hwconfig=esdhc;audclk:12\0"
 
 #define CONFIG_HDBOOT					\
 	"setenv bootargs root=/dev/$bdev rw "		\
-	"console=$consoledev,$baudrate $othbootargs;"	\
+	"console=$consoledev,$baudrate $othbootargs $videobootargs;"	\
 	"tftp $loadaddr $bootfile;"			\
 	"tftp $fdtaddr $fdtfile;"			\
 	"bootm $loadaddr - $fdtaddr"
@@ -537,14 +567,14 @@
 	"setenv bootargs root=/dev/nfs rw "				\
 	"nfsroot=$serverip:$rootpath "					\
 	"ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:off " \
-	"console=$consoledev,$baudrate $othbootargs;"			\
+	"console=$consoledev,$baudrate $othbootargs $videobootargs;"	\
 	"tftp $loadaddr $bootfile;"					\
 	"tftp $fdtaddr $fdtfile;"					\
 	"bootm $loadaddr - $fdtaddr"
 
 #define CONFIG_RAMBOOTCOMMAND						\
 	"setenv bootargs root=/dev/ram rw "				\
-	"console=$consoledev,$baudrate $othbootargs;"			\
+	"console=$consoledev,$baudrate $othbootargs $videobootargs;"	\
 	"tftp $ramdiskaddr $ramdiskfile;"				\
 	"tftp $loadaddr $bootfile;"					\
 	"tftp $fdtaddr $fdtfile;"					\

@@ -100,16 +100,13 @@
  *
  * if CONFIG_ETHER_ON_SCC is selected, then
  *   - CONFIG_ETHER_INDEX must be set to the channel number (1-4)
- *   - CONFIG_NET_MULTI must not be defined
  *
  * if CONFIG_ETHER_ON_FCC is selected, then
  *   - one or more CONFIG_ETHER_ON_FCCx (x=1,2,3) must also be selected
- *   - CONFIG_NET_MULTI must be defined
  *
  * if CONFIG_ETHER_NONE is defined, then either the ethernet routines must be
  * defined elsewhere (as for the console), or CONFIG_CMD_NET must be unset.
  */
-#define	CONFIG_NET_MULTI
 #undef	CONFIG_ETHER_NONE		/* define if ether on something else */
 
 #undef	CONFIG_ETHER_ON_SCC		/* define if ether on SCC       */
@@ -202,8 +199,6 @@
 #define	CONFIG_SYS_LOAD_ADDR	0x100000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define	CONFIG_SYS_RESET_ADDRESS 0xFDFFFFFC	/* "bad" address		*/
 

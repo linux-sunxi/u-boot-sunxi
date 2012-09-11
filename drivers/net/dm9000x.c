@@ -116,13 +116,21 @@ static u8 DM9000_ior(int);
 static void DM9000_iow(int reg, u8 value);
 
 /* DM9000 network board routine ---------------------------- */
-
+#ifndef CONFIG_DM9000_BYTE_SWAPPED
 #define DM9000_outb(d,r) writeb(d, (volatile u8 *)(r))
 #define DM9000_outw(d,r) writew(d, (volatile u16 *)(r))
 #define DM9000_outl(d,r) writel(d, (volatile u32 *)(r))
 #define DM9000_inb(r) readb((volatile u8 *)(r))
 #define DM9000_inw(r) readw((volatile u16 *)(r))
 #define DM9000_inl(r) readl((volatile u32 *)(r))
+#else
+#define DM9000_outb(d, r) __raw_writeb(d, r)
+#define DM9000_outw(d, r) __raw_writew(d, r)
+#define DM9000_outl(d, r) __raw_writel(d, r)
+#define DM9000_inb(r) __raw_readb(r)
+#define DM9000_inw(r) __raw_readw(r)
+#define DM9000_inl(r) __raw_readl(r)
+#endif
 
 #ifdef CONFIG_DM9000_DEBUG
 static void
@@ -398,8 +406,7 @@ static int dm9000_init(struct eth_device *dev, bd_t *bd)
   Hardware start transmission.
   Send a packet to media from the upper layer.
 */
-static int dm9000_send(struct eth_device *netdev, volatile void *packet,
-		     int length)
+static int dm9000_send(struct eth_device *netdev, void *packet, int length)
 {
 	int tmo;
 	struct board_info *db = &dm9000_info;

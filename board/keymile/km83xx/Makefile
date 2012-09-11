@@ -28,7 +28,7 @@ endif
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS	+= $(BOARD).o ../common/common.o ../common/ivm.o
+COBJS	+= $(BOARD).o ../common/common.o ../common/ivm.o $(BOARD)_i2c.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
@@ -36,12 +36,6 @@ SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 

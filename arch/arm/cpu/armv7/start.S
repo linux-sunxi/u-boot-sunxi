@@ -32,6 +32,8 @@
 #include <asm-offsets.h>
 #include <config.h>
 #include <version.h>
+#include <asm/system.h>
+#include <linux/linkage.h>
 
 .globl _start
 _start: b	reset
@@ -80,18 +82,6 @@ _end_vect:
 .globl _TEXT_BASE
 _TEXT_BASE:
 	.word	CONFIG_SYS_TEXT_BASE
-
-#ifdef CONFIG_TEGRA2
-/*
- * Tegra2 uses 2 separate CPUs - the AVP (ARM7TDMI) and the CPU (dual A9s).
- * U-Boot runs on the AVP first, setting things up for the CPU (PLLs,
- * muxes, clocks, clamps, etc.). Then the AVP halts, and expects the CPU
- * to pick up its reset vector, which points here.
- */
-.globl _armboot_start
-_armboot_start:
-	.word _start
-#endif
 
 /*
  * These are defined in the board-specific linker script.
@@ -146,31 +136,25 @@ reset:
 	orr	r0, r0, #0xd3
 	msr	cpsr,r0
 
-#if defined(CONFIG_OMAP34XX)
-	/* Copy vectors to mask ROM indirect addr */
-	adr	r0, _start		@ r0 <- current position of code
-	add	r0, r0, #4		@ skip reset vector
-	mov	r2, #64			@ r2 <- size to copy
-	add	r2, r0, r2		@ r2 <- source end address
-	mov	r1, #SRAM_OFFSET0	@ build vect addr
-	mov	r3, #SRAM_OFFSET1
-	add	r1, r1, r3
-	mov	r3, #SRAM_OFFSET2
-	add	r1, r1, r3
-next:
-	ldmia	r0!, {r3 - r10}		@ copy from source address [r0]
-	stmia	r1!, {r3 - r10}		@ copy to   target address [r1]
-	cmp	r0, r2			@ until source end address [r2]
-	bne	next			@ loop until equal */
-#if !defined(CONFIG_SYS_NAND_BOOT) && !defined(CONFIG_SYS_ONENAND_BOOT)
-	/* No need to copy/exec the clock code - DPLL adjust already done
-	 * in NAND/oneNAND Boot.
-	 */
-	bl	cpy_clk_code		@ put dpll adjust code behind vectors
-#endif /* NAND Boot */
+/*
+ * Setup vector:
+ * (OMAP4 spl TEXT_BASE is not 32 byte aligned.
+ * Continue to use ROM code vector only in OMAP4 spl)
+ */
+#if !(defined(CONFIG_OMAP44XX) && defined(CONFIG_SPL_BUILD))
+	/* Set V=0 in CP15 SCTRL register - for VBAR to point to vector */
+	mrc	p15, 0, r0, c1, c0, 0	@ Read CP15 SCTRL Register
+	bic	r0, #CR_V		@ V = 0
+	mcr	p15, 0, r0, c1, c0, 0	@ Write CP15 SCTRL Register
+
+	/* Set vector address in CP15 VBAR register */
+	ldr	r0, =_start
+	mcr	p15, 0, r0, c12, c0, 0	@Set VBAR
 #endif
+
 	/* the mask ROM code should have PLL and others stable */
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
+	bl	cpu_init_cp15
 	bl	cpu_init_crit
 #endif
 
@@ -190,8 +174,7 @@ call_board_init_f:
  * after relocating the monitor code.
  *
  */
-	.globl	relocate_code
-relocate_code:
+ENTRY(relocate_code)
 	mov	r4, r0	/* save addr_sp */
 	mov	r5, r1	/* save addr of gd */
 	mov	r6, r2	/* save addr of destination */
@@ -277,10 +260,12 @@ clear_bss:
 #endif
 	mov	r2, #0x00000000		/* clear			    */
 
-clbss_l:str	r2, [r0]		/* clear loop...		    */
+clbss_l:cmp	r0, r1			/* clear loop... */
+	bhs	clbss_e			/* if reached end of bss, exit */
+	str	r2, [r0]
 	add	r0, r0, #4
-	cmp	r0, r1
-	bne	clbss_l
+	b	clbss_l
+clbss_e:
 
 /*
  * We are done. Do not return, instead branch to second part of board
@@ -295,6 +280,18 @@ jump_2_ram:
 	mcr     p15, 0, r0, c7, c10, 4	@ DSB
 	mcr     p15, 0, r0, c7, c5, 4	@ ISB
 #endif
+/*
+ * Move vector table
+ */
+#if !defined(CONFIG_TEGRA20)
+#if !(defined(CONFIG_OMAP44XX) && defined(CONFIG_SPL_BUILD))
+	/* Set vector address in CP15 VBAR register */
+	ldr     r0, =_start
+	add     r0, r0, r9
+	mcr     p15, 0, r0, c12, c0, 0  @Set VBAR
+#endif
+#endif /* !Tegra20 */
+
 	ldr	r0, _board_init_r_ofs
 	adr	r1, _start
 	add	lr, r0, r1
@@ -307,18 +304,31 @@ jump_2_ram:
 
 _board_init_r_ofs:
 	.word board_init_r - _start
+ENDPROC(relocate_code)
 
-
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 /*************************************************************************
  *
- * CPU_init_critical registers
+ * void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3)
+ *	__attribute__((weak));
  *
- * setup important registers
- * setup memory timing
+ * Stack pointer is not yet initialized at this moment
+ * Don't save anything to stack even if compiled with -O0
  *
  *************************************************************************/
-cpu_init_crit:
+ENTRY(save_boot_params)
+	bx	lr			@ back to my caller
+ENDPROC(save_boot_params)
+	.weak	save_boot_params
+
+/*************************************************************************
+ *
+ * cpu_init_cp15
+ *
+ * Setup CP15 registers (cache, MMU, TLBs). The I-cache is turned on unless
+ * CONFIG_SYS_ICACHE_OFF is defined.
+ *
+ *************************************************************************/
+ENTRY(cpu_init_cp15)
 	/*
 	 * Invalidate L1 I/D
 	 */
@@ -343,7 +353,19 @@ cpu_init_crit:
 	orr	r0, r0, #0x00001000	@ set bit 12 (I) I-cache
 #endif
 	mcr	p15, 0, r0, c1, c0, 0
+	mov	pc, lr			@ back to my caller
+ENDPROC(cpu_init_cp15)
 
+#ifndef CONFIG_SKIP_LOWLEVEL_INIT
+/*************************************************************************
+ *
+ * CPU_init_critical registers
+ *
+ * setup important registers
+ * setup memory timing
+ *
+ *************************************************************************/
+ENTRY(cpu_init_crit)
 	/*
 	 * Jump to board specific initialization...
 	 * The Mask ROM will have already initialized
@@ -354,6 +376,7 @@ cpu_init_crit:
 	bl	lowlevel_init		@ go setup pll,mux,memory
 	mov	lr, ip			@ restore link
 	mov	pc, lr			@ back to my caller
+ENDPROC(cpu_init_crit)
 #endif
 
 #ifndef CONFIG_SPL_BUILD

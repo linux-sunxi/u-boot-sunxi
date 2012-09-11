@@ -30,6 +30,8 @@
 #define CONFIG_IXP425			1
 #define CONFIG_DVLHOST			1
 
+#define	CONFIG_MACH_TYPE		1343
+
 #define CONFIG_DISPLAY_CPUINFO		1
 #define CONFIG_DISPLAY_BOARDINFO	1
 
@@ -102,13 +104,6 @@
 					  115200, 230400 }
 #define CONFIG_SERIAL_RTS_ACTIVE	1
 
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE		(128*1024)	/* regular stack */
-
 /* Expansion bus settings */
 #define CONFIG_SYS_EXP_CS0		0xbd113442
 
@@ -151,7 +146,6 @@
 /* include IXP4xx NPE support */
 #define CONFIG_IXP4XX_NPE		1
 
-#define CONFIG_NET_MULTI		1
 /* NPE0 PHY: MII dLAN200 AVmodule, 100BaseT-FDX fixed */
 #define	CONFIG_PHY_ADDR			0x18
 /* NPE1 PHY: MII IP175 switch, port 5 is host port */

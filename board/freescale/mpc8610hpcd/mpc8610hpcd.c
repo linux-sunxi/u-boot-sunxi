@@ -76,14 +76,14 @@ int misc_init_r(void)
 	/* Verify if enabled */
 	tmp_val = 0;
 	i2c_read(0x38, 0x08, 1, &tmp_val, sizeof(tmp_val));
-	debug("DVI Encoder Read: 0x%02lx\n",tmp_val);
+	debug("DVI Encoder Read: 0x%02x\n", tmp_val);
 
 	tmp_val = 0x10;
 	i2c_write(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
 	/* Verify if enabled */
 	tmp_val = 0;
 	i2c_read(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
-	debug("DVI Encoder Read: 0x%02lx\n",tmp_val);
+	debug("DVI Encoder Read: 0x%02x\n", tmp_val);
 
 	return 0;
 }
@@ -235,12 +235,11 @@ void pci_init_board(void)
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_CCSRBAR;
 	volatile ccsr_gur_t *gur = &immap->im_gur;
 	struct fsl_pci_info pci_info;
-	u32 devdisr, pordevsr;
+	u32 devdisr;
 	int first_free_busno;
 	int pci_agent;
 
 	devdisr = in_be32(&gur->devdisr);
-	pordevsr = in_be32(&gur->pordevsr);
 
 	first_free_busno = fsl_pcie_init_board(0);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Freescale Semiconductor, Inc.
+ * Copyright 2008-2012 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -49,10 +49,16 @@ int board_early_init_f (void)
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 
 	setbits_be32(&gur->pmuxcr,
-			(MPC85xx_PMUXCR_SD_DATA |
-			 MPC85xx_PMUXCR_SDHC_CD |
+			(MPC85xx_PMUXCR_SDHC_CD |
 			 MPC85xx_PMUXCR_SDHC_WP));
 
+	/* The MPC8536DS board insert the SDHC_WP pin for erratum NMG_eSDHC118,
+	 * however, this erratum only applies to MPC8536 Rev1.0.
+	 * So set SDHC_WP to active-low when use MPC8536 Rev1.1 and greater.*/
+	if ((((SVR_MAJ(get_svr()) & 0x7) == 0x1) &&
+			(SVR_MIN(get_svr()) >= 0x1))
+			|| (SVR_MAJ(get_svr() & 0x7) > 0x1))
+		setbits_be32(&gur->gencfgr, MPC85xx_GENCFGR_SDHC_WP_INV);
 #endif
 	return 0;
 }
@@ -62,12 +68,7 @@ int checkboard (void)
 	u8 vboot;
 	u8 *pixis_base = (u8 *)PIXIS_BASE;
 
-	puts("Board: MPC8536DS ");
-#ifdef CONFIG_PHYS_64BIT
-	puts("(36-bit addrmap) ");
-#endif
-
-	printf ("Sys ID: 0x%02x, "
+	printf("Board: MPC8536DS Sys ID: 0x%02x, "
 		"Sys Ver: 0x%02x, FPGA Ver: 0x%02x, ",
 		in_8(pixis_base + PIXIS_ID), in_8(pixis_base + PIXIS_VER),
 		in_8(pixis_base + PIXIS_PVER));
@@ -289,5 +290,10 @@ void ft_board_setup(void *blob, bd_t *bd)
 #ifdef CONFIG_FSL_SGMII_RISER
 	fsl_sgmii_riser_fdt_fixup(blob);
 #endif
+
+#ifdef CONFIG_HAS_FSL_MPH_USB
+	fdt_fixup_dr_usb(blob, bd);
+#endif
+
 }
 #endif

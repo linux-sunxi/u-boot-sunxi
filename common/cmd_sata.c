@@ -48,9 +48,12 @@ int __sata_initialize(void)
 		sata_dev_desc[i].block_write = sata_write;
 
 		rc = init_sata(i);
-		rc = scan_sata(i);
-		if ((sata_dev_desc[i].lba > 0) && (sata_dev_desc[i].blksz > 0))
-			init_part(&sata_dev_desc[i]);
+		if (!rc) {
+			rc = scan_sata(i);
+			if (!rc && (sata_dev_desc[i].lba > 0) &&
+				(sata_dev_desc[i].blksz > 0))
+				init_part(&sata_dev_desc[i]);
+		}
 	}
 	sata_curr_device = 0;
 	return rc;
@@ -79,7 +82,7 @@ int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	switch (argc) {
 	case 0:
 	case 1:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	case 2:
 		if (strncmp(argv[1],"inf", 3) == 0) {
 			int i;
@@ -116,7 +119,7 @@ int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			}
 			return rc;
 		}
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	case 3:
 		if (strncmp(argv[1], "dev", 3) == 0) {
 			int dev = (int)simple_strtoul(argv[2], NULL, 10);
@@ -147,7 +150,7 @@ int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			}
 			return rc;
 		}
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	default: /* at least 4 args */
 		if (strcmp(argv[1], "read") == 0) {
@@ -183,7 +186,7 @@ int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				n, (n == cnt) ? "OK" : "ERROR");
 			return (n == cnt) ? 0 : 1;
 		} else {
-			return cmd_usage(cmdtp);
+			return CMD_RET_USAGE;
 		}
 
 		return rc;

@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -242,9 +242,6 @@ void lcd_show_board_info(void)
 
 int board_init(void)
 {
-	/* Enable Ctrlc */
-	console_init_f();
-
 #ifdef CONFIG_AT91SAM9G10EK
 	/* arch number of AT91SAM9G10EK-Board */
 	gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9G10EK;

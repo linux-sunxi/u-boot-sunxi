@@ -139,7 +139,7 @@ typedef volatile struct CommonBufferDescriptor {
 
 static RTXBD *rtx = NULL;
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length);
+static int fec_send(struct eth_device *dev, void *packet, int length);
 static int fec_recv(struct eth_device* dev);
 static int fec_init(struct eth_device* dev, bd_t * bd);
 static void fec_halt(struct eth_device* dev);
@@ -193,7 +193,7 @@ int fec_initialize(bd_t *bis)
 	return 1;
 }
 
-static int fec_send(struct eth_device* dev, volatile void *packet, int length)
+static int fec_send(struct eth_device *dev, void *packet, int length)
 {
 	int j, rc;
 	struct ether_fcc_info_s *efis = dev->priv;
@@ -267,14 +267,14 @@ static int fec_recv (struct eth_device *dev)
 				rtx->rxbd[rxIdx].cbd_sc);
 #endif
 		} else {
-			volatile uchar *rx = NetRxPackets[rxIdx];
+			uchar *rx = NetRxPackets[rxIdx];
 
 			length -= 4;
 
 #if defined(CONFIG_CMD_CDP)
 			if ((rx[0] & 1) != 0
 			    && memcmp ((uchar *) rx, NetBcastAddr, 6) != 0
-			    && memcmp ((uchar *) rx, NetCDPAddr, 6) != 0)
+			    && !is_cdp_packet((uchar *)rx))
 				rx = NULL;
 #endif
 			/*
@@ -378,35 +378,39 @@ static void fec_pin_init(int fecidx)
 {
 	bd_t           *bd = gd->bd;
 	volatile immap_t *immr = (immap_t *) CONFIG_SYS_IMMR;
-	volatile fec_t *fecp;
-
-	/*
-	 * only two FECs please
-	 */
-	if ((unsigned int)fecidx >= 2)
-		hang();
-
-	if (fecidx == 0)
-		fecp = &immr->im_cpm.cp_fec1;
-	else
-		fecp = &immr->im_cpm.cp_fec2;
 
 	/*
 	 * Set MII speed to 2.5 MHz or slightly below.
-	 * * According to the MPC860T (Rev. D) Fast ethernet controller user
-	 * * manual (6.2.14),
-	 * * the MII management interface clock must be less than or equal
-	 * * to 2.5 MHz.
-	 * * This MDC frequency is equal to system clock / (2 * MII_SPEED).
-	 * * Then MII_SPEED = system_clock / 2 * 2,5 MHz.
+	 *
+	 * According to the MPC860T (Rev. D) Fast ethernet controller user
+	 * manual (6.2.14),
+	 * the MII management interface clock must be less than or equal
+	 * to 2.5 MHz.
+	 * This MDC frequency is equal to system clock / (2 * MII_SPEED).
+	 * Then MII_SPEED = system_clock / 2 * 2,5 MHz.
 	 *
 	 * All MII configuration is done via FEC1 registers:
 	 */
 	immr->im_cpm.cp_fec1.fec_mii_speed = ((bd->bi_intfreq + 4999999) / 5000000) << 1;
 
 #if defined(CONFIG_NETTA) || defined(CONFIG_NETPHONE) || defined(CONFIG_NETTA2)
-	/* our PHYs are the limit at 2.5 MHz */
-	fecp->fec_mii_speed <<= 1;
+	{
+		volatile fec_t *fecp;
+
+		/*
+		 * only two FECs please
+		 */
+		if ((unsigned int)fecidx >= 2)
+			hang();
+
+		if (fecidx == 0)
+			fecp = &immr->im_cpm.cp_fec1;
+		else
+			fecp = &immr->im_cpm.cp_fec2;
+
+		/* our PHYs are the limit at 2.5 MHz */
+		fecp->fec_mii_speed <<= 1;
+	}
 #endif
 
 #if defined(CONFIG_MPC885_FAMILY) && defined(WANT_MII)
@@ -1010,11 +1014,10 @@ int fec8xx_miiphy_read(const char *devname, unsigned char addr,
 int fec8xx_miiphy_write(const char *devname, unsigned char  addr,
 		unsigned char  reg, unsigned short value)
 {
-	short rdreg;    /* register working value */
 #ifdef MII_DEBUG
 	printf ("miiphy_write(0x%x) @ 0x%x = ", reg, addr);
 #endif
-	rdreg = mii_send(mk_mii_write(addr, reg, value));
+	(void)mii_send(mk_mii_write(addr, reg, value));
 
 #ifdef MII_DEBUG
 	printf ("0x%04x\n", value);

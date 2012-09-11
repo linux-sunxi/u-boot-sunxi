@@ -41,7 +41,6 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG
 
@@ -246,7 +245,8 @@
 
 /*
  * Configuration for environment
- * Environment is embedded in u-boot in the second sector of the flash
+ * Environment is not embedded in u-boot. First time runing may have env
+ * crc error warning if there is no correct environment on the flash.
  */
 #ifdef CONFIG_CF_SBF
 #	define CONFIG_ENV_IS_IN_SPI_FLASH
@@ -261,6 +261,7 @@
  */
 #ifdef CONFIG_SYS_STMICRO_BOOT
 #	define CONFIG_SYS_FLASH_BASE	CONFIG_SYS_CS0_BASE
+#	define CONFIG_SYS_FLASH0_BASE	CONFIG_SYS_CS0_BASE
 #	define CONFIG_ENV_OFFSET	0x30000
 #	define CONFIG_ENV_SIZE		0x1000
 #	define CONFIG_ENV_SECT_SIZE	0x10000
@@ -268,7 +269,7 @@
 #ifdef CONFIG_SYS_SPANSION_BOOT
 #	define CONFIG_SYS_FLASH_BASE	CONFIG_SYS_CS0_BASE
 #	define CONFIG_SYS_FLASH0_BASE	CONFIG_SYS_CS0_BASE
-#	define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x8000)
+#	define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x40000)
 #	define CONFIG_ENV_SIZE		0x1000
 #	define CONFIG_ENV_SECT_SIZE	0x8000
 #endif

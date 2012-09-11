@@ -24,6 +24,11 @@
 
 static int nand_ecc_pos[] = CONFIG_SYS_NAND_ECCPOS;
 
+#define ECCSTEPS	(CONFIG_SYS_NAND_PAGE_SIZE / \
+					CONFIG_SYS_NAND_ECCSIZE)
+#define ECCTOTAL	(ECCSTEPS * CONFIG_SYS_NAND_ECCBYTES)
+
+
 #if (CONFIG_SYS_NAND_PAGE_SIZE <= 512)
 /*
  * NAND command for small page NAND devices (512)
@@ -135,27 +140,51 @@ static int nand_is_bad_block(struct mtd_info *mtd, int block)
 	return 0;
 }
 
+#if defined(CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST)
 static int nand_read_page(struct mtd_info *mtd, int block, int page, uchar *dst)
 {
 	struct nand_chip *this = mtd->priv;
-	u_char *ecc_calc;
-	u_char *ecc_code;
-	u_char *oob_data;
+	u_char ecc_calc[ECCTOTAL];
+	u_char ecc_code[ECCTOTAL];
+	u_char oob_data[CONFIG_SYS_NAND_OOBSIZE];
 	int i;
 	int eccsize = CONFIG_SYS_NAND_ECCSIZE;
 	int eccbytes = CONFIG_SYS_NAND_ECCBYTES;
-	int eccsteps = CONFIG_SYS_NAND_ECCSTEPS;
+	int eccsteps = ECCSTEPS;
 	uint8_t *p = dst;
-	int stat;
 
+	nand_command(mtd, block, page, 0, NAND_CMD_READOOB);
+	this->read_buf(mtd, oob_data, CONFIG_SYS_NAND_OOBSIZE);
 	nand_command(mtd, block, page, 0, NAND_CMD_READ0);
 
-	/* No malloc available for now, just use some temporary locations
-	 * in SDRAM
-	 */
-	ecc_calc = (u_char *)(CONFIG_SYS_SDRAM_BASE + 0x10000);
-	ecc_code = ecc_calc + 0x100;
-	oob_data = ecc_calc + 0x200;
+	/* Pick the ECC bytes out of the oob data */
+	for (i = 0; i < ECCTOTAL; i++)
+		ecc_code[i] = oob_data[nand_ecc_pos[i]];
+
+
+	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
+		this->ecc.hwctl(mtd, NAND_ECC_READ);
+		this->read_buf(mtd, p, eccsize);
+		this->ecc.calculate(mtd, p, &ecc_calc[i]);
+		this->ecc.correct(mtd, p, &ecc_code[i], &ecc_calc[i]);
+	}
+
+	return 0;
+}
+#else
+static int nand_read_page(struct mtd_info *mtd, int block, int page, uchar *dst)
+{
+	struct nand_chip *this = mtd->priv;
+	u_char ecc_calc[ECCTOTAL];
+	u_char ecc_code[ECCTOTAL];
+	u_char oob_data[CONFIG_SYS_NAND_OOBSIZE];
+	int i;
+	int eccsize = CONFIG_SYS_NAND_ECCSIZE;
+	int eccbytes = CONFIG_SYS_NAND_ECCBYTES;
+	int eccsteps = ECCSTEPS;
+	uint8_t *p = dst;
+
+	nand_command(mtd, block, page, 0, NAND_CMD_READ0);
 
 	for (i = 0; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
 		this->ecc.hwctl(mtd, NAND_ECC_READ);
@@ -165,10 +194,10 @@ static int nand_read_page(struct mtd_info *mtd, int block, int page, uchar *dst)
 	this->read_buf(mtd, oob_data, CONFIG_SYS_NAND_OOBSIZE);
 
 	/* Pick the ECC bytes out of the oob data */
-	for (i = 0; i < CONFIG_SYS_NAND_ECCTOTAL; i++)
+	for (i = 0; i < ECCTOTAL; i++)
 		ecc_code[i] = oob_data[nand_ecc_pos[i]];
 
-	eccsteps = CONFIG_SYS_NAND_ECCSTEPS;
+	eccsteps = ECCSTEPS;
 	p = dst;
 
 	for (i = 0 ; eccsteps; eccsteps--, i += eccbytes, p += eccsize) {
@@ -176,11 +205,12 @@ static int nand_read_page(struct mtd_info *mtd, int block, int page, uchar *dst)
 		 * from correct_data(). We just hope that all possible errors
 		 * are corrected by this routine.
 		 */
-		stat = this->ecc.correct(mtd, p, &ecc_code[i], &ecc_calc[i]);
+		this->ecc.correct(mtd, p, &ecc_code[i], &ecc_calc[i]);
 	}
 
 	return 0;
 }
+#endif /* #if defined(CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST) */
 
 static int nand_load(struct mtd_info *mtd, unsigned int offs,
 		     unsigned int uboot_size, uchar *dst)
@@ -226,7 +256,6 @@ void nand_boot(void)
 {
 	struct nand_chip nand_chip;
 	nand_info_t nand_info;
-	int ret;
 	__attribute__((noreturn)) void (*uboot)(void);
 
 	/*
@@ -245,8 +274,8 @@ void nand_boot(void)
 	/*
 	 * Load U-Boot image from NAND into RAM
 	 */
-	ret = nand_load(&nand_info, CONFIG_SYS_NAND_U_BOOT_OFFS, CONFIG_SYS_NAND_U_BOOT_SIZE,
-			(uchar *)CONFIG_SYS_NAND_U_BOOT_DST);
+	nand_load(&nand_info, CONFIG_SYS_NAND_U_BOOT_OFFS, CONFIG_SYS_NAND_U_BOOT_SIZE,
+		  (uchar *)CONFIG_SYS_NAND_U_BOOT_DST);
 
 #ifdef CONFIG_NAND_ENV_DST
 	nand_load(&nand_info, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE,

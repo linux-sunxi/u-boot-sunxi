@@ -71,7 +71,6 @@
 
 /* Misc CPU related */
 #define CONFIG_ARCH_CPU_INIT
-#undef	CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
@@ -90,7 +89,6 @@
 #define CONFIG_USART_BASE		ATMEL_BASE_DBGU
 #define	CONFIG_USART_ID			ATMEL_ID_SYS
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 
 /* SD/MMC card */
 #define CONFIG_MMC
@@ -103,7 +101,6 @@
 #define CONFIG_MACB
 #define CONFIG_SYS_PHY_ID	1
 #define CONFIG_RMII
-#define CONFIG_NET_MULTI
 #define CONFIG_NET_RETRY_COUNT	20
 
 /* real time clock */
@@ -305,9 +302,5 @@ extern void read_factory_r(void);
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN \
 	ROUND(3 * CONFIG_ENV_SIZE + 128*1024, 0x1000)
-#define CONFIG_STACKSIZE		(32*1024)
-#ifdef CONFIG_USE_IRQ
-#error CONFIG_USE_IRQ not supported
-#endif
 
 #endif

@@ -29,6 +29,15 @@ if [ \( $# -eq 2 \) -a \( "$1" = "-A" \) ] ; then
 	set ${line}
 	# add default board name if needed
 	[ $# = 3 ] && set ${line} ${1}
+elif [ "${MAKEFLAGS+set}${MAKELEVEL+set}" = "setset" ] ; then
+	# only warn when using a config target in the Makefile
+	cat <<-EOF
+
+	warning: Please migrate to boards.cfg.  Failure to do so will
+	         mean removal of your board in the next release.
+
+	EOF
+	sleep 5
 fi
 
 while [ $# -gt 0 ] ; do
@@ -50,7 +59,8 @@ CONFIG_NAME="${1%_config}"
 [ "${BOARD_NAME}" ] || BOARD_NAME="${1%_config}"
 
 arch="$2"
-cpu="$3"
+cpu=`echo $3 | awk 'BEGIN {FS = ":"} ; {print $1}'`
+spl_cpu=`echo $3 | awk 'BEGIN {FS = ":"} ; {print $2}'`
 if [ "$4" = "-" ] ; then
 	board=${BOARD_NAME}
 else
@@ -121,13 +131,21 @@ fi
 #
 # Create include file for Make
 #
-echo "ARCH   = ${arch}"  >  config.mk
-echo "CPU    = ${cpu}"   >> config.mk
-echo "BOARD  = ${board}" >> config.mk
+( echo "ARCH   = ${arch}"
+    if [ ! -z "$spl_cpu" ] ; then
+	echo 'ifeq ($(CONFIG_SPL_BUILD),y)'
+	echo "CPU    = ${spl_cpu}"
+	echo "else"
+	echo "CPU    = ${cpu}"
+	echo "endif"
+    else
+	echo "CPU    = ${cpu}"
+    fi
+    echo "BOARD  = ${board}"
 
-[ "${vendor}" ] && echo "VENDOR = ${vendor}" >> config.mk
-
-[ "${soc}"    ] && echo "SOC    = ${soc}"    >> config.mk
+    [ "${vendor}" ] && echo "VENDOR = ${vendor}"
+    [ "${soc}"    ] && echo "SOC    = ${soc}"
+    exit 0 ) > config.mk
 
 # Assign board directory to BOARDIR variable
 if [ -z "${vendor}" ] ; then
@@ -152,12 +170,21 @@ for i in ${TARGETS} ; do
 	echo "#define CONFIG_${i}" >>config.h ;
 done
 
+echo "#define CONFIG_SYS_ARCH  \"${arch}\""  >> config.h
+echo "#define CONFIG_SYS_CPU   \"${cpu}\""   >> config.h
+echo "#define CONFIG_SYS_BOARD \"${board}\"" >> config.h
+
+[ "${vendor}" ] && echo "#define CONFIG_SYS_VENDOR \"${vendor}\"" >> config.h
+
+[ "${soc}"    ] && echo "#define CONFIG_SYS_SOC    \"${soc}\""    >> config.h
+
 cat << EOF >> config.h
 #define CONFIG_BOARDDIR board/$BOARDDIR
 #include <config_cmd_defaults.h>
 #include <config_defaults.h>
 #include <configs/${CONFIG_NAME}.h>
 #include <asm/config.h>
+#include <config_fallbacks.h>
 EOF
 
 exit 0

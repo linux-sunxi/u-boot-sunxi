@@ -26,7 +26,7 @@
  * Support for read and write access to EEPROM like memory devices. This
  * includes regular EEPROM as well as  FRAM (ferroelectic nonvolaile RAM).
  * FRAM devices read and write data at bus speed. In particular, there is no
- * write delay. Also, there is no limit imposed on the numer of bytes that can
+ * write delay. Also, there is no limit imposed on the number of bytes that can
  * be transferred with a single read or write.
  *
  * Use the following configuration options to ensure no unneeded performance
@@ -104,7 +104,7 @@ int do_eeprom ( cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		}
 	}
 
-	return cmd_usage(cmdtp);
+	return CMD_RET_USAGE;
 }
 #endif
 

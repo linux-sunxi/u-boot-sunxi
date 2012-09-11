@@ -140,8 +140,6 @@
 					   1MB - 64K FLASH0 SEG =960K
 					   (size=0xf0000)*/
 
-#define CONFIG_SYS_BAUDRATE_TABLE  { 9600, 19200, 38400, 57600, 115200 }
-
 /*
  * NS16550 Configuration
  */
@@ -334,7 +332,6 @@
 #define CONFIG_PCI			/* include pci support			*/
 #undef CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI		/* Multi ethernet cards support		*/
 
 #define CONFIG_TULIP
 

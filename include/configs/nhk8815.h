@@ -54,7 +54,6 @@
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"Nomadik> "
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE \
@@ -86,17 +85,11 @@
 #define CONFIG_SYS_TEXT_BASE    0x00000000
 #define CONFIG_SYS_INIT_SP_ADDR (CONFIG_SYS_TEXT_BASE + (1<<20))
 
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#  define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#  define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
-
 #define CONFIG_SYS_MEMTEST_START	0x00000000
 #define CONFIG_SYS_MEMTEST_END		0x0FFFFFFF
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 256 * 1024)
 
-#define BOARD_LATE_INIT		/* call board_late_init during start up */
+#define CONFIG_BOARD_LATE_INIT	/* call board_late_init during start up */
 
 /* timing informazion */
 #define CONFIG_SYS_HZ		1000 /* Mandatory... */
@@ -106,7 +99,6 @@
 #define CONFIG_PL011_SERIAL
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CFG_SERIAL0		0x101FD000
 #define CFG_SERIAL1		0x101FB000
 
@@ -135,7 +127,6 @@
 #define __io(a)			((void __iomem *)(PCI_IO_VADDR + (a)))
 #define __mem_isa(a)		((a) + PCI_MEMORY_VADDR)
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111	/* Using SMC91c111*/
 #define CONFIG_SMC91111_BASE	0x34000300
 #undef  CONFIG_SMC91111_EXT_PHY	/* Internal PHY */

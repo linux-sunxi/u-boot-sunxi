@@ -48,6 +48,10 @@
 #include <nand.h>
 #include <onenand_uboot.h>
 #include <mmc.h>
+#include <libfdt.h>
+#include <fdtdec.h>
+#include <post.h>
+#include <logbuff.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>
@@ -69,15 +73,10 @@ extern int  AT91F_DataflashInit(void);
 extern void dataflash_print_info(void);
 #endif
 
-#ifdef CONFIG_DRIVER_RTL8019
-extern void rtl8019_get_enetaddr (uchar * addr);
-#endif
-
 #if defined(CONFIG_HARD_I2C) || \
     defined(CONFIG_SOFT_I2C)
 #include <i2c.h>
 #endif
-
 
 /************************************************************************
  * Coloured LED functionality
@@ -116,16 +115,11 @@ void blue_led_off(void) __attribute__((weak, alias("__blue_led_off")));
 #if defined(CONFIG_ARM_DCC) && !defined(CONFIG_BAUDRATE)
 #define CONFIG_BAUDRATE 115200
 #endif
+
 static int init_baudrate(void)
 {
-	char tmp[64];	/* long enough for environment variables */
-	int i = getenv_f("baudrate", tmp, sizeof(tmp));
-
-	gd->baudrate = (i > 0)
-			? (int) simple_strtoul(tmp, NULL, 10)
-			: CONFIG_BAUDRATE;
-
-	return (0);
+	gd->baudrate = getenv_ulong("baudrate", 10, CONFIG_BAUDRATE);
+	return 0;
 }
 
 static int display_banner(void)
@@ -230,12 +224,21 @@ void __dram_init_banksize(void)
 void dram_init_banksize(void)
 	__attribute__((weak, alias("__dram_init_banksize")));
 
+int __arch_cpu_init(void)
+{
+	return 0;
+}
+int arch_cpu_init(void)
+	__attribute__((weak, alias("__arch_cpu_init")));
+
 init_fnc_t *init_sequence[] = {
-#if defined(CONFIG_ARCH_CPU_INIT)
 	arch_cpu_init,		/* basic arch cpu dependent setup */
-#endif
+
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
+#endif
+#ifdef CONFIG_OF_CONTROL
+	fdtdec_check_fdt,
 #endif
 	timer_init,		/* initialize timer */
 #ifdef CONFIG_FSL_ESDHC
@@ -265,6 +268,11 @@ void board_init_f(ulong bootflag)
 	init_fnc_t **init_fnc_ptr;
 	gd_t *id;
 	ulong addr, addr_sp;
+#ifdef CONFIG_PRAM
+	ulong reg;
+#endif
+
+	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_F, "board_init_f");
 
 	/* Pointer is writable since we allocated a register for it */
 	gd = (gd_t *) ((CONFIG_SYS_INIT_SP_ADDR) & ~0x07);
@@ -274,12 +282,30 @@ void board_init_f(ulong bootflag)
 	memset((void *)gd, 0, sizeof(gd_t));
 
 	gd->mon_len = _bss_end_ofs;
+#ifdef CONFIG_OF_EMBED
+	/* Get a pointer to the FDT */
+	gd->fdt_blob = _binary_dt_dtb_start;
+#elif defined CONFIG_OF_SEPARATE
+	/* FDT is at end of image */
+	gd->fdt_blob = (void *)(_end_ofs + _TEXT_BASE);
+#endif
+	/* Allow the early environment to override the fdt address */
+	gd->fdt_blob = (void *)getenv_ulong("fdtcontroladdr", 16,
+						(uintptr_t)gd->fdt_blob);
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0) {
 			hang ();
 		}
 	}
+
+#ifdef CONFIG_OF_CONTROL
+	/* For now, put this check after the console is ready */
+	if (fdtdec_prepare_fdt()) {
+		panic("** CONFIG_OF_CONTROL defined but no FDT - please see "
+			"doc/README.fdt-control");
+	}
+#endif
 
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
@@ -315,9 +341,7 @@ void board_init_f(ulong bootflag)
 	/*
 	 * reserve protected RAM
 	 */
-	i = getenv_r("pram", (char *)tmp, sizeof(tmp));
-	reg = (i > 0) ? simple_strtoul((const char *)tmp, NULL, 10) :
-		CONFIG_PRAM;
+	reg = getenv_ulong("pram", 10, CONFIG_PRAM);
 	addr -= (reg << 10);		/* size is in kB */
 	debug("Reserving %ldk for protected RAM at %08lx\n", reg, addr);
 #endif /* CONFIG_PRAM */
@@ -439,17 +463,15 @@ static char *failed = "*** failed ***\n";
 
 void board_init_r(gd_t *id, ulong dest_addr)
 {
-	char *s;
-	bd_t *bd;
 	ulong malloc_start;
 #if !defined(CONFIG_SYS_NO_FLASH)
 	ulong flash_size;
 #endif
 
 	gd = id;
-	bd = gd->bd;
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
+	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_R, "board_init_r");
 
 	monitor_flash_len = _end_ofs;
 
@@ -458,7 +480,15 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
-
+	/*
+	 * TODO: printing of the clock inforamtion of the board is now
+	 * implemented as part of bdinfo command. Currently only support for
+	 * davinci SOC's is added. Remove this check once all the board
+	 * implement this.
+	 */
+#ifdef CONFIG_CLOCKS
+	set_cpu_clk_info(); /* Setup clock information */
+#endif
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
 #endif
@@ -476,19 +506,24 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
+#ifdef CONFIG_ARCH_EARLY_INIT_R
+	arch_early_init_r();
+#endif
+
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts("Flash: ");
 
 	flash_size = flash_init();
 	if (flash_size > 0) {
 # ifdef CONFIG_SYS_FLASH_CHECKSUM
+		char *s = getenv("flashchecksum");
+
 		print_size(flash_size, "");
 		/*
 		 * Compute and print flash CRC if flashchecksum is set to 'y'
 		 *
 		 * NOTE: Maybe we should add some WATCHDOG_RESET()? XXX
 		 */
-		s = getenv("flashchecksum");
 		if (s && (*s == 'y')) {
 			printf("  CRC: %08X", crc32(0,
 				(const unsigned char *) CONFIG_SYS_FLASH_BASE,
@@ -515,7 +550,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 #ifdef CONFIG_GENERIC_MMC
        puts("MMC:   ");
-       mmc_initialize(bd);
+       mmc_initialize(gd->bd);
 #endif
 
 #ifdef CONFIG_HAS_DATAFLASH
@@ -529,9 +564,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI)
 	arm_pci_init();
 #endif
-
-	/* IP Address */
-	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
 
 	stdio_init();	/* get the devices list going. */
 
@@ -569,16 +601,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif /* CONFIG_DRIVER_SMC91111 || CONFIG_DRIVER_LAN91C96 */
 
 	/* Initialize from environment */
-	s = getenv("loadaddr");
-	if (s != NULL)
-		load_addr = simple_strtoul(s, NULL, 16);
-#if defined(CONFIG_CMD_NET)
-	s = getenv("bootfile");
-	if (s != NULL)
-		copy_filename(BootFile, s, sizeof(BootFile));
-#endif
+	load_addr = getenv_ulong("loadaddr", 16, load_addr);
 
-#ifdef BOARD_LATE_INIT
+#ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init();
 #endif
 
@@ -586,9 +611,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-#if defined(CONFIG_NET_MULTI)
 	puts("Net:   ");
-#endif
 	eth_initialize(gd->bd);
 #if defined(CONFIG_RESET_PHY_R)
 	debug("Reset Ethernet PHY\n");
@@ -606,18 +629,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	 * taking into account the protected RAM at top of memory
 	 */
 	{
-		ulong pram;
+		ulong pram = 0;
 		uchar memsz[32];
-#ifdef CONFIG_PRAM
-		char *s;
 
-		s = getenv("pram");
-		if (s != NULL)
-			pram = simple_strtoul(s, NULL, 10);
-		else
-			pram = CONFIG_PRAM;
-#else
-		pram = 0;
+#ifdef CONFIG_PRAM
+		pram = getenv_ulong("pram", 10, CONFIG_PRAM);
 #endif
 #ifdef CONFIG_LOGBUFFER
 #ifndef CONFIG_ALT_LB_ADDR

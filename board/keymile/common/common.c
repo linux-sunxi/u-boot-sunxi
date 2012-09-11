@@ -34,16 +34,18 @@
 #include <asm/io.h>
 #include <linux/ctype.h>
 
-#if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT)
-#include <libfdt.h>
+#if defined(CONFIG_POST)
+#include "post.h"
 #endif
-
 #include "common.h"
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 #include <i2c.h>
 #endif
 
+#if !defined(CONFIG_MPC83xx)
 static void i2c_write_start_seq(void);
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 /*
@@ -64,26 +66,36 @@ int set_km_env(void)
 	unsigned int pnvramaddr;
 	unsigned int pram;
 	unsigned int varaddr;
+	unsigned int kernelmem;
+	char *p;
+	unsigned long rootfssize = 0;
 
 	pnvramaddr = gd->ram_size - CONFIG_KM_RESERVED_PRAM - CONFIG_KM_PHRAM
 			- CONFIG_KM_PNVRAM;
 	sprintf((char *)buf, "0x%x", pnvramaddr);
 	setenv("pnvramaddr", (char *)buf);
 
-	pram = (CONFIG_KM_RESERVED_PRAM + CONFIG_KM_PHRAM + CONFIG_KM_PNVRAM) /
-		0x400;
+	/* try to read rootfssize (ram image) from envrionment */
+	p = getenv("rootfssize");
+	if (p != NULL)
+		strict_strtoul(p, 16, &rootfssize);
+	pram = (rootfssize + CONFIG_KM_RESERVED_PRAM + CONFIG_KM_PHRAM +
+		CONFIG_KM_PNVRAM) / 0x400;
 	sprintf((char *)buf, "0x%x", pram);
 	setenv("pram", (char *)buf);
 
 	varaddr = gd->ram_size - CONFIG_KM_RESERVED_PRAM - CONFIG_KM_PHRAM;
 	sprintf((char *)buf, "0x%x", varaddr);
 	setenv("varaddr", (char *)buf);
+
+	kernelmem = gd->ram_size - 0x400 * pram;
+	sprintf((char *)buf, "0x%x", kernelmem);
+	setenv("kernelmem", (char *)buf);
+
 	return 0;
 }
 
-#define DELAY_ABORT_SEQ		62  /* @200kHz 9 clocks = 44us, 62us is ok */
-#define DELAY_HALF_PERIOD	(500 / (CONFIG_SYS_I2C_SPEED / 1000))
-
+#if defined(CONFIG_SYS_I2C_INIT_BOARD)
 #if !defined(CONFIG_MPC83xx)
 static void i2c_write_start_seq(void)
 {
@@ -139,7 +151,6 @@ int i2c_make_abort(void)
 			sda_state = get_sda();
 			if (scl_state && sda_state) {
 				ret = 0;
-				printf("[INFO] i2c abort after %d clocks\n", i);
 				break;
 			}
 		}
@@ -147,8 +158,6 @@ int i2c_make_abort(void)
 	if (ret == 0)
 		for (i = 0; i < 5; i++)
 			i2c_write_start_seq();
-	else
-		printf("[ERROR] i2c abort failed\n");
 
 	/* respect stop setup time */
 	udelay(DELAY_ABORT_SEQ);
@@ -163,68 +172,6 @@ int i2c_make_abort(void)
 #endif
 	return ret;
 }
-#endif /* !MPC83xx */
-
-#if defined(CONFIG_MPC83xx)
-static void i2c_write_start_seq(void)
-{
-	struct fsl_i2c *dev;
-	dev = (struct fsl_i2c *) (CONFIG_SYS_IMMR + CONFIG_SYS_I2C_OFFSET);
-	udelay(DELAY_ABORT_SEQ);
-	out_8(&dev->cr, (I2C_CR_MEN | I2C_CR_MSTA));
-	udelay(DELAY_ABORT_SEQ);
-	out_8(&dev->cr, (I2C_CR_MEN));
-}
-
-int i2c_make_abort(void)
-{
-	struct fsl_i2c *dev;
-	dev = (struct fsl_i2c *) (CONFIG_SYS_IMMR + CONFIG_SYS_I2C_OFFSET);
-	uchar	dummy;
-	uchar   last;
-	int     nbr_read = 0;
-	int     i = 0;
-	int	    ret = 0;
-
-	/* wait after each operation to finsh with a delay */
-	out_8(&dev->cr, (I2C_CR_MSTA));
-	udelay(DELAY_ABORT_SEQ);
-	out_8(&dev->cr, (I2C_CR_MEN | I2C_CR_MSTA));
-	udelay(DELAY_ABORT_SEQ);
-	dummy = in_8(&dev->dr);
-	udelay(DELAY_ABORT_SEQ);
-	last = in_8(&dev->dr);
-	nbr_read++;
-
-	/*
-	 * do read until the last bit is 1, but stop if the full eeprom is
-	 * read.
-	 */
-	while (((last & 0x01) != 0x01) &&
-		(nbr_read < CONFIG_SYS_IVM_EEPROM_MAX_LEN)) {
-		udelay(DELAY_ABORT_SEQ);
-		last = in_8(&dev->dr);
-		nbr_read++;
-	}
-	if ((last & 0x01) != 0x01)
-		ret = -2;
-	if ((last != 0xff) || (nbr_read > 1))
-		printf("[INFO] i2c abort after %d bytes (0x%02x)\n",
-			nbr_read, last);
-	udelay(DELAY_ABORT_SEQ);
-	out_8(&dev->cr, (I2C_CR_MEN));
-	udelay(DELAY_ABORT_SEQ);
-	/* clear status reg */
-	out_8(&dev->sr, 0);
-
-	for (i = 0; i < 5; i++)
-		i2c_write_start_seq();
-	if (ret != 0)
-		printf("[ERROR] i2c abort failed after %d bytes (0x%02x)\n",
-			nbr_read, last);
-
-	return ret;
-}
 #endif
 
 /**
@@ -236,6 +183,8 @@ void i2c_init_board(void)
 	/* Now run the AbortSequence() */
 	i2c_make_abort();
 }
+#endif
+
 
 #if !defined(MACH_TYPE_KM_KIRKWOOD)
 int ethernet_present(void)
@@ -440,4 +389,37 @@ U_BOOT_CMD(km_checkbidhwk, 2, 0, do_checkboardidhwk,
 		"[v]\n  - check environment parameter "\
 		"\"boardIdListHex\" against stored boardid and hwkey "\
 		"from the IVM\n    v: verbose output"
+);
+
+/*
+ * command km_checktestboot
+ *  if the testpin of the board is asserted, return 1
+ *  *	else return 0
+ */
+int do_checktestboot(cmd_tbl_t *cmdtp, int flag, int argc,
+			char *const argv[])
+{
+	int testpin = 0;
+	char *s = NULL;
+	int testboot = 0;
+	int verbose = argc > 1 && *argv[1] == 'v';
+
+#if defined(CONFIG_POST)
+	testpin = post_hotkeys_pressed();
+	s = getenv("test_bank");
+#endif
+	/* when test_bank is not set, act as if testpin is not asserted */
+	testboot = (testpin != 0) && (s);
+	if (verbose) {
+		printf("testpin   = %d\n", testpin);
+		printf("test_bank = %s\n", s ? s : "not set");
+		printf("boot test app : %s\n", (testboot) ? "yes" : "no");
+	}
+	/* return 0 means: testboot, therefore we need the inversion */
+	return !testboot;
+}
+
+U_BOOT_CMD(km_checktestboot, 2, 0, do_checktestboot,
+		"check if testpin is asserted",
+		"[v]\n  v - verbose output"
 );

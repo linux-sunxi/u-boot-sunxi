@@ -42,7 +42,6 @@
 #define AHB_CLK_FREQ		(CONFIG_SYS_CLK_FREQ/4)
 #define BBUS_CLK_FREQ		(CONFIG_SYS_CLK_FREQ/8)
 
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 /*@TODO #define CONFIG_STATUS_LED*/
 #define CONFIG_USE_IRQ
 
@@ -55,7 +54,6 @@
  * Hardware drivers
  */
 #define CONFIG_NS9750_UART		1	/* use on-chip UART */
-#define CONFIG_DRIVER_NS9750_ETHERNET	1	/* use on-chip ethernet */
 
 /*
  * select serial console configuration
@@ -86,7 +84,6 @@
 #define CONFIG_CMD_LOADB
 #define CONFIG_CMD_LOADS
 #define CONFIG_CMD_MEMORY
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 
 
@@ -124,17 +121,11 @@
 
 #define	CONFIG_SYS_HZ			(CPU_CLK_FREQ/64)
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define NS9750_ETH_PHY_ADDRESS	(0x0000)
 
 /*-----------------------------------------------------------------------
  * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
  */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
 #ifdef CONFIG_USE_IRQ
 #define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
 #define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */

@@ -36,13 +36,9 @@
 #include <asm/system.h>
 #include <asm/cache.h>
 #include <asm/armv7.h>
+#include <linux/compiler.h>
 
-void save_boot_params_default(u32 r0, u32 r1, u32 r2, u32 r3)
-{
-}
-
-void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3)
-	__attribute__((weak, alias("save_boot_params_default")));
+void __weak cpu_cache_initialization(void){}
 
 int cleanup_before_linux(void)
 {
@@ -52,7 +48,9 @@ int cleanup_before_linux(void)
 	 *
 	 * we turn off caches etc ...
 	 */
+#ifndef CONFIG_SPL_BUILD
 	disable_interrupts();
+#endif
 
 	/*
 	 * Turn off I-cache and invalidate it
@@ -65,6 +63,7 @@ int cleanup_before_linux(void)
 	 * dcache_disable() in turn flushes the d-cache and disables MMU
 	 */
 	dcache_disable();
+	v7_outer_cache_disable();
 
 	/*
 	 * After D-cache is flushed and before it is disabled there may
@@ -77,6 +76,11 @@ int cleanup_before_linux(void)
 	 * problems for kernel
 	 */
 	invalidate_dcache_all();
+
+	/*
+	 * Some CPU need more cache attention before starting the kernel.
+	 */
+	cpu_cache_initialization();
 
 	return 0;
 }

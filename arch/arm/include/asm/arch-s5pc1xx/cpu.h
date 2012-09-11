@@ -23,6 +23,7 @@
 #ifndef _S5PC1XX_CPU_H
 #define _S5PC1XX_CPU_H
 
+#define S5P_CPU_NAME		"S5P"
 #define S5PC1XX_ADDR_BASE	0xE0000000
 
 /* S5PC100 */
@@ -55,6 +56,10 @@
 #define S5PC110_VIC1_BASE	0xF2100000
 #define S5PC110_VIC2_BASE	0xF2200000
 #define S5PC110_VIC3_BASE	0xF2300000
+#define S5PC110_OTG_BASE	0xEC000000
+#define S5PC110_PHY_BASE	0xEC100000
+#define S5PC110_USB_PHY_CONTROL 0xE010E80C
+
 
 #ifndef __ASSEMBLY__
 #include <asm/io.h>
@@ -65,6 +70,11 @@ static inline void s5p_set_cpu_id(void)
 {
 	s5p_cpu_id = readl(S5PC100_PRO_ID);
 	s5p_cpu_id = 0xC000 | ((s5p_cpu_id & 0x00FFF000) >> 12);
+}
+
+static inline char *s5p_get_cpu_name(void)
+{
+	return S5P_CPU_NAME;
 }
 
 #define IS_SAMSUNG_TYPE(type, id)			\
@@ -94,6 +104,7 @@ SAMSUNG_BASE(mmc, MMC_BASE)
 SAMSUNG_BASE(sromc, SROMC_BASE)
 SAMSUNG_BASE(timer, PWMTIMER_BASE)
 SAMSUNG_BASE(uart, UART_BASE)
+SAMSUNG_BASE(watchdog, WATCHDOG_BASE)
 #endif
 
 #endif	/* _S5PC1XX_CPU_H */

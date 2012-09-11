@@ -27,24 +27,25 @@
 
 #define CONFIG_SYS_MX5_HCLK	24000000
 #define CONFIG_SYS_MX5_CLK32		32768
-#define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
+
+#define CONFIG_MACH_TYPE	MACH_TYPE_MX53_LOCO
 
 #include <asm/arch/imx-regs.h>
 
 #define CONFIG_CMDLINE_TAG
-#define CONFIG_REVISION_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_MXC_GPIO
+#define CONFIG_REVISION_TAG
 
 #define CONFIG_MXC_UART
-#define CONFIG_SYS_MX53_UART1
+#define CONFIG_MXC_UART_BASE	UART1_BASE
 
 /* MMC Configs */
 #define CONFIG_FSL_ESDHC
@@ -55,13 +56,12 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT2
 #define CONFIG_DOS_PARTITION
 
 /* Eth Configs */
 #define CONFIG_HAS_ETH1
-#define CONFIG_NET_MULTI
 #define CONFIG_MII
-#define CONFIG_DISCOVER_PHY
 
 #define CONFIG_FEC_MXC
 #define IMX_FEC_BASE	FEC_BASE_ADDR
@@ -72,11 +72,37 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
 
+/* USB Configs */
+#define CONFIG_CMD_USB
+#define CONFIG_CMD_FAT
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_MX5
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+#define CONFIG_USB_ETHER_SMSC95XX
+#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
+#define CONFIG_MXC_USB_FLAGS	0
+
+/* I2C Configs */
+#define CONFIG_HARD_I2C
+#define CONFIG_I2C_MXC
+#define CONFIG_SYS_I2C_BASE		I2C1_BASE_ADDR
+#define CONFIG_SYS_I2C_SPEED		100000
+
+/* PMIC Controller */
+#define CONFIG_PMIC
+#define CONFIG_PMIC_I2C
+#define CONFIG_DIALOG_PMIC
+#define CONFIG_PMIC_FSL
+#define CONFIG_SYS_DIALOG_PMIC_I2C_ADDR	0x48
+#define CONFIG_SYS_FSL_PMIC_I2C_ADDR	0x8
+
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
 
 /* Command definition */
 #include <config_cmd_default.h>
@@ -85,7 +111,7 @@
 
 #define CONFIG_BOOTDELAY	3
 
-#define CONFIG_PRIME	"FEC0"
+#define CONFIG_ETHPRIME		"FEC0"
 
 #define CONFIG_LOADADDR		0x70800000	/* loadaddr env var */
 #define CONFIG_SYS_TEXT_BASE    0x77800000
@@ -132,7 +158,6 @@
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT		"MX53LOCO U-Boot > "
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
@@ -149,9 +174,6 @@
 
 #define CONFIG_SYS_HZ		1000
 #define CONFIG_CMDLINE_EDITING
-
-/* Stack sizes */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS	2
@@ -179,5 +201,29 @@
 #define CONFIG_SYS_MMC_ENV_DEV 0
 
 #define CONFIG_OF_LIBFDT
+
+#define CONFIG_CMD_SATA
+#ifdef CONFIG_CMD_SATA
+	#define CONFIG_DWC_AHSATA
+	#define CONFIG_SYS_SATA_MAX_DEVICE      1
+	#define CONFIG_DWC_AHSATA_PORT_ID       0
+	#define CONFIG_DWC_AHSATA_BASE_ADDR     SATA_BASE_ADDR
+	#define CONFIG_LBA48
+	#define CONFIG_LIBATA
+#endif
+
+/* Framebuffer and LCD */
+#define CONFIG_PREBOOT
+#define CONFIG_VIDEO
+#define CONFIG_VIDEO_IPUV3
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VGA_AS_SINGLE_DEVICE
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
+#define CONFIG_VIDEO_BMP_RLE8
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_BMP_16BPP
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_IPUV3_CLK	133000000
 
 #endif				/* __CONFIG_H */

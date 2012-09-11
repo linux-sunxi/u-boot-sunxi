@@ -30,6 +30,7 @@
 #include <asm/arch/mx35_pins.h>
 #include <asm/arch/iomux.h>
 #include <i2c.h>
+#include <pmic.h>
 #include <fsl_pmic.h>
 #include <mc9sdz60.h>
 #include <mc13892.h>
@@ -38,15 +39,13 @@
 #include <asm/arch/sys_proto.h>
 #include <netdev.h>
 
-#ifndef BOARD_LATE_INIT
-#error "BOARD_LATE_INIT must be set for this board"
+#ifndef CONFIG_BOARD_LATE_INIT
+#error "CONFIG_BOARD_LATE_INIT must be set for this board"
 #endif
 
 #ifndef CONFIG_BOARD_EARLY_INIT_F
 #error "CONFIG_BOARD_EARLY_INIT_F must be set for this board"
 #endif
-
-#define mdelay(n) ({unsigned long msec = (n); while (msec--) udelay(1000); })
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -169,7 +168,7 @@ int board_early_init_f(void)
 	/* enable clocks */
 	writel(readl(&ccm->cgr0) |
 		MXC_CCM_CGR0_EMI_MASK |
-		MXC_CCM_CGR0_EDI0_MASK |
+		MXC_CCM_CGR0_EDIO_MASK |
 		MXC_CCM_CGR0_EPIT1_MASK,
 		&ccm->cgr0);
 
@@ -204,9 +203,10 @@ int board_init(void)
 
 static inline int pmic_detect(void)
 {
-	int id;
+	unsigned int id;
+	struct pmic *p = get_pmic();
 
-	id = pmic_reg_read(REG_IDENTIFICATION);
+	pmic_reg_read(p, REG_IDENTIFICATION, &id);
 
 	id = (id >> 6) & 0x7;
 	if (id == 0x7)
@@ -227,15 +227,19 @@ int board_late_init(void)
 {
 	u8 val;
 	u32 pmic_val;
+	struct pmic *p;
 
+	pmic_init();
 	if (pmic_detect()) {
+		p = get_pmic();
 		mxc_request_iomux(MX35_PIN_WATCHDOG_RST, MUX_CONFIG_SION |
 					MUX_CONFIG_ALT1);
 
-		pmic_val = pmic_reg_read(REG_SETTING_0);
-		pmic_reg_write(REG_SETTING_0, pmic_val | VO_1_30V | VO_1_50V);
-		pmic_val = pmic_reg_read(REG_MODE_0);
-		pmic_reg_write(REG_MODE_0, pmic_val | VGEN3EN);
+		pmic_reg_read(p, REG_SETTING_0, &pmic_val);
+		pmic_reg_write(p, REG_SETTING_0,
+			pmic_val | VO_1_30V | VO_1_50V);
+		pmic_reg_read(p, REG_MODE_0, &pmic_val);
+		pmic_reg_write(p, REG_MODE_0, pmic_val | VGEN3EN);
 
 		mxc_request_iomux(MX35_PIN_COMPARE, MUX_CONFIG_GPIO);
 		mxc_iomux_set_input(MUX_IN_GPIO1_IN_5, INPUT_CTL_PATH0);
@@ -254,44 +258,8 @@ int board_late_init(void)
 	val |= 0x80;
 	mc9sdz60_reg_write(MC9SDZ60_REG_RESET_1, val);
 
-	return 0;
-}
-
-int checkboard(void)
-{
-	struct ccm_regs *ccm =
-		(struct ccm_regs *)IMX_CCM_BASE;
-	u32 cpu_rev = get_cpu_rev();
-
-	/*
-	 * Be sure that I2C is initialized to check
-	 * the board revision
-	 */
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-
 	/* Print board revision */
-	printf("Board: MX35 PDK %d.0 ", ((get_board_rev() >> 8) + 1) & 0x0F);
-
-	/* Print CPU revision */
-	printf("i.MX35 %d.%d [", (cpu_rev & 0xF0) >> 4, cpu_rev & 0x0F);
-
-	switch (readl(&ccm->rcsr) & 0x0F) {
-	case 0x0000:
-		puts("POR");
-		break;
-	case 0x0002:
-		puts("JTAG");
-		break;
-	case 0x0004:
-		puts("RST");
-		break;
-	case 0x0008:
-		puts("WDT");
-		break;
-	default:
-		puts("unknown");
-	}
-	puts("]\n");
+	printf("Board: MX35 PDK %d.0\n", ((get_board_rev() >> 8) + 1) & 0x0F);
 
 	return 0;
 }

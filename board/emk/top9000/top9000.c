@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2007-2008
- * Stelian Pop <stelian.pop@leadtechdesign.com>
+ * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * (C) Copyright 2010
@@ -29,6 +29,7 @@
 #include <net.h>
 #include <netdev.h>
 #include <mmc.h>
+#include <atmel_mci.h>
 #include <i2c.h>
 #include <spi.h>
 #include <asm/io.h>
@@ -108,17 +109,9 @@ int board_mmc_init(bd_t *bd)
 }
 
 /* this is a weak define that we are overriding */
-int board_mmc_getcd(u8 *cd, struct mmc *mmc)
+int board_mmc_getcd(struct mmc *mmc)
 {
-	/*
-	 * the only currently existing use of this function
-	 * (fsl_esdhc.c) suggests this function must return
-	 * *cs = TRUE if a card is NOT detected -> in most
-	 * cases the value of the pin when the detect switch
-	 * closes to GND
-	 */
-	*cd = at91_get_gpio_value(CONFIG_SYS_MMC_CD_PIN) ? 1 : 0;
-	return 0;
+	return !at91_get_gpio_value(CONFIG_SYS_MMC_CD_PIN);
 }
 
 #endif

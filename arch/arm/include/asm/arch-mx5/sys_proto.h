@@ -28,4 +28,15 @@ u32 get_cpu_rev(void);
 #define is_soc_rev(rev)	((get_cpu_rev() & 0xFF) - rev)
 void sdelay(unsigned long);
 void set_chipselect_size(int const);
+
+/*
+ * Initializes on-chip ethernet controllers.
+ * to override, implement board_eth_init()
+ */
+
+int fecmxc_initialize(bd_t *bis);
+u32 get_ahb_clk(void);
+u32 get_periph_clk(void);
+char *get_reset_cause(void);
+
 #endif

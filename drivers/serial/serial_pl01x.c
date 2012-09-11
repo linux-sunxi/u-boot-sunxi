@@ -156,6 +156,8 @@ int serial_init (void)
 			writel(lcr, &regs->fr);
 
 		writel(lcr, &regs->pl011_rlcr);
+		/* lcrh needs to be set again for change to be effective */
+		writel(lcr, &regs->pl011_lcrh);
 	}
 #endif
 	/* Finally, enable the UART */
@@ -194,7 +196,17 @@ int serial_tstc (void)
 
 void serial_setbrg (void)
 {
+	struct pl01x_regs *regs = pl01x_get_regs(CONSOLE_PORT);
+
 	baudrate = gd->baudrate;
+	/*
+	 * Flush FIFO and wait for non-busy before changing baudrate to avoid
+	 * crap in console
+	 */
+	while (!(readl(&regs->fr) & UART_PL01x_FR_TXFE))
+		WATCHDOG_RESET();
+	while (readl(&regs->fr) & UART_PL01x_FR_BUSY)
+		WATCHDOG_RESET();
 	serial_init();
 }
 

@@ -123,9 +123,6 @@
  *
  */
 #undef	CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser */
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "	/* hush shell secondary prompt */
-#endif
 
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	*/
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt */
@@ -193,7 +190,6 @@
 #define CONFIG_PHY_CMD_DELAY	40	/* PHY COMMAND delay		*/
 					/* 32usec min. for LXT971A	*/
 #define CONFIG_PHY_RESET_DELAY	300	/* PHY RESET recovery delay	*/
-#define CONFIG_NET_MULTI
 
 /*
  * RTC configuration

@@ -24,7 +24,6 @@
 
 typedef struct bd_info {
 	unsigned long		bi_baudrate;
-	unsigned long		bi_ip_addr;
 	unsigned char		bi_phy_id[4];
 	unsigned long		bi_board_number;
 	void			*bi_boot_params;
@@ -39,5 +38,8 @@ typedef struct bd_info {
 
 #define bi_memstart bi_dram[0].start
 #define bi_memsize bi_dram[0].size
+
+/* For image.h:image_check_target_arch() */
+#define IH_ARCH_DEFAULT IH_ARCH_AVR32
 
 #endif /* __ASM_U_BOOT_H__ */

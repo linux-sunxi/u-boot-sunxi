@@ -95,7 +95,6 @@ void zoom2_identify(void)
 
 		gpio_direction_input(94);
 		val = gpio_get_value(94);
-		gpio_free(94);
 
 		if (val)
 			revision = ZOOM2_REVISION_BETA;
@@ -184,7 +183,7 @@ void set_muxconf_regs (void)
 #ifdef CONFIG_GENERIC_MMC
 int board_mmc_init(bd_t *bis)
 {
-	omap_mmc_init(0);
+	omap_mmc_init(0, 0, 0);
 	return 0;
 }
 #endif

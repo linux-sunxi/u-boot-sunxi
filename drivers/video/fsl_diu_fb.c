@@ -31,52 +31,8 @@
 #include "videomodes.h"
 #include <video_fb.h>
 #include <fsl_diu_fb.h>
-
-struct fb_var_screeninfo {
-	unsigned int xres;		/* visible resolution		*/
-	unsigned int yres;
-
-	unsigned int bits_per_pixel;	/* guess what			*/
-
-	/* Timing: All values in pixclocks, except pixclock (of course) */
-	unsigned int pixclock;		/* pixel clock in ps (pico seconds) */
-	unsigned int left_margin;	/* time from sync to picture	*/
-	unsigned int right_margin;	/* time from picture to sync	*/
-	unsigned int upper_margin;	/* time from sync to picture	*/
-	unsigned int lower_margin;
-	unsigned int hsync_len;		/* length of horizontal sync	*/
-	unsigned int vsync_len;		/* length of vertical sync	*/
-	unsigned int sync;		/* see FB_SYNC_*		*/
-	unsigned int vmode;		/* see FB_VMODE_*		*/
-	unsigned int rotate;		/* angle we rotate counter clockwise */
-};
-
-struct fb_info {
-	struct fb_var_screeninfo var;	/* Current var */
-	unsigned int smem_len;		/* Length of frame buffer mem */
-	unsigned int type;		/* see FB_TYPE_*		*/
-	unsigned int line_length;	/* length of a line in bytes    */
-
-	void *screen_base;
-	unsigned long screen_size;
-};
-
-struct fb_videomode {
-	const char *name;	/* optional */
-	unsigned int refresh;		/* optional */
-	unsigned int xres;
-	unsigned int yres;
-	unsigned int pixclock;
-	unsigned int left_margin;
-	unsigned int right_margin;
-	unsigned int upper_margin;
-	unsigned int lower_margin;
-	unsigned int hsync_len;
-	unsigned int vsync_len;
-	unsigned int sync;
-	unsigned int vmode;
-	unsigned int flag;
-};
+#include <linux/list.h>
+#include <linux/fb.h>
 
 /* This setting is used for the ifm pdm360ng with PRIMEVIEW PM070WL3 */
 static struct fb_videomode fsl_diu_mode_800_480 = {
@@ -146,6 +102,38 @@ static struct fb_videomode fsl_diu_mode_1280_1024 = {
 	.lower_margin	= 7,
 	.hsync_len	= 216,
 	.vsync_len	= 37,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
+
+static struct fb_videomode fsl_diu_mode_1280_720 = {
+	.name		= "1280x720-60",
+	.refresh	= 60,
+	.xres		= 1280,
+	.yres		= 720,
+	.pixclock	= 13426,
+	.left_margin	= 192,
+	.right_margin	= 64,
+	.upper_margin	= 22,
+	.lower_margin	= 1,
+	.hsync_len	= 136,
+	.vsync_len	= 3,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
+
+static struct fb_videomode fsl_diu_mode_1920_1080 = {
+	.name		= "1920x1080-60",
+	.refresh	= 60,
+	.xres		= 1920,
+	.yres		= 1080,
+	.pixclock	= 5787,
+	.left_margin	= 328,
+	.right_margin	= 120,
+	.upper_margin	= 34,
+	.lower_margin	= 1,
+	.hsync_len	= 208,
+	.vsync_len	= 3,
 	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 	.vmode		= FB_VMODE_NONINTERLACED
 };
@@ -248,7 +236,7 @@ static int allocate_buf(struct diu_addr *buf, u32 size, u32 bytes_align)
  * point to the framebuffer memory. Memory is aligned as needed.
  */
 static struct diu_ad *allocate_fb(unsigned int xres, unsigned int yres,
-				  unsigned int depth, void **fb)
+				  unsigned int depth, char **fb)
 {
 	unsigned long size = xres * yres * depth;
 	struct diu_addr addr;
@@ -296,10 +284,18 @@ int fsl_diu_init(u16 xres, u16 yres, u32 pixel_format, int gamma_fix)
 		break;
 	case RESOLUTION(800, 600):
 		fsl_diu_mode_db = &fsl_diu_mode_800_600;
+		break;
 	case RESOLUTION(1024, 768):
 		fsl_diu_mode_db = &fsl_diu_mode_1024_768;
+		break;
 	case RESOLUTION(1280, 1024):
 		fsl_diu_mode_db = &fsl_diu_mode_1280_1024;
+		break;
+	case RESOLUTION(1280, 720):
+		fsl_diu_mode_db = &fsl_diu_mode_1280_720;
+		break;
+	case RESOLUTION(1920, 1080):
+		fsl_diu_mode_db = &fsl_diu_mode_1920_1080;
 		break;
 	default:
 		printf("DIU:   Unsupported resolution %ux%u\n", xres, yres);
@@ -327,10 +323,10 @@ int fsl_diu_init(u16 xres, u16 yres, u32 pixel_format, int gamma_fix)
 	info.var.vsync_len = fsl_diu_mode_db->vsync_len;
 	info.var.sync = fsl_diu_mode_db->sync;
 	info.var.vmode = fsl_diu_mode_db->vmode;
-	info.line_length = info.var.xres * info.var.bits_per_pixel / 8;
+	info.fix.line_length = info.var.xres * info.var.bits_per_pixel / 8;
 
 	/* Memory allocation for framebuffer */
-	info.smem_len =
+	info.screen_size =
 		info.var.xres * info.var.yres * (info.var.bits_per_pixel / 8);
 	ad = allocate_fb(info.var.xres, info.var.yres,
 			 info.var.bits_per_pixel / 8, &info.screen_base);

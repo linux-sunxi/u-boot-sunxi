@@ -2,13 +2,16 @@
 /envcrc
 /gen_eth_addr
 /img2srec
+/kwboot
+/mkenvimage
 /mkimage
 /mpc86x_clk
+/mxsboot
 /mksunxiboot
 /ncb
 /ncp
 /ubsha1
-/inca-swap-bytes
+/xway-swap-bytes
 /*.exe
 /easylogo/easylogo
 /env/crc32.c

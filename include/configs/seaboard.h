@@ -25,31 +25,84 @@
 #define __CONFIG_H
 
 #include <asm/sizes.h>
-#include "tegra2-common.h"
+
+/* LP0 suspend / resume */
+#define CONFIG_TEGRA20_LP0
+#define CONFIG_AES
+#define CONFIG_TEGRA_PMU
+#define CONFIG_TPS6586X_POWER
+#define CONFIG_TEGRA_CLOCK_SCALING
+
+#include "tegra20-common.h"
+
+/* Enable fdt support for Seaboard. Flash the image in u-boot-dtb.bin */
+#define CONFIG_DEFAULT_DEVICE_TREE	tegra20-seaboard
+#define CONFIG_OF_CONTROL
+#define CONFIG_OF_SEPARATE
 
 /* High-level configuration options */
-#define TEGRA2_SYSMEM		"mem=384M@0M nvmem=128M@384M mem=512M@512M"
-#define V_PROMPT		"Tegra2 (SeaBoard) # "
-#define CONFIG_TEGRA2_BOARD_STRING	"NVIDIA Seaboard"
+#define V_PROMPT		"Tegra20 (SeaBoard) # "
+#define CONFIG_TEGRA20_BOARD_STRING	"NVIDIA Seaboard"
 
 /* Board-specific serial config */
 #define CONFIG_SERIAL_MULTI
-#define CONFIG_TEGRA2_ENABLE_UARTD
+#define CONFIG_TEGRA20_ENABLE_UARTD
 #define CONFIG_SYS_NS16550_COM1		NV_PA_APB_UARTD_BASE
 
+/* On Seaboard: GPIO_PI3 = Port I = 8, bit = 3 */
+#define CONFIG_UART_DISABLE_GPIO	GPIO_PI3
+
 #define CONFIG_MACH_TYPE		MACH_TYPE_SEABOARD
-#define CONFIG_SYS_BOARD_ODMDATA	0x300d8011 /* lp1, 1GB */
 
 #define CONFIG_BOARD_EARLY_INIT_F
+
+/* I2C */
+#define CONFIG_TEGRA_I2C
+#define CONFIG_SYS_I2C_INIT_BOARD
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_MAX_I2C_BUS		4
+#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_CMD_I2C
 
 /* SD/MMC */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
-#define CONFIG_TEGRA2_MMC
+#define CONFIG_TEGRA_MMC
 #define CONFIG_CMD_MMC
 
 #define CONFIG_DOS_PARTITION
 #define CONFIG_EFI_PARTITION
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
+
+/* Environment in eMMC, at the end of 2nd "boot sector" */
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_OFFSET ((2 * 512 * 1024) - CONFIG_ENV_SIZE)
+#define CONFIG_SYS_MMC_ENV_DEV 0
+
+/* USB Host support */
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_TEGRA
+#define CONFIG_USB_STORAGE
+#define CONFIG_CMD_USB
+
+/* USB networking support */
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+
+/* General networking support */
+#define CONFIG_CMD_NET
+#define CONFIG_CMD_DHCP
+
+/* Enable keyboard */
+#define CONFIG_TEGRA20_KEYBOARD
+#define CONFIG_KEYBOARD
+
+#undef TEGRA20_DEVICE_SETTINGS
+#define TEGRA20_DEVICE_SETTINGS	"stdin=serial,tegra-kbc\0" \
+					"stdout=serial\0" \
+					"stderr=serial\0"
+
+#include "tegra20-common-post.h"
+
 #endif /* __CONFIG_H */

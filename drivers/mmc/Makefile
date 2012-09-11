@@ -25,7 +25,10 @@ include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libmmc.o
 
-COBJS-$(CONFIG_ATMEL_MCI) += atmel_mci.o
+ifdef CONFIG_SPL_MMC_LOAD
+COBJS-$(CONFIG_SPL_MMC_LOAD)	+= spl_mmc_load.o
+endif
+
 COBJS-$(CONFIG_BFIN_SDH) += bfin_sdh.o
 COBJS-$(CONFIG_DAVINCI_MMC) += davinci_mmc.o
 COBJS-$(CONFIG_FSL_ESDHC) += fsl_esdhc.o
@@ -36,12 +39,14 @@ COBJS-$(CONFIG_MMC_SPI) += mmc_spi.o
 COBJS-$(CONFIG_ARM_PL180_MMCI) += arm_pl180_mmci.o
 COBJS-$(CONFIG_MV_SDHCI) += mv_sdhci.o
 COBJS-$(CONFIG_MXC_MMC) += mxcmmc.o
+COBJS-$(CONFIG_MXS_MMC) += mxsmmc.o
 COBJS-$(CONFIG_OMAP_HSMMC) += omap_hsmmc.o
 COBJS-$(CONFIG_PXA_MMC) += pxa_mmc.o
-COBJS-$(CONFIG_S5P_MMC) += s5p_mmc.o
+COBJS-$(CONFIG_PXA_MMC_GENERIC) += pxa_mmc_gen.o
 COBJS-$(CONFIG_SDHCI) += sdhci.o
+COBJS-$(CONFIG_S5P_SDHCI) += s5p_sdhci.o
 COBJS-$(CONFIG_SH_MMCIF) += sh_mmcif.o
-COBJS-$(CONFIG_TEGRA2_MMC) += tegra2_mmc.o
+COBJS-$(CONFIG_TEGRA_MMC) += tegra_mmc.o
 COBJS-$(CONFIG_MMC_SUNXI) += sunxi_mmc.o
 
 COBJS	:= $(COBJS-y)

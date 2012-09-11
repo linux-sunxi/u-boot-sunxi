@@ -63,6 +63,7 @@
 #include <malloc.h>
 #include "lan91c96.h"
 #include <net.h>
+#include <linux/compiler.h>
 
 /*------------------------------------------------------------------------
  *
@@ -154,7 +155,7 @@ static void smc_set_mac_addr(const unsigned char *addr)
  ***********************************************/
 void dump_memory_info(struct eth_device *dev)
 {
-	word mem_info;
+	__maybe_unused word mem_info;
 	word old_bank;
 
 	old_bank = SMC_inw(dev, LAN91C96_BANK_SELECT) & 0xF;
@@ -313,11 +314,10 @@ static void smc_shutdown(struct eth_device *dev)
  *	Enable the transmit interrupt, so I know if it failed
  *	Free the kernel data if I actually sent it.
  */
-static int smc_send_packet(struct eth_device *dev, volatile void *packet,
+static int smc_send_packet(struct eth_device *dev, void *packet,
 		int packet_length)
 {
 	byte packet_no;
-	unsigned long ioaddr;
 	byte *buf;
 	int length;
 	int numPages;
@@ -381,9 +381,6 @@ static int smc_send_packet(struct eth_device *dev, volatile void *packet,
 			 dev->name, try);
 
 	/* I can send the packet now.. */
-
-	ioaddr = dev->iobase;
-
 	buf = (byte *) packet;
 
 	/* If I get here, I _know_ there is a packet slot waiting for me */
@@ -703,7 +700,7 @@ static int lan91c96_recv(struct eth_device *dev)
 	return smc_rcv(dev);
 }
 
-static int lan91c96_send(struct eth_device *dev, volatile void *packet,
+static int lan91c96_send(struct eth_device *dev, void *packet,
 		int length)
 {
 	return smc_send_packet(dev, packet, length);

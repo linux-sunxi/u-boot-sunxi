@@ -24,11 +24,14 @@
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
-void tegra2_start(void);
-void clock_init(void);
-void pinmux_init(void);
-void gpio_init(void);
 void gpio_config_uart(void);
-int tegra2_mmc_init(int dev_index, int bus_width);
+void gpio_early_init(void);
+void gpio_early_init_uart(void);
+
+/*
+ * Set up any pin muxing needed for USB (for now, since fdt doesn't support
+ * it). Boards can overwrite the default fucction which does nothing.
+ */
+void pin_mux_usb(void);
 
 #endif	/* BOARD_H */

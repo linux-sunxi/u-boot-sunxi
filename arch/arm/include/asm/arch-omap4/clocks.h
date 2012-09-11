@@ -470,6 +470,47 @@ struct omap4_prcm_regs {
 
 };
 
+struct omap4_scrm_regs {
+	u32 revision;		/* 0x0000 */
+	u32 pad00[63];
+	u32 clksetuptime;	/* 0x0100 */
+	u32 pmicsetuptime;	/* 0x0104 */
+	u32 pad01[2];
+	u32 altclksrc;		/* 0x0110 */
+	u32 pad02[2];
+	u32 c2cclkm;		/* 0x011c */
+	u32 pad03[56];
+	u32 extclkreq;		/* 0x0200 */
+	u32 accclkreq;		/* 0x0204 */
+	u32 pwrreq;		/* 0x0208 */
+	u32 pad04[1];
+	u32 auxclkreq0;		/* 0x0210 */
+	u32 auxclkreq1;		/* 0x0214 */
+	u32 auxclkreq2;		/* 0x0218 */
+	u32 auxclkreq3;		/* 0x021c */
+	u32 auxclkreq4;		/* 0x0220 */
+	u32 auxclkreq5;		/* 0x0224 */
+	u32 pad05[3];
+	u32 c2cclkreq;		/* 0x0234 */
+	u32 pad06[54];
+	u32 auxclk0;		/* 0x0310 */
+	u32 auxclk1;		/* 0x0314 */
+	u32 auxclk2;		/* 0x0318 */
+	u32 auxclk3;		/* 0x031c */
+	u32 auxclk4;		/* 0x0320 */
+	u32 auxclk5;		/* 0x0324 */
+	u32 pad07[54];
+	u32 rsttime_reg;	/* 0x0400 */
+	u32 pad08[6];
+	u32 c2crstctrl;		/* 0x041c */
+	u32 extpwronrstctrl;	/* 0x0420 */
+	u32 pad09[59];
+	u32 extwarmrstst_reg;	/* 0x0510 */
+	u32 apewarmrstst_reg;	/* 0x0514 */
+	u32 pad10[1];
+	u32 c2cwarmrstst_reg;	/* 0x051C */
+};
+
 /* DPLL register offsets */
 #define CM_CLKMODE_DPLL		0
 #define CM_IDLEST_DPLL		0x4
@@ -483,6 +524,11 @@ struct omap4_prcm_regs {
 #define CM_DIV_M7_DPLL		0x24
 
 #define DPLL_CLKOUT_DIV_MASK	0x1F /* post-divider mask */
+
+/* CM_DLL_CTRL */
+#define CM_DLL_CTRL_OVERRIDE_SHIFT	0
+#define CM_DLL_CTRL_OVERRIDE_MASK	(1 << 0)
+#define CM_DLL_CTRL_NO_OVERRIDE		0
 
 /* CM_CLKMODE_DPLL */
 #define CM_CLKMODE_DPLL_REGM4XEN_SHIFT		11
@@ -611,22 +657,8 @@ struct omap4_prcm_regs {
 #define OMAP_SYS_CLK_IND_38_4_MHZ	6
 #define OMAP_32K_CLK_FREQ		32768
 
-/* PRM_VC_CFG_I2C_CLK */
-#define PRM_VC_CFG_I2C_CLK_SCLH_SHIFT		0
-#define PRM_VC_CFG_I2C_CLK_SCLH_MASK		0xFF
-#define PRM_VC_CFG_I2C_CLK_SCLL_SHIFT		8
-#define PRM_VC_CFG_I2C_CLK_SCLL_MASK		(0xFF << 8)
-
 /* PRM_VC_VAL_BYPASS */
 #define PRM_VC_I2C_CHANNEL_FREQ_KHZ	400
-
-#define PRM_VC_VAL_BYPASS_VALID_BIT	0x1000000
-#define PRM_VC_VAL_BYPASS_SLAVEADDR_SHIFT	0
-#define PRM_VC_VAL_BYPASS_SLAVEADDR_MASK	0x7F
-#define PRM_VC_VAL_BYPASS_REGADDR_SHIFT		8
-#define PRM_VC_VAL_BYPASS_REGADDR_MASK		0xFF
-#define PRM_VC_VAL_BYPASS_DATA_SHIFT		16
-#define PRM_VC_VAL_BYPASS_DATA_MASK		0xFF
 
 /* SMPS */
 #define SMPS_I2C_SLAVE_ADDR	0x12
@@ -651,6 +683,28 @@ struct omap4_prcm_regs {
 
 #define TPS62361_BASE_VOLT_MV	500
 #define TPS62361_VSEL0_GPIO	7
+
+/* AUXCLKx reg fields */
+#define AUXCLK_ENABLE_MASK		(1 << 8)
+#define AUXCLK_SRCSELECT_SHIFT		1
+#define AUXCLK_SRCSELECT_MASK		(3 << 1)
+#define AUXCLK_CLKDIV_SHIFT		16
+#define AUXCLK_CLKDIV_MASK		(0xF << 16)
+
+#define AUXCLK_SRCSELECT_SYS_CLK	0
+#define AUXCLK_SRCSELECT_CORE_DPLL	1
+#define AUXCLK_SRCSELECT_PER_DPLL	2
+#define AUXCLK_SRCSELECT_ALTERNATE	3
+
+#define AUXCLK_CLKDIV_2			1
+#define AUXCLK_CLKDIV_16		0xF
+
+/* ALTCLKSRC */
+#define ALTCLKSRC_MODE_MASK		3
+#define ALTCLKSRC_ENABLE_INT_MASK	4
+#define ALTCLKSRC_ENABLE_EXT_MASK	8
+
+#define ALTCLKSRC_MODE_ACTIVE		1
 
 /* Defines for DPLL setup */
 #define DPLL_LOCKED_FREQ_TOLERANCE_0		0
@@ -687,4 +741,27 @@ struct dpll_params {
 	s8 m7;
 };
 
+extern struct omap4_prcm_regs *const prcm;
+extern const u32 sys_clk_array[8];
+
+void scale_vcores(void);
+void do_scale_tps62361(int gpio, u32 reg, u32 volt_mv);
+u32 get_offset_code(u32 offset);
+u32 omap_ddr_clk(void);
+void do_scale_vcore(u32 vcore_reg, u32 volt_mv);
+void setup_post_dividers(u32 *const base, const struct dpll_params *params);
+u32 get_sys_clk_index(void);
+void enable_basic_clocks(void);
+void enable_basic_uboot_clocks(void);
+void enable_non_essential_clocks(void);
+void do_enable_clocks(u32 *const *clk_domains,
+		      u32 *const *clk_modules_hw_auto,
+		      u32 *const *clk_modules_explicit_en,
+		      u8 wait_for_enable);
+const struct dpll_params *get_mpu_dpll_params(void);
+const struct dpll_params *get_core_dpll_params(void);
+const struct dpll_params *get_per_dpll_params(void);
+const struct dpll_params *get_iva_dpll_params(void);
+const struct dpll_params *get_usb_dpll_params(void);
+const struct dpll_params *get_abe_dpll_params(void);
 #endif /* _CLOCKS_OMAP4_H_ */

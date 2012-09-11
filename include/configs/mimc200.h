@@ -103,7 +103,6 @@
  * "ethaddr" and "eth1addr". This is normally done during production.
  */
 #define CONFIG_OVERWRITE_ETHADDR_ONCE
-#define CONFIG_NET_MULTI
 
 /*
  * BOOTP/DHCP options
@@ -130,7 +129,9 @@
 #define CONFIG_SYS_NR_PIOS			5
 #define CONFIG_SYS_HSDRAMC
 #define CONFIG_MMC
-#define CONFIG_ATMEL_MCI
+#define CONFIG_GENERIC_ATMEL_MCI
+#define CONFIG_GENERIC_MMC
+#define CONFIG_SYS_MMC_MAX_BLK_COUNT 1
 
 #if defined(CONFIG_LCD)
 #define CONFIG_CMD_BMP

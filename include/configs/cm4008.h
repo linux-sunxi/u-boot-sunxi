@@ -31,14 +31,11 @@
 #define CONFIG_KS8695	1		/* it is a KS8695 CPU */
 #define CONFIG_CM4008	1		/* it is an OpenGear CM4008 boad */
 
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
-
 #define CONFIG_CMDLINE_TAG	 1	/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS 1
 #define CONFIG_INITRD_TAG	 1
 
 #define CONFIG_DRIVER_KS8695ETH		/* use KS8695 ethernet driver	*/
-#define CONFIG_NET_MULTI
 
 /*
  * Size of malloc() pool
@@ -57,8 +54,6 @@
 #define	CONFIG_SERIAL1
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 
 /*
  * BOOTP options
@@ -97,17 +92,6 @@
 #define CONFIG_SYS_LOAD_ADDR		0x00008000	/* default load address */
 
 #define CONFIG_SYS_HZ			(1000)		/* 1ms resolution ticks */
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

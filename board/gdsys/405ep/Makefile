@@ -25,6 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).o
 
+COBJS-$(CONFIG_NEO) += neo.o
 COBJS-$(CONFIG_IO) += io.o
 COBJS-$(CONFIG_IOCON) += iocon.o
 COBJS-$(CONFIG_DLVISION_10G) += dlvision-10g.o
@@ -38,12 +39,6 @@ SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(OBJS) $(SOBJS)
 	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 

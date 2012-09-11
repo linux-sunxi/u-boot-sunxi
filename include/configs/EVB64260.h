@@ -61,7 +61,6 @@
 #endif
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * The following defines let you select what serial you want to use
@@ -78,7 +77,6 @@
 #define	CONFIG_MPSC
 #define CONFIG_MPSC_PORT	0
 
-#define CONFIG_NET_MULTI        /* attempt all available adapters */
 
 /* define this if you want to enable GT MAC filtering */
 #define CONFIG_GT_USE_MAC_HASH_TABLE

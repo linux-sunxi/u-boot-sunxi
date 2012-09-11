@@ -38,8 +38,6 @@
 /* input clock of PLL */
 #define CONFIG_SYS_CLK_FREQ	12000000	/* the OMAP1510 Innovator has 12MHz input clock */
 
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
-
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_CMDLINE_TAG	 1	/* enable passing of ATAGs	*/
@@ -59,7 +57,6 @@
 #define CONFIG_SMC9196_BASE 0x08000300
 #define CONFIG_SMC9196_EXT_PHY
 */
-#define CONFIG_NET_MULTI
 #define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE 0x08000300
 #define CONFIG_LAN91C96_EXT_PHY
@@ -84,8 +81,6 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 
 /*
  * Command line configuration.
@@ -138,17 +133,6 @@
 #define CONFIG_SYS_TIMERBASE	OMAP1510_TIMER1_BASE	/* use timer 1 */
 #define CONFIG_SYS_PTV		2	/* Divisor: 2^(PTV+1) => 8 */
 #define CONFIG_SYS_HZ		1000
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

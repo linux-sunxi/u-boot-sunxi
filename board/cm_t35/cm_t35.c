@@ -1,6 +1,5 @@
 /*
- * (C) Copyright 2011
- * CompuLab, Ltd. <www.compulab.co.il>
+ * (C) Copyright 2011 CompuLab, Ltd. <www.compulab.co.il>
  *
  * Authors: Mike Rapoport <mike@compulab.co.il>
  *	    Igor Grinberg <grinberg@compulab.co.il>
@@ -34,6 +33,7 @@
 #include <net.h>
 #include <i2c.h>
 #include <twl4030.h>
+#include <linux/compiler.h>
 
 #include <asm/io.h>
 #include <asm/arch/mem.h>
@@ -41,6 +41,8 @@
 #include <asm/arch/mmc_host_def.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-types.h>
+
+#include "eeprom.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -72,7 +74,7 @@ static u32 gpmc_nand_config[GPMC_MAX_REG] = {
 
 /*
  * Routine: board_init
- * Description: Early hardware init.
+ * Description: hardware init.
  */
 int board_init(void)
 {
@@ -97,12 +99,34 @@ int board_init(void)
 	return 0;
 }
 
+static u32 cm_t3x_rev;
+
+/*
+ * Routine: get_board_rev
+ * Description: read system revision
+ */
+u32 get_board_rev(void)
+{
+	if (!cm_t3x_rev)
+		cm_t3x_rev = cm_t3x_eeprom_get_board_rev();
+
+	return cm_t3x_rev;
+};
+
 /*
  * Routine: misc_init_r
  * Description: display die ID
  */
 int misc_init_r(void)
 {
+	u32 board_rev = get_board_rev();
+	u32 rev_major = board_rev / 100;
+	u32 rev_minor = board_rev - (rev_major * 100);
+
+	if ((rev_minor / 10) * 10 == rev_minor)
+		rev_minor = rev_minor / 10;
+
+	printf("PCB:   %u.%u\n", rev_major, rev_minor);
 	dieid_num_r();
 
 	return 0;
@@ -239,6 +263,12 @@ static void cm_t3x_set_common_muxconf(void)
 	/* I2C1 */
 	MUX_VAL(CP(I2C1_SCL),		(IEN  | PTU | EN  | M0)); /*I2C1_SCL*/
 	MUX_VAL(CP(I2C1_SDA),		(IEN  | PTU | EN  | M0)); /*I2C1_SDA*/
+	/* I2C2 */
+	MUX_VAL(CP(I2C2_SCL),		(IEN  | PTU | EN  | M0)); /*I2C2_SCL*/
+	MUX_VAL(CP(I2C2_SDA),		(IEN  | PTU | EN  | M0)); /*I2C2_SDA*/
+	/* I2C3 */
+	MUX_VAL(CP(I2C3_SCL),		(IEN  | PTU | EN  | M0)); /*I2C3_SCL*/
+	MUX_VAL(CP(I2C3_SDA),		(IEN  | PTU | EN  | M0)); /*I2C3_SDA*/
 
 	/* control and debug */
 	MUX_VAL(CP(SYS_32K),		(IEN  | PTD | DIS | M0)); /*SYS_32K*/
@@ -316,8 +346,7 @@ void set_muxconf_regs(void)
 #ifdef CONFIG_GENERIC_MMC
 int board_mmc_init(bd_t *bis)
 {
-	omap_mmc_init(0);
-	return 0;
+	return omap_mmc_init(0, 0, 0);
 }
 #endif
 
@@ -355,21 +384,23 @@ static void reset_net_chip(void)
 {
 	/* Set GPIO1 of TPS65930 as output */
 	twl4030_i2c_write_u8(TWL4030_CHIP_GPIO, 0x02,
-			     TWL4030_BASEADD_GPIO+0x03);
+				TWL4030_BASEADD_GPIO + 0x03);
 	/* Send a pulse on the GPIO pin */
 	twl4030_i2c_write_u8(TWL4030_CHIP_GPIO, 0x02,
-			     TWL4030_BASEADD_GPIO+0x0C);
+				TWL4030_BASEADD_GPIO + 0x0C);
 	udelay(1);
 	twl4030_i2c_write_u8(TWL4030_CHIP_GPIO, 0x02,
-			     TWL4030_BASEADD_GPIO+0x09);
-	udelay(1);
+				TWL4030_BASEADD_GPIO + 0x09);
+	mdelay(40);
 	twl4030_i2c_write_u8(TWL4030_CHIP_GPIO, 0x02,
-			     TWL4030_BASEADD_GPIO+0x0C);
+				TWL4030_BASEADD_GPIO + 0x0C);
+	mdelay(1);
 }
 #else
 static inline void reset_net_chip(void) {}
 #endif
 
+#ifdef CONFIG_SMC911X
 /*
  * Routine: handle_mac_address
  * Description: prepare MAC address for on-board Ethernet.
@@ -383,11 +414,9 @@ static int handle_mac_address(void)
 	if (rc)
 		return 0;
 
-#ifdef CONFIG_DRIVER_OMAP34XX_I2C
-	rc = i2c_read(0x50, 0, 1, enetaddr, 6);
+	rc = cm_t3x_eeprom_read_mac_addr(enetaddr);
 	if (rc)
 		return rc;
-#endif
 
 	if (!is_valid_ether_addr(enetaddr))
 		return -1;
@@ -404,13 +433,12 @@ int board_eth_init(bd_t *bis)
 {
 	int rc = 0, rc1 = 0;
 
-#ifdef CONFIG_SMC911X
 	setup_net_chip_gmpc();
 	reset_net_chip();
 
 	rc1 = handle_mac_address();
 	if (rc1)
-		printf("CM-T3x: No MAC address found\n");
+		printf("No MAC address found! ");
 
 	rc1 = smc911x_initialize(0, CM_T3X_SMC911X_BASE);
 	if (rc1 > 0)
@@ -419,7 +447,17 @@ int board_eth_init(bd_t *bis)
 	rc1 = smc911x_initialize(1, SB_T35_SMC911X_BASE);
 	if (rc1 > 0)
 		rc++;
-#endif
 
 	return rc;
 }
+#endif
+
+void __weak get_board_serial(struct tag_serialnr *serialnr)
+{
+	/*
+	 * This corresponds to what happens when we can communicate with the
+	 * eeprom but don't get a valid board serial value.
+	 */
+	serialnr->low = 0;
+	serialnr->high = 0;
+};

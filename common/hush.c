@@ -17,7 +17,6 @@
  *      Erik W. Troan, which they placed in the public domain.  I don't know
  *      how much of the Johnson/Troan code has survived the repeated rewrites.
  * Other credits:
- *      simple_itoa() was lifted from boa-0.93.15
  *      b_addchr() derived from similar w_addchar function in glibc-2.2
  *      setup_redirect(), redirect_opt_num(), and big chunks of main()
  *        and many builtins derived from contributions by Erik Andersen
@@ -93,6 +92,9 @@
 #include <common.h>        /* readline */
 #include <hush.h>
 #include <command.h>        /* find_cmd */
+#ifndef CONFIG_SYS_PROMPT_HUSH_PS2
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#endif
 #endif
 #ifndef __U_BOOT__
 #include <ctype.h>     /* isalpha, isdigit */
@@ -125,6 +127,7 @@
 #endif
 #endif
 #define SPECIAL_VAR_SYMBOL 03
+#define SUBSTED_VAR_SYMBOL 04
 #ifndef __U_BOOT__
 #define FLAG_EXIT_FROM_LOOP 1
 #define FLAG_PARSE_SEMICOLON (1 << 1)		/* symbol ';' is special for parser */
@@ -497,6 +500,7 @@ static void remove_bg_job(struct pipe *pi);
 /*     local variable support */
 static char **make_list_in(char **inp, char *name);
 static char *insert_var_value(char *inp);
+static char *insert_var_value_sub(char *inp, int tag_subst);
 
 #ifndef __U_BOOT__
 /* Table of built-in functions.  They can be forked or not, depending on
@@ -922,20 +926,6 @@ static int b_addqchr(o_string *o, int ch, int quote)
 	return b_addchr(o, ch);
 }
 
-/* belongs in utility.c */
-char *simple_itoa(unsigned int i)
-{
-	/* 21 digits plus null terminator, good for 64-bit or smaller ints */
-	static char local[22];
-	char *p = &local[21];
-	*p-- = '\0';
-	do {
-		*p-- = '0' + i % 10;
-		i /= 10;
-	} while (i > 0);
-	return p + 1;
-}
-
 #ifndef __U_BOOT__
 static int b_adduint(o_string *o, unsigned int i)
 {
@@ -1015,7 +1005,6 @@ static void get_user_input(struct in_str *i)
 	fflush(stdout);
 	i->p = the_command;
 #else
-	extern char console_buffer[];
 	int n;
 	static char the_command[CONFIG_SYS_CBSIZE];
 
@@ -1554,7 +1543,6 @@ static int run_pipe_real(struct pipe *pi)
 	int nextin;
 	int flag = do_repeat ? CMD_FLAG_REPEAT : 0;
 	struct child_prog *child;
-	cmd_tbl_t *cmdtp;
 	char *p;
 # if __GNUC__
 	/* Avoid longjmp clobbering */
@@ -1658,62 +1646,30 @@ static int run_pipe_real(struct pipe *pi)
 				 * Is it really safe for inline use?  Experimentally,
 				 * things seem to work with glibc. */
 				setup_redirects(child, squirrel);
-#else
-			/* check ";", because ,example , argv consist from
-			 * "help;flinfo" must not execute
-			 */
-			if (strchr(child->argv[i], ';')) {
-				printf ("Unknown command '%s' - try 'help' or use 'run' command\n",
-					child->argv[i]);
-				return -1;
-			}
-			/* Look up command in command table */
 
-
-			if ((cmdtp = find_cmd(child->argv[i])) == NULL) {
-				printf ("Unknown command '%s' - try 'help'\n", child->argv[i]);
-				return -1;	/* give up after bad command */
-			} else {
-				int rcode;
-#if defined(CONFIG_CMD_BOOTD)
-				/* avoid "bootd" recursion */
-				if (cmdtp->cmd == do_bootd) {
-					if (flag & CMD_FLAG_BOOTD) {
-						printf ("'bootd' recursion detected\n");
-						return -1;
-					}
-				else
-					flag |= CMD_FLAG_BOOTD;
-				}
-#endif
-				/* found - check max args */
-				if ((child->argc - i) > cmdtp->maxargs)
-					return cmd_usage(cmdtp);
-#endif
-				child->argv+=i;  /* XXX horrible hack */
-#ifndef __U_BOOT__
+				child->argv += i;  /* XXX horrible hack */
 				rcode = x->function(child);
-#else
-				/* OK - call function to do the command */
-
-				rcode = (cmdtp->cmd)
-(cmdtp, flag,child->argc-i,&child->argv[i]);
-				if ( !cmdtp->repeatable )
-					flag_repeat = 0;
-
-
-#endif
-				child->argv-=i;  /* XXX restore hack so free() can work right */
-#ifndef __U_BOOT__
-
+				/* XXX restore hack so free() can work right */
+				child->argv -= i;
 				restore_redirects(squirrel);
-#endif
-
-				return rcode;
 			}
+			return rcode;
 		}
-#ifndef __U_BOOT__
+#else
+		/* check ";", because ,example , argv consist from
+		 * "help;flinfo" must not execute
+		 */
+		if (strchr(child->argv[i], ';')) {
+			printf("Unknown command '%s' - try 'help' or use "
+					"'run' command\n", child->argv[i]);
+			return -1;
+		}
+		/* Process the command */
+		return cmd_process(flag, child->argc, child->argv,
+				   &flag_repeat);
+#endif
 	}
+#ifndef __U_BOOT__
 
 	for (i = 0; i < pi->num_progs; i++) {
 		child = & (pi->progs[i]);
@@ -2789,13 +2745,50 @@ static int parse_group(o_string *dest, struct p_context *ctx,
 static char *lookup_param(char *src)
 {
 	char *p;
+	char *sep;
+	char *default_val = NULL;
+	int assign = 0;
+	int expand_empty = 0;
 
 	if (!src)
 		return NULL;
 
-		p = getenv(src);
-		if (!p)
-			p = get_local_var(src);
+	sep = strchr(src, ':');
+
+	if (sep) {
+		*sep = '\0';
+		if (*(sep + 1) == '-')
+			default_val = sep+2;
+		if (*(sep + 1) == '=') {
+			default_val = sep+2;
+			assign = 1;
+		}
+		if (*(sep + 1) == '+') {
+			default_val = sep+2;
+			expand_empty = 1;
+		}
+	}
+
+	p = getenv(src);
+	if (!p)
+		p = get_local_var(src);
+
+	if (!p || strlen(p) == 0) {
+		p = default_val;
+		if (assign) {
+			char *var = malloc(strlen(src)+strlen(default_val)+2);
+			if (var) {
+				sprintf(var, "%s=%s", src, default_val);
+				set_local_var(var, 0);
+			}
+			free(var);
+		}
+	} else if (expand_empty) {
+		p += strlen(p);
+	}
+
+	if (sep)
+		*sep = ':';
 
 	return p;
 }
@@ -3097,6 +3090,21 @@ int parse_stream(o_string *dest, struct p_context *ctx,
 			return 1;
 			break;
 #endif
+		case SUBSTED_VAR_SYMBOL:
+			dest->nonnull = 1;
+			while (ch = b_getch(input), ch != EOF &&
+			    ch != SUBSTED_VAR_SYMBOL) {
+				debug_printf("subst, pass=%d\n", ch);
+				if (input->__promptme == 0)
+					return 1;
+				b_addchr(dest, ch);
+			}
+			debug_printf("subst, term=%d\n", ch);
+			if (ch == EOF) {
+				syntax();
+				return 1;
+			}
+			break;
 		default:
 			syntax();   /* this is really an internal logic error */
 			return 1;
@@ -3138,6 +3146,10 @@ void update_ifs_map(void)
 	mapset((uchar *)"\\$'\"`", 3);      /* never flow through */
 	mapset((uchar *)"<>;&|(){}#", 1);   /* flow through if quoted */
 #else
+	{
+		uchar subst[2] = {SUBSTED_VAR_SYMBOL, 0};
+		mapset(subst, 3);       /* never flow through */
+	}
 	mapset((uchar *)"\\$'\"", 3);       /* never flow through */
 	mapset((uchar *)";&|#", 1);         /* flow through if quoted */
 #endif
@@ -3217,7 +3229,7 @@ int parse_stream_outer(struct in_str *inp, int flag)
 #ifndef __U_BOOT__
 static int parse_string_outer(const char *s, int flag)
 #else
-int parse_string_outer(char *s, int flag)
+int parse_string_outer(const char *s, int flag)
 #endif	/* __U_BOOT__ */
 {
 	struct in_str input;
@@ -3477,25 +3489,57 @@ final_return:
 
 static char *insert_var_value(char *inp)
 {
+	return insert_var_value_sub(inp, 0);
+}
+
+static char *insert_var_value_sub(char *inp, int tag_subst)
+{
 	int res_str_len = 0;
 	int len;
 	int done = 0;
 	char *p, *p1, *res_str = NULL;
 
 	while ((p = strchr(inp, SPECIAL_VAR_SYMBOL))) {
+		/* check the beginning of the string for normal charachters */
 		if (p != inp) {
+			/* copy any charachters to the result string */
 			len = p - inp;
 			res_str = xrealloc(res_str, (res_str_len + len));
 			strncpy((res_str + res_str_len), inp, len);
 			res_str_len += len;
 		}
 		inp = ++p;
+		/* find the ending marker */
 		p = strchr(inp, SPECIAL_VAR_SYMBOL);
 		*p = '\0';
+		/* look up the value to substitute */
 		if ((p1 = lookup_param(inp))) {
-			len = res_str_len + strlen(p1);
+			if (tag_subst)
+				len = res_str_len + strlen(p1) + 2;
+			else
+				len = res_str_len + strlen(p1);
 			res_str = xrealloc(res_str, (1 + len));
-			strcpy((res_str + res_str_len), p1);
+			if (tag_subst) {
+				/*
+				 * copy the variable value to the result
+				 * string
+				 */
+				strcpy((res_str + res_str_len + 1), p1);
+
+				/*
+				 * mark the replaced text to be accepted as
+				 * is
+				 */
+				res_str[res_str_len] = SUBSTED_VAR_SYMBOL;
+				res_str[res_str_len + 1 + strlen(p1)] =
+					SUBSTED_VAR_SYMBOL;
+			} else
+				/*
+				 * copy the variable value to the result
+				 * string
+				 */
+				strcpy((res_str + res_str_len), p1);
+
 			res_str_len = len;
 		}
 		*p = SPECIAL_VAR_SYMBOL;
@@ -3559,9 +3603,14 @@ static char * make_string(char ** inp)
 	char *str = NULL;
 	int n;
 	int len = 2;
+	char *noeval_str;
+	int noeval = 0;
 
+	noeval_str = get_local_var("HUSH_NO_EVAL");
+	if (noeval_str != NULL && *noeval_str != '0' && *noeval_str != '\0')
+		noeval = 1;
 	for (n = 0; inp[n]; n++) {
-		p = insert_var_value(inp[n]);
+		p = insert_var_value_sub(inp[n], noeval);
 		str = xrealloc(str, (len + strlen(p)));
 		if (n) {
 			strcat(str, " ");

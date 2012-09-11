@@ -64,7 +64,6 @@
 #define CONFIG_ETHER_ON_FCC		/* Ethernet is on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SYS_CPMFCR_RAMTYPE	0
 #define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
@@ -155,7 +154,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt   */
 #if defined(CONFIG_CMD_KGDB)

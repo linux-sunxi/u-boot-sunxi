@@ -200,8 +200,8 @@
  * - RAM for BD/Buffers is on the local Bus (see 28-13)
  * - Enable Half Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
 
 /*
  * - RAM for BD/Buffers is on the local Bus (see 28-13)
@@ -290,7 +290,6 @@
    with a somewhat smapper memory footprint.
 */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 
 /*
@@ -325,7 +324,6 @@
 #define CONFIG_CMD_SDRAM
 #define CONFIG_CMD_SNTP
 
-#undef CONFIG_CMD_DCR
 #undef CONFIG_CMD_XIMG
 
 /* Where do the internal registers live? */
@@ -376,9 +374,6 @@
 #define CONFIG_SYS_TFTP_LOADADDR 0x00100000   /* default load address for network file downloads */
 
 #define CONFIG_SYS_HZ            1000         /* decrementer freq: 1 ms ticks */
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE      { 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings

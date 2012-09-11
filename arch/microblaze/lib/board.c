@@ -30,19 +30,15 @@
 #include <version.h>
 #include <watchdog.h>
 #include <stdio_dev.h>
+#include <serial.h>
 #include <net.h>
+#include <asm/processor.h>
+#include <asm/microblaze_intc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_SYS_GPIO_0
 extern int gpio_init (void);
-#endif
-#ifdef CONFIG_SYS_INTC_0
-extern int interrupts_init (void);
-#endif
-
-#if defined(CONFIG_CMD_NET)
-extern int eth_init (bd_t * bis);
 #endif
 #ifdef CONFIG_SYS_TIMER_0
 extern int timer_init (void);
@@ -68,12 +64,11 @@ typedef int (init_fnc_t) (void);
 init_fnc_t *init_sequence[] = {
 	env_init,
 	serial_init,
+	console_init_f,
 #ifdef CONFIG_SYS_GPIO_0
 	gpio_init,
 #endif
-#ifdef CONFIG_SYS_INTC_0
 	interrupts_init,
-#endif
 #ifdef CONFIG_SYS_TIMER_0
 	timer_init,
 #endif
@@ -82,6 +77,8 @@ init_fnc_t *init_sequence[] = {
 #endif
 	NULL,
 };
+
+unsigned long monitor_flash_len;
 
 void board_init (void)
 {
@@ -104,12 +101,18 @@ void board_init (void)
 	bd->bi_memsize = CONFIG_SYS_SDRAM_SIZE;
 	gd->flags |= GD_FLG_RELOC;      /* tell others: relocation done */
 
+	monitor_flash_len = __end - __text_start;
+
 	/*
 	 * The Malloc area is immediately below the monitor copy in DRAM
 	 * aka CONFIG_SYS_MONITOR_BASE - Note there is no need for reloc_off
 	 * as our monitory code is run from SDRAM
 	 */
 	mem_malloc_init (CONFIG_SYS_MALLOC_BASE, CONFIG_SYS_MALLOC_LEN);
+
+#ifdef CONFIG_SERIAL_MULTI
+	serial_initialize();
+#endif
 
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		WATCHDOG_RESET ();
@@ -160,14 +163,16 @@ void board_init (void)
 	/* Initialize stdio devices */
 	stdio_init ();
 
-	if ((s = getenv ("loadaddr")) != NULL) {
-		load_addr = simple_strtoul (s, NULL, 16);
-	}
+	/* Initialize the jump table for applications */
+	jumptable_init();
+
+	/* Initialize the console (after the relocation and devices init) */
+	console_init_r();
+
+	/* Initialize from environment */
+	load_addr = getenv_ulong("loadaddr", 16, load_addr);
 
 #if defined(CONFIG_CMD_NET)
-	/* IP Address */
-	bd->bi_ip_addr = getenv_IPaddr("ipaddr");
-
 	printf("Net:   ");
 	eth_initialize(gd->bd);
 

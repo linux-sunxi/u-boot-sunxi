@@ -93,9 +93,6 @@
 #define CONFIG_SYS_MAXARGS		8	/* max number of command args	*/
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE	/* Boot Argument Buffer Size	*/
 #define CONFIG_SYS_LOAD_ADDR		0x00100000	/* default load address		*/
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define CONFIG_MISC_INIT_R	1
 
 /*-----------------------------------------------------------------------
@@ -185,7 +182,6 @@
 #define CONFIG_PCI		1	/* include pci support		*/
 #undef	CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI	1	/* Multi ethernet cards support */
 
 #define CONFIG_EEPRO100		1
 

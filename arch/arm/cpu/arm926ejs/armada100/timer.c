@@ -24,6 +24,7 @@
  */
 
 #include <common.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/armada100.h>
 
 /*
@@ -188,4 +189,22 @@ void reset_cpu (unsigned long ignored)
 	writel(0x3, &armd1timers->wdt_match_en);
 
 	while(1);
+}
+
+/*
+ * This function is derived from PowerPC code (read timebase as long long).
+ * On ARM it just returns the timer value.
+ */
+unsigned long long get_ticks(void)
+{
+	return get_timer(0);
+}
+
+/*
+ * This function is derived from PowerPC code (timebase clock frequency).
+ * On ARM it returns the number of timer ticks per second.
+ */
+ulong get_tbclk (void)
+{
+	return (ulong)CONFIG_SYS_HZ;
 }

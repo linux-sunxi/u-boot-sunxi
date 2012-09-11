@@ -52,7 +52,6 @@
  */
 #define CONFIG_PPC4xx_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
-#define CONFIG_NET_MULTI
 #define CONFIG_NETCONSOLE		/* include NetConsole support	*/
 #if defined(CONFIG_440)
 #define CONFIG_SYS_RX_ETH_BUFFER	32	/* number of eth rx buffers	*/
@@ -113,9 +112,6 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		/* don't print console @ startup*/
 
 #define CONFIG_SYS_HUSH_PARSER			/* Use the HUSH parser		*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #define CONFIG_LOADS_ECHO		/* echo on for serial download	*/
 #define CONFIG_SYS_LOADS_BAUD_CHANGE		/* allow baudrate change	*/

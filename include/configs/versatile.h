@@ -77,7 +77,6 @@
  * Hardware drivers
  */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111
 #define CONFIG_SMC_USE_32_BIT
 #define CONFIG_SMC91111_BASE	0x10010000
@@ -94,7 +93,6 @@
 #define CONFIG_CONS_INDEX	0
 
 #define CONFIG_BAUDRATE			38400
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_SERIAL0		0x101F1000
 #define CONFIG_SYS_SERIAL1		0x101F2000
 
@@ -145,17 +143,6 @@
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Argument Buffer Size */
 
 #define CONFIG_SYS_LOAD_ADDR	0x7fc0	/* default load address */
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map

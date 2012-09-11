@@ -34,19 +34,10 @@
 
 #if defined(CONFIG_CMD_DATE)
 
-/*---------------------------------------------------------------------*/
-#undef DEBUG_RTC
-
-#ifdef DEBUG_RTC
-#define DEBUGR(fmt,args...) printf(fmt ,##args)
-#else
-#define DEBUGR(fmt,args...)
-#endif
-/*---------------------------------------------------------------------*/
-
 /*
  * RTC register addresses
  */
+#if defined CONFIG_RTC_DS1337
 #define RTC_SEC_REG_ADDR	0x0
 #define RTC_MIN_REG_ADDR	0x1
 #define RTC_HR_REG_ADDR		0x2
@@ -57,6 +48,18 @@
 #define RTC_CTL_REG_ADDR	0x0e
 #define RTC_STAT_REG_ADDR	0x0f
 #define RTC_TC_REG_ADDR		0x10
+#elif defined CONFIG_RTC_DS1388
+#define RTC_SEC_REG_ADDR	0x1
+#define RTC_MIN_REG_ADDR	0x2
+#define RTC_HR_REG_ADDR		0x3
+#define RTC_DAY_REG_ADDR	0x4
+#define RTC_DATE_REG_ADDR	0x5
+#define RTC_MON_REG_ADDR	0x6
+#define RTC_YR_REG_ADDR		0x7
+#define RTC_CTL_REG_ADDR	0x0c
+#define RTC_STAT_REG_ADDR	0x0b
+#define RTC_TC_REG_ADDR		0x0a
+#endif
 
 /*
  * RTC control register bits
@@ -97,7 +100,12 @@ int rtc_get (struct rtc_time *tmp)
 	mon_cent = rtc_read (RTC_MON_REG_ADDR);
 	year = rtc_read (RTC_YR_REG_ADDR);
 
-	DEBUGR ("Get RTC year: %02x mon/cent: %02x mday: %02x wday: %02x "
+	/* No century bit, assume year 2000 */
+#ifdef CONFIG_RTC_DS1388
+	mon_cent |= 0x80;
+#endif
+
+	debug("Get RTC year: %02x mon/cent: %02x mday: %02x wday: %02x "
 		"hr: %02x min: %02x sec: %02x control: %02x status: %02x\n",
 		year, mon_cent, mday, wday, hour, min, sec, control, status);
 
@@ -119,7 +127,7 @@ int rtc_get (struct rtc_time *tmp)
 	tmp->tm_yday = 0;
 	tmp->tm_isdst= 0;
 
-	DEBUGR ("Get DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
+	debug("Get DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
 		tmp->tm_year, tmp->tm_mon, tmp->tm_mday, tmp->tm_wday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
 
@@ -134,7 +142,7 @@ int rtc_set (struct rtc_time *tmp)
 {
 	uchar century;
 
-	DEBUGR ("Set DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
+	debug("Set DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
 		tmp->tm_year, tmp->tm_mon, tmp->tm_mday, tmp->tm_wday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
 
@@ -161,6 +169,7 @@ int rtc_set (struct rtc_time *tmp)
  * 600 nA to 2uA. Define CONFIG_SYS_RTC_DS1337_NOOSC if you wish to turn
  * off the OSC output.
  */
+
 #ifdef CONFIG_SYS_RTC_DS1337_NOOSC
  #define RTC_DS1337_RESET_VAL \
 	(RTC_CTL_BIT_INTCN | RTC_CTL_BIT_RS1 | RTC_CTL_BIT_RS2)
@@ -169,9 +178,16 @@ int rtc_set (struct rtc_time *tmp)
 #endif
 void rtc_reset (void)
 {
+#ifdef CONFIG_SYS_RTC_DS1337
 	rtc_write (RTC_CTL_REG_ADDR, RTC_DS1337_RESET_VAL);
+#elif defined CONFIG_SYS_RTC_DS1388
+	rtc_write(RTC_CTL_REG_ADDR, 0x0); /* hw default */
+#endif
 #ifdef CONFIG_SYS_DS1339_TCR_VAL
 	rtc_write (RTC_TC_REG_ADDR, CONFIG_SYS_DS1339_TCR_VAL);
+#endif
+#ifdef CONFIG_SYS_DS1388_TCR_VAL
+	rtc_write(RTC_TC_REG_ADDR, CONFIG_SYS_DS1388_TCR_VAL);
 #endif
 }
 

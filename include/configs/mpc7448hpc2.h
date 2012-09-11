@@ -54,6 +54,10 @@
 
 #undef  CONFIG_ECC		/* disable ECC support */
 
+#ifndef __ASSEMBLY__
+#include <galileo/core.h>
+#endif
+
 /* Board-specific Initialization Functions to be called */
 #define CONFIG_SYS_BOARD_ASM_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
@@ -75,7 +79,6 @@
 /*#define CONFIG_SYS_HUSH_PARSER */
 #undef CONFIG_SYS_HUSH_PARSER
 
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /* Pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT	1
@@ -103,7 +106,6 @@
 
 #define CONFIG_SYS_NS16550_COM1	(CONFIG_SYS_TSI108_CSR_RST_BASE+0x7808)
 #define CONFIG_SYS_NS16550_COM2	(CONFIG_SYS_TSI108_CSR_RST_BASE+0x7C08)
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_BOOTDELAY	3	/* autoboot after 3 seconds */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
@@ -128,9 +130,8 @@
 #define CONFIG_TSI108_ETH
 #define CONFIG_TSI108_ETH_NUM_PORTS	2
 
-#define CONFIG_NET_MULTI
 
-#define CONFIG_BOOTFILE		zImage.initrd.elf
+#define CONFIG_BOOTFILE		"zImage.initrd.elf"
 #define CONFIG_LOADADDR		0x400000
 
 /*-------------------------------------------------------------------------- */

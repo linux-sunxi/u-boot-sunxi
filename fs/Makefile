@@ -30,6 +30,7 @@ subdirs-$(CONFIG_CMD_JFFS2) += jffs2
 subdirs-$(CONFIG_CMD_REISER) += reiserfs
 subdirs-$(CONFIG_YAFFS2) += yaffs2
 subdirs-$(CONFIG_CMD_UBIFS) += ubifs
+subdirs-$(CONFIG_CMD_ZFS) += zfs
 
 SUBDIRS	:= $(subdirs-y)
 

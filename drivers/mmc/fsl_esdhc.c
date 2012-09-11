@@ -58,7 +58,8 @@ struct fsl_esdhc {
 	uint	autoc12err;
 	uint	hostcapblt;
 	uint	wml;
-	char	reserved1[8];
+	uint    mixctrl;
+	char    reserved1[4];
 	uint	fevt;
 	char	reserved2[168];
 	uint	hostver;
@@ -113,7 +114,8 @@ uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
 static void
 esdhc_pio_read_write(struct mmc *mmc, struct mmc_data *data)
 {
-	struct fsl_esdhc *regs = mmc->priv;
+	struct fsl_esdhc_cfg *cfg = mmc->priv;
+	struct fsl_esdhc *regs = (struct fsl_esdhc *)cfg->esdhc_base;
 	uint blocks;
 	char *buffer;
 	uint databuf;
@@ -188,6 +190,10 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 		esdhc_clrsetbits32(&regs->wml, WML_RD_WML_MASK, wml_value);
 		esdhc_write32(&regs->dsaddr, (u32)data->dest);
 	} else {
+		flush_dcache_range((ulong)data->src,
+				   (ulong)data->src+data->blocks
+					 *data->blocksize);
+
 		if (wml_value > WML_WR_WML_MAX)
 			wml_value = WML_WR_WML_MAX_VAL;
 		if ((esdhc_read32(&regs->prsstat) & PRSSTAT_WPSPL) == 0) {
@@ -247,7 +253,15 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 	return 0;
 }
 
-
+static void check_and_invalidate_dcache_range
+	(struct mmc_cmd *cmd,
+	 struct mmc_data *data) {
+	unsigned start = (unsigned)data->dest ;
+	unsigned size = roundup(ARCH_DMA_MINALIGN,
+				data->blocks*data->blocksize);
+	unsigned end = start+size ;
+	invalidate_dcache_range(start, end);
+}
 /*
  * Sends a command out on the bus.  Takes the mmc pointer,
  * a command pointer, and an optional data pointer.
@@ -298,20 +312,65 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	/* Send the command */
 	esdhc_write32(&regs->cmdarg, cmd->cmdarg);
+#if defined(CONFIG_FSL_USDHC)
+	esdhc_write32(&regs->mixctrl,
+	(esdhc_read32(&regs->mixctrl) & 0xFFFFFF80) | (xfertyp & 0x7F));
+	esdhc_write32(&regs->xfertyp, xfertyp & 0xFFFF0000);
+#else
 	esdhc_write32(&regs->xfertyp, xfertyp);
+#endif
+
+	/* Mask all irqs */
+	esdhc_write32(&regs->irqsigen, 0);
 
 	/* Wait for the command to complete */
-	while (!(esdhc_read32(&regs->irqstat) & IRQSTAT_CC))
+	while (!(esdhc_read32(&regs->irqstat) & (IRQSTAT_CC | IRQSTAT_CTOE)))
 		;
+
+	if (data && (data->flags & MMC_DATA_READ))
+		check_and_invalidate_dcache_range(cmd, data);
 
 	irqstat = esdhc_read32(&regs->irqstat);
 	esdhc_write32(&regs->irqstat, irqstat);
+
+	/* Reset CMD and DATA portions on error */
+	if (irqstat & (CMD_ERR | IRQSTAT_CTOE)) {
+		esdhc_write32(&regs->sysctl, esdhc_read32(&regs->sysctl) |
+			      SYSCTL_RSTC);
+		while (esdhc_read32(&regs->sysctl) & SYSCTL_RSTC)
+			;
+
+		if (data) {
+			esdhc_write32(&regs->sysctl,
+				      esdhc_read32(&regs->sysctl) |
+				      SYSCTL_RSTD);
+			while ((esdhc_read32(&regs->sysctl) & SYSCTL_RSTD))
+				;
+		}
+	}
 
 	if (irqstat & CMD_ERR)
 		return COMM_ERR;
 
 	if (irqstat & IRQSTAT_CTOE)
 		return TIMEOUT;
+
+	/* Workaround for ESDHC errata ENGcm03648 */
+	if (!data && (cmd->resp_type & MMC_RSP_BUSY)) {
+		int timeout = 2500;
+
+		/* Poll on DATA0 line for cmd with busy signal for 250 ms */
+		while (timeout > 0 && !(esdhc_read32(&regs->prsstat) &
+					PRSSTAT_DAT0)) {
+			udelay(100);
+			timeout--;
+		}
+
+		if (timeout <= 0) {
+			printf("Timeout waiting for DAT0 to go high!\n");
+			return TIMEOUT;
+		}
+	}
 
 	/* Copy the response to the response buffer */
 	if (cmd->resp_type & MMC_RSP_136) {
@@ -412,8 +471,6 @@ static int esdhc_init(struct mmc *mmc)
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
 	struct fsl_esdhc *regs = (struct fsl_esdhc *)cfg->esdhc_base;
 	int timeout = 1000;
-	int ret = 0;
-	u8 card_absent;
 
 	/* Reset the entire host controller */
 	esdhc_write32(&regs->sysctl, SYSCTL_RSTA);
@@ -422,9 +479,10 @@ static int esdhc_init(struct mmc *mmc)
 	while ((esdhc_read32(&regs->sysctl) & SYSCTL_RSTA) && --timeout)
 		udelay(1000);
 
+#ifndef ARCH_MXC
 	/* Enable cache snooping */
-	if (cfg && !cfg->no_snoop)
-		esdhc_write32(&regs->scr, 0x00000040);
+	esdhc_write32(&regs->scr, 0x00000040);
+#endif
 
 	esdhc_write32(&regs->sysctl, SYSCTL_HCKEN | SYSCTL_IPGEN);
 
@@ -440,21 +498,19 @@ static int esdhc_init(struct mmc *mmc)
 	/* Set timout to the maximum value */
 	esdhc_clrsetbits32(&regs->sysctl, SYSCTL_TIMEOUT_MASK, 14 << 16);
 
-	/* Check if there is a callback for detecting the card */
-	if (board_mmc_getcd(&card_absent, mmc)) {
-		timeout = 1000;
-		while (!(esdhc_read32(&regs->prsstat) & PRSSTAT_CINS) &&
-				--timeout)
-			udelay(1000);
+	return 0;
+}
 
-		if (timeout <= 0)
-			ret = NO_CARD_ERR;
-	} else {
-		if (card_absent)
-			ret = NO_CARD_ERR;
-	}
+static int esdhc_getcd(struct mmc *mmc)
+{
+	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
+	struct fsl_esdhc *regs = (struct fsl_esdhc *)cfg->esdhc_base;
+	int timeout = 1000;
 
-	return ret;
+	while (!(esdhc_read32(&regs->prsstat) & PRSSTAT_CINS) && --timeout)
+		udelay(1000);
+
+	return timeout > 0;
 }
 
 static void esdhc_reset(struct fsl_esdhc *regs)
@@ -482,16 +538,20 @@ int fsl_esdhc_initialize(bd_t *bis, struct fsl_esdhc_cfg *cfg)
 
 	mmc = malloc(sizeof(struct mmc));
 
-	sprintf(mmc->name, "FSL_ESDHC");
+	sprintf(mmc->name, "FSL_SDHC");
 	regs = (struct fsl_esdhc *)cfg->esdhc_base;
 
 	/* First reset the eSDHC controller */
 	esdhc_reset(regs);
 
+	esdhc_setbits32(&regs->sysctl, SYSCTL_PEREN | SYSCTL_HCKEN
+				| SYSCTL_IPGEN | SYSCTL_CKEN);
+
 	mmc->priv = cfg;
 	mmc->send_cmd = esdhc_send_cmd;
 	mmc->set_ios = esdhc_set_ios;
 	mmc->init = esdhc_init;
+	mmc->getcd = esdhc_getcd;
 
 	voltage_caps = 0;
 	caps = regs->hostcapblt;

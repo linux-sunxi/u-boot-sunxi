@@ -35,8 +35,6 @@ u32 pkt_data_pull(struct eth_device *dev, u32 addr) \
 void pkt_data_push(struct eth_device *dev, u32 addr, u32 val) \
 	__attribute__ ((weak, alias ("smc911x_reg_write")));
 
-#define mdelay(n)       udelay((n)*1000)
-
 static void smc911x_handle_mac_address(struct eth_device *dev)
 {
 	unsigned long addrh, addrl;
@@ -163,8 +161,7 @@ static int smc911x_init(struct eth_device *dev, bd_t * bd)
 	return 0;
 }
 
-static int smc911x_send(struct eth_device *dev,
-			volatile void *packet, int length)
+static int smc911x_send(struct eth_device *dev, void *packet, int length)
 {
 	u32 *data = (u32*)packet;
 	u32 tmplen;

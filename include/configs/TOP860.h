@@ -138,9 +138,6 @@
 
 #undef	CONFIG_SYS_HUSH_PARSER			/* Hush parse for U-Boot	*/
 
-#ifdef	CONFIG_SYS_HUSH_PARSER
- #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
  #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/
@@ -203,7 +200,6 @@
 /*-----------------------------------------------------------------------
  * defines we need to get FEC running
  */
-#define	CONFIG_NET_MULTI	1	/* the only way to get the FEC in */
 #define CONFIG_FEC_ENET		1	/* Ethernet only via FEC	*/
 #define	FEC_ENET		1	/* eth.c needs it that way... */
 #define CONFIG_SYS_DISCOVER_PHY	1

@@ -34,12 +34,6 @@
 #endif
 #include <watchdog.h>
 
-#ifdef	CMD_MEM_DEBUG
-#define	PRINTF(fmt,args...)	printf (fmt ,##args)
-#else
-#define PRINTF(fmt,args...)
-#endif
-
 static int mod_mem(cmd_tbl_t *, int, int, int, char * const []);
 
 /* Display values from last command.
@@ -74,7 +68,7 @@ int do_mem_md ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	length = dp_last_length;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if ((flag & CMD_FLAG_REPEAT) == 0) {
 		/* New command specified.  Check for a size specification.
@@ -168,7 +162,7 @@ int do_mem_mw ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	int	size;
 
 	if ((argc < 3) || (argc > 4))
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Check for size specification.
 	*/
@@ -210,7 +204,7 @@ int do_mem_mdc ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	ulong count;
 
 	if (argc < 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	count = simple_strtoul(argv[3], NULL, 10);
 
@@ -237,7 +231,7 @@ int do_mem_mwc ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	ulong count;
 
 	if (argc < 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	count = simple_strtoul(argv[3], NULL, 10);
 
@@ -264,14 +258,16 @@ int do_mem_cmp (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	ulong	addr1, addr2, count, ngood;
 	int	size;
 	int     rcode = 0;
+	const char *type;
 
 	if (argc != 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Check for size specification.
 	*/
 	if ((size = cmd_get_data_size(argv[0], 4)) < 0)
 		return 1;
+	type = size == 4 ? "word" : size == 2 ? "halfword" : "byte";
 
 	addr1 = simple_strtoul(argv[1], NULL, 16);
 	addr1 += base_address;
@@ -295,54 +291,35 @@ int do_mem_cmp (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 #endif
 
-	ngood = 0;
-
-	while (count-- > 0) {
+	for (ngood = 0; ngood < count; ++ngood) {
+		ulong word1, word2;
 		if (size == 4) {
-			ulong word1 = *(ulong *)addr1;
-			ulong word2 = *(ulong *)addr2;
-			if (word1 != word2) {
-				printf("word at 0x%08lx (0x%08lx) "
-					"!= word at 0x%08lx (0x%08lx)\n",
-					addr1, word1, addr2, word2);
-				rcode = 1;
-				break;
-			}
+			word1 = *(ulong *)addr1;
+			word2 = *(ulong *)addr2;
+		} else if (size == 2) {
+			word1 = *(ushort *)addr1;
+			word2 = *(ushort *)addr2;
+		} else {
+			word1 = *(u_char *)addr1;
+			word2 = *(u_char *)addr2;
 		}
-		else if (size == 2) {
-			ushort hword1 = *(ushort *)addr1;
-			ushort hword2 = *(ushort *)addr2;
-			if (hword1 != hword2) {
-				printf("halfword at 0x%08lx (0x%04x) "
-					"!= halfword at 0x%08lx (0x%04x)\n",
-					addr1, hword1, addr2, hword2);
-				rcode = 1;
-				break;
-			}
+		if (word1 != word2) {
+			printf("%s at 0x%08lx (%#0*lx) != %s at 0x%08lx (%#0*lx)\n",
+				type, addr1, size, word1,
+				type, addr2, size, word2);
+			rcode = 1;
+			break;
 		}
-		else {
-			u_char byte1 = *(u_char *)addr1;
-			u_char byte2 = *(u_char *)addr2;
-			if (byte1 != byte2) {
-				printf("byte at 0x%08lx (0x%02x) "
-					"!= byte at 0x%08lx (0x%02x)\n",
-					addr1, byte1, addr2, byte2);
-				rcode = 1;
-				break;
-			}
-		}
-		ngood++;
+
 		addr1 += size;
 		addr2 += size;
 
 		/* reset watchdog from time to time */
-		if ((count % (64 << 10)) == 0)
+		if ((ngood % (64 << 10)) == 0)
 			WATCHDOG_RESET();
 	}
 
-	printf("Total of %ld %s%s were the same\n",
-		ngood, size == 4 ? "word" : size == 2 ? "halfword" : "byte",
-		ngood == 1 ? "" : "s");
+	printf("Total of %ld %s(s) were the same\n", ngood, type);
 	return rcode;
 }
 
@@ -352,7 +329,7 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	int	size;
 
 	if (argc != 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Check for size specification.
 	*/
@@ -471,14 +448,14 @@ int do_mem_base (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 int do_mem_loop (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	ulong	addr, length, i, junk;
+	ulong	addr, length, i;
 	int	size;
 	volatile uint	*longp;
 	volatile ushort *shortp;
 	volatile u_char	*cp;
 
 	if (argc < 3)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Check for a size spefication.
 	 * Defaults to long if no or incorrect specification.
@@ -518,7 +495,7 @@ int do_mem_loop (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			longp = (uint *)addr;
 			i = length;
 			while (i-- > 0)
-				junk = *longp++;
+				*longp++;
 		}
 	}
 	if (size == 2) {
@@ -526,14 +503,14 @@ int do_mem_loop (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			shortp = (ushort *)addr;
 			i = length;
 			while (i-- > 0)
-				junk = *shortp++;
+				*shortp++;
 		}
 	}
 	for (;;) {
 		cp = (u_char *)addr;
 		i = length;
 		while (i-- > 0)
-			junk = *cp++;
+			*cp++;
 	}
 }
 
@@ -547,7 +524,7 @@ int do_mem_loopw (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	volatile u_char	*cp;
 
 	if (argc < 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	/* Check for a size spefication.
 	 * Defaults to long if no or incorrect specification.
@@ -676,7 +653,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #if defined(CONFIG_SYS_ALT_MEMTEST)
 	printf ("Testing %08x ... %08x:\n", (uint)start, (uint)end);
-	PRINTF("%s:%d: start 0x%p end 0x%p\n",
+	debug("%s:%d: start 0x%p end 0x%p\n",
 		__FUNCTION__, __LINE__, start, end);
 
 	for (;;) {
@@ -693,7 +670,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		printf("Iteration: %6d\r", iterations);
-		PRINTF("\n");
+		debug("\n");
 		iterations++;
 
 		/*
@@ -784,7 +761,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		pattern = (vu_long) 0xaaaaaaaa;
 		anti_pattern = (vu_long) 0x55555555;
 
-		PRINTF("%s:%d: length = 0x%.8lx\n",
+		debug("%s:%d: length = 0x%.8lx\n",
 			__FUNCTION__, __LINE__,
 			len);
 		/*
@@ -937,7 +914,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			if (readback != val) {
 				printf ("\nMem error @ 0x%08X: "
 					"found %08lX, expected %08lX\n",
-					(uint)addr, readback, val);
+					(uint)(uintptr_t)addr, readback, val);
 				errs++;
 				if (ctrlc()) {
 					putc ('\n');
@@ -977,10 +954,9 @@ mod_mem(cmd_tbl_t *cmdtp, int incrflag, int flag, int argc, char * const argv[])
 {
 	ulong	addr, i;
 	int	nbytes, size;
-	extern char console_buffer[];
 
 	if (argc != 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 #ifdef CONFIG_BOOT_RETRY_TIME
 	reset_cmd_timeout();	/* got a good command to get here */
@@ -1085,7 +1061,7 @@ int do_mem_crc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	ulong *ptr;
 
 	if (argc < 3)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	addr = simple_strtoul (argv[1], NULL, 16);
 	addr += base_address;
@@ -1119,7 +1095,7 @@ int do_mem_crc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if (argc < 3) {
 usage:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	}
 
 	av = argv + 1;

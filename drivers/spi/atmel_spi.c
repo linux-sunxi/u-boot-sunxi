@@ -92,6 +92,9 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	as->slave.cs = cs;
 	as->regs = regs;
 	as->mr = ATMEL_SPI_MR_MSTR | ATMEL_SPI_MR_MODFDIS
+#if defined(CONFIG_AT91SAM9X5)
+			| ATMEL_SPI_MR_WDRBT
+#endif
 			| ATMEL_SPI_MR_PCS(~(1 << cs) & 0xf);
 	spi_writel(as, CSR(cs), csrx);
 
@@ -136,13 +139,11 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 	unsigned int	len_tx;
 	unsigned int	len_rx;
 	unsigned int	len;
-	int		ret;
 	u32		status;
 	const u8	*txp = dout;
 	u8		*rxp = din;
 	u8		value;
 
-	ret = 0;
 	if (bitlen == 0)
 		/* Finish any previously submitted transfers */
 		goto out;

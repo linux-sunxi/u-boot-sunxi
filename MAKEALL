@@ -16,6 +16,9 @@ usage()
 	  -c CPU,    --cpu CPU         Build all boards with cpu CPU
 	  -v VENDOR, --vendor VENDOR   Build all boards with vendor VENDOR
 	  -s SOC,    --soc SOC         Build all boards with soc SOC
+	  -l,        --list            List all targets to be built
+	  -m,        --maintainers     List all targets and maintainer email
+	  -M,        --mails           List all targets and all affilated emails
 	  -h,        --help            This help output
 
 	Selections by these options are logically ANDed; if the same option
@@ -31,6 +34,7 @@ usage()
 	  CROSS_COMPILE    cross-compiler toolchain prefix (default: "")
 	  MAKEALL_LOGDIR   output all logs to here (default: ./LOG/)
 	  BUILD_DIR        output build directory (default: ./)
+	  BUILD_NBUILDS	   number of parallel targets (default: 1)
 
 	Examples:
 	  - build all Power Architecture boards:
@@ -47,8 +51,8 @@ usage()
 	exit ${ret}
 }
 
-SHORT_OPTS="ha:c:v:s:"
-LONG_OPTS="help,arch:,cpu:,vendor:,soc:"
+SHORT_OPTS="ha:c:v:s:lmM"
+LONG_OPTS="help,arch:,cpu:,vendor:,soc:,list,maintainers,mails"
 
 # Option processing based on util-linux-2.13/getopt-parse.bash
 
@@ -65,6 +69,9 @@ TEMP=`getopt -o ${SHORT_OPTS} --long ${LONG_OPTS} \
 eval set -- "$TEMP"
 
 SELECTED=''
+ONLY_LIST=''
+PRINT_MAINTS=''
+MAINTAINERS_ONLY=''
 
 while true ; do
 	case "$1" in
@@ -80,9 +87,9 @@ while true ; do
 	-c|--cpu)
 		# echo "Option CPU: argument \`$2'"
 		if [ "$opt_c" ] ; then
-			opt_c="${opt_c%)} || \$3 == \"$2\")"
+			opt_c="${opt_c%)} || \$3 == \"$2\" || \$3 ~ /$2:/)"
 		else
-			opt_c="(\$3 == \"$2\")"
+			opt_c="(\$3 == \"$2\" || \$3 ~ /$2:/)"
 		fi
 		SELECTED='y'
 		shift 2 ;;
@@ -104,6 +111,18 @@ while true ; do
 		fi
 		SELECTED='y'
 		shift 2 ;;
+	-l|--list)
+		ONLY_LIST='y'
+		shift ;;
+	-m|--maintainers)
+		ONLY_LIST='y'
+		PRINT_MAINTS='y'
+		MAINTAINERS_ONLY='y'
+		shift ;;
+	-M|--mails)
+		ONLY_LIST='y'
+		PRINT_MAINTS='y'
+		shift ;;
 	-h|--help)
 		usage ;;
 	--)
@@ -160,31 +179,49 @@ else
 	LOG_DIR="LOG"
 fi
 
-if [ ! "${BUILD_DIR}" ] ; then
-	BUILD_DIR="."
+: ${BUILD_NBUILDS:=1}
+BUILD_MANY=0
+
+if [ "${BUILD_NBUILDS}" -gt 1 ] ; then
+	BUILD_MANY=1
+	: ${BUILD_DIR:=./build}
+	mkdir -p "${BUILD_DIR}/ERR"
+	find "${BUILD_DIR}/ERR/" -type f -exec rm -f {} +
 fi
 
-[ -d ${LOG_DIR} ] || mkdir ${LOG_DIR} || exit 1
+: ${BUILD_DIR:=.}
+
+OUTPUT_PREFIX="${BUILD_DIR}"
+
+[ -d ${LOG_DIR} ] || mkdir "${LOG_DIR}" || exit 1
+find "${LOG_DIR}/" -type f -exec rm -f {} +
 
 LIST=""
 
 # Keep track of the number of builds and errors
 ERR_CNT=0
 ERR_LIST=""
+WRN_CNT=0
+WRN_LIST=""
 TOTAL_CNT=0
+CURRENT_CNT=0
+OLDEST_IDX=1
 RC=0
 
 # Helper funcs for parsing boards.cfg
 boards_by_field()
 {
+	FS="[ \t]+"
+	[ -n "$3" ] && FS="$3"
 	awk \
 		-v field="$1" \
 		-v select="$2" \
+		-F "$FS" \
 		'($1 !~ /^#/ && $field == select) { print $1 }' \
 		boards.cfg
 }
 boards_by_arch() { boards_by_field 2 "$@" ; }
-boards_by_cpu()  { boards_by_field 3 "$@" ; }
+boards_by_cpu()  { boards_by_field 3 "$@" "[: \t]+" ; }
 boards_by_soc()  { boards_by_field 6 "$@" ; }
 
 #########################################################################
@@ -303,22 +340,12 @@ LIST_SA="$(boards_by_cpu sa1100)"
 LIST_ARM9="$(boards_by_cpu arm920t)	\
 	$(boards_by_cpu arm926ejs)	\
 	$(boards_by_cpu arm925t)	\
-	omap1610h2		\
-	omap1610inn		\
-	omap730p2		\
 "
 
 #########################################################################
 ## ARM11 Systems
 #########################################################################
-LIST_ARM11="$(boards_by_cpu arm1136)	\
-	apollon			\
-	imx31_phycore		\
-	imx31_phycore_eet	\
-	mx31pdk			\
-	mx31pdk_nand		\
-	smdk6400		\
-"
+LIST_ARM11="$(boards_by_cpu arm1136)"
 
 #########################################################################
 ## ARMV7 Systems
@@ -338,10 +365,7 @@ LIST_at91="$(boards_by_soc at91)"
 
 LIST_pxa="$(boards_by_cpu pxa)"
 
-LIST_ixp="$(boards_by_cpu ixp)
-	pdnb3		\
-	scpu		\
-"
+LIST_ixp="$(boards_by_cpu ixp)"
 
 #########################################################################
 ## ARM groups
@@ -379,14 +403,11 @@ LIST_mips4kc="		\
 	vct_premium_onenand_small	\
 "
 
-LIST_mips5kc=""
-
 LIST_au1xx0="		\
 	dbau1000	\
 	dbau1100	\
 	dbau1500	\
 	dbau1550	\
-	dbau1550_el	\
 	gth2		\
 "
 
@@ -400,20 +421,23 @@ LIST_mips="		\
 ## MIPS Systems		(little endian)
 #########################################################################
 
-LIST_mips4kc_el=""
-
-LIST_mips5kc_el=""
+LIST_xburst_el="	\
+	qi_lb60		\
+"
 
 LIST_au1xx0_el="	\
 	dbau1550_el	\
 	pb1000		\
 "
-
 LIST_mips_el="			\
-	${LIST_mips4kc_el}	\
-	${LIST_mips5kc_el}	\
+	${LIST_xburst_el}	\
 	${LIST_au1xx0_el}	\
 "
+#########################################################################
+## OpenRISC Systems
+#########################################################################
+
+LIST_openrisc="$(boards_by_arch openrisc)"
 
 #########################################################################
 ## x86 Systems
@@ -437,20 +461,15 @@ LIST_microblaze="$(boards_by_arch microblaze)"
 ## ColdFire Systems
 #########################################################################
 
-LIST_coldfire="$(boards_by_arch m68k)
-	astro_mcf5373l		\
-	cobra5272		\
+LIST_m68k="$(boards_by_arch m68k)
 	EB+MCF-EV123		\
 	EB+MCF-EV123_internal	\
 	M52277EVB		\
 	M5235EVB		\
-	M5329AFEE		\
-	M5373EVB		\
 	M54451EVB		\
 	M54455EVB		\
-	M5475AFE		\
-	M5485AFE		\
 "
+LIST_coldfire=${LIST_m68k}
 
 #########################################################################
 ## AVR32 Systems
@@ -480,34 +499,210 @@ LIST_sh="$(boards_by_arch sh)"
 
 LIST_sparc="$(boards_by_arch sparc)"
 
+#########################################################################
+## NDS32 Systems
+#########################################################################
+
+LIST_nds32="$(boards_by_arch nds32)"
+
 #-----------------------------------------------------------------------
+
+get_target_location() {
+	local target=$1
+	local BOARD_NAME=""
+	local CONFIG_NAME=""
+	local board=""
+	local vendor=""
+
+	# Automatic mode
+	local line=`egrep -i "^[[:space:]]*${target}[[:space:]]" boards.cfg`
+
+	if [ -z "${line}" ] ; then echo "" ; return ; fi
+
+	set ${line}
+
+	# add default board name if needed
+	[ $# = 3 ] && set ${line} ${1}
+
+	CONFIG_NAME="${1%_config}"
+
+	[ "${BOARD_NAME}" ] || BOARD_NAME="${1%_config}"
+
+	if [ "$4" = "-" ] ; then
+		board=${BOARD_NAME}
+	else
+		board="$4"
+	fi
+
+	[ $# -gt 4 ] && [ "$5" != "-" ] && vendor="$5"
+	[ $# -gt 6 ] && [ "$7" != "-" ] && {
+		tmp="${7%:*}"
+		if [ "$tmp" ] ; then
+			CONFIG_NAME="$tmp"
+		fi
+	}
+
+	# Assign board directory to BOARDIR variable
+	if [ -z "${vendor}" ] ; then
+	    BOARDDIR=${board}
+	else
+	    BOARDDIR=${vendor}/${board}
+	fi
+
+	echo "${CONFIG_NAME}:${BOARDDIR}"
+}
+
+get_target_maintainers() {
+	local name=`echo $1 | cut -d : -f 1`
+
+	if ! grep -qsi "[[:blank:]]${name}[[:blank:]]" MAINTAINERS ; then
+		echo ""
+		return ;
+	fi
+
+	local line=`tac MAINTAINERS | grep -ni "[[:blank:]]${name}[[:blank:]]" | cut -d : -f 1`
+	local mail=`tac MAINTAINERS | tail -n +${line} | \
+		sed -n ":start /.*@.*/ { b mail } ; n ; b start ; :mail /.*@.*/ { p ; n ; b mail } ; q" | \
+		sed "s/^.*<//;s/>.*$//"`
+	echo "$mail"
+}
+
+list_target() {
+	if [ "$PRINT_MAINTS" != 'y' ] ; then
+		echo "$1"
+		return
+	fi
+
+	echo -n "$1:"
+
+	local loc=`get_target_location $1`
+
+	if [ -z "${loc}" ] ; then echo "ERROR" ; return ; fi
+
+	local maintainers_result=`get_target_maintainers ${loc} | tr " " "\n"`
+
+	if [ "$MAINTAINERS_ONLY" != 'y' ] ; then
+
+		local dir=`echo ${loc} | cut -d ":" -f 2`
+		local cfg=`echo ${loc} | cut -d ":" -f 1`
+		local git_result=`git log --format=%aE board/${dir} \
+				include/configs/${cfg}.h | grep "@"`
+		local git_result_recent=`echo ${git_result} | tr " " "\n" | \
+						head -n 3`
+		local git_result_top=`echo ${git_result} | tr " " "\n" | \
+			sort | uniq -c | sort -nr | head -n 3 | \
+			sed "s/^ \+[0-9]\+ \+//"`
+
+		echo -e "$git_result_recent\n$git_result_top\n$maintainers_result" | \
+			sort -u | tr "\n" " " | sed "s/ $//" ;
+	else
+		echo -e "$maintainers_result" | sort -u | tr "\n" " " | \
+						sed "s/ $//" ;
+	fi
+
+	echo ""
+}
+
+# Each finished build will have a file called ${donep}${n},
+# where n is the index of the build. Each build
+# we've already noted as finished will have ${skipp}${n}.
+# The code managing the build process will use this information
+# to ensure that only BUILD_NBUILDS builds are in flight at once
+donep="${LOG_DIR}/._done_"
+skipp="${LOG_DIR}/._skip_"
 
 build_target() {
 	target=$1
+	build_idx=$2
+
+	if [ "$ONLY_LIST" == 'y' ] ; then
+		list_target ${target}
+		return
+	fi
+
+	if [ $BUILD_MANY == 1 ] ; then
+		output_dir="${OUTPUT_PREFIX}/${target}"
+		mkdir -p "${output_dir}"
+	else
+		output_dir="${OUTPUT_PREFIX}"
+	fi
+
+	export BUILD_DIR="${output_dir}"
 
 	${MAKE} distclean >/dev/null
 	${MAKE} -s ${target}_config
 
-	${MAKE} ${JOBS} all 2>&1 >${LOG_DIR}/$target.MAKELOG \
-				| tee ${LOG_DIR}/$target.ERR
+	${MAKE} ${JOBS} all \
+		>${LOG_DIR}/$target.MAKELOG 2> ${LOG_DIR}/$target.ERR
 
 	# Check for 'make' errors
 	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
 		RC=1
 	fi
 
-	if [ -s ${LOG_DIR}/$target.ERR ] ; then
-		ERR_CNT=$((ERR_CNT + 1))
-		ERR_LIST="${ERR_LIST} $target"
+	if [ $BUILD_MANY == 1 ] ; then
+		${MAKE} tidy
+
+		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
+			cp ${LOG_DIR}/${target}.ERR ${OUTPUT_PREFIX}/ERR/${target}
+		else
+			rm ${LOG_DIR}/${target}.ERR
+		fi
 	else
-		rm ${LOG_DIR}/$target.ERR
+		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
+			if grep -iw error ${LOG_DIR}/${target}.ERR ; then
+				: $(( ERR_CNT += 1 ))
+				ERR_LIST="${ERR_LIST} $target"
+			else
+				: $(( WRN_CNT += 1 ))
+				WRN_LIST="${WRN_LIST} $target"
+			fi
+		else
+			rm ${LOG_DIR}/${target}.ERR
+		fi
 	fi
 
-	TOTAL_CNT=$((TOTAL_CNT + 1))
+	OBJS=${output_dir}/u-boot
+	if [ -e ${output_dir}/spl/u-boot-spl ]; then
+		OBJS="${OBJS} ${output_dir}/spl/u-boot-spl"
+	fi
 
-	${CROSS_COMPILE}size ${BUILD_DIR}/u-boot \
-				| tee -a ${LOG_DIR}/$target.MAKELOG
+	${CROSS_COMPILE}size ${OBJS} | tee -a ${LOG_DIR}/$target.MAKELOG
+
+	[ -e "${LOG_DIR}/${target}.ERR" ] && cat "${LOG_DIR}/${target}.ERR"
+
+	touch "${donep}${build_idx}"
 }
+
+manage_builds() {
+	search_idx=${OLDEST_IDX}
+	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
+
+	while true; do
+		if [ -e "${donep}${search_idx}" ] ; then
+			: $(( CURRENT_CNT-- ))
+			[ ${OLDEST_IDX} -eq ${search_idx} ] &&
+				: $(( OLDEST_IDX++ ))
+
+			# Only want to count it once
+			rm -f "${donep}${search_idx}"
+			touch "${skipp}${search_idx}"
+		elif [ -e "${skipp}${search_idx}" ] ; then
+			[ ${OLDEST_IDX} -eq ${search_idx} ] &&
+				: $(( OLDEST_IDX++ ))
+		fi
+		: $(( search_idx++ ))
+		if [ ${search_idx} -gt ${TOTAL_CNT} ] ; then
+			if [ ${CURRENT_CNT} -ge ${BUILD_NBUILDS} ] ; then
+				search_idx=${OLDEST_IDX}
+				sleep 1
+			else
+				break
+			fi
+		fi
+	done
+}
+
 build_targets() {
 	for t in "$@" ; do
 		# If a LIST_xxx var exists, use it.  But avoid variable
@@ -520,21 +715,70 @@ build_targets() {
 		if [ -n "${list}" ] ; then
 			build_targets ${list}
 		else
-			build_target ${t}
+			: $((TOTAL_CNT += 1))
+			: $((CURRENT_CNT += 1))
+			rm -f "${donep}${TOTAL_CNT}"
+			rm -f "${skipp}${TOTAL_CNT}"
+			if [ $BUILD_MANY == 1 ] ; then
+				build_target ${t} ${TOTAL_CNT} &
+			else
+				build_target ${t} ${TOTAL_CNT}
+			fi
+		fi
+
+		# We maintain a running count of all the builds we have done.
+		# Each finished build will have a file called ${donep}${n},
+		# where n is the index of the build. Each build
+		# we've already noted as finished will have ${skipp}${n}.
+		# We track the current index via TOTAL_CNT, and the oldest
+		# index. When we exceed the maximum number of parallel builds,
+		# We look from oldest to current for builds that have completed,
+		# and update the current count and oldest index as appropriate.
+		# If we've gone through the entire list, wait a second, and
+		# reprocess the entire list until we find a build that has
+		# completed
+		if [ ${CURRENT_CNT} -ge ${BUILD_NBUILDS} ] ; then
+			manage_builds
 		fi
 	done
 }
 
 #-----------------------------------------------------------------------
 
+kill_children() {
+	kill -- "-$1"
+
+	exit
+}
+
 print_stats() {
+	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
+
+	rm -f ${donep}* ${skipp}*
+
+	if [ $BUILD_MANY == 1 ] && [ -e "${OUTPUT_PREFIX}/ERR" ] ; then
+		ERR_LIST=`grep -riwl error ${OUTPUT_PREFIX}/ERR/`
+		ERR_LIST=`for f in $ERR_LIST ; do echo -n " $(basename $f)" ; done`
+		ERR_CNT=`echo $ERR_LIST | wc -w | awk '{print $1}'`
+		WRN_LIST=`grep -riwL error ${OUTPUT_PREFIX}/ERR/`
+		WRN_LIST=`for f in $WRN_LIST ; do echo -n " $(basename $f)" ; done`
+		WRN_CNT=`echo $WRN_LIST | wc -w | awk '{print $1}'`
+	fi
+
 	echo ""
 	echo "--------------------- SUMMARY ----------------------------"
 	echo "Boards compiled: ${TOTAL_CNT}"
 	if [ ${ERR_CNT} -gt 0 ] ; then
-		echo "Boards with warnings or errors: ${ERR_CNT} (${ERR_LIST} )"
+		echo "Boards with errors: ${ERR_CNT} (${ERR_LIST} )"
+	fi
+	if [ ${WRN_CNT} -gt 0 ] ; then
+		echo "Boards with warnings but no errors: ${WRN_CNT} (${WRN_LIST} )"
 	fi
 	echo "----------------------------------------------------------"
+
+	if [ $BUILD_MANY == 1 ] ; then
+		kill_children $$ &
+	fi
 
 	exit $RC
 }
@@ -546,3 +790,4 @@ set -- ${SELECTED} "$@"
 # run PowerPC by default
 [ $# = 0 ] && set -- powerpc
 build_targets "$@"
+wait

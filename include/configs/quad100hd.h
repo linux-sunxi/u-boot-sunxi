@@ -48,7 +48,6 @@
 #undef CONFIG_ENV_IS_IN_FLASH
 
 #define CONFIG_PPC4xx_EMAC
-#define CONFIG_NET_MULTI	1
 #define CONFIG_HAS_ETH1		1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		0x01	/* PHY address			*/
@@ -70,7 +69,6 @@
 #define CONFIG_CMD_I2C
 #undef CONFIG_CMD_IRQ
 #define CONFIG_CMD_JFFS2
-#undef CONFIG_CMD_LOG
 #undef CONFIG_CMD_MII
 #define CONFIG_CMD_NAND
 #undef CONFIG_CMD_PING

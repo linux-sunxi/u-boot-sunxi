@@ -72,7 +72,6 @@
 #undef	CONFIG_ETHER_NONE		/* define if ether on something else */
 #define CONFIG_ETHER_ON_FCC
 
-#define	CONFIG_NET_MULTI
 #define CONFIG_ETHER_ON_FCC2
 
 /*
@@ -171,8 +170,6 @@
 #define CONFIG_SYS_PIO_MODE		0	/* IDE interface in PIO Mode 0	*/
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define	CONFIG_SYS_RESET_ADDRESS 0xFFF00100	/* "bad" address		*/
 

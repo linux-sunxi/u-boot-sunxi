@@ -95,7 +95,6 @@
 #define CONFIG_PCI				/* include pci support		*/
 #undef CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI			/* Multi ethernet cards support */
 
 #define CONFIG_SYS_RX_ETH_BUFFER	8		/* use 8 rx buffer on eepro100	*/
 
@@ -191,7 +190,6 @@
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	3
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	10	/* and takes up to 10 msec */
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_FLASH_BANKS		{ FLASH_BASE0_PRELIM }
 
 /*-----------------------------------------------------------------------

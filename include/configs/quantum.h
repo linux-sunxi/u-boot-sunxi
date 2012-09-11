@@ -59,7 +59,7 @@
 #define CONFIG_SERVERIP 10.10.69.49
 #define CONFIG_NETMASK	255.255.255.0
 #define CONFIG_HOSTNAME QUANTUM
-#define CONFIG_ROOTPATH /opt/eldk/pcc_8xx
+#define CONFIG_ROOTPATH "/opt/eldk/pcc_8xx"
 
 #define CONFIG_BOOTARGS	 "root=/dev/ram rw"
 
@@ -141,8 +141,6 @@
 #define CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address */
 
 #define CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks */
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings
