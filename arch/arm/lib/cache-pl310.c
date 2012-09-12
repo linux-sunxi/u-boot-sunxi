@@ -34,7 +34,7 @@ static void pl310_cache_sync(void)
 {
 	writel(0, &pl310->pl310_cache_sync);
 }
-
+1
 static void pl310_background_op_all_ways(u32 *op_reg)
 {
 	u32 assoc_16, associativity, way_mask;

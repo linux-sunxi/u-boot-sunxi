@@ -204,6 +204,7 @@ static int arm_pci_init(void)
 #if defined(CONFIG_SUNXI_AXP)
 extern int power_init(void);
 #endif
+extern int check_update_key(void);
 extern int display_inner(void);
 /*
  * Breathe some life into the board...
@@ -269,6 +270,7 @@ init_fnc_t *init_sequence[] = {
 	power_init,
 #endif	
 #endif
+    check_update_key,
 	dram_init,		/* configure available RAM banks */
 	NULL,
 };
@@ -471,60 +473,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-//	debug("monitor flash len: %08lX\n", monitor_flash_len);
-#ifdef CONFIG_ALLWINNER
-#ifdef DEBUG
-//	printf("sunxi script init\n");
-#endif
-	sw_gpio_init();
-	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
-		storage_type = 0;
-	if((storage_type <= 0) || (storage_type > 2))
-	{
-		int used;
-
-		used = 1;
-		script_parser_patch("nand_para", "nand_used", &used, 1);
-		used = 0;
-		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
-		storage_type = 0;
-	}
-	else if(1 == storage_type)
-	{
-		mmc_card_no = 0;
-	}
-	else
-	{
-		int used;
-
-		used = 0;
-		script_parser_patch("nand_para", "nand_used", &used, 1);
-		used = 1;
-		script_parser_patch("mmc2_para", "sdc_used", &used, 1);
-
-		mmc_card_no = 2;
-	}
-#ifdef DEBUG
-	{
-		int used;
-
-		printf("test storage_type=%d, mmc_card_no=%d\n", storage_type, mmc_card_no);
-		if(!script_parser_fetch("nand_para", "nand_used", &used, sizeof(int)))
-		{
-			printf("nand_para nand_used = %d\n", used);
-		}
-		if(!script_parser_fetch("mmc2_para", "sdc_used", &used, sizeof(int)))
-		{
-			printf("mmc2_para sdc_used = %d\n", used);
-		}
-		printf("test over\n");
-	}
-#endif
-	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
-		uart_console = 0;
-#endif
+	debug("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
-
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
 #endif
@@ -571,16 +521,12 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #ifdef CONFIG_ALLWINNER
-	if(!storage_type){
-		puts("NAND:  ");
-		nand_init();		/* go init the NAND */
-	}
-	else{
-		puts("MMC:   ");
-        mmc_initialize(bd);
-	}
+#ifdef DEBUG
+    puts("ready to config storage\n");
+#endif
 	sunxi_flash_handle_init();
 	sunxi_partition_init();
+	sunxi_script_init();
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){

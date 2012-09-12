@@ -43,7 +43,7 @@ int timer_init(void)
 	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	timer_reg->tirqen  = 0;
-	timer_reg->tirqsta = 0;
+	timer_reg->tirqsta |= 0x043f;
 	/* start avs as counter */
 	ccm_reg->avs_clk_cfg |= (1 << 31);
 	/* avs0 counted by ms */
@@ -60,7 +60,11 @@ void timer_exit(void)
 	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	timer_reg->tirqen  = 0;
-	timer_reg->tirqsta = 0;	
+	timer_reg->tirqsta |= 0x043f;	
+	timer_reg->avs.ctl = 0;
+	timer_reg->avs.div = 0x05DB05DB;
+	timer_reg->timer[0].ctl = 0;
+    timer_reg->timer[1].ctl = 0;
 	ccm_reg->avs_clk_cfg &= ~(1U << 31);
 
 	return ;
@@ -81,7 +85,8 @@ void watchdog_enable(void)
 	struct sunxi_wdog *wdog =
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	/* enable watchdog */
-	writel(1, &(wdog->mode));
+	debug("write to %x value 1\n", (uint)&(wdog->mode));
+	writel(3, &(wdog->mode));
 
 	return ;	
 	

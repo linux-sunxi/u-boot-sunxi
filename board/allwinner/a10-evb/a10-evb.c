@@ -54,7 +54,7 @@ void fastboot_flash_partition_init(void)
 	memset(partition_sets, ' ', 256);
 
 	memset(part_name, 0, 16);
-	if(!storage_type)
+	if(!uboot_spare_head.boot_data.storage_type)
 	{
 		memcpy(part_name, "nanda", 5);
 		part_name_count = 0;
@@ -83,7 +83,7 @@ void fastboot_flash_partition_init(void)
 		*pa_index = ':';
 		pa_index ++;			
 
-		if(!storage_type)
+		if(!uboot_spare_head.boot_data.storage_type)
 		{
 			if(index < 10)
 			{
@@ -115,7 +115,7 @@ void fastboot_flash_partition_init(void)
 		}
 	}
 	pa_index--;
-	if(storage_type)
+	if(uboot_spare_head.boot_data.storage_type)
 	{
 		if(part_name_count > 10)
 		{
@@ -133,10 +133,10 @@ void fastboot_flash_partition_init(void)
 	
 }
 
-void fastboot_partition_init(void) {
-#ifdef DEBUG
-	printf("fastboot_partition_init storage type = %d\n", storage_type);
-#endif
+void fastboot_partition_init(void) 
+{
+	debug("fastboot_partition_init storage type = %d\n", uboot_spare_head.boot_data.storage_type);
+
 	fastboot_flash_partition_init();
 }
 static struct bootloader_message misc_message;
@@ -163,7 +163,7 @@ int android_misc_flash_check(void) {
 	printf("misc.status   : %s\n", misc_message.status);
 	printf("misc.recovery : %s\n", misc_message.recovery);
 #endif
-	if(storage_type)
+	if(uboot_spare_head.boot_data.storage_type)
 	{
 		if(!strcmp(misc_message.command, "boot-recovery")) {
 			/* there is a recovery command */
@@ -212,32 +212,50 @@ int android_misc_flash_check(void) {
 	return 0;
 }
 
-int check_android_misc(void){
-	int ret;
-#ifdef DEBUG
-	printf("check_android_misc storage type = %d\n", storage_type);
-#endif
+int check_android_misc(void)
+{
+	debug("check_android_misc storage type = %d\n", uboot_spare_head.boot_data.storage_type);
+
 	return android_misc_flash_check();
 }
 
 void set_boot_type_arg(void){
 	
-	if(storage_type){
+	if(uboot_spare_head.boot_data.storage_type){
 		setenv("bootcmd", "run setargs_mmc boot_normal");
 	}
 	else{
 		setenv("bootcmd", "run setargs_nand boot_normal");
 	}
 }
+
+void sunxi_script_init(void)
+{
+    char  addr[8]; 
+	char *const argv[6] = { "fatload", "sunxi_flash", "0", addr, "script.bin", NULL };
+
+	sprintf(addr, "%x", SYS_CONFIG_MEMBASE);
+#ifdef DEBUG
+    int i;
+
+	for(i=0;i<6;i++)
+	{
+        printf("argv[%d] = %s\n", i, argv[i]);
+	}
+#endif
+    if(!do_fat_fsload(0, 0, 5, argv))
+	{
+	    sw_gpio_init();
+    }
+
+	return ;
+}
 /* add board specific code here */
 int board_init(void) {
 
 	gd->bd->bi_arch_number = 3495;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
-	serial_init();
-#ifdef DEBUG
-	printf("board_init storage_type = %d\n",storage_type);
-#endif
+	debug("board_init storage_type = %d\n",uboot_spare_head.boot_data.storage_type);
 
 	return 0;
 }
@@ -255,22 +273,45 @@ int board_late_init(void)
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
+	gd->bd->bi_dram[0].size = uboot_spare_head.boot_data.dram_para.dram_size;
 }
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	//gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	printf("Dram size: %d Mbit\n", uboot_spare_head.boot_data.dram_para.dram_size);
+    gd->ram_size = uboot_spare_head.boot_data.dram_para.dram_size << 20;
 	return 0;
 }
 
 #ifdef CONFIG_GENERIC_MMC
 int board_mmc_init(bd_t *bis)
 {
-	sunxi_mmc_init(mmc_card_no);
+	sunxi_mmc_init(bis->bi_card_num);
 	
 	return 0;
 }
+
+void board_mmc_pre_init(int card_num)
+{
+    bd_t *bd;
+
+	bd = gd->bd;
+	mmc_initialize(bd);
+    gd->bd->bi_card_num = card_num;
+}
+
+int board_mmc_get_num(void)
+{
+    return gd->boot_card_num;
+}
+
+
+void board_mmc_set_num(int num)
+{
+    gd->boot_card_num = num;
+}
+ 
 
 int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
 

@@ -73,6 +73,9 @@ typedef	struct	global_data {
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	unsigned long	tlb_addr;
 #endif
+#if defined(CONFIG_ALLWINNER)
+    int             boot_card_num;
+#endif
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
 } gd_t;

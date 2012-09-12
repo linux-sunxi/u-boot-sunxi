@@ -26,6 +26,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <pmu.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
@@ -37,9 +38,7 @@
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
-int storage_type = 0;
 int uart_console = 0;
-int mmc_card_no  = 2;
 
 u32 get_base(void) 
 {
@@ -60,7 +59,6 @@ void s_init(void)
 
 void reset_cpu(ulong addr) 
 {
-	sunxi_flash_exit();
 	watchdog_enable();
 loop_to_die:
 	goto loop_to_die;
@@ -76,8 +74,21 @@ void v7_outer_cache_inval_all(void)
 	return ;
 }
 
+void v7_outer_cache_flush_range(u32 start, u32 stop)
+{
+	return ;
+}
+
 void enable_caches(void)
 {
+    icache_enable();
+    dcache_enable();
+}
+
+void disable_caches(void)
+{
+    icache_disable();
+	dcache_disable();
 }
 
 int display_inner(void)
@@ -108,7 +119,7 @@ int power_init(void)
 			{
 				clock = sunxi_clock_get_corepll();
 			}
-			printf("set dcdc2 clock = %d\n", clock);	
+			printf("set core vol = %d, core clock = %d\n", set_vol, clock);	
 
 			return 0;
 		}
@@ -118,4 +129,48 @@ int power_init(void)
 	
 	return 0;
 }
+
+int check_update_key(void)
+{
+	int ret, count;
+
+    sunxi_key_init();
+	count = 0;
+	__msdelay(10);
+	
+	ret = sunxi_key_read();			        //读取按键信息
+	if(ret < 0) 							//没有按键按下
+	{
+		printf("no key found\n");
+		return 0;
+	}
+
+	while(1)
+	{
+		ret = axp_probe_key();	            //获取power按键信息
+		if(ret & PMU_SHORT_KEY_PRESSED) 	//没有POWER按键按下
+		{
+			count ++;
+		}
+
+		__msdelay(40);
+		ret = sunxi_key_read();		        //读取按键信息
+		if(ret < 0) 						//没有按键按下
+		{
+			printf("key not pressed anymore\n");
+			{
+				return 0;
+			}
+		}
+
+		if(count == 3)
+		{
+			printf("you can unclench the key to update now\n");
+
+			early_fel();
+		}
+	}
+}
+
+
 

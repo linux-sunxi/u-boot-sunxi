@@ -276,6 +276,7 @@ struct mmc {
 	uint voltages;
 	uint version;
 	uint has_init;
+	uint control_num;
 	uint f_min;
 	uint f_max;
 	int high_capacity;

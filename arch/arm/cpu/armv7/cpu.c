@@ -84,7 +84,6 @@ int cleanup_before_linux(void)
 int arch_cpu_init (void)
 {	
 	icache_enable();
-	dcache_enable();
 
 	return 0;
 }

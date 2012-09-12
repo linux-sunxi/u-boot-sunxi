@@ -17,8 +17,6 @@
 #define __SW_SYS_CONFIG_H
 
 
-#define   SYS_CONFIG_MEMBASE                 (PLAT_PHYS_OFFSET + SZ_32M + SZ_16M)
-#define   SYS_CONFIG_MEMSIZE                 (SZ_64K)
 #define   SCRIPT_PARSER_OK                   (0)
 #define   SCRIPT_PARSER_EMPTY_BUFFER         (-1)
 #define   SCRIPT_PARSER_KEYNAME_NULL         (-2)

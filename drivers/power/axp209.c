@@ -257,41 +257,6 @@ int axp209_probe_battery_vol(void)
 *
 ************************************************************************************************************
 */
-int axp209_probe_shortkey(void)
-{
-	u8  reg_value;
-
-	if(axp_i2c_read(AXP20_ADDR, BOOT_POWER20_INTSTS3, &reg_value))
-    {
-        return -1;
-    }
-    reg_value &= 0x02;
-	if(reg_value)
-	{
-		if(axp_i2c_write(AXP20_ADDR, BOOT_POWER20_INTSTS3, reg_value))
-	    {
-	        return -1;
-	    }
-	}
-
-	return reg_value>>1;
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
 int axp209_probe_buttery_resistance_record(void)
 {
 	u8  reg_value;
@@ -319,7 +284,7 @@ int axp209_probe_buttery_resistance_record(void)
 *
 ************************************************************************************************************
 */
-int axp209_probe_longkey(void)
+int axp209_probe_key(void)
 {
 	u8  reg_value;
 
@@ -327,7 +292,7 @@ int axp209_probe_longkey(void)
     {
         return -1;
     }
-    reg_value &= 0x01;
+    reg_value &= 0x03;
 	if(reg_value)
 	{
 		if(axp_i2c_write(AXP20_ADDR, BOOT_POWER20_INTSTS3, reg_value))

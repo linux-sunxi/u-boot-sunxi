@@ -106,7 +106,6 @@ static int mmu_enabled(void)
 {
 	return get_cr() & CR_M;
 }
-
 /* cache_bit must be either CR_I or CR_C */
 static void cache_enable(uint32_t cache_bit)
 {
@@ -189,12 +188,6 @@ int dcache_status (void)
 	return 0;					/* always off */
 }
 
-/* add by jerry */
-void dcache_flushregion(void *adr, uint bytes)
-{
-	return ;
-}
-
 #else
 void dcache_enable(void)
 {
@@ -209,33 +202,6 @@ void dcache_disable(void)
 int dcache_status(void)
 {
 	return (get_cr() & CR_C) != 0;
-}
-
-static inline unsigned int get_cache_line_size(void)
-{
-    unsigned int cache_line_reg;
-	unsigned int cache_line_size;
-
-	asm("mrc p15, 0, %0, c1, c0, 0	@ get cache line" : "=r" (cache_line_reg) : : "cc");
-	cache_line_size = (2 << ((cache_line_reg & 0x07) + 2)) * 4;
-	
-	return cache_line_size;
-}
-/* add by jerry */
-void dcache_flushregion(void *adr, uint bytes)
-{
-	unsigned int cache_line_size = get_cache_line_size();
-	unsigned int start, end;
-
-	start = (unsigned int)adr & (cache_line_size - 1);
-	end  = start + bytes;
-	while(start <= end)
-	{
-	    asm("mcr p15, 0, %0, c7, c14, 1	@ clean and invalidata data" : : "r" (start));
-		start += cache_line_size;
-	}
-
-	return ;
 }
 
 #endif

@@ -247,14 +247,12 @@ typedef struct 	__dma_setting_set
 }__dma_setting_t;
 
 
-extern    unsigned int 	DMA_Request			(unsigned int dmatype);
-extern    int 			DMA_Release			(unsigned int hDma);
-extern    int 			DMA_Setting			(unsigned int hDMA, void *cfg);
-extern    int 			DMA_Start			(unsigned int hDMA, unsigned int saddr, unsigned int daddr, unsigned int bytes);
-extern    int 			DMA_Stop			(unsigned int hDma);
-extern    int 			DMA_Restart			(unsigned int hDma);
-extern    int 			DMA_QueryStatus		(unsigned int hDma);
-extern    int 			DMA_QueryChannalNo	(unsigned int hDma);
+extern    unsigned int 	sunxi_dma_request			(unsigned int dmatype);
+extern    int 			sunxi_dma_release			(unsigned int hdma);
+extern    int 			sunxi_dma_setting			(unsigned int hdma, void *cfg);
+extern    int 			sunxi_dma_start			     (unsigned int hdma, unsigned int saddr, unsigned int daddr, unsigned int bytes);
+extern    int 			sunxi_dma_stop			     (unsigned int hdma);
+extern    int 			sunxi_dma_querystatus		(unsigned int hdma);
 
 
 

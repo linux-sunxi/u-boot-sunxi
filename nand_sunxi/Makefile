@@ -24,9 +24,9 @@
 include $(TOPDIR)/config.mk
 
 all:
-ifeq ($(notdir $(shell find ./ -name lib)), lib)
+ifeq ($(notdir $(shell find ./ -name lib-nand)), lib-nand)
 
-	make -C lib
+	make -C lib-nand
 
 else
 

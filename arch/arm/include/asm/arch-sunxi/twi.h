@@ -26,6 +26,8 @@
 *   Interrupt controller define
 *********************************************************************************************************
 */
+#define TWI_CONTROL_OFFSET             0x400
+#define SUNXI_I2C_CONTROLLER             3
 
 struct sunxi_twi_reg
 {

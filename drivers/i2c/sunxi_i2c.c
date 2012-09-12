@@ -81,6 +81,12 @@
 * D8h    Second Address byte + Write bit transmitted, ACK not received
 * F8h    No relevant status information or no interrupt
 *-----------------------------------------------------------------------------*/
+//static  struct sunxi_twi_reg *i2c[SUNXI_I2C_CONTROLLER] = 
+//{
+//    (struct sunxi_twi_reg *)(SUNXI_TWI0_BASE),
+//	(struct sunxi_twi_reg *)(SUNXI_TWI1_BASE),
+//	(struct sunxi_twi_reg *)(SUNXI_TWI2_BASE)		
+//};
 static  struct sunxi_twi_reg *i2c;
 /*
 **********************************************************************************************************************

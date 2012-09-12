@@ -164,7 +164,7 @@ int sunxi_partition_init(void)
     int i, part_index = 0;
     sunxi_mbr_t    *mbr;
 
-    if(sunxi_flash_read(0, MBR_SIZE >> 9, mbr_buf)){
+    if(!sunxi_flash_read(0, MBR_SIZE >> 9, mbr_buf)){
 		printf("read flash error\n");
 
 		return 0;
@@ -193,7 +193,7 @@ int sunxi_partition_init(void)
 
 					if(!len)
 					{
-						len = sunxi_flash_get_size() - addr;
+						len = sunxi_flash_size() - addr;
 						pe->lenlo = len & 0xffffffff;
 					}
                     part_index ++;

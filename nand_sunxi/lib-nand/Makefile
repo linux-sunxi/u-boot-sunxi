@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2007
+# (C) Copyright 2000, 2001, 2002
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,12 +23,28 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libpmu.o
+LIB	= $(obj)libsunxi-nand.o
 
-COBJS-$(CONFIG_SUNXI_PMU_209) += power_ops.o
-COBJS-$(CONFIG_SUNXI_PMU_209) += power_ops_standby.o
+COBJS	:= ./nand_drv/nand_for_uboot.o  		\
+		   ./nand_drv/nand_osal_uboot.o 		\
+		   ./nand_drv/nand_fspart.o 			\
+		   ./src/format/nand_format.o			\
+		   ./src/logic/bad_manage.o				\
+		   ./src/logic/logic_cache.o			\
+		   ./src/logic/logic_ctl.o				\
+		   ./src/logic/mapping.o				\
+		   ./src/logic/mapping_base.o			\
+		   ./src/logic/merge.o					\
+		   ./src/logic/read_reclaim.o			\
+		   ./src/logic/wear_levelling.o			\
+		   ./src/nfc/nfc_r.o					\
+		   ./src/nfc/nfc_w.o					\
+		   ./src/physic/nand_phy.o				\
+		   ./src/physic/nand_simple_r.o			\
+		   ./src/physic/nand_simple_w.o			\
+		   ./src/scan/nand_id.o					\
+		   ./src/scan/nand_scan.o
 
-COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 
@@ -36,6 +52,9 @@ all:	$(LIB)
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
+	$(CROSS_COMPILE)ar cvr libnand $(OBJS)
+
+	cp libnand ./..
 
 #########################################################################
 

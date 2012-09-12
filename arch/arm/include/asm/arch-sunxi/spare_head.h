@@ -21,13 +21,14 @@
 #define  __spare_head_h__
 
 /* work mode */
+#define WORK_MODE_PRODUCT      (1<<4)
+#define WORK_MODE_UPDATE       (1<<5)
+
 #define WORK_MODE_BOOT			0x00	//正常启动
-#define WORK_MODE_DEVELOP		0x01	//用于开发
-#define WORK_MODE_TEST			0x02	//用于测试
-#define WORK_MODE_USB_PRODUCT	0x03	//用于USB量产
-#define WORK_MODE_CARD_PRODUCT	0x04	//用于卡量产
-#define WORK_MODE_USB_UPDATE	0x05	//用于USB升级
-#define WORK_MODE_OUTER_UPDATE	0x06	//用于外部盘升级
+#define WORK_MODE_USB_PRODUCT	0x10	//用于USB量产
+#define WORK_MODE_CARD_PRODUCT	0x11	//用于卡量产
+#define WORK_MODE_USB_UPDATE	0x20	//用于USB升级
+#define WORK_MODE_OUTER_UPDATE	0x21	//用于外部盘升级
 
 #define UBOOT_MAGIC				"uboot"
 #define STAMP_VALUE             0x5F0A6C39
@@ -108,9 +109,9 @@ struct spare_boot_data_head
 	int		                    work_mode;              // 工作模式
     int                         storage_type;           // 存储介质类型  0：nand   1：sdcard    2: spinor
     normal_gpio_cfg             nand_gpio[32];          // nand GPIO信息
-    char						nand_spare_data[128];	// nand 额外信息
-    normal_gpio_cfg             sdcard_gpio[16];		// sdcard GPIO信息
-    sdcard_spare_info			sdcard_spare_data;	    // sdcard 额外信息
+    char						nand_spare_data[256];	// nand 额外信息
+    normal_gpio_cfg             sdcard_gpio[32];		// sdcard GPIO信息
+    char             			sdcard_spare_data[256];	// sdcard 额外信息
     int							reserved[3];			// 保留数据位
 };
 

@@ -47,34 +47,5 @@ static inline int abs(int x)
 }
 
 
-extern int axp_clear_data_buffer(void);
-extern int axp_reboot_coulomb(void);
-extern int axp_probe_dcin_exist(void);
-extern int axp_probe_battery_exist(void);
-extern int axp_probe_battery_vol(void);
-extern int axp_probe_shortkey(void);
-extern int axp_probe_longkey(void);
-extern int axp_probe_last_poweron_status(void);
-extern int axp_set_power_off(void);
-extern int axp_probe_bat_coulomb_count(void);
-extern int axp_probe_poweron_cause(void);
-extern int axp_probe_charge_current(void);
-extern int axp_probe_charge_status(void);
-extern int axp_probe_rest_battery_capacity(void);
-extern int axp_set_charge_control(void);
-extern int axp_probe_buttery_resistance_record(void);
-extern int axp_set_next_poweron_status(int data);
-extern int axp_set_dcdc2(int set_vol);
-extern int axp_set_dcdc3(int set_vol);
-extern int axp_set_dcdc4(int set_vol);
-extern int axp_set_ldo2(int set_vol);
-extern int axp_set_ldo3(int set_vol);
-extern int axp_set_ldo4(int set_vol);
-extern int axp_set_poweroff_vol(int set_vol);
-extern int axp_set_charge_current(int current);
-extern int axp_set_vbus_cur_limit(int current);
-extern int axp_set_vbus_vol_limit(int vol);
-
-
 
 #endif /* __AXP_H__ */

@@ -61,6 +61,8 @@ int rtc_get (struct rtc_time *);
 int rtc_set (struct rtc_time *);
 void rtc_reset (void);
 
+void rtc_disable(void);
+
 void GregorianDay (struct rtc_time *);
 void to_tm (int, struct rtc_time *);
 unsigned long mktime (unsigned int, unsigned int, unsigned int,

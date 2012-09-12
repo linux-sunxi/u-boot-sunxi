@@ -73,6 +73,9 @@ int do_fat_fsload (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		count = simple_strtoul(argv[5], NULL, 16);
 	else
 		count = 0;
+#ifdef DEBUG
+    printf("offset = %x\n", (int)offset);
+#endif
 	size = file_fat_read(argv[4], (unsigned char *)offset, count);
 
 	if(size==-1) {

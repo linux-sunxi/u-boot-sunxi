@@ -58,7 +58,7 @@ int sunxi_set_gpio_all(void  *user_gpio_list, u32 group_count_max)
 	int                 tmp_cfg_offset, tmp_other_offset;
 	int                 i, j;
 
-	//判断引脚是否连续
+	//judge the count of valid gpio
 	user_gpio_data = (normal_gpio_cfg *)user_gpio_list;
 	for(i=0;i<group_count_max;i++)
 	{
@@ -67,9 +67,10 @@ int sunxi_set_gpio_all(void  *user_gpio_list, u32 group_count_max)
 			break;
 		}
 		user_gpio_data ++;
+		actual_port ++;
 	}
 	actual_port = i;
-	if(actual_port < 0)
+	if(actual_port <= 0)
 	{
 		return -1;
 	}
@@ -96,26 +97,26 @@ int sunxi_set_gpio_all(void  *user_gpio_list, u32 group_count_max)
 
 	for(i = port_num_first; i < port_num_last;)
     {
-		port_num_func  = (i >> 3);
+        port_num_func  = (i >> 3);
         port_num_other = (i >> 4);
-		if(last_port_num_other != port_num_other)
-		{
-			last_port_num_other = port_num_other;
-			if(other_cfg_ready != -1)
-			{
-				if(pull_changed)
-				{
-					gpio_group->pull[port_num_other] = port_pull_cfg;
-					pull_changed = 0;
-				}
-				if(drv_changed)
-				{
-					gpio_group->drv[port_num_other] = port_drv_cfg;
-					drv_changed = 0;
-				}
-			}
-			other_cfg_ready = 0;
-		}
+        if(last_port_num_other != port_num_other)
+        {
+            last_port_num_other = port_num_other;
+            if(other_cfg_ready != -1)
+            {
+                if(pull_changed)
+                {
+                    gpio_group->pull[port_num_other] = port_pull_cfg;
+                    pull_changed = 0;
+                }
+                if(drv_changed)
+                {
+                    gpio_group->drv[port_num_other] = port_drv_cfg;
+                    drv_changed = 0;
+                }
+            }
+            other_cfg_ready = 0;
+        }
 
 		port_func_cfg  = gpio_group->cfg[port_num_func];
 		if(!other_cfg_ready)
@@ -133,10 +134,14 @@ int sunxi_set_gpio_all(void  *user_gpio_list, u32 group_count_max)
 
 		for(j= i; j <= this_max_port_num; j ++)
 		{
+		    if(user_gpio_data->port_num != j)
+		    {
+		        continue;        /* break this gpio */
+		    }
 			tmp_cfg_offset   = j - (port_num_func<<3);
 			tmp_other_offset = j - (port_num_other<<4);
-		    port_func_cfg &= ~(0x07 << (tmp_cfg_offset * 4));
-			port_func_cfg |=   user_gpio_data->mul_sel << (tmp_cfg_offset * 4);
+		    port_func_cfg   &= ~(0x07 << (tmp_cfg_offset * 4));
+			port_func_cfg   |= user_gpio_data->mul_sel << (tmp_cfg_offset * 4);
 
 			if((user_gpio_data->pull >= 0) && (user_gpio_data->pull <= 2))
 			{

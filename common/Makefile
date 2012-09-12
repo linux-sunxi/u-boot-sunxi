@@ -65,6 +65,8 @@ COBJS-$(CONFIG_ENV_IS_NOWHERE) += env_nowhere.o
 
 # command
 COBJS-y += cmd_sunxi_flash.o
+COBJS-y += cmd_shutdown.o
+COBJS-y += cmd_fel.o
 COBJS-$(CONFIG_CMD_AMBAPP) += cmd_ambapp.o
 COBJS-$(CONFIG_SOURCE) += cmd_source.o
 COBJS-$(CONFIG_CMD_SOURCE) += cmd_source.o

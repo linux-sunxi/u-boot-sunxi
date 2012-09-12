@@ -588,6 +588,7 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->send_cmd = mmc_send_cmd;
 	mmc->set_ios = mmc_set_ios;
 	mmc->init = mmc_core_init;
+	mmc->control_num = sdc_no;
 
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 	mmc->host_caps = MMC_MODE_4BIT;

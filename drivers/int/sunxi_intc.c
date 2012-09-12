@@ -107,10 +107,24 @@ void irq_install_handler (int irq, interrupt_handler_t handle_irq, void *data)
 	sunxi_int_handlers[irq].m_data = data;
 	sunxi_int_handlers[irq].m_func = handle_irq;
 
-	irq_enable(irq);
+	enable_interrupts();
+}
+
+void irq_free_handler(int irq)
+{
+	disable_interrupts();
+	if (irq >= INT_MAX_SOURCE)
+	{
+		enable_interrupts();
+		return;
+	}
+
+	sunxi_int_handlers[irq].m_data = (void *)0;
+	sunxi_int_handlers[irq].m_func = default_isr;
 
 	enable_interrupts();
 }
+
 
 #ifdef CONFIG_USE_IRQ
 void do_irq (struct pt_regs *pt_regs)
@@ -129,20 +143,6 @@ void do_irq (struct pt_regs *pt_regs)
 
 int arch_interrupt_init (void)
 {
-	int i;
-
-	/* install default interrupt handlers */
-	for (i = 0; i < INT_MAX_SOURCE; i++)
-	{
-		sunxi_int_handlers[i].m_data = (void *)0;
-		sunxi_int_handlers[i].m_func = default_isr;
-	}
-	sunxi_int_handlers[INTC_IRQNO_TIMER0].m_data = (void *)0;
-	sunxi_int_handlers[INTC_IRQNO_TIMER0].m_func = timer0_isr;
-
-	sunxi_int_handlers[INTC_IRQNO_TIMER1].m_data = (void *)0;
-	sunxi_int_handlers[INTC_IRQNO_TIMER1].m_func = timer1_isr;
-
 	sunxi_int_regs = (struct sunxi_int_reg *)SUNXI_INTC_BASE;
 	//关闭所有中断使能
 	sunxi_int_regs->enable[0] = 0;
@@ -153,13 +153,34 @@ int arch_interrupt_init (void)
 	sunxi_int_regs->mask[1] = 0;
 	sunxi_int_regs->mask[2] = 0;
 
-	sunxi_int_regs->irq_pending[0] = 0;
-	sunxi_int_regs->irq_pending[1] = 0;
-	sunxi_int_regs->irq_pending[2] = 0;
+	sunxi_int_regs->irq_pending[0] = 0xffffffff;
+	sunxi_int_regs->irq_pending[1] = 0xffffffff;
+	sunxi_int_regs->irq_pending[2] = 0xffffffff;
 
-	sunxi_int_regs->fiq_pending[0] = 0;
-	sunxi_int_regs->fiq_pending[1] = 0;
-	sunxi_int_regs->fiq_pending[2] = 0;
+	sunxi_int_regs->fiq_pending[0] = 0xffffffff;
+	sunxi_int_regs->fiq_pending[1] = 0xffffffff;
+	sunxi_int_regs->fiq_pending[2] = 0xffffffff;
 
 	return (0);
+}
+
+int arch_interrupt_exit(void)
+{
+	sunxi_int_regs = (struct sunxi_int_reg *)SUNXI_INTC_BASE;
+	//关闭所有中断使能
+	sunxi_int_regs->enable[0] = 0;
+	sunxi_int_regs->enable[1] = 0;
+	sunxi_int_regs->enable[2] = 0;
+
+	sunxi_int_regs->mask[0] = 0;
+	sunxi_int_regs->mask[1] = 0;
+	sunxi_int_regs->mask[2] = 0;
+
+	sunxi_int_regs->irq_pending[0] = 0xffffffff;
+	sunxi_int_regs->irq_pending[1] = 0xffffffff;
+	sunxi_int_regs->irq_pending[2] = 0xffffffff;
+
+	sunxi_int_regs->fiq_pending[0] = 0xffffffff;
+	sunxi_int_regs->fiq_pending[1] = 0xffffffff;
+	sunxi_int_regs->fiq_pending[2] = 0xffffffff;    
 }

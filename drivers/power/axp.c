@@ -32,14 +32,12 @@ int  (* axp_point_reboot_coulomb			)(void) = axp_default_void;
 int  (* axp_point_probe_dcin_exist			)(void) = axp_default_void;
 int  (* axp_point_probe_battery_exist		)(void) = axp_default_void;
 int  (* axp_point_probe_battery_vol			)(void) = axp_default_void;
-int  (* axp_point_probe_shortkey			)(void) = axp_default_void;
-int  (* axp_point_probe_longkey				)(void) = axp_default_void;
+int  (* axp_point_probe_key	        		)(void) = axp_default_void;
 int  (* axp_point_probe_last_poweron_status	)(void) = axp_default_void;
 int  (* axp_point_set_power_off				)(void) = axp_default_void;
 int  (* axp_point_probe_bat_coulomb_count	)(void) = axp_default_void;
 int  (* axp_point_probe_poweron_cause		)(void) = axp_default_void;
 int  (* axp_point_probe_charge_current		)(void) = axp_default_void;
-int  (* axp_point_probe_charge_status		)(void) = axp_default_void;
 int  (* axp_point_probe_rest_battery_capacity)(void) = axp_default_void;
 int  (* axp_point_set_charge_control		)(void) = axp_default_void;
 int  (* axp_point_probe_buttery_resistance_record)(void) = axp_default_void;
@@ -108,20 +106,18 @@ int axp_probe(void)
 	if(pmu_type == 1)
 	{
 		/* pmu type AXP209 */
-		puts("PMU TYPE AXP209\n");
+		puts("PMU: AXP209\n");
 		axp_point_clear_data_buffer			 		= axp209_clear_data_buffer;
 		axp_point_reboot_coulomb			 		= axp209_reboot_coulomb;
 		axp_point_probe_dcin_exist			 		= axp209_probe_dcin_exist;
 	    axp_point_probe_battery_exist		 		= axp209_probe_battery_exist;
 	    axp_point_probe_battery_vol			 		= axp209_probe_battery_vol;
-	    axp_point_probe_shortkey			 		= axp209_probe_shortkey;
-		axp_point_probe_longkey				 		= axp209_probe_longkey;
+	    axp_point_probe_key     			 		= axp209_probe_key;
 		axp_point_probe_last_poweron_status	 		= axp209_probe_last_poweron_status;
 		axp_point_set_power_off				 		= axp209_set_power_off;
 		axp_point_probe_bat_coulomb_count	 		= axp209_probe_bat_coulomb_count;
 		axp_point_probe_poweron_cause		 		= axp209_probe_poweron_cause;
 		axp_point_probe_charge_current		 		= axp209_probe_charge_current;
-		axp_point_probe_charge_status		 		= axp209_probe_charge_status;
 		axp_point_probe_rest_battery_capacity		= axp209_probe_rest_battery_capacity;
 		axp_point_probe_buttery_resistance_record 	= axp209_probe_buttery_resistance_record;
 		axp_point_set_charge_control				   = axp209_set_charge_control;
@@ -140,6 +136,8 @@ int axp_probe(void)
 
 		return 0;
 	}
+
+	puts("PMU: NULL\n");
 
 	return -1;
 }
@@ -166,7 +164,7 @@ int axp_probe_power_supply_condition(void)
 	char  bat_value, bat_cou;
 
     /* 使能库仑计  */
-	axp_reboot_coulomb();
+	axp_point_reboot_coulomb();
     //检测电压，决定是否开机
     dcin_exist = axp_probe_dcin_exist();
     //先判断条件，如果上次关机记录的电量百分比<=5%,同时库仑计值小于5mAh，则关机，否则继续判断
@@ -174,10 +172,12 @@ int axp_probe_power_supply_condition(void)
 	printf("bat vol = %d\n", bat_vol);
 	if((bat_vol < 3400) && (!dcin_exist))
 	{
-	//	axp_set_system_off();
+	    axp_set_hardware_poweroff_vol();
+		axp_set_power_off();
+		for(;;);
 	}
 	//读之前的记录百分比
-	buffer_value = axp_probe_buttery_resistance_record();
+	buffer_value = axp_point_probe_buttery_resistance_record();
 	if(buffer_value < 0)
 	{
 		printf("axp read error\n");
@@ -186,7 +186,7 @@ int axp_probe_power_supply_condition(void)
 	if(buffer_value & 0x80)
 	{
 		bat_value = buffer_value & 0x7f;
-		bat_cou = axp_probe_bat_coulomb_count();
+		bat_cou = axp_point_probe_bat_coulomb_count();
 		if((bat_value <= 0) && (bat_cou < 30))
 		{
 			printf("bat_cou=%x\n", bat_cou);
@@ -195,7 +195,7 @@ int axp_probe_power_supply_condition(void)
 		{
 			if(bat_vol > (3600 + 100))
 			{
-				axp_clear_data_buffer();
+				axp_point_clear_data_buffer();
 				power_step_level = 2;
 			}
 			else
@@ -207,8 +207,8 @@ int axp_probe_power_supply_condition(void)
 		{
 			if(bat_vol > 3600)
 			{
-				axp_clear_data_buffer();
-				power_step_level = 2;
+				axp_point_clear_data_buffer();
+				power_step_level = 3;
 			}
 			else
 			{
@@ -226,7 +226,7 @@ int axp_probe_power_supply_condition(void)
 		{
 			if(bat_vol >= 3600)
 			{
-				power_step_level = 2;
+				power_step_level = 3;
 			}
 			else
 			{
@@ -260,7 +260,7 @@ int axp_probe_startup_cause(void)
 	int poweron_reason, next_action;
 	int ret;
 
-	buffer_value = axp_probe_last_poweron_status();
+	buffer_value = axp_point_probe_last_poweron_status();
 	if(buffer_value < 0)
 	{
 		return -1;
@@ -276,7 +276,7 @@ int axp_probe_startup_cause(void)
 		return 0;
 	}
 	//获取 开机原因，是按键触发，或者插入电压触发
-	poweron_reason = axp_probe_poweron_cause();
+	poweron_reason = axp_point_probe_poweron_cause();
 	next_action = 0x0e;
 	ret         = 1;
 	if(poweron_reason == AXP_POWER_ON_BY_POWER_KEY)
@@ -291,77 +291,9 @@ int axp_probe_startup_cause(void)
     	ret = 0;
 	}
 	//把开机原因写入寄存器
-	axp_set_next_poweron_status(next_action);
+	axp_point_set_next_poweron_status(next_action);
 
     return ret;
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-void axp_set_power_supply_output(void)
-{
-	int vol_value;
-
-	//set dcdc3
-	if(!script_parser_fetch("target", "dcdc3_vol", &vol_value, 1))
-	{
-		axp_set_dcdc3(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find dcdc3 set\n");
-	}
-	//set dcdc4
-	if(!script_parser_fetch("target", "dcdc4_vol", &vol_value, 1))
-	{
-		axp_set_dcdc4(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find dcdc4 set\n");
-	}
-	//set ldo2
-	if(!script_parser_fetch("target", "ldo2_vol", &vol_value, 1))
-	{
-		axp_set_ldo2(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo2 set\n");
-	}
-	//set ldo3
-	if(!script_parser_fetch("target", "ldo3_vol", &vol_value, 1))
-	{
-		axp_set_ldo3(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo3 set\n");
-	}
-	//set ldo4
-	if(!script_parser_fetch("target", "ldo4_vol", &vol_value, 1))
-	{
-		axp_set_ldo4(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo4 set\n");
-	}
-
-	return ;
 }
 /*
 ************************************************************************************************************
@@ -388,7 +320,7 @@ int axp_set_hardware_poweron_vol(void) //设置开机之后，PMU硬件关机电压为2.9V
 		printf("boot power:unable to find power off vol set\n");
 		vol_value = 2900;
 	}
-	return axp_set_poweroff_vol(vol_value);
+	return axp_point_set_poweroff_vol(vol_value);
 }
 /*
 ************************************************************************************************************
@@ -415,7 +347,7 @@ int axp_set_hardware_poweroff_vol(void) //设置关机之后，PMU硬件下次开机电压为3.3
 		printf("boot power:unable to find power off vol set\n");
 		vol_value = 3300;
 	}
-	return axp_set_poweroff_vol(vol_value);
+	return axp_point_set_poweroff_vol(vol_value);
 }
 /*
 ************************************************************************************************************
@@ -433,9 +365,9 @@ int axp_set_hardware_poweroff_vol(void) //设置关机之后，PMU硬件下次开机电压为3.3
 *
 ************************************************************************************************************
 */
-int  axp_clear_data_buffer(void)
+int  axp_set_power_off(void)
 {
-	return axp_point_clear_data_buffer();
+	return axp_point_set_power_off();
 }
 /*
 ************************************************************************************************************
@@ -453,9 +385,9 @@ int  axp_clear_data_buffer(void)
 *
 ************************************************************************************************************
 */
-int  axp_reboot_coulomb(void)
+int axp_set_next_poweron_status(int value)
 {
-	return axp_point_reboot_coulomb();
+	return axp_point_set_next_poweron_status(value);
 }
 /*
 ************************************************************************************************************
@@ -533,166 +465,6 @@ int  axp_probe_battery_vol(void)
 *
 ************************************************************************************************************
 */
-int  axp_probe_shortkey(void)
-{
-	return axp_point_probe_shortkey();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_longkey(void)
-{
-	return axp_point_probe_longkey();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_last_poweron_status(void)
-{
-	return axp_point_probe_last_poweron_status();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_set_power_off				(void)
-{
-	return axp_point_set_power_off();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_bat_coulomb_count(void)
-{
-	return axp_point_probe_bat_coulomb_count();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_poweron_cause(void)
-{
-	return axp_point_probe_poweron_cause();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_charge_current(void)
-{
-	return axp_point_probe_charge_current();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_charge_status(void)
-{
-	return axp_point_probe_charge_status();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
 int  axp_probe_rest_battery_capacity(void)
 {
 	return axp_point_probe_rest_battery_capacity();
@@ -713,9 +485,9 @@ int  axp_probe_rest_battery_capacity(void)
 *
 ************************************************************************************************************
 */
-int  axp_set_charge_control(void)
+int  axp_probe_key(void)
 {
-	return axp_point_set_charge_control();
+	return axp_point_probe_key();
 }
 /*
 ************************************************************************************************************
@@ -733,29 +505,57 @@ int  axp_set_charge_control(void)
 *
 ************************************************************************************************************
 */
-int  axp_probe_buttery_resistance_record(void)
+int axp_set_power_supply_output(void)
 {
-	return axp_point_probe_buttery_resistance_record();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_set_next_poweron_status(int status)
-{
-	return axp_point_set_next_poweron_status(status);
+	int vol_value;
+
+	//set dcdc3
+	if(!script_parser_fetch("target", "dcdc3_vol", &vol_value, 1))
+	{
+		axp_set_dcdc3(vol_value);
+	}
+	else
+	{
+		printf("boot power:unable to find dcdc3 set\n");
+	}
+	//set dcdc4
+	if(!script_parser_fetch("target", "dcdc4_vol", &vol_value, 1))
+	{
+		axp_set_dcdc4(vol_value);
+	}
+	else
+	{
+		printf("boot power:unable to find dcdc4 set\n");
+	}
+	//set ldo2
+	if(!script_parser_fetch("target", "ldo2_vol", &vol_value, 1))
+	{
+		axp_set_ldo2(vol_value);
+	}
+	else
+	{
+		printf("boot power:unable to find ldo2 set\n");
+	}
+	//set ldo3
+	if(!script_parser_fetch("target", "ldo3_vol", &vol_value, 1))
+	{
+		axp_set_ldo3(vol_value);
+	}
+	else
+	{
+		printf("boot power:unable to find ldo3 set\n");
+	}
+	//set ldo4
+	if(!script_parser_fetch("target", "ldo4_vol", &vol_value, 1))
+	{
+		axp_set_ldo4(vol_value);
+	}
+	else
+	{
+		printf("boot power:unable to find ldo4 set\n");
+	}
+
+	return 0;
 }
 /*
 ************************************************************************************************************
@@ -833,6 +633,7 @@ int  axp_set_dcdc4(int set_vol)
 *
 ************************************************************************************************************
 */
+
 int  axp_set_ldo2(int set_vol)
 {
 	return axp_point_set_ldo2(set_vol);
@@ -893,9 +694,9 @@ int  axp_set_ldo4(int set_vol)
 *
 ************************************************************************************************************
 */
-int  axp_set_poweroff_vol(int set_vol)
+int  axp_probe_charge_current(void)
 {
-	return axp_point_set_poweroff_vol(set_vol);
+	return axp_point_probe_charge_current();
 }
 /*
 ************************************************************************************************************
@@ -916,6 +717,26 @@ int  axp_set_poweroff_vol(int set_vol)
 int  axp_set_charge_current(int current)
 {
 	return axp_point_set_charge_current(current);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int  axp_set_charge_control(void)
+{
+	return axp_point_set_charge_control();
 }
 /*
 ************************************************************************************************************
@@ -957,5 +778,4 @@ int  axp_set_vbus_vol_limit(int vol)
 {
 	return axp_point_set_vbus_vol_limit(vol);
 }
-
 

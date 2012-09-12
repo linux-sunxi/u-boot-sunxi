@@ -66,6 +66,7 @@ typedef struct block_dev_desc {
 #define IF_TYPE_SD		7
 #define IF_TYPE_SATA		8
 #define IF_TYPE_NAND		9
+#define IF_TYPE_SUNXI_FLASH 10
 
 /* Part types */
 #define PART_TYPE_UNKNOWN	0x00
@@ -106,8 +107,9 @@ block_dev_desc_t* usb_stor_get_dev(int dev);
 block_dev_desc_t* mmc_get_dev(int dev);
 block_dev_desc_t* systemace_get_dev(int dev);
 block_dev_desc_t* mg_disk_get_dev(int dev);
-
 block_dev_desc_t* nand_get_dev(int dev);
+block_dev_desc_t* sunxi_flash_get_dev(int dev);
+
 
 
 /* disk/part.c */

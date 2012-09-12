@@ -42,6 +42,13 @@ sw_dma_channal_set_t  dma_channal[CFG_SW_DMA_NORMAL_MAX + CFG_SW_DMA_DEDICATE_MA
     {0, -1, (sw_dma_t)CFG_SW_DMA_DEDICATE7, (sw_dma_other_t)CFG_SW_DMA_DEDICATE7_OTHER  }
 };
 
+void sunxi_dma_exit(void)
+{
+    struct sunxi_dma_regs *dma_int = (struct sunxi_dma_regs *)SUNXI_DMA_BASE;
+
+	dma_int->inten = 0;
+	dma_int->intsts = 0xffffffff;
+}
 /*
 ****************************************************************************************************
 *
@@ -58,7 +65,7 @@ sw_dma_channal_set_t  dma_channal[CFG_SW_DMA_NORMAL_MAX + CFG_SW_DMA_DEDICATE_MA
 *		if 0, fail
 ****************************************************************************************************
 */
-uint DMA_Request(uint dmatype)
+uint sunxi_dma_request(uint dmatype)
 {
     uint   i;
 
@@ -106,15 +113,15 @@ uint DMA_Request(uint dmatype)
 *		EPDK_OK/FAIL
 ****************************************************************************************************
 */
-int DMA_Release(uint hDma)
+int sunxi_dma_release(uint hdma)
 {
-    sw_dma_channal_set_t * pDma = (sw_dma_channal_set_t *)hDma;
+    sw_dma_channal_set_t * pdma = (sw_dma_channal_set_t *)hdma;
 
     /* stop dma                 */
-    pDma->channal->config &= 0x7fffffff; /* stop dma */
+    pdma->channal->config &= 0x7fffffff; /* stop dma */
     /* free dma handle          */
-    pDma->used = 0;
-    pDma->channalNo = -1;
+    pdma->used = 0;
+    pdma->channalNo = -1;
 
     return 0;
 }
@@ -138,13 +145,13 @@ int DMA_Release(uint hDma)
 *
 **********************************************************************************************************************
 */
-int DMA_Setting(uint hDMA, void *cfg)
+int sunxi_dma_setting(uint hdma, void *cfg)
 {
-	sw_dma_channal_set_t    * pDma = (sw_dma_channal_set_t *)hDMA;
+	sw_dma_channal_set_t    * pdma = (sw_dma_channal_set_t *)hdma;
 	__dma_setting_t         * arg  = (__dma_setting_t      *)cfg;
 	uint                   value;
 
-    if(pDma->other)
+    if(pdma->other)
     {
         __ddma_config_t    ddma_arg = {0};
 
@@ -161,10 +168,10 @@ int DMA_Setting(uint hDMA, void *cfg)
         ddma_arg.continuous_mode  = arg->cfg.continuous_mode;
 
         value = *(uint *)&ddma_arg;
-        pDma->channal->config       = value & (~0x80000000);
-        pDma->other->page_size      = arg->pgsz;
-        pDma->other->page_step      = arg->pgstp;
-        pDma->other->comity_counter = arg->cmt_blk_cnt;
+        pdma->channal->config       = value & (~0x80000000);
+        pdma->other->page_size      = arg->pgsz;
+        pdma->other->page_step      = arg->pgstp;
+        pdma->other->comity_counter = arg->cmt_blk_cnt;
     }
     else
     {
@@ -184,7 +191,7 @@ int DMA_Setting(uint hDMA, void *cfg)
         ndma_arg.wait_state       = arg->cfg.wait_state;
 
         value = *(uint *)&ndma_arg;
-        pDma->channal->config       = value & (~0x80000000);
+        pdma->channal->config       = value & (~0x80000000);
     }
 
     return 0;
@@ -206,14 +213,14 @@ int DMA_Setting(uint hDMA, void *cfg)
 *
 ****************************************************************************************************
 */
-int DMA_Start(uint hDMA, uint saddr, uint daddr, uint bytes)
+int sunxi_dma_start(uint hdma, uint saddr, uint daddr, uint bytes)
 {
-	sw_dma_channal_set_t  * pDma = (sw_dma_channal_set_t *)hDMA;
+	sw_dma_channal_set_t  * pdma = (sw_dma_channal_set_t *)hdma;
 
-    pDma->channal->src_addr  = saddr;
-    pDma->channal->dst_addr  = daddr;
-    pDma->channal->bytes     = bytes;
-    pDma->channal->config   |= 0x80000000;   /* start dma */
+    pdma->channal->src_addr  = saddr;
+    pdma->channal->dst_addr  = daddr;
+    pdma->channal->bytes     = bytes;
+    pdma->channal->config   |= 0x80000000;   /* start dma */
 
     return 0;
 }
@@ -233,35 +240,11 @@ int DMA_Start(uint hDMA, uint saddr, uint daddr, uint bytes)
 *
 **********************************************************************************************************************
 */
-int DMA_Stop(uint hDma)
+int sunxi_dma_stop(uint hdma)
 {
-	sw_dma_channal_set_t    * pDma = (sw_dma_channal_set_t *)hDma;
+	sw_dma_channal_set_t    * pdma = (sw_dma_channal_set_t *)hdma;
 
-    pDma->channal->config &= 0x7fffffff; /* stop dma */
-
-    return 0;
-}
-/*
-**********************************************************************************************************************
-*
-*             eGon2_RestartDMA
-*
-*  Description:
-*       restart dma
-*
-*  Parameters:
-*       hDma	dma handler
-*
-*  Return value:
-*		EPDK_OK/FAIL
-*
-**********************************************************************************************************************
-*/
-int DMA_Restart(uint hDma)
-{
-    sw_dma_channal_set_t    * pDma = (sw_dma_channal_set_t *)hDma;
-
-    pDma->channal->config |= 0x80000000;
+    pdma->channal->config &= 0x7fffffff; /* stop dma */
 
     return 0;
 }
@@ -281,34 +264,13 @@ int DMA_Restart(uint hDma)
 *
 **********************************************************************************************************************
 */
-int DMA_QueryStatus(uint hDma)
+int sunxi_dma_querystatus(uint hdma)
 {
-    sw_dma_channal_set_t    * pDma = (sw_dma_channal_set_t *)hDma;
+    sw_dma_channal_set_t    * pdma = (sw_dma_channal_set_t *)hdma;
 
-    return (pDma->channal->config >> 31) & 0x01;
+    return (pdma->channal->config >> 31) & 0x01;
 }
-/*
-**********************************************************************************************************************
-*
-*             eGon2_QueryDMAChannalNo
-*
-*  Description:
-*
-*
-*  Parameters:
-*       hDma	dma handler
-*
-*  Return value:
-*		dma channael no.
-*
-**********************************************************************************************************************
-*/
-int DMA_QueryChannalNo(uint hDma)
-{
-    sw_dma_channal_set_t    * pDma = (sw_dma_channal_set_t *)hDma;
 
-    return pDma->channalNo;
-}
 
 
 

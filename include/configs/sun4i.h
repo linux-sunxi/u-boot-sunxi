@@ -52,6 +52,7 @@
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
 #define MMU_BASE_ADDRESS			0x20000
+#define FEL_BASE                    0xFFFF0020
 #if 0
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
 #endif
@@ -67,6 +68,8 @@
 /* Clock Defines */
 #define MMU_BASE_ADDRESS			0x20000
 
+#define SYS_CONFIG_MEMBASE          0x43000000
+
 #define CONFIG_SUNXI_GPIO           1
 
 #define CONFIG_SYS_I2C_SPEED        400000
@@ -74,6 +77,7 @@
 #define CONFIG_SUNXI_I2C			1
 #define CONFIG_SUNXI_AXP			1
 #define CONFIG_HARD_I2C			    1
+#define CONFIG_RTC_SUNXI            1
 /* Serial & console */
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL

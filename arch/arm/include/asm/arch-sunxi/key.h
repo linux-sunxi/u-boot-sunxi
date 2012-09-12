@@ -26,11 +26,11 @@
 #define _SUNXI_KEY_H
 
 struct sunxi_lradc {
-	u32 ctrl;         /* lradc control */
-	u32 intc;         /* interrupt control */
-	u32 ints;         /* interrupt status */
-	u32 data0;        /* lradc 0 data */
-	u32 data1;        /* lradc 1 data */
+	volatile u32 ctrl;         /* lradc control */
+	volatile u32 intc;         /* interrupt control */
+	volatile u32 ints;         /* interrupt status */
+	volatile u32 data0;        /* lradc 0 data */
+	volatile u32 data1;        /* lradc 1 data */
 };
 
 #define LRADC_EN                  0x1    /* LRADC enable */

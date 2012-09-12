@@ -21,13 +21,13 @@
 #ifndef	_DMAC_I_H_
 #define	_DMAC_I_H_
 
+#include <asm/arch/cpu.h>
+
 #define CFG_SW_DMA_NORMAL_MAX       8
 #define CFG_SW_DMA_DEDICATE_MAX     8
 
-#define DMAC_REGS_BASE				0x01c02000
 
-
-#define CFG_SW_DMA_NORMAL_BASE              (DMAC_REGS_BASE + 0x100              )
+#define CFG_SW_DMA_NORMAL_BASE              (SUNXI_DMA_BASE + 0x100              )
 #define CFS_SW_DMA_NORMAL0                  (CFG_SW_DMA_NORMAL_BASE + 0x20 * 0   )
 #define CFS_SW_DMA_NORMAL1                  (CFG_SW_DMA_NORMAL_BASE + 0x20 * 1   )
 #define CFS_SW_DMA_NORMAL2                  (CFG_SW_DMA_NORMAL_BASE + 0x20 * 2   )
@@ -37,7 +37,7 @@
 #define CFS_SW_DMA_NORMAL6                  (CFG_SW_DMA_NORMAL_BASE + 0x20 * 6   )
 #define CFS_SW_DMA_NORMAL7                  (CFG_SW_DMA_NORMAL_BASE + 0x20 * 7   )
 
-#define CFG_SW_DMA_DEDICATE_BASE            (DMAC_REGS_BASE + 0x300               )
+#define CFG_SW_DMA_DEDICATE_BASE            (SUNXI_DMA_BASE + 0x300               )
 #define CFG_SW_DMA_DEDICATE0                (CFG_SW_DMA_DEDICATE_BASE + 0x20 * 0 )
 #define CFG_SW_DMA_DEDICATE1                (CFG_SW_DMA_DEDICATE_BASE + 0x20 * 1 )
 #define CFG_SW_DMA_DEDICATE2                (CFG_SW_DMA_DEDICATE_BASE + 0x20 * 2 )
@@ -47,7 +47,7 @@
 #define CFG_SW_DMA_DEDICATE6                (CFG_SW_DMA_DEDICATE_BASE + 0x20 * 6 )
 #define CFG_SW_DMA_DEDICATE7                (CFG_SW_DMA_DEDICATE_BASE + 0x20 * 7 )
 
-#define CFG_SW_DMA_OTHER_BASE               (DMAC_REGS_BASE + 0x300 + 0x10       )
+#define CFG_SW_DMA_OTHER_BASE               (SUNXI_DMA_BASE + 0x300 + 0x10       )
 #define CFG_SW_DMA_DEDICATE0_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 0    )
 #define CFG_SW_DMA_DEDICATE1_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 1    )
 #define CFG_SW_DMA_DEDICATE2_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 2    )
@@ -56,6 +56,12 @@
 #define CFG_SW_DMA_DEDICATE5_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 5    )
 #define CFG_SW_DMA_DEDICATE6_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 6    )
 #define CFG_SW_DMA_DEDICATE7_OTHER          (CFG_SW_DMA_OTHER_BASE + 0x20 * 7    )
+
+struct sunxi_dma_regs
+{
+    volatile unsigned int inten;
+	volatile unsigned int intsts;
+};
 
 struct sw_dma
 {
