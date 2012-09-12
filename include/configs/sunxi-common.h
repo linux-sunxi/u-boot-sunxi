@@ -218,7 +218,7 @@
 #define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
 #define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
 
-#define CONFIG_WATCHDOG			/* automatic watchdog support */
+/* #define CONFIG_WATCHDOG */			/* automatic watchdog support */
 #define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
 
 #endif /* __CONFIG_H */
