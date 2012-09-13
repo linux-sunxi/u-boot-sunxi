@@ -78,6 +78,12 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_ALLWINNER
+#include <asm/arch/boot_type.h>
+extern void sw_gpio_init(void);
+extern int script_parser_fetch(char *main_name, char *sub_name, int value[], int count);
+extern int script_parser_init_early(void);
+#endif
 
 /************************************************************************
  * Coloured LED functionality
@@ -103,7 +109,6 @@ inline void __blue_LED_on(void) {}
 void blue_LED_on(void) __attribute__((weak, alias("__blue_LED_on")));
 inline void __blue_LED_off(void) {}
 void blue_LED_off(void) __attribute__((weak, alias("__blue_LED_off")));
-
 /*
  ************************************************************************
  * Init Utilities							*
@@ -456,7 +461,27 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-	debug("monitor flash len: %08lX\n", monitor_flash_len);
+//	debug("monitor flash len: %08lX\n", monitor_flash_len);
+#ifdef CONFIG_ALLWINNER
+#ifdef DEBUG
+//	printf("sunxi script init\n");
+#endif
+	sw_gpio_init();
+	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
+		storage_type = 0;
+	if((storage_type < 0) || (storage_type > 2)){
+		storage_type = 0;
+	}
+	else if(1 == storage_type){
+		mmc_card_no = 0;
+	}
+	else{
+		mmc_card_no = 2;
+	}
+	
+	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
+		uart_console = 0;
+#endif
 	board_init();	/* Setup chipselects */
 
 #ifdef CONFIG_SERIAL_MULTI
@@ -504,18 +529,37 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif
 
+#ifdef CONFIG_ALLWINNER
+	if(!storage_type){
+		puts("NAND:  ");
+		nand_init();		/* go init the NAND */
+	}
+	else{
+		puts("MMC:   ");
+        mmc_initialize(bd);
+	}
+	sunxi_flash_handle_init();
+	sunxi_partition_init();
+#else
 #if defined(CONFIG_CMD_NAND)
-	puts("NAND:  ");
-	nand_init();		/* go init the NAND */
-#endif
+	if(!storage_type){
+		puts("NAND:  ");
+		nand_init();        /* go init the NAND */
+	}
+#endif/*CONFIG_CMD_NAND*/
+
+
+#if defined(CONFIG_GENERIC_MMC)
+	if(storage_type){
+		puts("MMC:   ");
+		mmc_initialize(bd);
+	}
+#endif/*CONFIG_GENERIC_MMC*/
+#endif/*CONFIG_ALLWINNER*/
+
 
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
-#endif
-
-#ifdef CONFIG_GENERIC_MMC
-       puts("MMC:   ");
-       mmc_initialize(bd);
 #endif
 
 #ifdef CONFIG_HAS_DATAFLASH

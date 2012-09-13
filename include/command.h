@@ -28,6 +28,8 @@
 #define __COMMAND_H
 
 #include <config.h>
+#include <asm/arch/boot_type.h>
+
 
 #ifndef NULL
 #define NULL	0

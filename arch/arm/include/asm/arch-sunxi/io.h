@@ -7,6 +7,7 @@
 #ifndef __IO_H
 #define __IO_H
 #include "type.h"
+#include <common.h>
 #define get_bvalue(addr)	(*((volatile unsigned char  *)(addr)))
 #define put_bvalue(addr, v)	(*((volatile unsigned char  *)(addr)) = (unsigned char)(v))
 #define get_hvalue(addr)	(*((volatile unsigned short *)(addr)))

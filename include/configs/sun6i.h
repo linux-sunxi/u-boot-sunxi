@@ -37,8 +37,13 @@
 #define CONFIG_CMD_BOOTA
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
-#define CONFIG_SYS_TEXT_BASE		0x4A000000
+#define BOARD_LATE_INIT				/* init the fastboot partitions */
 
+#define SYS_CONFIG_BASE             0x43000000
+#define CONFIG_SYS_TEXT_BASE		0x4A000000
+#if 0
+#define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
+#endif
 /*
  * Display CPU and Board information
  */
@@ -75,38 +80,36 @@
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE			(512 << 20)				/* 0x20000000, 512 MB Bank #1 */
 
-#if 1
+//#define CONFIG_SYS_MONITOR_BASE	0x00000000
+
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
-#endif
-
 #define CONFIG_CMD_MEMORY
+#define CONFIG_SUNXI_DMA
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-#if 0
 /* mmc config */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
-#define CONFIG_MMC_SUNXI_SLOT		0		/* which mmc slot to use, could be 0,1,2,3 */
+#define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
+#define CONFIG_STORAGE_EMMC
+#define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
+#define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
 
 #define CONFIG_DOS_PARTITION
-#endif
-/*
-#define CONFIG_ENV_IS_NOWHERE
-*/
 /*
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
@@ -116,8 +119,10 @@
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	(256 << 20)
 
+#define FASTBOOT_ERASE_BUFFER			0x40000000
+#define FASTBOOT_ERASE_BUFFER_SIZE      (16 << 20)
 /*
  * Miscellaneous configurable options
  */
@@ -148,7 +153,8 @@
  *
  * The stack sizes are set up in start.S using the settings below
  */
-#define CONFIG_STACKSIZE			(256 << 10)				/* 256 KB */
+#define CONFIG_STACKSIZE			(256 << 10)				/* 256 KiB */
+#define LOW_LEVEL_SRAM_STACK		0x00003FFC
 
 
 /*-----------------------------------------------------------------------
@@ -167,72 +173,33 @@
  * in sysconfig.fex, which must be the same as CONFIG_SUNXI_NAND_ENV_PARTITION
  * if not, below CONFIG_ENV_ADDR and CONFIG_ENV_SIZE will be where to store env.
  * */
-#define CONFIG_ENV_ADDR				(256 << 20)
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_normal\0" \
+	"bootcmd=run setargs_nand boot_normal\0" \
 	"console=ttyS0,115200\0" \
 	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
-	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; bootm 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; bootm 50000000\0" \
+	"setargs_nand=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"setargs_mmc=setenv bootargs console=${console} root=${mmc_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"boot_normal=sunxi_flash read 40007800 boot;boota 40007800\0" \
+	"boot_recovery=sunxi_flash read 40007800 recovery;boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
 
 #define CONFIG_BOOTDELAY	1
-#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;bootm 50000000"
+#define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
-#if 0
 #define CONFIG_CMD_FAT			/* with this we can access bootfs in nand */
-#endif
+#define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
-/*
-#define CONFIG_SPL
-*/
-#define CONFIG_SPL_BSS_START_ADDR	0x50000000
-#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
-
-#define CONFIG_SPL_TEXT_BASE       0x0          /* sram start */
-#define CONFIG_SPL_MAX_SIZE        0x8000       /* 32 KB */
-
-#define CONFIG_SPL_LIBCOMMON_SUPPORT
-#define CONFIG_SPL_LIBDISK_SUPPORT
-#define CONFIG_SPL_SERIAL_SUPPORT
-#define CONFIG_SPL_LIBGENERIC_SUPPORT
-#define CONFIG_SPL_MMC_SUPPORT
-
-#define LOW_LEVEL_SRAM_STACK		0x00006000				/* end of 24KB in sram */
-#define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
-#define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
-
-#define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
-#define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
-
-/* config gmac and network */
-#define CONFIG_CMD_NET
-#define CONFIG_NET_MULTI
-#define CONFIG_SUN6I_GMAC
-
-#if 0
-#define CONFIG_CMD_NFS		/* NFS support			*/
-#define CONFIG_CMD_DHCP		/* DHCP Support			*/
-#define CONFIG_CMD_MII		/* MII support			*/
-#define CONFIG_ETHADDR
-#endif
-#define DEBUG
-#define CONFIG_IPADDR		192.168.1.109
-#define CONFIG_SERVERIP		192.168.1.20
-#define CONFIG_NETMASK		255.255.255.0
-#define CONFIG_GATEWAYIP	192.168.1.1
-#define CONFIG_BOOTFILE		"uImage"
-#define	CONFIG_LOADADDR		0x48000000
 #endif /* __CONFIG_H */

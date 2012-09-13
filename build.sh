@@ -3,7 +3,7 @@ set -e
 
 PLATFORM=""
 MODULE=""
-
+TOOLSPATH=`pwd`
 show_help()
 {
 	printf "\nbuild.sh - Top level build scritps\n"

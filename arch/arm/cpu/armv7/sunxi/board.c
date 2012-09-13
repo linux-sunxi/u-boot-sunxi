@@ -32,6 +32,7 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/boot_type.h>
 #include <asm/arch/ccmu.h>
 #include <errno.h>
 #include <netdev.h>
@@ -48,12 +49,9 @@ static bd_t bdata __attribute__ ((section(".data")));
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
-#define	CLK_PLL1 		1032
-#define	L2_PERIPH_DIV	1
-#define	L2_DIV			1
-#define	AXI_DIV			1
-#define	AHB1_CLK_SRC	1
-#define	APB2_CLK		300000000
+int storage_type = 0;
+int uart_console = 0;
+int mmc_card_no  = 2;
 
 #ifdef CONFIG_CMD_NET
 extern int gmac_initialize(bd_t *bis);
@@ -70,9 +68,13 @@ sunxi_boot_type_t boot_from(void) {
 	return SUNXI_BOOT_TYPE_NULL;
 }
 
-int watchdog_init(void)
-{
+int watchdog_init(void) {
+
+	struct sunxi_wdog *wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	/* disable watchdog */
+	writel(0, &(wdog->mode));
+
 	return 0;
 }
 
@@ -82,30 +84,26 @@ int clock_init(void)
 	return 0;
 }
 
-int gpio_init(void)
-{
-	/*
+void gpio_init(void) {
+#if 0
 	u32 i;
 	static struct sunxi_gpio *gpio_c =
 		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-	*/
+
 	/* set nand controller pin */
-	/*
 	for(i=0; i < 4; i++) {
 		writel(0x22222222, &gpio_c->cfg[i]);
 	}
 	writel(0x55555555, &gpio_c->drv[0]);
 	writel(0x15555, &gpio_c->drv[1]);
-	*/
-	/*set uart pin */ 
-	gpio_set_cfg(GPIO_B(22), 2, 2);
-	gpio_set_pull(GPIO_B(22), 2, 1);
-#if 0
-	gpio_set_cfg(GPIO_H(20), 2, 2);
-	gpio_set_pull(GPIO_H(20), 2, PIO_PULLDOWN); 
 #endif
+int sdram_init(void) {
+
 	return 0;
 }
+	return 0;
+}
+/*
 void clock_init_u_boot(void)
 {
 	ccm_setup_pll1_cpux_clk(CLK_PLL1);
@@ -115,109 +113,53 @@ void clock_init_u_boot(void)
 	ccm_clock_enable(UART0_CKID);
 	ccm_module_enable(UART0_CKID);	
 }
-void sunxi_dram_init(void){
+*/
+u32 get_base(void) {
+
+	u32 val;
+
+	__asm__ __volatile__("mov %0, pc \n":"=r"(val)::"memory");
+	val &= 0xF0000000;
+	val >>= 28;
+	return val;
 }
+u32 is_running_in_sdram(void) {
+
+	if (get_base() > 4)
+		return 1;	/* in SDRAM */
+
+	return 0;		/* running in SRAM */
+}
+extern void sw_gpio_init(void);
 /* do some early init */
 void s_init(void)
 {
-	//watchdog_init();
-	//sunxi_key_init();
-	clock_init_u_boot();
+	int in_sdram = 0;
+#ifdef CONFIG_SPL
+		in_sdram = is_running_in_sdram();
+#endif
+	watchdog_init();
+	sw_gpio_init();
+	clock_init();
 	gpio_init();
-#ifdef CONFIG_SPL_BUILD
-	sunxi_dram_init();
-	puts("\n init over ###\n");
+#ifdef CONFIG_SPL
+	if (!in_sdram)
+		sdram_init();
 #endif
 }
 
-
-extern void sunxi_reset(void);
+extern int sunxi_reset(void);
 void reset_cpu(ulong addr) {
-
-	//sunxi_reset();
+	sunxi_flash_exit();
+	sunxi_reset();
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
-void enable_caches(void) {
-
+void enable_caches(void)
+{
 	/* Enable D-cache. I-cache is already enabled in start.S */
-	dcache_enable();
+#ifdef CONFIG_SPL
+		dcache_enable();
+#endif
 }
 #endif
-
-#ifdef CONFIG_SPL_BUILD
-void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
-
-inline void hang(void)
-{
-	puts("\n### ERROR ### Please RESET the board ###\n");
-	for (;;)
-		;
-}
-
-void board_init_f(unsigned long bootflag)
-{
-	/*
-	 * We call relocate_code() with relocation target same as the
-	 * CONFIG_SYS_SPL_TEXT_BASE. This will result in relocation getting
-	 * skipped. Instead, only .bss initialization will happen. That's
-	 * all we need
-	 */
-	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
-}
-
-void board_init_r(gd_t *id, ulong dest_addr)
-{
-	__attribute__((noreturn)) void (*uboot)(void);
-#ifdef CONFIG_MMC_SUNXI
-	struct mmc *mmc;
-	int err;
-#endif /* CONFIG_MMC_SUNXI */
-
-	gd = &gdata;
-	gd->bd = &bdata;
-	gd->flags |= GD_FLG_RELOC;
-	gd->baudrate = CONFIG_BAUDRATE;
-	timer_init();
-	serial_init();
-/*
-	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
-		U_BOOT_TIME);
-*/
-#ifdef CONFIG_MMC_SUNXI
-	puts("MMC:   ");
-	mmc_initialize(gd->bd);
-	/* We register only one device. So, the dev id is always 0 */
-	mmc = find_mmc_device(0);
-	if (!mmc) {
-		puts("spl: mmc device not found!!\n");
-		hang();
-	}
-
-	err = mmc_init(mmc);
-	if (err) {
-		printf("spl: mmc init failed: err - %d\n", err);
-		hang();
-	}
-
-	puts("Loading U-Boot...   ");
-
-	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
-			CONFIG_MMC_U_BOOT_SECTOR_START,
-			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
-			(uchar *)CONFIG_SYS_TEXT_BASE);
-
-	if(err == CONFIG_MMC_U_BOOT_SECTOR_COUNT) {
-		puts("OK!\n");
-	} else {
-		hang();
-	}
-#endif /* CONFIG_MMC_SUNXI */
-
-	puts("Jumping to U-Boot...\n");
-	/* Jump to U-Boot image */
-	uboot = (void *)CONFIG_SYS_TEXT_BASE;
-	(*uboot)();
-	/* Never returns Here */
-}
-#endif /* CONFIG_SPL_BUILD */

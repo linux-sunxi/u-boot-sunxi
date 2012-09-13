@@ -35,15 +35,21 @@ COBJS	+= board.o
 COBJS	+= gic.o
 COBJS	+= gpio.o
 COBJS	+= ccmu.o
-#COBJS   += fastboot.o
-#COBJS   += sparse.o
+COBJS   += fastboot.o
+COBJS   += sparse.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif
 
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
+COBJS	+= partition.o
+COBJS	+= sys_config.o
 COBJS	+= cpu_info.o
+COBJS	+= usb/usbc.o \
+           usb/usbc_dev.o \
+           usb/usbc_host.o \
+           usb/usbc_phy.o
 endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
