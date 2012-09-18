@@ -166,7 +166,7 @@ static inline int dram_read_pipe(struct sunxi_dram_reg *dram) {
 
 	sr32(&dram->ccr, 30, 1, CCR_DAT_TRAIN_TRIG);
 	/* wait data trainning end */
-	while(readl(&dram->csr) & (1 << 30)) {};
+	while(readl(&dram->ccr) & (1 << 30)) {};
 
 	if(readl(&dram->csr) & (1 << 20)) {
 		return -1;
