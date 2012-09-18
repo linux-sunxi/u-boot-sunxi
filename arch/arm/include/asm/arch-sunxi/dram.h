@@ -60,11 +60,11 @@ struct sunxi_dram_reg {
 	u32 emr2;       /* 0x1f8 extended mode register */
 	u32 emr3;       /* 0x1fc extended mode register */
 	u32 dllctr;     /* 0x200 dll control register */
-	u32 dllcr[4];   /* 0x204 dll control register 0(byte 0) */
+	u32 dllcr[5];   /* 0x204 dll control register 0(byte 0) */
 	                /* 0x208 dll control register 1(byte 1) */
 	                /* 0x20c dll control register 2(byte 2) */
 	                /* 0x210 dll control register 3(byte 3) */
-	u8  res4[0x4];
+	                /* 0x214 dll control register 4(byte 4) */
 	u32 dqtr0;      /* 0x218 dq timing register */
 	u32 dqtr1;      /* 0x21c dq timing register */
 	u32 dqtr2;      /* 0x220 dq timing register */
