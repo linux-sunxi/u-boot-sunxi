@@ -39,9 +39,9 @@
 #define CONFIG_SYS_PROMPT		"sun4i#"
 #define CONFIG_MACH_TYPE			4104
 
-#define CONFIG_CONS_INDEX			1			/* which serial channel for console */
-
 /* Define this to have console redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
+
+#define CONFIG_CONS_INDEX			1			/* UART0 */
 
 #endif /* __CONFIG_H */
