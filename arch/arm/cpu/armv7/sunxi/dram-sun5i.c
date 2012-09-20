@@ -34,9 +34,6 @@
 #define mctl_read_w(n)      (*((volatile unsigned int *)(n)))
 #define mctl_write_w(n,c)   (*((volatile unsigned int *)(n)) = (c))
 
-typedef unsigned int __u32;
-typedef signed int __s32;
-
 #define DRAMC_IO_BASE			SUNXI_DRAMC_BASE
 #define DRAM_CCM_BASE			SUNXI_CCM_BASE
 
