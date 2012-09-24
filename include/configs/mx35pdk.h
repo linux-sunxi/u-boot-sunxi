@@ -31,7 +31,6 @@
  /* High Level Configuration Options */
 #define CONFIG_ARM1136	/* This is an arm1136 CPU core */
 #define CONFIG_MX35
-#define CONFIG_MX35_HCLK_FREQ	24000000
 
 #define CONFIG_DISPLAY_CPUINFO
 
@@ -110,6 +109,12 @@
 #define CONFIG_CMD_NET
 #define CONFIG_NET_RETRY_COUNT	100
 #define CONFIG_CMD_DATE
+
+#define CONFIG_CMD_MMC
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
 
 #define CONFIG_BOOTDELAY	3
 
@@ -231,12 +236,18 @@
  * NAND FLASH driver setup
  */
 #define CONFIG_NAND_MXC
-#define CONFIG_NAND_MXC_V1_1
 #define CONFIG_MXC_NAND_REGS_BASE	(NFC_BASE_ADDR)
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		(NFC_BASE_ADDR)
 #define CONFIG_MXC_NAND_HWECC
 #define CONFIG_SYS_NAND_LARGEPAGE
+
+/* mmc driver */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_FSL_ESDHC
+#define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_SYS_FSL_ESDHC_NUM	1
 
 /*
  * Default environment and default scripts
@@ -279,8 +290,8 @@
 	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"			\
 	"load=tftp ${loadaddr} ${u-boot}\0"				\
 	"uboot_addr=" xstr(CONFIG_SYS_MONITOR_BASE) "\0"		\
-	"update=protect off ${uboot_addr} +40000;"			\
-		"erase ${uboot_addr} +40000;"				\
+	"update=protect off ${uboot_addr} +80000;"			\
+		"erase ${uboot_addr} +80000;"				\
 		"cp.b ${loadaddr} ${uboot_addr} ${filesize}\0"		\
 	"upd=if run load;then echo Updating u-boot;if run update;"	\
 		"then echo U-Boot updated;"				\

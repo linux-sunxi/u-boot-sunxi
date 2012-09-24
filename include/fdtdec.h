@@ -19,6 +19,8 @@
  * MA 02111-1307 USA
  */
 
+#ifndef __fdtdec_h
+#define __fdtdec_h
 
 /*
  * This file contains convenience functions for decoding useful and
@@ -63,6 +65,7 @@ enum fdt_compat_id {
 	COMPAT_NVIDIA_TEGRA20_EMC,	/* Tegra20 memory controller */
 	COMPAT_NVIDIA_TEGRA20_EMC_TABLE, /* Tegra20 memory timing table */
 	COMPAT_NVIDIA_TEGRA20_KBC,	/* Tegra20 Keyboard */
+	COMPAT_NVIDIA_TEGRA20_NAND,	/* Tegra2 NAND controller */
 
 	COMPAT_COUNT,
 };
@@ -382,3 +385,4 @@ int fdtdec_get_byte_array(const void *blob, int node, const char *prop_name,
  */
 const u8 *fdtdec_locate_byte_array(const void *blob, int node,
 			     const char *prop_name, int count);
+#endif

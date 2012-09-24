@@ -31,7 +31,6 @@
  /* High Level Configuration Options */
 #define CONFIG_ARM1136	/* This is an arm1136 CPU core */
 #define CONFIG_MX35
-#define CONFIG_MX35_HCLK_FREQ	24000000
 
 #define CONFIG_SYS_DCACHE_OFF
 #define CONFIG_SYS_CACHELINE_SIZE	32
@@ -213,7 +212,6 @@
  * NAND FLASH driver setup
  */
 #define CONFIG_NAND_MXC
-#define CONFIG_NAND_MXC_V1_1
 #define CONFIG_MXC_NAND_REGS_BASE	(NFC_BASE_ADDR)
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		(NFC_BASE_ADDR)

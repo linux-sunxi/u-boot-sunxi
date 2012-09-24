@@ -22,9 +22,9 @@
 #
 
 VERSION = 2012
-PATCHLEVEL = 07
+PATCHLEVEL = 10
 SUBLEVEL =
-EXTRAVERSION =
+EXTRAVERSION = -rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -242,9 +242,15 @@ LIBS-y += arch/arm/cpu/ixp/npe/libnpe.o
 endif
 LIBS-$(CONFIG_OF_EMBED) += dts/libdts.o
 LIBS-y += arch/$(ARCH)/lib/lib$(ARCH).o
-LIBS-y += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs2.o \
-	fs/reiserfs/libreiserfs.o fs/ext2/libext2fs.o fs/yaffs2/libyaffs2.o \
-	fs/ubifs/libubifs.o fs/zfs/libzfs.o
+LIBS-y += fs/cramfs/libcramfs.o \
+	fs/ext4/libext4fs.o \
+	fs/fat/libfat.o \
+	fs/fdos/libfdos.o \
+	fs/jffs2/libjffs2.o \
+	fs/reiserfs/libreiserfs.o \
+	fs/ubifs/libubifs.o \
+	fs/yaffs2/libyaffs2.o \
+	fs/zfs/libzfs.o
 LIBS-y += net/libnet.o
 LIBS-y += disk/libdisk.o
 LIBS-y += drivers/bios_emulator/libatibiosemu.o
@@ -307,11 +313,8 @@ ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
 endif
 
-ifeq ($(SOC),mx5)
-LIBS-y += $(CPUDIR)/imx-common/libimx-common.o
-endif
-ifeq ($(SOC),mx6)
-LIBS-y += $(CPUDIR)/imx-common/libimx-common.o
+ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35))
+LIBS-y += arch/$(ARCH)/imx-common/libimx-common.o
 endif
 
 ifeq ($(SOC),s5pc1xx)
@@ -378,7 +381,6 @@ ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
 
 ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
 ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
-ONENAND_BIN ?= $(obj)onenand_ipl/onenand-ipl-2k.bin
 ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
 ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
 
@@ -549,12 +551,6 @@ nand_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 
 $(obj)u-boot-nand.bin:	nand_spl $(obj)u-boot.bin
 		cat $(obj)nand_spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
-
-onenand_ipl:	$(TIMESTAMP_FILE) $(VERSION_FILE) $(obj)include/autoconf.mk
-		$(MAKE) -C onenand_ipl/board/$(BOARDDIR) all
-
-$(obj)u-boot-onenand.bin:	onenand_ipl $(obj)u-boot.bin
-		cat $(ONENAND_BIN) $(obj)u-boot.bin > $(obj)u-boot-onenand.bin
 
 $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
@@ -777,8 +773,9 @@ clean:
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
 	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
 	       $(obj)tools/mk{smdk5250,}spl				  \
-	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
-	       $(obj)tools/mksunxiboot
+	       $(obj)tools/mksunxiboot					  \
+	       $(obj)tools/mxsboot					  \
+	       $(obj)tools/ncb		   $(obj)tools/ubsha1
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
 	       $(obj)board/voiceblue/eeprom 				  \
@@ -791,9 +788,7 @@ clean:
 	@rm -f $(obj)include/generated/asm-offsets.h
 	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@rm -f $(obj)nand_spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
-	@rm -f $(obj)onenand_ipl/onenand-{ipl,ipl.bin,ipl.map}
 	@rm -f $(ONENAND_BIN)
-	@rm -f $(obj)onenand_ipl/u-boot.lds
 	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.lds,u-boot-spl.map}
 	@rm -f $(obj)spl/sun?i-spl.bin
 	@rm -f $(obj)MLO
@@ -827,7 +822,6 @@ clobber:	tidy
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
-	@[ ! -d $(obj)onenand_ipl ] || find $(obj)onenand_ipl -name "*" -type l -print | xargs rm -f
 	@rm -f $(obj)dts/*.tmp
 	@rm -f $(obj)spl/u-boot-spl{,-pad}.ais
 
