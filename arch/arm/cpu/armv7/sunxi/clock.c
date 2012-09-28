@@ -32,97 +32,14 @@ int clock_init(void) {
 	struct sunxi_ccm_reg *ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
-#ifdef CONFIG_SUN4I
-
 #ifdef CONFIG_SPL_BUILD
-/* pll1
- *       \          2:1           2:1           2:1
- *         cpu-clk ----> axi-clk ----> ahb-clk ----> apb0-clk
- *       /
- * osc24m
- */
-
-	/* set cpu clock source to OSC24M */
-	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_OSC24M);		/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* set the pll1 factors, pll1 out = 24MHz*n*k/m/p */
-	sr32(&ccm->pll1_cfg, 8, 5, PLL1_FACTOR_N);		/* PLL1_FACTOR_N [12:8] */
-	sr32(&ccm->pll1_cfg, 4, 2, PLL1_FACTOR_K);		/* PLL1_FACTOR_K [5:4] */
-	sr32(&ccm->pll1_cfg, 0, 2, PLL1_FACTOR_M);		/* PLL1_FACTOR_M [1:0] */
-	sr32(&ccm->pll1_cfg, 16, 2, PLL1_FACTOR_P);		/* PLL1_FACTOR_P [17:16] */
-
-	/* set clock divider, cpu:axi:ahb:apb0 = 8:4:2:1 */
-	sr32(&ccm->cpu_ahb_apb0_cfg, 0, 2, AXI_DIV);	/* AXI_CLK_DIV_RATIO [1:0] */
-#ifdef CONFIG_SUN5I
-	sr32(&ccm->cpu_ahb_apb0_cfg, 6, 2, AHB_CLK_SRC_AXI);/* AHB_CLK_SRC [7:6] */
-#endif
-	sr32(&ccm->cpu_ahb_apb0_cfg, 4, 2, AHB_DIV);	/* AHB_CLK_DIV_RATIO [5:4] */
-	sr32(&ccm->cpu_ahb_apb0_cfg, 8, 2, APB0_DIV);	/* APB0_CLK_DIV_RATIO [9:8] */
-
-	/* enable pll1 */
-	sr32(&ccm->pll1_cfg, 31, 1, PLL1_ENABLE);		/* PLL1_ENABLE [31] */
-	sdelay(0x1000);
-
-	/* change cpu clock source to pll1 */
-	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-	/*
-	 * if the clock source is changed,
-	 * at most wait for 8 present running clock cycles
-	 */
-	sdelay(10);
-
-	/* ddr clock source is pll5 */
-	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_DISABLE);
-	sr32(&ccm->pll5_cfg, 0, 2, PLL5_FACTOR_M);
-	sr32(&ccm->pll5_cfg, 4, 2, PLL5_FACTOR_K);
-	sr32(&ccm->pll5_cfg, 8, 5, PLL5_FACTOR_N);
-	sr32(&ccm->pll5_cfg, 16, 2, PLL5_OUT_DIV_P);
-	sr32(&ccm->pll5_cfg, 31, 1, PLL5_ENABLE);
-	sdelay(0x100000);
-	sr32(&ccm->pll5_cfg, 29, 1, DDR_CLK_OUT_ENABLE);
-
-	/* if we don't reset the gps module, it will access sdram
-	 * but sdram is not ready, and the system will die...
-	 */
-	sr32(&ccm->gps_clk_cfg, 0, 1, GPS_SCLK_GATING_OFF);
-	sr32(&ccm->gps_clk_cfg, 1, 1, GPS_RESET);
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_OPEN);
-	sdelay(0x100);
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_GPS, 1, CLK_GATE_CLOSE);
-
-#ifdef CONFIG_SUN5I
-	/* setup MBUS clock */
-	writel((0x1<<31) | (0x2<<24) | (0x1 << 0), &ccm->mbus_clk_cfg);
-#endif
-	
-	/* open DRAMC AHB & DLL register clock */
-	/* close it first */
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_CLOSE);
-#ifdef CONFIG_SUN5I
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_DLL, 1, CLK_GATE_CLOSE);
-#endif
-	sdelay(0x1000);
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_SDRAM, 1, CLK_GATE_OPEN);
-#ifdef CONFIG_SUN5I
-	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_DLL, 1, CLK_GATE_OPEN);
-#endif
-	sdelay(0x1000);
-#endif
-
-#endif
-
-#ifdef CONFIG_SUN5I
-
-#ifdef CONFIG_SPL_BUILD
-	/* Hardcode sun5i clock config for now */
+	/* Hardcode clock config for now */
 	ccm->cpu_ahb_apb0_cfg = 0x00010010;
 	ccm->pll1_cfg = 0xa1005000;
 	sdelay(200);
 	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
 
-	/* dram clock setup is in dram-sun5i.c */
-#endif
-
+	/* dram clock setup is in dram.c */
 #endif
 
 	/* uart clock source is apb1 */
