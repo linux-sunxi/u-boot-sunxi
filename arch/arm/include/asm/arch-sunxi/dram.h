@@ -166,5 +166,6 @@ struct dram_para {
 #define DQS_DRIFT_COMPENSATION    (0)
 
 int sunxi_dram_init(void);
+unsigned DRAMC_get_dram_size(void);
 
 #endif /* _SUNXI_DRAM_H */

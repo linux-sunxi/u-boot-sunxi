@@ -29,14 +29,7 @@ SOBJS	:= lowlevel_init.o
 SOBJS	+= reset.o
 
 COBJS	+= timer.o
-ifdef CONFIG_SPL_BUILD
-ifdef CONFIG_SUN4I
-COBJS	+= dram-sun4i.o
-endif
-ifdef CONFIG_SUN5I
-COBJS	+= dram-sun5i.o
-endif
-endif
+COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= gpio.o

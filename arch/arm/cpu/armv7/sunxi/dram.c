@@ -36,12 +36,15 @@
 
 #define DRAMC_IO_BASE			SUNXI_DRAMC_BASE
 #define DRAM_CCM_BASE			SUNXI_CCM_BASE
+#define DRAM_TIMER_BASE			SUNXI_TIMER_BASE
 
 #define DRAM_CCM_SDRAM_PLL_REG    (DRAM_CCM_BASE + 0x20)
 #define DRAM_CCM_SDRAM_PLL_TUN_REG (DRAM_CCM_BASE + 0x24)
 #define DRAM_CCM_AHB_GATE_REG     (DRAM_CCM_BASE + 0x60)
 #define DRAM_CCM_SDRAM_CLK_REG    (DRAM_CCM_BASE + 0x100)
+#define DRAM_CCM_GPS_CLK_REG      (DRAM_CCM_BASE + 0xd0)
 #define DRAM_CCM_MUS_CLK_REG      (DRAM_CCM_BASE + 0x15c)
+#define TIMER_CPU_CFG_REG   (DRAM_TIMER_BASE + 0x13c)
 
 #define SDR_CCR				(DRAMC_IO_BASE + 0x00)
 #define SDR_DCR				(DRAMC_IO_BASE + 0x04)
@@ -90,7 +93,7 @@ static void mctl_ddr3_reset(void)
 {
     __u32 reg_val;
 
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     mctl_write_w(TIMER_CPU_CFG_REG, 0);
     reg_val = mctl_read_w(TIMER_CPU_CFG_REG);
     reg_val >>=6;
@@ -230,14 +233,26 @@ static void mctl_disable_dll(void)
 }
 
 static __u32 hpcr_value[32] = {
+#ifdef CONFIG_SUN5I
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
-	0x1031, 0x1031, 0x735, 0x1035,
-	0x1035, 0x731, 0x1031, 0,
-	0x301, 0x301, 0x301, 0x301,
-	0x301, 0x301, 0x301, 0
+	0x1031, 0x1031, 0x0735, 0x1035,
+	0x1035, 0x0731, 0x1031, 0,
+	0x0301, 0x0301, 0x0301, 0x0301,
+	0x0301, 0x0301, 0x0301, 0
+#endif
+#ifdef CONFIG_SUN4I
+	0x0301, 0x0301, 0x0301, 0x0301,
+	0x0301, 0x0301, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0x1031, 0x1031, 0x0735, 0x1035,
+	0x1035, 0x0731, 0x1031, 0x0735,
+	0x1035, 0x1031, 0x0731, 0x1035,
+	0x1031, 0x0301, 0x0301, 0x0731
+#endif
 };
 
 static void mctl_configure_hostport(void)
@@ -274,7 +289,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 	reg_val |= 0x1<<29;
     mctl_write_w(DRAM_CCM_SDRAM_PLL_REG, reg_val);
 
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     //reset GPS
     reg_val = mctl_read_w(DRAM_CCM_GPS_CLK_REG);
     reg_val &= ~0x3;
@@ -295,7 +310,7 @@ static void mctl_setup_dram_clock(__u32 clk)
     //open DRAMC AHB & DLL register clock
     //close it first
     reg_val = mctl_read_w(DRAM_CCM_AHB_GATE_REG);
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
     reg_val &= ~(0x3<<14);
 #else
     reg_val &= ~(0x1<<14);
@@ -303,7 +318,7 @@ static void mctl_setup_dram_clock(__u32 clk)
     mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
 	sdelay(0x1000);
     //then open it
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
     reg_val &= ~(0x3<<14);
 #else
     reg_val &= ~(0x1<<14);
@@ -364,7 +379,7 @@ static void DRAMC_clock_output_en(__u32 on)
 {
     __u32 reg_val;
 
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
     reg_val = mctl_read_w(SDR_CR);
 
     if(on)
@@ -374,7 +389,7 @@ static void DRAMC_clock_output_en(__u32 on)
 
     mctl_write_w(SDR_CR, reg_val);
 #endif
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     reg_val = mctl_read_w(DRAM_CCM_SDRAM_CLK_REG);
 
     if(on)
@@ -401,7 +416,7 @@ static void DRAMC_set_autorefresh_cycle(__u32 clk)
 {
     __u32 reg_val;
     __u32 tmp_val;
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     __u32 dram_size;
 
     dram_size = mctl_read_w(SDR_DCR);
@@ -424,7 +439,7 @@ static void DRAMC_set_autorefresh_cycle(__u32 clk)
 	reg_val |= tmp_val<<8;
 	reg_val |= 0x8<<24;
 	mctl_write_w(SDR_DRR, reg_val);
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     }
     else
     {
@@ -507,7 +522,7 @@ int DRAMC_init(struct dram_para *para)
     //setup DRAM relative clock
     mctl_setup_dram_clock(para->clock);
 
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
     // This is new unknown code!
     mctl_write_w(SDR_0x23c, 0);
 #endif
@@ -519,7 +534,7 @@ int DRAMC_init(struct dram_para *para)
     //dram clock off
     DRAMC_clock_output_en(0);
 
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     //select dram controller 1
     mctl_write_w(SDR_SCSR, 0x16237495);
 #endif
@@ -557,7 +572,7 @@ int DRAMC_init(struct dram_para *para)
 
     mctl_write_w(SDR_DCR, reg_val);
 
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
     //set odt impendance divide ratio
     reg_val=((para->zq)>>8)&0xfffff;
     reg_val |= ((para->zq)&0xff)<<20;
@@ -574,19 +589,19 @@ int DRAMC_init(struct dram_para *para)
 
     mctl_enable_dllx();
 
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
     //set odt impendance divide ratio
-    reg_val=((para->dram_zq)>>8)&0xfffff;
-    reg_val |= ((para->dram_zq)&0xff)<<20;
-    reg_val |= (para->dram_zq)&0xf0000000;
+    reg_val=((para->zq)>>8)&0xfffff;
+    reg_val |= ((para->zq)&0xff)<<20;
+    reg_val |= (para->zq)&0xf0000000;
     mctl_write_w(SDR_ZQCR0, reg_val);
 #endif
 
-#if CONFIG_SUN4I
+#ifdef CONFIG_SUN4I
      //set I/O configure register
      reg_val = 0x00cc0000;
-     reg_val |= (para->dram_odt_en)&0x3;
-     reg_val |= ((para->dram_odt_en)&0x3)<<30;
+     reg_val |= (para->odt_en)&0x3;
+     reg_val |= ((para->odt_en)&0x3)<<30;
      mctl_write_w(SDR_IOCR, reg_val);
 #endif
 
@@ -602,7 +617,7 @@ int DRAMC_init(struct dram_para *para)
     if(para->type==3)                  //ddr3
     {
         reg_val = 0x0;
-#if CONFIG_SUN5I
+#ifdef CONFIG_SUN5I
         reg_val |= 0x1000;
 #endif
         reg_val |= (para->cas - 4)<<4;
@@ -649,8 +664,8 @@ int DRAMC_init(struct dram_para *para)
 
 int sunxi_dram_init(void)
 {
-#if CONFIG_SUN5I
-   struct dram_para para;
+    struct dram_para para;
+#ifdef CONFIG_SUN5I
     para.clock = 408;
     para.type = 3;
     para.rank_num = 1;
@@ -671,25 +686,25 @@ int sunxi_dram_init(void)
     para.emr2 = 0x10;
     para.emr3 = 0;
 #else
-    para.clk = 360
-    para.type = 3
-    para.rank_num = 1
-    para.chip_density = 2048
-    para.io_width = 16
-    para.bus_width = 32
-    para.cas = 6
-    para.zq = 0x7b
-    para.odt_en = 0
-    para.size = 512
-    para.tpr0 = 0x30926692
-    para.tpr1 = 0x1090
-    para.tpr2 = 0x1a0c8
-    para.tpr3 = 0x0
-    para.tpr4 = 0x0
-    para.tpr5 = 0x0
-    para.emr1 = 0x0
-    para.emr2 = 0x0
-    para.emr3 = 0x0
+    para.clock = 360;
+    para.type = 3;
+    para.rank_num = 1;
+    para.density = 2048;
+    para.io_width = 16;
+    para.bus_width = 32;
+    para.cas = 6;
+    para.zq = 0x7b;
+    para.odt_en = 0;
+    para.size = 512;
+    para.tpr0 = 0x30926692;
+    para.tpr1 = 0x1090;
+    para.tpr2 = 0x1a0c8;
+    para.tpr3 = 0x0;
+    para.tpr4 = 0x0;
+    para.tpr5 = 0x0;
+    para.emr1 = 0x0;
+    para.emr2 = 0x0;
+    para.emr3 = 0x0;
 #endif
     return DRAMC_init(&para);
 }
