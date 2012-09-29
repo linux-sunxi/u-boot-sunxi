@@ -319,9 +319,9 @@ static void mctl_setup_dram_clock(__u32 clk)
 	sdelay(0x1000);
     //then open it
 #ifdef CONFIG_SUN5I
-    reg_val &= ~(0x3<<14);
+    reg_val |= 0x3<<14;
 #else
-    reg_val &= ~(0x1<<14);
+    reg_val |= 0x1<<14;
 #endif
     mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
 	sdelay(0x1000);
