@@ -215,8 +215,8 @@
 #define CONFIG_SPL_STACK         LOW_LEVEL_SRAM_STACK
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
-#define CONFIG_MMC_U_BOOT_SECTOR_START    (64)    /* 32KB offset */
-#define CONFIG_MMC_U_BOOT_SECTOR_COUNT    (1000)  /* 512KB, enough for a full u-boot.bin */
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR    (64)    /* 32KB offset */
+#define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	   (200)   /* 256KB, enough for a full u-boot.bin */
 
 /* #define CONFIG_WATCHDOG */			/* automatic watchdog support */
 #define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */

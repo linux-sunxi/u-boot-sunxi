@@ -180,11 +180,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	puts("Loading U-Boot...   ");
 
 	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
-			CONFIG_MMC_U_BOOT_SECTOR_START,
-			CONFIG_MMC_U_BOOT_SECTOR_COUNT,
+			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR,
+			CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS,
 			(uchar *)CONFIG_SYS_TEXT_BASE);
 
-	if(err == CONFIG_MMC_U_BOOT_SECTOR_COUNT) {
+	if(err == CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS) {
 		puts("OK!\n");
 	} else {
 		hang();
