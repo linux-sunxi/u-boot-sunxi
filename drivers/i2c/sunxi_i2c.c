@@ -51,7 +51,9 @@ int i2c_probe(uchar chip)
 static int i2c_wait_ctl(int bit, int state)
 {
 	int timeout = 0x2ff;
-	while((readl(&i2c_base->ctl) & (1<<bit)) != state && timeout-- > 0);
+	debug("i2c_wait_ctl(#%d == %x), ctl=%x, status=%x\n", bit, state, i2c_base->ctl, i2c_base->status);
+	while(((readl(&i2c_base->ctl) & (1<<bit)) && 1) != (state && 1) && timeout-- > 0);
+	debug("i2c_wait_ctl(), timeout=%d, ctl=%x, status=%x\n", timeout, i2c_base->ctl, i2c_base->status);
 	if (timeout != 0)
 		return 0;
 	else
@@ -65,8 +67,7 @@ static void i2c_clear_irq(void)
 
 static int i2c_wait_irq(void)
 {
-	i2c_clear_irq();
-	return i2c_wait_ctl(3, 0);
+	return i2c_wait_ctl(3, 1);
 }
 
 static int i2c_wait_status(int status)
@@ -117,6 +118,7 @@ static int i2c_stop(void)
 
 static int i2c_send_data(u8 data, u8 status)
 {
+	i2c_clear_irq();
 	writel(data, &i2c_base->data);
 	if (i2c_wait_irq_status(status) != 0)
 		return -1;
@@ -135,6 +137,7 @@ static int i2c_start(int status)
 	writel(0, &i2c_base->efr);
 
 	/* Send start */
+	i2c_clear_irq();
 	ctl = readl(&i2c_base->ctl);
 	ctl |= 1 << 5;
 	writel(ctl, &i2c_base->ctl);
@@ -182,6 +185,7 @@ int i2c_do_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 			writel(ctl, &i2c_base->ctl);
 			status = 0x58;
 		}
+		i2c_clear_irq();
 		if (i2c_wait_irq_status(status) != 0)
 			return -1;
 		*buffer++ = readl(&i2c_base->data);
