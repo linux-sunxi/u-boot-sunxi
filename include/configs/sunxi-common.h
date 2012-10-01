@@ -221,4 +221,11 @@
 /* #define CONFIG_WATCHDOG */			/* automatic watchdog support */
 #define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
 
+/* I2C */
+#define CONFIG_SYS_I2C_SPEED		400000
+#define CONFIG_HARD_I2C			1
+#define CONFIG_SUNXI_I2C
+#define CONFIG_SYS_I2C_SLAVE		0x7f
+#define CONFIG_CMD_I2C
+
 #endif /* __CONFIG_H */
