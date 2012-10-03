@@ -35,12 +35,12 @@ void i2c_init(int speed, int slaveaddr)
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), 2);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), 2);
 	clock_twi_onoff(0, 1);
-	/* Enable the bus in master mode */
-	writel((1<<6), &i2c_base->ctl);
-	/* 400KHz operation */
-	writel((2<<3)|(1<<0), &i2c_base->clkr);
-	writel(1, &i2c_base->reset);
-	while ((readl(&i2c_base->reset) & 1));
+	/* Enable the i2c bus */
+	writel(TWI_CTL_BUSEN, &i2c_base->ctl);
+	/* 400KHz operation M=2, N=1, 24MHz APB clock */
+	writel(TWI_CLK_DIV(2,1), &i2c_base->clkr);
+	writel(TWI_SRST_SRST, &i2c_base->reset);
+	while ((readl(&i2c_base->reset) & TWI_SRST_SRST));
 }
 
 int i2c_probe(uchar chip)
@@ -48,11 +48,12 @@ int i2c_probe(uchar chip)
 	return -1;
 }
 
-static int i2c_wait_ctl(int bit, int state)
+static int i2c_wait_ctl(int mask, int state)
 {
 	int timeout = 0x2ff;
-	debug("i2c_wait_ctl(#%d == %x), ctl=%x, status=%x\n", bit, state, i2c_base->ctl, i2c_base->status);
-	while(((readl(&i2c_base->ctl) & (1<<bit)) && 1) != (state && 1) && timeout-- > 0);
+	int value = state ? mask : 0;
+	debug("i2c_wait_ctl(%x == %x), ctl=%x, status=%x\n", mask, value, i2c_base->ctl, i2c_base->status);
+	while(((readl(&i2c_base->ctl) & mask) != value) && timeout-- > 0);
 	debug("i2c_wait_ctl(), timeout=%d, ctl=%x, status=%x\n", timeout, i2c_base->ctl, i2c_base->status);
 	if (timeout != 0)
 		return 0;
@@ -62,12 +63,12 @@ static int i2c_wait_ctl(int bit, int state)
 
 static void i2c_clear_irq(void)
 {
-	writel(readl(&i2c_base->ctl) & ~(1<<3), &i2c_base->ctl);
+	writel(readl(&i2c_base->ctl) & ~TWI_CTL_INTFLG, &i2c_base->ctl);
 }
 
 static int i2c_wait_irq(void)
 {
-	return i2c_wait_ctl(3, 1);
+	return i2c_wait_ctl(TWI_CTL_INTFLG, 1);
 }
 
 static int i2c_wait_status(int status)
@@ -104,12 +105,12 @@ static int i2c_stop(void)
 	u32 ctl;
 
 	ctl = readl(&i2c_base->ctl) & 0xc0;
-	ctl |= 1 << 4;
+	ctl |= TWI_CTL_STP;
 	writel(ctl, &i2c_base->ctl);
-	(void)readl(&i2c_base->ctl);	/* delay one I/O operation to make sure it's started */
-	if (i2c_wait_ctl(4, 0) != 0)
+	(void)readl(&i2c_base->ctl);	/* dummy to delay one I/O operation to make sure it's started */
+	if (i2c_wait_ctl(TWI_CTL_STP, 0) != 0)
 		return -1;
-	if (i2c_wait_status(0xf8))
+	if (i2c_wait_status(TWI_STAT_IDLE))
 		return -1;
 	if (i2c_wait_bus_idle() != 0)
 		return -1;
@@ -118,8 +119,9 @@ static int i2c_stop(void)
 
 static int i2c_send_data(u8 data, u8 status)
 {
-	i2c_clear_irq();
+	debug("i2c_write(%02x, %x), ctl=%x, status=%x\n", data, status, i2c_base->ctl, i2c_base->status);
 	writel(data, &i2c_base->data);
+	i2c_clear_irq();
 	if (i2c_wait_irq_status(status) != 0)
 		return -1;
 	return 0;
@@ -129,19 +131,22 @@ static int i2c_start(int status)
 {
 	u32 ctl;
 
+	debug("i2c_start(%x), ctl=%x, status=%x\n", status, i2c_base->ctl, i2c_base->status);
 	/* Check that the controller is idle */
-	if (readl(&i2c_base->status) != 0xf8) {
+	if (status == TWI_STAT_TX_STA && readl(&i2c_base->status) != TWI_STAT_IDLE) {
 		return -1;
 	}
 	
 	writel(0, &i2c_base->efr);
 
 	/* Send start */
-	i2c_clear_irq();
 	ctl = readl(&i2c_base->ctl);
-	ctl |= 1 << 5;
+	ctl |= TWI_CTL_STA;		/* Set start bit */
+	ctl &= ~TWI_CTL_INTFLG;		/* Clear int flag */
 	writel(ctl, &i2c_base->ctl);
-	if (i2c_wait_irq_status(status))
+	if (i2c_wait_ctl(TWI_CTL_STA, 0) != 0)
+		return -1;
+	if (i2c_wait_irq_status(status) != 0)
 		return -1;
 	return 0;
 }
@@ -151,39 +156,39 @@ int i2c_do_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 	u32 status;
 	u32 ctl;
 
-	if (i2c_start(0x08) != 0)
+	if (i2c_start(TWI_STAT_TX_STA) != 0)
 		return -1;
 
 	/* Send chip address */
-	if (i2c_send_data(chip << 1 | 1, 0x18) != 0)
+	if (i2c_send_data(chip << 1 | 0, TWI_STAT_TX_AW_ACK) != 0)
 		return -1;
 
 	/* Send data address */
-	if (i2c_send_data(addr, 0x28) != 0)
+	if (i2c_send_data(addr, TWI_STAT_TXD_ACK) != 0)
 		return -1;
 
 	/* Send restart for read */
-	if (i2c_start(0x10) != 0)
+	if (i2c_start(TWI_STAT_TX_RESTA) != 0)
 		return -1;
 
 	/* Send chip address */
-	if (i2c_send_data(chip << 1 | 1, 0x10) != 0)
+	if (i2c_send_data(chip << 1 | 1, TWI_STAT_TX_AR_ACK) != 0)
 		return -1;
 
 	/* Set ACK mode */
 	ctl = readl(&i2c_base->ctl);
-	ctl |= 1 << 2;
+	ctl |= TWI_CTL_ACK;
 	writel(ctl, &i2c_base->ctl);
-	status = 0x50;
+	status = TWI_STAT_RXD_ACK;
 
 	/* Read data */
 	while(len > 0) {
 		if (len == 1) {
-			/* Set NACK mode */
+			/* Set NACK mode (last byte) */
 			ctl = readl(&i2c_base->ctl);
-			ctl &= ~(1 << 2);
+			ctl &= ~TWI_CTL_ACK;
 			writel(ctl, &i2c_base->ctl);
-			status = 0x58;
+			status = TWI_STAT_RXD_NAK;
 		}
 		i2c_clear_irq();
 		if (i2c_wait_irq_status(status) != 0)
@@ -205,22 +210,20 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 
 static int i2c_do_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 {
-	u32 ctl;
-
-	if (i2c_start(0x08) != 0)
+	if (i2c_start(TWI_STAT_TX_STA) != 0)
 		return -1;
 
 	/* Send chip address */
-	if (i2c_send_data(chip << 1 | 0, 0x18) != 0)
+	if (i2c_send_data(chip << 1 | 0, TWI_STAT_TX_STA) != 0)
 		return -1;
 
 	/* Send data address */
-	if (i2c_send_data(addr, 0x28) != 0)
+	if (i2c_send_data(addr, TWI_STAT_TXD_ACK) != 0)
 		return -1;
 
 	/* Send data */
 	while(len > 0) {
-		if (i2c_send_data(*buffer++, 0x28) != 0)
+		if (i2c_send_data(*buffer++, TWI_STAT_TXD_ACK) != 0)
 			return -1;
 		len--;
 	}
