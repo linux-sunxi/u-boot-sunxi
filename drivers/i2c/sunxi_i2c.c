@@ -214,7 +214,7 @@ static int i2c_do_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 		return -1;
 
 	/* Send chip address */
-	if (i2c_send_data(chip << 1 | 0, TWI_STAT_TX_STA) != 0)
+	if (i2c_send_data(chip << 1 | 0, TWI_STAT_TX_AW_ACK) != 0)
 		return -1;
 
 	/* Send data address */
