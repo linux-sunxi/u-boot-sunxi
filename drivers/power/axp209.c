@@ -64,14 +64,12 @@ void axp209_set_dcdc2(int mvol)
 void axp209_set_dcdc3(int mvol)
 {
 	int target = (mvol - 700) / 25;
-	int rc;
-	u8 current;
 	if (target < 0)
 		target = 0;
 	if (target > (1<<7)-1)
 		target = (1<<7)-1;
-	axp209_write(AXP209_DCDC3_VOLTAGE, &current);
-	axp209_read(AXP209_DCDC3_VOLTAGE, current);
+	axp209_write(AXP209_DCDC3_VOLTAGE, target);
+	axp209_read(AXP209_DCDC3_VOLTAGE, &target);
 	return;
 }
 
