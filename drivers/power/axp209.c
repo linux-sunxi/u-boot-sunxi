@@ -42,7 +42,7 @@ int axp209_read(u8 reg, u8 *val)
 
 void axp209_set_dcdc2(int mvol)
 {
-	int target = (mvol - 0700) / 0025;
+	int target = (mvol - 700) / 25;
 	int rc;
 	u8 current;
 	if (target < 0)
@@ -63,7 +63,7 @@ void axp209_set_dcdc2(int mvol)
 
 void axp209_set_dcdc3(int mvol)
 {
-	int target = (mvol - 0700) / 0025;
+	int target = (mvol - 700) / 25;
 	int rc;
 	u8 current;
 	if (target < 0)

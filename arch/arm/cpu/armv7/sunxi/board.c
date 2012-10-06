@@ -100,16 +100,18 @@ void s_init(void) {
 #ifdef CONFIG_WATCHDOG
 	watchdog_init();
 #endif
+	clock_init();
+	gpio_init();
+
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #ifdef CONFIG_AXP209_POWER
 	axp209_init();
 #ifdef CONFIG_SPL_BUILD
 	axp209_set_dcdc2(1400);
 	axp209_set_dcdc3(1250);
 #endif
-#endif
-	clock_init();
-	gpio_init();
 
+#endif
 #ifdef CONFIG_SPL_BUILD
 	sunxi_dram_init();
 #endif
