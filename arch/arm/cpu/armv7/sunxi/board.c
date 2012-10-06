@@ -100,6 +100,13 @@ void s_init(void) {
 #ifdef CONFIG_WATCHDOG
 	watchdog_init();
 #endif
+#ifdef CONFIG_AXP209_POWER
+	axp209_init();
+#ifdef CONFIG_SPL_BUILD
+	axp209_set_dcdc2(1400);
+	axp209_set_dcdc3(1250);
+#endif
+#endif
 	clock_init();
 	gpio_init();
 
