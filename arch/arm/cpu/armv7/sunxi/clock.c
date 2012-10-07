@@ -33,13 +33,11 @@ int clock_init(void) {
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 #ifdef CONFIG_SPL_BUILD
-	/* Hardcode clock config for now */
-	ccm->cpu_ahb_apb0_cfg = 0x00010010;
-	ccm->pll1_cfg = 0xa1005000;
+	/* Set safe defaults until PMU is configured */
+	writel(0x00010010, &ccm->cpu_ahb_apb0_cfg);
+	writel(0xa1005000, &ccm->pll1_cfg);
 	sdelay(200);
 	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* dram clock setup is in dram.c */
 #endif
 
 	/* uart clock source is apb1 */
@@ -72,4 +70,8 @@ int clock_twi_onoff(int port, int state)
 	/* set the apb1 clock gate for twi */
 	sr32(&ccm->apb1_gate, 0 + port, 1, state);
 	return 0;
+}
+
+void clock_set_pll1(int mhz)
+{
 }

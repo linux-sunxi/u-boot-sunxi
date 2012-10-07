@@ -217,6 +217,7 @@ struct sunxi_ccm_reg {
 #ifndef __ASSEMBLY__
 int clock_init(void);
 int clock_twi_onoff(int port, int state);
+void clock_set_pll1(int mhz);
 #endif
 
 #endif /* _SUNXI_CLOCK_H */
