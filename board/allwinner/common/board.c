@@ -49,7 +49,7 @@ void dram_init_banksize(void) {
 
 int dram_init(void) {
 
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, DRAMC_get_dram_size() * 1024 * 1024);
 	return 0;
 }
 
@@ -61,10 +61,3 @@ int board_mmc_init(bd_t *bis) {
 }
 #endif
 
-#ifdef CONFIG_DISPLAY_BOARDINFO
-int checkboard(void) {
-
-	puts("Board: A10-EVB\n");
-	return 0;
-}
-#endif
