@@ -61,3 +61,15 @@ int board_mmc_init(bd_t *bis) {
 }
 #endif
 
+#ifdef CONFIG_SPL
+void sunxi_board_init(void)
+{
+	sunxi_dram_init();
+#ifdef CONFIG_AXP209_POWER
+	axp209_init();
+	axp209_set_dcdc2(1400);
+	axp209_set_dcdc3(1250);
+#endif
+	clock_set_pll1(1008);
+}
+#endif

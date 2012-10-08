@@ -107,13 +107,7 @@ void s_init(void) {
 #ifdef CONFIG_SPL_I2C_SUPPORT
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
-#ifdef CONFIG_AXP209_POWER
-	axp209_init();
-	axp209_set_dcdc2(1400);
-	axp209_set_dcdc3(1250);
-#endif
-	clock_set_pll1(1008);
-	sunxi_dram_init();
+	sunxi_board_init();
 #endif
 }
 
