@@ -31,6 +31,11 @@ SOBJS	+= reset.o
 COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
+ifdef CONFIG_SUN5I
+COBJS	+= board_a13_olinuxino.o
+else
+COBJS	+= board_cubieboard_1gb.o
+endif
 COBJS	+= clock.o
 COBJS	+= gpio.o
 ifdef DEBUG
