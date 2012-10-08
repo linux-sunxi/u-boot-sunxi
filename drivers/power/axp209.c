@@ -27,6 +27,8 @@ enum {
 	AXP209_CHIP_VERSION = 0x21,
 	AXP209_DCDC2_VOLTAGE = 0x23,
 	AXP209_DCDC3_VOLTAGE = 0x27,
+	AXP209_LDO24_VOLTAGE = 0x28,
+	AXP209_LDO3_VOLTAGE = 0x29,
 	AXP209_SHUTDOWN = 0x32,
 } axp209_reg;
 
@@ -40,9 +42,9 @@ int axp209_read(u8 reg, u8 *val)
 	return i2c_read(0x34, reg, 1, val, 1);
 }
 
-void axp209_set_dcdc2(int mvol)
+void axp209_set_dcdc2(int mvolt)
 {
-	int target = (mvol - 700) / 25;
+	int target = (mvolt - 700) / 25;
 	int rc;
 	u8 current;
 	if (target < 0)
@@ -61,16 +63,53 @@ void axp209_set_dcdc2(int mvol)
 	return;
 }
 
-void axp209_set_dcdc3(int mvol)
+void axp209_set_dcdc3(int mvolt)
 {
-	int target = (mvol - 700) / 25;
+	int target = (mvolt - 700) / 25;
+	u8 reg;
 	if (target < 0)
 		target = 0;
 	if (target > (1<<7)-1)
 		target = (1<<7)-1;
 	axp209_write(AXP209_DCDC3_VOLTAGE, target);
-	axp209_read(AXP209_DCDC3_VOLTAGE, &target);
+	axp209_read(AXP209_DCDC3_VOLTAGE, &reg);
 	return;
+}
+
+void axp209_set_ldo2(int mvolt)
+{
+	int target = (mvolt - 1800) / 100;
+	u8 reg;
+	if (target < 0)
+		target = 0;
+	if (target > 15)
+		target = 15;
+	axp209_read(AXP209_LDO24_VOLTAGE, &reg);
+	reg = ( reg & 0x0f ) | (target << 4);
+	axp209_write(AXP209_LDO24_VOLTAGE, reg);
+}
+
+void axp209_set_ldo3(int mvolt)
+{
+	int target = (mvolt - 700) / 25;
+	if (target < 0)
+		target = 0;
+	if (target > 127)
+		target = 127;
+	if (mvolt == -1)
+		target = 0x80; /* detemined by LDO3IN pin */
+	axp209_write(AXP209_LDO3_VOLTAGE, target);
+}
+
+void axp209_set_ldo4(int mvolt)
+{
+	int target = (mvolt - 1800) / 100;
+	static const int vindex[] = { 1250, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2500, 2700, 2800, 3000, 3100, 3200, 3300 };
+	u8 reg;
+	for (target = 0; mvolt < vindex[target] && target < 15; target++) {}
+	axp209_read(AXP209_LDO24_VOLTAGE, &reg);
+	reg = ( reg & 0xf0 ) | (target << 0);
+	axp209_write(AXP209_LDO24_VOLTAGE, reg);
 }
 
 void axp209_poweroff(void)
