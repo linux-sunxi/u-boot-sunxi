@@ -25,11 +25,6 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <mmc.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/mmc.h>
-#include <asm/arch/dram.h>
 
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void) {

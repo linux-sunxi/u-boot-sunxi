@@ -197,7 +197,9 @@
 #define CONFIG_CMD_SAVES		/* save data over serial */
 #define CONFIG_CMD_DUMPASCII		/* save ascii data over serial */
 
+#if 0	/* Set in boards.cfg */
 #define CONFIG_SPL
+#endif
 
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */

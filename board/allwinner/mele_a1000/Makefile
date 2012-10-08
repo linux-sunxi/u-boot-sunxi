@@ -21,37 +21,24 @@
 # MA 02111-1307 USA
 #
 
+
 include $(TOPDIR)/config.mk
 
-LIB	=  $(obj)lib$(SOC).o
+LIB	= $(obj)lib$(BOARD).o
 
-SOBJS	:= lowlevel_init.o
-SOBJS	+= reset.o
+COBJS	:= board.o dram.o
 
-COBJS	+= timer.o
-COBJS	+= dram.o
-COBJS	+= board.o
-COBJS	+= clock.o
-COBJS	+= gpio.o
-ifdef DEBUG
-COBJS	+= early_print.o
-endif
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
-ifndef CONFIG_SPL_BUILD
-COBJS	+= key.o
-COBJS	+= cpu_info.o
-COBJS   += cmd_watchdog.o
-endif
-
-COBJS   += watchdog.o
-
-SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
-
-all:	 $(obj).depend $(LIB)
-
-$(LIB):	$(OBJS)
+$(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
+
+clean:
+	rm -f $(OBJS)
+
+distclean:	clean
+	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 

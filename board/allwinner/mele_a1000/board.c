@@ -29,7 +29,7 @@
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void) {
 
-	puts("Board: A10-EVB\n");
+	puts("Board: Mele A1000\n");
 	return 0;
 }
 #endif
