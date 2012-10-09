@@ -69,6 +69,9 @@ void sunxi_board_init(void)
 	axp209_init();
 	axp209_set_dcdc2(1400);
 	axp209_set_dcdc3(1250);
+	axp209_set_ldo2(3000);
+	axp209_set_ldo3(2800);
+	axp209_set_ldo4(2800);
 #endif
 	clock_set_pll1(1008);
 }
