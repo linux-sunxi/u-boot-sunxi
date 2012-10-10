@@ -33,7 +33,7 @@ int board_nand_init(struct nand_chip *nand) {
 	return 1;
 }
 
-int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
+int sunxi_nand_read_opts(nand_info_t *nand, uint offset, size_t *length,
 			u_char *buffer, int flags) {
 
 	unsigned int nSectNum,  nSectorCnt;
@@ -46,7 +46,7 @@ int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,
 	return NAND_LogicRead(nSectNum, nSectorCnt, buffer);
 }
 
-int sunxi_nand_write_opts(nand_info_t *nand, loff_t offset, size_t *length,
+int sunxi_nand_write_opts(nand_info_t *nand, uint offset, size_t *length,
 			u_char *buffer, int flags) {
 
 	unsigned int nSectNum,  nSectorCnt;
