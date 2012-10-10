@@ -1207,7 +1207,8 @@ int mmc_init(struct mmc *mmc)
 	err = sd_send_op_cond(mmc);
 
 	/* If the command timed out, we check for an MMC card */
-	if (err == TIMEOUT) {
+	//if (err == TIMEOUT) {
+	if (err) {
 		err = mmc_send_op_cond(mmc);
 
 		if (err) {
