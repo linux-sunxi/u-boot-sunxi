@@ -140,6 +140,7 @@ typedef enum {
 } sunxi_boot_type_t;
 
 sunxi_boot_type_t get_boot_type(void);
+void sunxi_board_init(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _CPU_H */
