@@ -79,7 +79,7 @@ void sunxi_board_init(void)
 	power_failed |= axp209_set_ldo4(2800);
 #endif
 	if (!power_failed)
-		clock_set_pll1(1008);
+		clock_set_pll1(1008000000);
 }
 
 #endif
