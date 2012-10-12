@@ -30,6 +30,10 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
 #include <asm/arch/dram.h>
+#include <asm/arch/clock.h>
+#ifdef CONFIG_AXP209_POWER
+#include <axp209.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -49,7 +53,7 @@ void dram_init_banksize(void) {
 
 int dram_init(void) {
 
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, DRAMC_get_dram_size() * 1024 * 1024);
 	return 0;
 }
 
@@ -61,10 +65,21 @@ int board_mmc_init(bd_t *bis) {
 }
 #endif
 
-#ifdef CONFIG_DISPLAY_BOARDINFO
-int checkboard(void) {
-
-	puts("Board: A13-EVB\n");
-	return 0;
+#ifdef CONFIG_SPL_BUILD
+void sunxi_board_init(void)
+{
+	int power_failed = 0;
+	sunxi_dram_init();
+#ifdef CONFIG_AXP209_POWER
+	power_failed |= axp209_init();
+	power_failed |= axp209_set_dcdc2(1400);
+	power_failed |= axp209_set_dcdc3(1250);
+	power_failed |= axp209_set_ldo2(3000);
+	power_failed |= axp209_set_ldo3(2800);
+	power_failed |= axp209_set_ldo4(2800);
+#endif
+	if (!power_failed)
+		clock_set_pll1(1008000000);
 }
+
 #endif

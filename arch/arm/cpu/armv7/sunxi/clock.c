@@ -27,19 +27,27 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
 
+#ifdef CONFIG_SPL_BUILD
+static void clock_init_safe(void)
+{
+	struct sunxi_ccm_reg * const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	/* Set safe defaults until PMU is configured */
+	writel(AXI_DIV_1<<0 | AHB_DIV_2<<4| APB0_DIV_1<<8 | CPU_CLK_SRC_OSC24M<<16, &ccm->cpu_ahb_apb0_cfg);
+	writel(0xa1005000, &ccm->pll1_cfg);
+	sdelay(200);
+	writel(AXI_DIV_1<<0 | AHB_DIV_2<<4| APB0_DIV_1<<8 | CPU_CLK_SRC_PLL1<<16, &ccm->cpu_ahb_apb0_cfg);
+}
+#endif
+
 int clock_init(void) {
 
 	struct sunxi_ccm_reg * const ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 #ifdef CONFIG_SPL_BUILD
-	/* Hardcode clock config for now */
-	ccm->cpu_ahb_apb0_cfg = 0x00010010;
-	ccm->pll1_cfg = 0xa1005000;
-	sdelay(200);
-	sr32(&ccm->cpu_ahb_apb0_cfg, 16, 2, CPU_CLK_SRC_PLL1);/* CPU_CLK_SRC_SEL [17:16] */
-
-	/* dram clock setup is in dram.c */
+	clock_init_safe();
 #endif
 
 	/* uart clock source is apb1 */
@@ -73,3 +81,72 @@ int clock_twi_onoff(int port, int state)
 	sr32(&ccm->apb1_gate, 0 + port, 1, state);
 	return 0;
 }
+
+#ifdef CONFIG_SPL_BUILD
+#define PLL1_CFG(N,K,M,P) (1 << 31 | 0<<30 | 8 << 26 | 0<<25 | 16 << 20 | (P)<<16 | 2<<13 | (N)<<8 | (K)<<4 | 0<<3 | 0<<2 | (M)<<0)
+struct {
+	u32 pll1_cfg;
+	unsigned int freq;
+} pll1_para[] = {
+    { PLL1_CFG(16, 0, 0, 0), 384000000 }, 
+    { PLL1_CFG(16, 1, 0, 0), 768000000 }, 
+    { PLL1_CFG(20, 1, 0, 0), 960000000 }, 
+    { PLL1_CFG(21, 1, 0, 0), 1008000000}, 
+    { PLL1_CFG(22, 1, 0, 0), 1056000000}, 
+    { PLL1_CFG(23, 1, 0, 0), 1104000000}, 
+    { PLL1_CFG(24, 1, 0, 0), 1152000000}, 
+    { PLL1_CFG(25, 1, 0, 0), 1200000000}, 
+    { PLL1_CFG(26, 1, 0, 0), 1248000000}, 
+    { PLL1_CFG(27, 1, 0, 0), 1296000000}, 
+    { PLL1_CFG(28, 1, 0, 0), 1344000000}, 
+    { PLL1_CFG(29, 1, 0, 0), 1392000000}, 
+    { PLL1_CFG(30, 1, 0, 0), 1440000000}, 
+    { PLL1_CFG(31, 1, 0, 0), 1488000000}, 
+    { PLL1_CFG(31, 1, 0, 0), ~0}, 
+};
+
+
+#define RDIV(a, b) ((a + (b) - 1) / (b))
+void clock_set_pll1(int hz)
+{
+	int i = 0;
+	int axi, ahb, apb0;
+	struct sunxi_ccm_reg * const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	/* Find target frequency */
+	while (pll1_para[i].freq < hz)
+	    i++;
+	hz = pll1_para[i].freq;
+
+	/* Calculate system clock divisors */
+	axi = RDIV(hz, 432000000);		/* Max 450MHz */
+	ahb = RDIV(hz/axi, 204000000/axi);	/* Max 250MHz */
+	apb0 = 2;				/* Max 150MHz */
+
+	/* Map divisors to register values */
+	axi = axi - 1;
+	if (ahb > 4)
+		ahb = 3;
+	else if (ahb > 2)
+		ahb = 2;
+	else if (ahb > 1)
+		ahb = 1;
+	else
+		ahb = 0;
+	apb0 = apb0 - 1;
+	
+	/* Switch to 24MHz clock while changing PLL1 */
+	writel(AXI_DIV_1<<0 | AHB_DIV_2<<4| APB0_DIV_1<<8 | CPU_CLK_SRC_OSC24M<<16, &ccm->cpu_ahb_apb0_cfg);
+	sdelay(20);
+	
+	/* Configure sys clock divisors */
+	writel(axi<<0 | ahb<<4| apb0<<8 | CPU_CLK_SRC_OSC24M<<16, &ccm->cpu_ahb_apb0_cfg);
+	/* Configure PLL1 at the desired frequency */
+	writel(pll1_para[i].pll1_cfg, &ccm->pll1_cfg);
+	sdelay(200);
+	/* Switch CPU to PLL1 */
+	writel(axi<<0 | ahb<<4| apb0<<8 | CPU_CLK_SRC_PLL1<<16, &ccm->cpu_ahb_apb0_cfg);
+	sdelay(20);
+}
+#endif

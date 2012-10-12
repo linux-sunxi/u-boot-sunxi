@@ -25,41 +25,6 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <mmc.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/mmc.h>
-#include <asm/arch/dram.h>
-
-DECLARE_GLOBAL_DATA_PTR;
-
-/* add board specific code here */
-int board_init(void) {
-
-	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
-
-	return 0;
-}
-
-void dram_init_banksize(void) {
-
-	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = DRAMC_get_dram_size() * 1024 * 1024;
-}
-
-int dram_init(void) {
-
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
-	return 0;
-}
-
-#ifdef CONFIG_GENERIC_MMC
-int board_mmc_init(bd_t *bis) {
-
-	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
-	return 0;
-}
-#endif
 
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void) {

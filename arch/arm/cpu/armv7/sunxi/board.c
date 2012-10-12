@@ -104,7 +104,10 @@ void s_init(void) {
 	gpio_init();
 
 #ifdef CONFIG_SPL_BUILD
-	sunxi_dram_init();
+#ifdef CONFIG_SPL_I2C_SUPPORT
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#endif
+	sunxi_board_init();
 #endif
 }
 
