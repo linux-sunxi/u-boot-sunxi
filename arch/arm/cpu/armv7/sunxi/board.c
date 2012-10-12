@@ -37,13 +37,15 @@
 #include <version.h>
 #include <mmc.h>
 #include <fat.h>
+#ifdef CONFIG_SPL_BUILD
+#include <spl.h>
+#endif
 
 #ifdef CONFIG_SPL_BUILD
+/* Pointer to as well as the global data structure for SPL */
 DECLARE_GLOBAL_DATA_PTR;
-
-/* Define global data structure pointer to it*/
-static gd_t gdata __attribute__ ((section(".data")));
-static bd_t bdata __attribute__ ((section(".data")));
+gd_t gdata __attribute__ ((section(".data")));
+bd_t bdata __attribute__ ((section(".data")));
 #endif
 
 /* The sunxi internal brom will try to loader external bootloader
@@ -137,13 +139,18 @@ inline void hang(void)
 
 void board_init_f(unsigned long bootflag)
 {
-	/*
-	 * We call relocate_code() with relocation target same as the
-	 * CONFIG_SYS_SPL_TEXT_BASE. This will result in relocation getting
-	 * skipped. Instead, only .bss initialization will happen. That's
-	 * all we need
-	 */
-	relocate_code(CONFIG_SPL_STACK, &gdata, CONFIG_SPL_TEXT_BASE);
+	/* Copied from arch/arm/lib/spl.c. Should really move to use that whole framework */
+
+	/* Set the stack pointer. */
+	asm volatile("mov sp, %0\n" : : "r"(CONFIG_SPL_STACK));
+
+	/* Clear the BSS. */
+	memset(__bss_start, 0, __bss_end__ - __bss_start);
+
+	/* Set global data pointer. */
+	gd = &gdata;
+
+	board_init_r(NULL, 0);
 }
 
 void board_init_r(gd_t *id, ulong dest_addr)
@@ -152,7 +159,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	struct mmc *mmc;
 	int err;
 
-	gd = &gdata;
 	gd->bd = &bdata;
 	gd->flags |= GD_FLG_RELOC;
 	gd->baudrate = CONFIG_BAUDRATE;

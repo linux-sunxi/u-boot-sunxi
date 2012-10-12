@@ -167,5 +167,6 @@ struct dram_para {
 
 int sunxi_dram_init(void);
 unsigned DRAMC_get_dram_size(void);
+int DRAMC_init(struct dram_para *para);
 
 #endif /* _SUNXI_DRAM_H */
