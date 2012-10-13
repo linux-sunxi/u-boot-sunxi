@@ -76,8 +76,8 @@ u32 spl_boot_device(void) {
 		return BOOT_DEVICE_MMC1;
 #endif
 
-	/* if we are here, something goes wrong */
-	return BOOT_DEVICE_NONE;
+	/* if we are here, something goes wrong. Fall back on MMC */
+	return BOOT_DEVICE_MMC1;
 }
 
 /* No confiration data available in SPL yet. Hardcode bootmode */
