@@ -44,36 +44,48 @@
 #ifdef CONFIG_SPL_BUILD
 /* Pointer to as well as the global data structure for SPL */
 DECLARE_GLOBAL_DATA_PTR;
-gd_t gdata __attribute__ ((section(".data")));
-bd_t bdata __attribute__ ((section(".data")));
-#endif
 
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
-sunxi_boot_type_t boot_from(void) {
+u32 spl_boot_device(void) {
 
 	u32 cfg;
 
+#ifdef CONFIG_SPL_NOR_SUPPORT
+	/* TODO */
+#endif
+
+#ifdef CONFIG_SPL_MMC_SUPPORT
 	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
 	if( cfg == SUNXI_GPC7_SDC2_CLK )
-		return SUNXI_BOOT_TYPE_MMC2;
+		return BOOT_DEVICE_MMC2;
+#endif
 
+#ifdef CONFIG_SPL_NAND_SUPPORT
 	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
 	if( cfg == SUNXI_GPC2_NCLE )
-		return SUNXI_BOOT_TYPE_NAND;
+		return BOOT_DEVICE_NAND;
+#endif
 
+#ifdef CONFIG_SPL_MMC_SUPPORT
 	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
 	if( cfg == SUNXI_GPF2_SDC0_CLK )
-		return SUNXI_BOOT_TYPE_MMC0;
+		return BOOT_DEVICE_MMC1;
+#endif
 
 	/* if we are here, something goes wrong */
-	return SUNXI_BOOT_TYPE_NULL;
+	return BOOT_DEVICE_NONE;
 }
 
-#define UART0_PINS_TO_SD 0
+/* No confiration data available in SPL yet. Hardcode bootmode */
+u32 spl_boot_mode(void)
+{
+	return MMCSD_MODE_RAW;
+}
+#endif
 
 int gpio_init(void) {
 #if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
@@ -106,11 +118,16 @@ void s_init(void) {
 	gpio_init();
 
 #ifdef CONFIG_SPL_BUILD
+	gd = &gdata;
+	preloader_console_init();
+
 #ifdef CONFIG_SPL_I2C_SUPPORT
+	/* Needed early by sunxi_board_init if PMU is enabled */
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
 	sunxi_board_init();
 #endif
+
 }
 
 extern void sunxi_reset(void);
@@ -124,85 +141,5 @@ void enable_caches(void) {
 
 	/* Enable D-cache. I-cache is already enabled in start.S */
 	dcache_enable();
-}
-#endif
-
-#ifdef CONFIG_SPL_BUILD
-void save_boot_params(u32 r0, u32 r1, u32 r2, u32 r3) {}
-
-inline void hang(void)
-{
-	puts("\n### ERROR ### Please RESET the board ###\n");
-	for (;;)
-		;
-}
-
-void board_init_f(unsigned long bootflag)
-{
-	/* Copied from arch/arm/lib/spl.c. Should really move to use that whole framework */
-
-	/* Set the stack pointer. */
-	asm volatile("mov sp, %0\n" : : "r"(CONFIG_SPL_STACK));
-
-	/* Clear the BSS. */
-	memset(__bss_start, 0, __bss_end__ - __bss_start);
-
-	/* Set global data pointer. */
-	gd = &gdata;
-
-	board_init_r(NULL, 0);
-}
-
-void board_init_r(gd_t *id, ulong dest_addr)
-{
-	__attribute__((noreturn)) void (*uboot)(void);
-	struct mmc *mmc;
-	int err;
-
-	gd->bd = &bdata;
-	gd->flags |= GD_FLG_RELOC;
-	gd->baudrate = CONFIG_BAUDRATE;
-
-	timer_init();
-	serial_init();
-
-	gd->have_console = 1;
-
-	printf("\nU-Boot SPL %s (%s - %s)\n", PLAIN_VERSION, U_BOOT_DATE,
-		U_BOOT_TIME);
-
-	puts("MMC:   ");
-	mmc_initialize(gd->bd);
-	/* We register only one device. So, the dev id is always 0 */
-	mmc = find_mmc_device(0);
-	if (!mmc) {
-		puts("spl: mmc device not found!!\n");
-		hang();
-	}
-
-	err = mmc_init(mmc);
-	if (err) {
-		printf("spl: mmc init failed: err - %d\n", err);
-		hang();
-	}
-
-	puts("Loading U-Boot...   ");
-
-	err = mmc->block_dev.block_read(CONFIG_MMC_SUNXI_SLOT,
-			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR,
-			CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS,
-			(uchar *)CONFIG_SYS_TEXT_BASE);
-
-	if(err == CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS) {
-		puts("OK!\n");
-	} else {
-		hang();
-	}
-
-	puts("Jumping to U-Boot...\n");
-	/* Jump to U-Boot image */
-	uboot = (void *)CONFIG_SYS_TEXT_BASE;
-	(*uboot)();
-	/* Never returns Here */
 }
 #endif
