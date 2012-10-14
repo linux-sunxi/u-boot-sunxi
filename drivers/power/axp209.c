@@ -24,7 +24,7 @@
 #include <i2c.h>
 #include <axp209.h>
 
-enum {
+typedef enum {
 	AXP209_CHIP_VERSION = 0x3,
 	AXP209_DCDC2_VOLTAGE = 0x23,
 	AXP209_DCDC3_VOLTAGE = 0x27,
@@ -33,12 +33,12 @@ enum {
 	AXP209_SHUTDOWN = 0x32,
 } axp209_reg;
 
-int axp209_write(u8 reg, u8 val)
+int axp209_write(axp209_reg reg, u8 val)
 {
 	return i2c_write(0x34, reg, 1, &val, 1);
 }
 
-int axp209_read(u8 reg, u8 *val)
+int axp209_read(axp209_reg reg, u8 *val)
 {
 	return i2c_read(0x34, reg, 1, val, 1);
 }
