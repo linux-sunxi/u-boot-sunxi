@@ -154,11 +154,6 @@
 #undef CONFIG_OF_CONTROL
 #endif
 
-/* remove SERIAL_MULTI */
-#ifdef CONFIG_SERIAL_MULTI
-#undef CONFIG_SERIAL_MULTI
-#endif
-
 /* remove I2C support */
 #ifdef CONFIG_TEGRA_I2C
 #undef CONFIG_TEGRA_I2C
@@ -207,6 +202,15 @@
 #endif
 #ifdef CONFIG_CMD_USB
 #undef CONFIG_CMD_USB
+#endif
+
+/* remove part command support */
+#ifdef CONFIG_PARTITION_UUIDS
+#undef CONFIG_PARTITION_UUIDS
+#endif
+
+#ifdef CONFIG_CMD_PART
+#undef CONFIG_CMD_PART
 #endif
 
 #endif /* CONFIG_SPL_BUILD */

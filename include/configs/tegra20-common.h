@@ -24,14 +24,7 @@
 #ifndef __TEGRA20_COMMON_H
 #define __TEGRA20_COMMON_H
 #include <asm/sizes.h>
-
-/*
- * QUOTE(m) will evaluate to a string version of the value of the macro m
- * passed in.  The extra level of indirection here is to first evaluate the
- * macro m before applying the quoting operator.
- */
-#define QUOTE_(m)       #m
-#define QUOTE(m)        QUOTE_(m)
+#include <linux/stringify.h>
 
 /*
  * High Level Configuration Options
@@ -43,7 +36,7 @@
 
 #define CONFIG_SYS_CACHELINE_SIZE	32
 
-#include <asm/arch/tegra20.h>		/* get chip and board defs */
+#include <asm/arch/tegra.h>		/* get chip and board defs */
 
 /*
  * Display CPU and Board information
@@ -58,7 +51,8 @@
 #define TEGRA_LP0_ADDR			0x1C406000
 #define TEGRA_LP0_SIZE			0x2000
 #define TEGRA_LP0_VEC \
-	"lp0_vec=" QUOTE(TEGRA_LP0_SIZE) "@" QUOTE(TEGRA_LP0_ADDR) " "
+	"lp0_vec=" __stringify(TEGRA_LP0_SIZE)	\
+	"@" __stringify(TEGRA_LP0_ADDR) " "
 #else
 #define TEGRA_LP0_VEC
 #endif
@@ -113,6 +107,8 @@
 
 /* include default commands */
 #include <config_cmd_default.h>
+#define CONFIG_PARTITION_UUIDS
+#define CONFIG_CMD_PART
 
 /* remove unused commands */
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect */

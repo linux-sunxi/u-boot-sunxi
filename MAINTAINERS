@@ -179,7 +179,6 @@ Thomas Frieden <ThomasF@hyperion-entertainment.com>
 
 Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 
-	ADCIOP		IOP480 (PPC401)
 	APC405		PPC405GP
 	AR405		PPC405GP
 	ASH405		PPC405EP
@@ -190,7 +189,6 @@ Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 	CPCI405AB	PPC405GP
 	CPCI405DT	PPC405GP
 	CPCIISER4	PPC405GP
-	DASA_SIM	IOP480 (PPC401)
 	DP405		PPC405EP
 	DU405		PPC405GP
 	DU440		PPC440EPx
@@ -216,9 +214,7 @@ Siddarth Gore <gores@marvell.com>
 Paul Gortmaker <paul.gortmaker@windriver.com>
 
 	sbc8349		MPC8349
-	sbc8540		MPC8540
 	sbc8548		MPC8548
-	sbc8560		MPC8560
 	sbc8641d	MPC8641D
 
 Frank Gottschling <fgottschling@eltec.de>
@@ -456,10 +452,6 @@ Heiko Schocher <hs@denx.de>
 	uc101		MPC5200
 	ve8313		MPC8313
 
-Peter De Schrijver <p2@mind.be>
-
-	ML2		PPC4xx
-
 Andre Schwarz <andre.schwarz@matrix-vision.de>
 
 	mergerbox	MPC8377
@@ -656,6 +648,8 @@ Fabio Estevam <fabio.estevam@freescale.com>
 	mx31pdk		i.MX31
 	mx53ard		i.MX53
 	mx53smd		i.MX53
+	mx6qsabresd	i.MX6Q
+	mx6qsabreauto	i.MX6Q
 
 Daniel Gorsulowski <daniel.gorsulowski@esd.eu>
 
@@ -836,7 +830,7 @@ Sricharan R <r.sricharan@ti.com>
 Thierry Reding <thierry.reding@avionic-design.de>
 
 	plutux		Tegra20 (ARM7 & A9 Dual Core)
-	medcom		Tegra20 (ARM7 & A9 Dual Core)
+	medcom-wide	Tegra20 (ARM7 & A9 Dual Core)
 	tec		Tegra20 (ARM7 & A9 Dual Core)
 
 Christian Riesch <christian.riesch@omicron.at>
@@ -1016,7 +1010,7 @@ Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
 -------------------------------------------------------------------------
 
 Unknown / orphaned boards:
- 	Board		CPU	Last known maintainer / Comment
+	Board		CPU	Last known maintainer / Comment
 .........................................................................
 
 	omap1510inn	ARM925T         Kshitij Gupta <kshitij@ti.com>
@@ -1048,10 +1042,6 @@ Wolfgang Denk <wd@denx.de>
 
 	incaip		MIPS32 4Kc
 
-Thomas Lange <thomas@corelatus.se>
-	dbau1x00	MIPS32 Au1000
-	gth2		MIPS32 Au1000
-
 Vlad Lungu <vlad.lungu@windriver.com>
 	qemu_mips	MIPS32
 
@@ -1062,6 +1052,14 @@ Stefan Roese <sr@denx.de>
 Xiangfu Liu <xiangfu@openmobilefree.net>
 
 	qi_lb60		MIPS32 (XBurst Jz4740 SoC)
+
+-------------------------------------------------------------------------
+
+Unknown / orphaned boards:
+ 	Board		CPU		Last known maintainer / Comment
+.........................................................................
+
+	dbau1x00	MIPS32 Au1000	Thomas Lange <thomas@corelatus.se>
 
 #########################################################################
 # Nios-II Systems:							#

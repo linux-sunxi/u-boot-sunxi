@@ -92,6 +92,24 @@ BUILD_DIR := $(O)
 endif
 endif
 
+# Call a source code checker (by default, "sparse") as part of the
+# C compilation.
+#
+# Use 'make C=1' to enable checking of re-compiled files.
+#
+# See the linux kernel file "Documentation/sparse.txt" for more details,
+# including where to get the "sparse" utility.
+
+ifdef C
+ifeq ("$(origin C)", "command line")
+CHECKSRC := $(C)
+endif
+endif
+ifndef CHECKSRC
+  CHECKSRC = 0
+endif
+export CHECKSRC
+
 ifneq ($(BUILD_DIR),)
 saved-output := $(BUILD_DIR)
 
@@ -325,6 +343,8 @@ LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
 endif
 ifeq ($(SOC),tegra20)
 LIBS-y += arch/$(ARCH)/cpu/$(SOC)-common/lib$(SOC)-common.o
+LIBS-y += arch/$(ARCH)/cpu/tegra-common/libcputegra-common.o
+LIBS-y += $(CPUDIR)/tegra-common/libtegra-common.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS-y)))
@@ -695,6 +715,9 @@ easylogo env gdb:
 	$(MAKE) -C tools/$@ all MTD_VERSION=${MTD_VERSION}
 gdbtools: gdb
 
+xmldocs pdfdocs psdocs htmldocs mandocs: tools/kernel-doc/docproc
+	$(MAKE) U_BOOT_VERSION=$(U_BOOT_VERSION) -C doc/DocBook/ $@
+
 tools-all: easylogo env gdb $(VERSION_FILE) $(TIMESTAMP_FILE)
 	$(MAKE) -C tools HOST_TOOLS_ALL=y
 
@@ -780,7 +803,8 @@ clean:
 	       $(obj)tools/mk{smdk5250,}spl				  \
 	       $(obj)tools/mksunxiboot					  \
 	       $(obj)tools/mxsboot					  \
-	       $(obj)tools/ncb		   $(obj)tools/ubsha1
+	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
+	       $(obj)tools/kernel-doc/docproc
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
 	       $(obj)board/voiceblue/eeprom 				  \
@@ -793,6 +817,7 @@ clean:
 	@rm -f $(obj)include/generated/asm-offsets.h
 	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
+	@$(MAKE) -C doc/DocBook/ cleandocs
 	@find $(OBJTREE) -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' -o -name '*.su' \
 		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \

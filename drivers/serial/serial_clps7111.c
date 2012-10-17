@@ -33,7 +33,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-void serial_setbrg (void)
+static void clps7111_serial_setbrg(void)
 {
 	unsigned int reg = 0;
 
@@ -63,7 +63,7 @@ void serial_setbrg (void)
  * are always 8 data bits, no parity, 1 stop bit, no start bits.
  *
  */
-int serial_init (void)
+static int clps7111_serial_init(void)
 {
 	serial_setbrg ();
 
@@ -74,7 +74,7 @@ int serial_init (void)
 /*
  * Output a single byte to the serial port.
  */
-void serial_putc (const char c)
+static void clps7111_serial_putc(const char c)
 {
 	int tmo;
 
@@ -95,7 +95,7 @@ void serial_putc (const char c)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-int serial_tstc (void)
+static int clps7111_serial_tstc(void)
 {
 	return !(IO_SYSFLG1 & SYSFLG1_URXFE);
 }
@@ -105,17 +105,30 @@ int serial_tstc (void)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-int serial_getc (void)
+static int clps7111_serial_getc(void)
 {
 	while (IO_SYSFLG1 & SYSFLG1_URXFE);
 
 	return IO_UARTDR1 & 0xff;
 }
 
-void
-serial_puts (const char *s)
+static struct serial_device clps7111_serial_drv = {
+	.name	= "clps7111_serial",
+	.start	= clps7111_serial_init,
+	.stop	= NULL,
+	.setbrg	= clps7111_serial_setbrg,
+	.putc	= clps7111_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= clps7111_serial_getc,
+	.tstc	= clps7111_serial_tstc,
+};
+
+void clps7111_serial_initialize(void)
 {
-	while (*s) {
-		serial_putc (*s++);
-	}
+	serial_register(&clps7111_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &clps7111_serial_drv;
 }

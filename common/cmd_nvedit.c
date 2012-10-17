@@ -71,9 +71,6 @@ DECLARE_GLOBAL_DATA_PTR;
 SPI_FLASH|NVRAM|MMC|FAT|REMOTE} or CONFIG_ENV_IS_NOWHERE
 #endif
 
-#define XMK_STR(x)	#x
-#define MK_STR(x)	XMK_STR(x)
-
 /*
  * Maximum expected input data size for import command
  */
@@ -242,10 +239,8 @@ int env_check_apply(const char *name, const char *oldval,
 		if (console_assign(console, newval) < 0)
 			return 1;
 
-#ifdef CONFIG_SERIAL_MULTI
 		if (serial_assign(newval) < 0)
 			return 1;
-#endif
 #endif /* CONFIG_CONSOLE_MUX */
 	}
 
@@ -259,7 +254,7 @@ int env_check_apply(const char *name, const char *oldval,
 		if (strcmp(name, "serial#") == 0 ||
 		    (strcmp(name, "ethaddr") == 0
 #if defined(CONFIG_OVERWRITE_ETHADDR_ONCE) && defined(CONFIG_ETHADDR)
-		     && strcmp(oldval, MK_STR(CONFIG_ETHADDR)) != 0
+		     && strcmp(oldval, __stringify(CONFIG_ETHADDR)) != 0
 #endif	/* CONFIG_OVERWRITE_ETHADDR_ONCE && CONFIG_ETHADDR */
 			)) {
 			printf("Can't overwrite \"%s\"\n", name);
@@ -655,6 +650,9 @@ U_BOOT_CMD(
  */
 int envmatch(uchar *s1, int i2)
 {
+	if (s1 == NULL)
+		return -1;
+
 	while (*s1 == env_get_char(i2++))
 		if (*s1++ == '=')
 			return i2;

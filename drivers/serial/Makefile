@@ -25,6 +25,8 @@ include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libserial.o
 
+COBJS-y += serial.o
+
 COBJS-$(CONFIG_ALTERA_UART) += altera_uart.o
 COBJS-$(CONFIG_ALTERA_JTAG_UART) += altera_jtag_uart.o
 COBJS-$(CONFIG_ARM_DCC) += arm_dcc.o
@@ -37,7 +39,7 @@ COBJS-$(CONFIG_SYS_NS16550) += ns16550.o
 COBJS-$(CONFIG_DRIVER_S3C4510_UART) += s3c4510b_uart.o
 COBJS-$(CONFIG_S3C64XX) += s3c64xx.o
 COBJS-$(CONFIG_S5P) += serial_s5p.o
-COBJS-$(CONFIG_SYS_NS16550_SERIAL) += serial.o
+COBJS-$(CONFIG_SYS_NS16550_SERIAL) += serial_ns16550.o
 COBJS-$(CONFIG_CLPS7111_SERIAL) += serial_clps7111.o
 COBJS-$(CONFIG_IMX_SERIAL) += serial_imx.o
 COBJS-$(CONFIG_IXP_SERIAL) += serial_ixp.o

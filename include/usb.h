@@ -140,6 +140,8 @@ struct usb_device {
 	int portnr;
 	struct usb_device *parent;
 	struct usb_device *children[USB_MAXCHILDREN];
+
+	void *controller;		/* hardware controller private data */
 };
 
 /**********************************************************************
@@ -153,8 +155,9 @@ struct usb_device {
 	defined(CONFIG_USB_OMAP3) || defined(CONFIG_USB_DA8XX) || \
 	defined(CONFIG_USB_BLACKFIN) || defined(CONFIG_USB_AM35X)
 
-int usb_lowlevel_init(void);
-int usb_lowlevel_stop(void);
+int usb_lowlevel_init(int index, void **controller);
+int usb_lowlevel_stop(int index);
+
 int submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
 			void *buffer, int transfer_len);
 int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
@@ -165,6 +168,17 @@ int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 /* Defines */
 #define USB_UHCI_VEND_ID	0x8086
 #define USB_UHCI_DEV_ID		0x7112
+
+/*
+ * PXA25x can only act as USB device. There are drivers
+ * which works with USB CDC gadgets implementations.
+ * Some of them have common routines which can be used
+ * in boards init functions e.g. udc_disconnect() used for
+ * forced device disconnection from host.
+ */
+#elif defined(CONFIG_USB_GADGET_PXA2XX)
+
+extern void udc_disconnect(void);
 
 #else
 #error USB Lowlevel not defined
@@ -382,7 +396,8 @@ void usb_hub_reset(void);
 int hub_port_reset(struct usb_device *dev, int port,
 			  unsigned short *portstat);
 
-struct usb_device *usb_alloc_new_device(void);
+struct usb_device *usb_alloc_new_device(void *controller);
+
 int usb_new_device(struct usb_device *dev);
 
 #endif /*_USB_H_ */

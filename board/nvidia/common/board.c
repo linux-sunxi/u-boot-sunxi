@@ -25,22 +25,21 @@
 #include <ns16550.h>
 #include <linux/compiler.h>
 #include <asm/io.h>
-#include <asm/arch/tegra20.h>
-#include <asm/arch/sys_proto.h>
-
-#include <asm/arch/board.h>
-#include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/emc.h>
+#include <asm/arch/funcmux.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/pmc.h>
 #include <asm/arch/pmu.h>
-#include <asm/arch/uart.h>
-#include <asm/arch/warmboot.h>
-#include <spi.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/usb.h>
+#include <asm/arch-tegra/board.h>
+#include <asm/arch-tegra/clk_rst.h>
+#include <asm/arch-tegra/pmc.h>
+#include <asm/arch-tegra/sys_proto.h>
+#include <asm/arch-tegra/uart.h>
+#include <asm/arch-tegra/warmboot.h>
+#include <spi.h>
 #include <i2c.h>
-#include "board.h"
 #include "emc.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -71,6 +70,20 @@ void __pin_mux_spi(void)
 }
 
 void pin_mux_spi(void) __attribute__((weak, alias("__pin_mux_spi")));
+
+void __gpio_early_init_uart(void)
+{
+}
+
+void gpio_early_init_uart(void)
+__attribute__((weak, alias("__gpio_early_init_uart")));
+
+void __pin_mux_nand(void)
+{
+	funcmux_select(PERIPH_ID_NDFLASH, FUNCMUX_DEFAULT);
+}
+
+void pin_mux_nand(void) __attribute__((weak, alias("__pin_mux_nand")));
 
 /*
  * Routine: power_det_init
@@ -132,6 +145,10 @@ int board_init(void)
 	board_usb_init(gd->fdt_blob);
 #endif
 
+#ifdef CONFIG_TEGRA_NAND
+	pin_mux_nand();
+#endif
+
 #ifdef CONFIG_TEGRA_LP0
 	/* save Sdram params to PMC 2, 4, and 24 for WB0 */
 	warmboot_save_sdram_params();
@@ -156,11 +173,8 @@ int board_early_init_f(void)
 
 	/* Initialize periph GPIOs */
 	gpio_early_init();
-#ifdef CONFIG_SPI_UART_SWITCH
 	gpio_early_init_uart();
-#else
-	gpio_config_uart();
-#endif
+
 	return 0;
 }
 #endif	/* EARLY_INIT */

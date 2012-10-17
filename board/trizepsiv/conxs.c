@@ -120,7 +120,6 @@ int board_init (void)
 
 int board_late_init(void)
 {
-#if defined(CONFIG_SERIAL_MULTI)
 	char *console=getenv("boot_console");
 
 	if ((console == NULL) || (strcmp(console,"serial_btuart") &&
@@ -131,13 +130,7 @@ int board_late_init(void)
 	setenv("stdout",console);
 	setenv("stdin", console);
 	setenv("stderr",console);
-#endif
 	return 0;
-}
-
-struct serial_device *default_serial_console (void)
-{
-	return &serial_ffuart_device;
 }
 
 int dram_init(void)

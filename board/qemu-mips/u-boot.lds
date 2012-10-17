@@ -24,7 +24,11 @@
 /*
 OUTPUT_FORMAT("elf32-bigmips", "elf32-bigmips", "elf32-bigmips")
 */
+#if defined(CONFIG_64BIT)
+OUTPUT_FORMAT("elf64-tradbigmips", "elf64-tradbigmips", "elf64-tradlittlemips")
+#else
 OUTPUT_FORMAT("elf32-tradbigmips", "elf32-tradbigmips", "elf32-tradlittlemips")
+#endif
 OUTPUT_ARCH(mips)
 ENTRY(_start)
 SECTIONS
@@ -63,7 +67,11 @@ SECTIONS
 	}
 
 	uboot_end_data = .;
+#if defined(CONFIG_64BIT)
+	num_got_entries = (__got_end - __got_start) >> 3;
+#else
 	num_got_entries = (__got_end - __got_start) >> 2;
+#endif
 
 	. = ALIGN(4);
 	.sbss  : { *(.sbss*) }

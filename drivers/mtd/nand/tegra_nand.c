@@ -26,12 +26,11 @@
 #include <common.h>
 #include <asm/io.h>
 #include <nand.h>
-#include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/funcmux.h>
-#include <asm/arch/gpio.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/errno.h>
-#include <asm-generic/gpio.h>
+#include <asm/gpio.h>
 #include <fdtdec.h>
 #include "tegra_nand.h"
 
@@ -993,7 +992,6 @@ int tegra_nand_init(struct nand_chip *nand, int devnum)
 	/* Adjust timing for NAND device */
 	setup_timing(config->timing, info->reg);
 
-	funcmux_select(PERIPH_ID_NDFLASH, FUNCMUX_DEFAULT);
 	fdtdec_setup_gpio(&config->wp_gpio);
 	gpio_direction_output(config->wp_gpio.gpio, 1);
 

@@ -569,7 +569,8 @@ struct esdc_regs {
 
 #define MX31_IIM_BASE_ADDR	0x5001C000
 
-#define PDR0_CSI_PODF(x)	(((x) & 0x1ff) << 23)
+#define PDR0_CSI_PODF(x)	(((x) & 0x3f) << 26)
+#define PDR0_CSI_PRDF(x)	(((x) & 0x7) << 23)
 #define PDR0_PER_PODF(x)	(((x) & 0x1f) << 16)
 #define PDR0_HSP_PODF(x)	(((x) & 0x7) << 11)
 #define PDR0_NFC_PODF(x)	(((x) & 0x7) << 8)
@@ -577,12 +578,23 @@ struct esdc_regs {
 #define PDR0_MAX_PODF(x)	(((x) & 0x7) << 3)
 #define PDR0_MCU_PODF(x)	((x) & 0x7)
 
+#define PDR1_USB_PRDF(x)	(((x) & 0x3) << 30)
+#define PDR1_USB_PODF(x)	(((x) & 0x7) << 27)
+#define PDR1_FIRI_PRDF(x)	(((x) & 0x7) << 24)
+#define PDR1_FIRI_PODF(x)	(((x) & 0x3f) << 18)
+#define PDR1_SSI2_PRDF(x)	(((x) & 0x7) << 15)
+#define PDR1_SSI2_PODF(x)	(((x) & 0x3f) << 9)
+#define PDR1_SSI1_PRDF(x)	(((x) & 0x7) << 6)
+#define PDR1_SSI1_PODF(x)	((x) & 0x3f)
+
+#define PLL_BRMO(x)		(((x) & 0x1) << 31)
 #define PLL_PD(x)		(((x) & 0xf) << 26)
 #define PLL_MFD(x)		(((x) & 0x3ff) << 16)
 #define PLL_MFI(x)		(((x) & 0xf) << 10)
 #define PLL_MFN(x)		(((x) & 0x3ff) << 0)
 
-#define GET_PDR0_CSI_PODF(x)	(((x) >> 23) & 0x1ff)
+#define GET_PDR0_CSI_PODF(x)	(((x) >> 26) & 0x3f)
+#define GET_PDR0_CSI_PRDF(x)	(((x) >> 23) & 0x7)
 #define GET_PDR0_PER_PODF(x)	(((x) >> 16) & 0x1f)
 #define GET_PDR0_HSP_PODF(x)	(((x) >> 11) & 0x7)
 #define GET_PDR0_NFC_PODF(x)	(((x) >> 8) & 0x7)

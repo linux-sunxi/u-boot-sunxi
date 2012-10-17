@@ -33,7 +33,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-void serial_setbrg (void)
+static void lpc2292_serial_setbrg(void)
 {
 	unsigned short divisor = 0;
 
@@ -57,7 +57,7 @@ void serial_setbrg (void)
 	PUT8(U0FCR, 1);		/* Enable RX and TX FIFOs */
 }
 
-int serial_init (void)
+static int lpc2292_serial_init(void)
 {
 	unsigned long pinsel0;
 
@@ -71,7 +71,7 @@ int serial_init (void)
 	return (0);
 }
 
-void serial_putc (const char c)
+static void lpc2292_serial_putc(const char c)
 {
 	if (c == '\n')
 	{
@@ -83,22 +83,35 @@ void serial_putc (const char c)
 	PUT8(U0THR, c);
 }
 
-int serial_getc (void)
+static int lpc2292_serial_getc(void)
 {
 	while((GET8(U0LSR) & 1) == 0);
 	return GET8(U0RBR);
 }
 
-void
-serial_puts (const char *s)
-{
-	while (*s) {
-		serial_putc (*s++);
-	}
-}
-
 /* Test if there is a byte to read */
-int serial_tstc (void)
+static int lpc2292_serial_tstc(void)
 {
 	return (GET8(U0LSR) & 1);
+}
+
+static struct serial_device lpc2292_serial_drv = {
+	.name	= "lpc2292_serial",
+	.start	= lpc2292_serial_init,
+	.stop	= NULL,
+	.setbrg	= lpc2292_serial_setbrg,
+	.putc	= lpc2292_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= lpc2292_serial_getc,
+	.tstc	= lpc2292_serial_tstc,
+};
+
+void lpc2292_serial_initialize(void)
+{
+	serial_register(&lpc2292_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &lpc2292_serial_drv;
 }

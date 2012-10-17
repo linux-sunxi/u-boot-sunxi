@@ -18,3 +18,4 @@
 /env/fw_printenv
 /gdb/gdbcont
 /gdb/gdbsend
+/kernel-doc/docproc

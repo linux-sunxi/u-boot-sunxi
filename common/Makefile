@@ -32,7 +32,6 @@ COBJS-y += command.o
 COBJS-y += exports.o
 COBJS-$(CONFIG_SYS_HUSH_PARSER) += hush.o
 COBJS-y += s_record.o
-COBJS-$(CONFIG_SERIAL_MULTI) += serial.o
 COBJS-y += xyzModem.o
 COBJS-y += cmd_disk.o
 
@@ -69,6 +68,7 @@ COBJS-$(CONFIG_CMD_BDI) += cmd_bdinfo.o
 COBJS-$(CONFIG_CMD_BEDBUG) += bedbug.o cmd_bedbug.o
 COBJS-$(CONFIG_CMD_BMP) += cmd_bmp.o
 COBJS-$(CONFIG_CMD_BOOTLDR) += cmd_bootldr.o
+COBJS-$(CONFIG_CMD_BOOTSTAGE) += cmd_bootstage.o
 COBJS-$(CONFIG_CMD_CACHE) += cmd_cache.o
 COBJS-$(CONFIG_CMD_CONSOLE) += cmd_console.o
 COBJS-$(CONFIG_CMD_CPLBINFO) += cmd_cplbinfo.o
@@ -231,6 +231,10 @@ $(obj)env_embedded.o: $(src)env_embedded.c $(obj)../tools/envcrc
 
 $(obj)../tools/envcrc:
 	$(MAKE) -C ../tools
+
+# SEE README.arm-unaligned-accesses
+$(obj)hush.o: CFLAGS += $(PLATFORM_NO_UNALIGNED)
+$(obj)fdt_support.o: CFLAGS += $(PLATFORM_NO_UNALIGNED)
 
 #########################################################################
 

@@ -209,7 +209,7 @@ static int global_board_data_init(void)
 	gd->bd = bd;
 
 	bd->bi_r_version = version_string;
-	bd->bi_cpu = MK_STR(CONFIG_BFIN_CPU);
+	bd->bi_cpu = __stringify(CONFIG_BFIN_CPU);
 	bd->bi_board_name = BFIN_BOARD_NAME;
 	bd->bi_vco = get_vco();
 	bd->bi_cclk = get_cclk();
@@ -284,9 +284,7 @@ void board_init_f(ulong bootflag)
 	init_baudrate();
 	serial_early_puts("Serial init\n");
 	serial_init();
-#ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
-#endif
 	serial_early_puts("Console init flash\n");
 	console_init_f();
 	serial_early_puts("End of early debugging\n");

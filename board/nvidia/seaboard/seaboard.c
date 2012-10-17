@@ -23,11 +23,11 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/tegra20.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/funcmux.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/mmc.h>
+#include <asm/arch-tegra/mmc.h>
 #include <asm/gpio.h>
 #ifdef CONFIG_TEGRA_MMC
 #include <mmc.h>
@@ -46,7 +46,7 @@ static void gpio_config_uart_seaboard(void)
 	gpio_direction_output(GPIO_PI3, 0);
 }
 
-void gpio_config_uart(void)
+void gpio_early_init_uart(void)
 {
 	if (machine_is_ventana())
 		return;

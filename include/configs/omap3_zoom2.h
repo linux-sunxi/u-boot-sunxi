@@ -76,12 +76,11 @@
  * NS16550 Configuration
  * Zoom2 uses the TL16CP754C on the debug board
  */
-#define CONFIG_SERIAL_MULTI		1
 /*
  * 0 - 1 : first  USB with respect to the left edge of the debug board
  * 2 - 3 : second USB with respect to the left edge of the debug board
  */
-#define ZOOM2_DEFAULT_SERIAL_DEVICE	(&zoom2_serial_device0)
+#define ZOOM2_DEFAULT_SERIAL_DEVICE	0
 
 #define V_NS16550_CLK			(1843200)	/* 1.8432 Mhz */
 

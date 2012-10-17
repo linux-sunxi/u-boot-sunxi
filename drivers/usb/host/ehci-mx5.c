@@ -25,7 +25,6 @@
 #include <asm/arch/iomux.h>
 
 #include "ehci.h"
-#include "ehci-core.h"
 
 #define MX5_USBOTHER_REGS_OFFSET 0x800
 
@@ -206,7 +205,7 @@ void __board_ehci_hcd_postinit(struct usb_ehci *ehci, int port)
 void board_ehci_hcd_postinit(struct usb_ehci *ehci, int port)
 	__attribute((weak, alias("__board_ehci_hcd_postinit")));
 
-int ehci_hcd_init(void)
+int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
 	struct usb_ehci *ehci;
 #ifdef CONFIG_MX53
@@ -221,7 +220,8 @@ int ehci_hcd_init(void)
 
 	set_usboh3_clk();
 	enable_usboh3_clk(1);
-	set_usb_phy2_clk();
+	set_usb_phy_clk();
+	enable_usb_phy1_clk(1);
 	enable_usb_phy2_clk(1);
 	mdelay(1);
 
@@ -230,9 +230,9 @@ int ehci_hcd_init(void)
 
 	ehci = (struct usb_ehci *)(OTG_BASE_ADDR +
 		(0x200 * CONFIG_MXC_USB_PORT));
-	hccr = (struct ehci_hccr *)((uint32_t)&ehci->caplength);
-	hcor = (struct ehci_hcor *)((uint32_t)hccr +
-			HC_LENGTH(ehci_readl(&hccr->cr_capbase)));
+	*hccr = (struct ehci_hccr *)((uint32_t)&ehci->caplength);
+	*hcor = (struct ehci_hcor *)((uint32_t)*hccr +
+			HC_LENGTH(ehci_readl(&(*hccr)->cr_capbase)));
 	setbits_le32(&ehci->usbmode, CM_HOST);
 
 	__raw_writel(CONFIG_MXC_USB_PORTSC, &ehci->portsc);
@@ -247,7 +247,7 @@ int ehci_hcd_init(void)
 	return 0;
 }
 
-int ehci_hcd_stop(void)
+int ehci_hcd_stop(int index)
 {
 	return 0;
 }
