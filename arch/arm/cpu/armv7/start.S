@@ -35,12 +35,6 @@
 #include <asm/system.h>
 #include <linux/linkage.h>
 
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SUNXI)
-/* Hack to align to 32 bytes offet */
-__start:	b _start
-	.balignl 16,0xdeadbeef
-#endif
-
 .globl _start
 _start: b	reset
 	ldr	pc, _undefined_instruction
