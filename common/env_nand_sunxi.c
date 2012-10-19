@@ -36,7 +36,7 @@
 #endif
 extern uchar default_environment[];
 
-char * env_name_spec = "SUNXI";
+char * env_name_spec = "SUNXI NAND";
 
 #ifdef ENV_IS_EMBEDDED
 extern uchar environment[];
