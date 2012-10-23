@@ -168,7 +168,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	ulong initrd_start, initrd_end;
 	void (*kernel_entry)(int zero, int arch, uint params);
 	bd_t *bd = gd->bd;
-#if DEBUG
+#ifdef DEBUG
 	printf("do_boota_linux storage_type = %d\n", storage_type);
 #endif
 	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);

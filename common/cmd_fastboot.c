@@ -964,7 +964,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 
 			} else if(!strcmp(cmdbuf + strlen("downloadsize"), "downloadsize")) {
 				if (interface.transfer_buffer_size)
-					sprintf(response + 4, "08x", interface.transfer_buffer_size);
+					sprintf(response + 4, "%08x", interface.transfer_buffer_size);
 			}
 			else
 			{

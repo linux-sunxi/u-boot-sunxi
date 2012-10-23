@@ -530,6 +530,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #ifdef CONFIG_ALLWINNER
+	//liugang add for card boot, 2012-10-23
+	printf("%s: mannly set storage_type/mmc_card_no = 2, for card boot, by liugang\n", __func__);
+	storage_type = 2;
+	mmc_card_no = 2;
+
 	if(!storage_type){
 		puts("NAND:  ");
 		nand_init();		/* go init the NAND */

@@ -51,6 +51,14 @@ static int sunxi_flash_read_all(u32 start, ulong buf)
 	start_block += 4 * 1024 * 1024/512;
 	addr = (void *)(buf + 4 * 1024 * 1024);
 
+	//liugang add for card boot, 2012-10-23
+#ifdef CONFIG_FPGA
+	printf("%s: rblock 0x%x, rbytes 0x%x, by liugang for card boot 20121023\n", __func__, rblock, rbytes);
+	printf("%s: manly set rbytes to 0x1000000, rblock to 0x8000, by liugang for card boot 20121023\n", __func__);
+	rbytes=0x1000000;
+	rblock=0x8000;
+#endif
+
 	ret = sunxi_flash_read(start_block, rblock, addr);
 
 	printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes - 511,
@@ -111,7 +119,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		{
 			rblock = (u32)simple_strtoul(argv[4], NULL, 16)/512;
 		}
-#if DEBUG
+#ifdef DEBUG
 		printf("part name   = %s\n", part_name);
 		printf("start block = %x\n", start_block);
 		printf("     nblock = %x\n", rblock);
