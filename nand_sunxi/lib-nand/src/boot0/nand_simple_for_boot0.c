@@ -308,18 +308,6 @@ __s32 PHY_Init(void)
 	return ret;	
 }
 
-#if 0
-__s32 PHY_GetDefaultParam(__u32 bank)
-{   
-	__u8 default_value[64]; 
-	       
-    NFC_SelectChip(0);
-    NFC_GetDefaultParam(0, default_value, READ_RETRY_TYPE);
-	NFC_SetDefaultParam(0, default_value, READ_RETRY_TYPE);
-  
-    return 0;
-}
-#else
 __s32 PHY_GetDefaultParam(__u32 bank)
 {   
 	__u32 i, j, chip = 0, rb = 0;
@@ -332,10 +320,11 @@ __s32 PHY_GetDefaultParam(__u32 bank)
     oob = (__u8 *)(oob_buf);
     pdata = (__u8 *)(PHY_TMP_PAGE_CACHE);
     if (!PageCachePool.PageCache0){
-		PageCachePool.PageCache0 = (__u8 *)MALLOC(SECTOR_CNT_OF_SUPER_PAGE * 512);
-		if (!PageCachePool.PageCache0)
-			return -1;
-	}
+			PageCachePool.PageCache0 = (__u8 *)MALLOC(SECTOR_CNT_OF_SUPER_PAGE * 512);
+			if (!PageCachePool.PageCache0)
+				return -1;
+		}
+	
     
     if((READ_RETRY_MODE==2)||(READ_RETRY_MODE==3))
     {
@@ -391,8 +380,6 @@ __s32 PHY_GetDefaultParam(__u32 bank)
     
     return 0;
 }
-#endif
-
 
 __s32 PHY_SetDefaultParam(__u32 bank)
 {   
@@ -561,7 +548,6 @@ __s32 PHY_SimpleRead_1K (struct boot_physical_param *readop)
 {
 	return (_read_single_page(readop,1));
 }
-
 
 
 /*

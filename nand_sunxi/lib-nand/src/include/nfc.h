@@ -239,6 +239,7 @@ __s32 NFC_CheckRbReady(__u32 rb);
 __s32 NFC_ChangMode(NFC_INIT_INFO * nand_info);
 __s32 NFC_SetEccMode(__u8 ecc_mode);
 __s32 NFC_ResetChip(NFC_CMD_LIST * reset_cmd);
+__s32 NFC_ReadRetry_off(__u32 chip); //sandisk readretry exit
 __u32 NFC_QueryINT(void);
 void NFC_EnableInt(__u8 minor_int);
 void NFC_DisableInt(__u8 minor_int);
@@ -251,8 +252,8 @@ void NFC_InitDDRParam(__u32 chip, __u32 param);
 #define ECC_LIMIT 	10
 #define ERR_TIMEOUT 14
 #define READ_RETRY_MAX_TYPE_NUM 5
-#define READ_RETRY_MAX_REG_NUM	8
-#define READ_RETRY_MAX_CYCLE	15
+#define READ_RETRY_MAX_REG_NUM	16
+#define READ_RETRY_MAX_CYCLE	20
 #define LSB_MODE_MAX_REG_NUM	8
 
 /* define various unit data input or output*/

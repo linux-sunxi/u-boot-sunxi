@@ -203,7 +203,7 @@ void _enable_ecc(__u32 pipline)
 
 	cfg |= NFC_ECC_EN;
 	NFC_WRITE_REG(NFC_REG_ECC_CTL, cfg);
-}	 
+}
 
 void _set_addr(__u8 *addr, __u8 cnt)
 {
@@ -240,7 +240,7 @@ __s32 _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 r
 	random_read_cmd1 = cur_cmd->value;
 	cur_cmd = cur_cmd->next;
 	read_data_cmd = cur_cmd->value;
-	
+
 	//access NFC internal RAM by DMA bus
 	NFC_WRITE_REG(NFC_REG_CTL, (NFC_READ_REG(NFC_REG_CTL)) | NFC_RAM_METHOD);
 	

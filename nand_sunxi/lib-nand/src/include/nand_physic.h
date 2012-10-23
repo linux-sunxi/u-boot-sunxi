@@ -58,10 +58,10 @@ extern struct __NandPageCachePool_t PageCachePool;
 #define SECTOR_CNT_OF_SUPER_PAGE            (NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie)
 
 //define the sector bitmap for a single page
-#define FULL_BITMAP_OF_SINGLE_PAGE          ((__u32)((1<<SECTOR_CNT_OF_SINGLE_PAGE) - 1))
+#define FULL_BITMAP_OF_SINGLE_PAGE           ((__u64)(((__u64)1<<(SECTOR_CNT_OF_SINGLE_PAGE - 1)) | (((__u64)1<<(SECTOR_CNT_OF_SINGLE_PAGE - 1)) - 1)))
 
 //define the sector bitmap for a super page, the sector count of a super page may be equal to 32
-#define FULL_BITMAP_OF_SUPER_PAGE           ((__u32)((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | ((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
+#define FULL_BITMAP_OF_SUPER_PAGE           ((__u64)(((__u64)1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | (((__u64)1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
 
 //define the block number offset for the multi-plane operation
 #define MULTI_PLANE_BLOCK_OFFSET            (NandStorageInfo.OptPhyOpPar.MultiPlaneBlockOffset)

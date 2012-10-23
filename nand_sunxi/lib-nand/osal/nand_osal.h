@@ -2,6 +2,7 @@
 #define __NAND_OSAL_H__
 
 #include <common.h>
+#include <config.h>
 
 #define __OS_LINUX_SYSTEM__
 

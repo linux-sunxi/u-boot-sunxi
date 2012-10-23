@@ -44,6 +44,7 @@ extern struct __NandPhyInfoPar_t StNandTbl;
 extern struct __NandPhyInfoPar_t DefaultNandTbl;
 extern struct __NandPhyInfoPar_t SpansionNandTbl;
 extern struct __NandPhyInfoPar_t PowerNandTbl;
+extern struct __NandPhyInfoPar_t SandiskNandTbl;
 
 
 __u32 NAND_GetValidBlkRatio(void)
@@ -191,7 +192,12 @@ __s32 _SearchNandArchi(__u8 *pNandID, struct __NandPhyInfoPar_t *pNandArchInfo)
             tmpNandManu = &PowerNandTbl;
             break;     
             
-        //manufacture is unknown, search parameter from default nand table
+	   //manufacture is sandisk, search parameter from sandisk nand table
+        case SANDISK:
+            tmpNandManu = &SandiskNandTbl;
+            break;   
+
+		//manufacture is unknown, search parameter from default nand table
         default:
             tmpNandManu = &DefaultNandTbl;
             break;

@@ -240,7 +240,7 @@ __s32 LML_FlushPageCache(void);
 *               < 0     read failed.
 ************************************************************************************************************************
 */
-__s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf);
+__s32 LML_PageRead(__u32 nPage, __u64 nBitmap, void* pBuf);
 
 
 /*
@@ -259,7 +259,7 @@ __s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf);
 *               < 0     write failed.
 ************************************************************************************************************************
 */
-__s32 LML_PageWrite(__u32 nPage, __u32 nBitmap, void* pBuf);
+__s32 LML_PageWrite(__u32 nPage, __u64 nBitmap, void* pBuf);
 
 
 /*

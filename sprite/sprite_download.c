@@ -116,7 +116,7 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storag
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		memcpy((void *)uboot->boot_data.nand_spare_data, storage_info, sizeof(boot_nand_para_t0));
+		memcpy((void *)uboot->boot_data.nand_spare_data, storage_info, sizeof(boot_nand_para_t));
 	}
 	/* regenerate check sum */
 	sunxi_sprite_generate_checksum(buffer, uboot->boot_head.length, uboot->boot_head.check_sum);
@@ -178,7 +178,7 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media, char *storag
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t0));
+		memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t));
 	}
 	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
 	/* regenerate check sum */

@@ -108,7 +108,7 @@ __s32  _log2data_swap_merge(__u32 nlogical)
 
     /*erase data block*/
     if ( NAND_OP_TRUE != LML_VirtualBlkErase(CUR_MAP_ZONE, DataBlk.PhyBlkNum)){
-        if (NAND_OP_TRUE != LML_BadBlkManage(&DataBlk,CUR_MAP_ZONE,0,NULL)){
+		if (NAND_OP_TRUE != LML_BadBlkManage(&DataBlk,CUR_MAP_ZONE,0,&DataBlk)){
             LOGICCTL_ERR("swap merge : bad block manage err erase data block\n");
             return NAND_OP_FALSE;
         }
@@ -291,7 +291,7 @@ __s32  _free2log_move_merge(__u32 nlogical)
     /*erase log block*/
     if(NAND_OP_TRUE != LML_VirtualBlkErase(CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum))
     {
-        if(NAND_OP_TRUE != LML_BadBlkManage(&LogBlk.PhyBlk,CUR_MAP_ZONE,0,NULL))
+		if(NAND_OP_TRUE != LML_BadBlkManage(&LogBlk.PhyBlk,CUR_MAP_ZONE,0,&LogBlk.PhyBlk))
         {
             LOGICCTL_ERR("move merge : bad block manage err after erase log block\n");
             return NAND_OP_FALSE;
@@ -391,7 +391,7 @@ __s32  _free2data_simple_merge(__u32 nlogical)
 
 	/*move erased data block to free block*/
     if ( NAND_OP_TRUE != LML_VirtualBlkErase(CUR_MAP_ZONE, DataBlk.PhyBlkNum)){
-        if (NAND_OP_TRUE != LML_BadBlkManage(&DataBlk,CUR_MAP_ZONE,0,NULL)){
+        if (NAND_OP_TRUE != LML_BadBlkManage(&DataBlk,CUR_MAP_ZONE,0,&DataBlk)){
             LOGICCTL_ERR("swap merge : bad block manage err erase data block\n");
             return NAND_OP_FALSE;
         }
@@ -404,7 +404,7 @@ __s32  _free2data_simple_merge(__u32 nlogical)
 
     /*move erased log block to free block*/
     if ( NAND_OP_TRUE != LML_VirtualBlkErase(CUR_MAP_ZONE, LogBlk.PhyBlk.PhyBlkNum)){
-        if (NAND_OP_TRUE != LML_BadBlkManage(&LogBlk.PhyBlk,CUR_MAP_ZONE,0,NULL)){
+		if (NAND_OP_TRUE != LML_BadBlkManage(&LogBlk.PhyBlk,CUR_MAP_ZONE,0,&LogBlk.PhyBlk)){
             LOGICCTL_ERR("move merge : bad block manage err after erase log block\n");
             return NAND_OP_FALSE;
         }

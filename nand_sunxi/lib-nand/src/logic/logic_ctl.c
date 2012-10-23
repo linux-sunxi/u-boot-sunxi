@@ -62,7 +62,8 @@ static struct __LogicCtlPar_t LogicalCtl;
 static __s32 _CalculateSectPar(__u32 nSectNum, __u32 nSectCnt, struct __GlobalLogicPageType_t *pHeadPage,
                                     __u32 *pMidPageCnt, struct __GlobalLogicPageType_t *pTailPage)
 {
-    __u32   tmpSectCnt, tmpBitmap;
+    __u32   tmpSectCnt;
+	__u64	tmpBitmap;
 
     LOGICCTL_DBG("[LOGICCTL_DBG]: Calculate logical sectors parameter, Lba:0x%x, Cnt:0x%x\n", nSectNum, nSectCnt);
 
@@ -129,7 +130,7 @@ static __s32 _CalculateSectPar(__u32 nSectNum, __u32 nSectCnt, struct __GlobalLo
 *               < 0     calcualte page parameter failed.
 ************************************************************************************************************************
 */
-static __s32 _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, __u32 nPage, __u32 nBitmap)
+static __s32 _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, __u32 nPage, __u64 nBitmap)
 {
     __u32   tmpPage, tmpBlk, tmpZone;
 
@@ -165,14 +166,14 @@ static __s32 _CalculateLogicPagePar(struct __LogicPageType_t *pLogicPage, __u32 
 *               < 0     update page data failed.
 ************************************************************************************************************************
 */
-static __s32 _UpdateReadPageData(__u32 nSectBitmap, void * pBuf)
+static __s32 _UpdateReadPageData(__u64 nSectBitmap, void * pBuf)
 {
     __s32   i;
     __u8    *tmpSrc = LML_WRITE_PAGE_CACHE, *tmpDst = pBuf;
 
     for(i=0; i<SECTOR_CNT_OF_LOGIC_PAGE; i++)
     {
-        if(nSectBitmap & CachePage.SectorBitmap & (1<<i))
+        if(nSectBitmap & CachePage.SectorBitmap & ((__u64)1<<i))
         {
             MEMCPY(tmpDst, tmpSrc, SECTOR_SIZE);
         }
@@ -200,7 +201,7 @@ static __s32 _UpdateReadPageData(__u32 nSectBitmap, void * pBuf)
 *               < 0     merge page data failed.
 ************************************************************************************************************************
 */
-static __s32 _MergeCachePageData(__u32 nPage, __u32 nBitmap, __u8 *pBuf)
+static __s32 _MergeCachePageData(__u32 nPage, __u64 nBitmap, __u8 *pBuf)
 {
     __s32   i;
     __u8    *tmpSrc = pBuf, *tmpDst = LML_WRITE_PAGE_CACHE;
@@ -215,7 +216,7 @@ static __s32 _MergeCachePageData(__u32 nPage, __u32 nBitmap, __u8 *pBuf)
 
     for(i=0; i<SECTOR_CNT_OF_LOGIC_PAGE; i++)
     {
-        if(nBitmap & (1<<i))
+        if(nBitmap & ((__u64)1<<i))
         {
             //the sector of the write page is valid, copy data to the page cache
             MEMCPY(tmpDst, tmpSrc, SECTOR_SIZE);
@@ -248,7 +249,8 @@ static __s32 _MergeCachePageData(__u32 nPage, __u32 nBitmap, __u8 *pBuf)
 static __s32 _WritePageCacheToNand(void)
 {
     __s32   result = 0;
-    __u32   tmpPage, tmpBitmap;
+    __u32   tmpPage;
+	__u64	tmpBitmap;
     __u8    *tmpBuf;
 
     tmpPage = CachePage.LogicPageNum;
@@ -459,7 +461,7 @@ __s32 LML_CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32
 __s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
 {
     __s32 i, result;
-    __u32 tmpBitmap;
+    __u64 tmpBitmap;
     __u8  *tmpSpare, *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -474,7 +476,7 @@ __s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
         //process the pointer to spare area data
         for(i=0; i<2; i++)
         {
-            if(tmpBitmap & (1<<i))
+            if(tmpBitmap & ((__u64)1<<i))
             {
                 tmpSrcPtr[i] = LML_SPARE_BUF + 4 * i;
                 tmpDstPtr[i] = tmpSpare + 4 * i;
@@ -487,7 +489,7 @@ __s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
 
         for(i=0; i<2; i++)
         {
-            if(tmpBitmap & (1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
+            if(tmpBitmap & ((__u64)1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
             {
                 tmpSrcPtr[i+2] = LML_SPARE_BUF + 4 * (i + SECTOR_CNT_OF_SINGLE_PAGE);
                 tmpDstPtr[i+2] = tmpSpare + 8 + 4 * i;
@@ -549,7 +551,7 @@ __s32 LML_VirtualPageRead(struct __PhysicOpPara_t *pVirtualPage)
 __s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
 {
     __s32 i, result;
-    __u32 tmpBitmap;
+    __u64 tmpBitmap;
     __u8  *tmpSpare, *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
     struct __PhysicOpPara_t tmpPhyPage;
 
@@ -565,7 +567,7 @@ __s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
         //process the pointer to spare area data
         for(i=0; i<2; i++)
         {
-            if(tmpBitmap & (1<<i))
+            if(tmpBitmap & ((__u64)1<<i))
             {
                 tmpSrcPtr[i] = tmpSpare + 4 * i;
                 tmpDstPtr[i] = LML_SPARE_BUF + 4 * i;
@@ -578,7 +580,7 @@ __s32 LML_VirtualPageWrite( struct __PhysicOpPara_t *pVirtualPage)
 
         for(i=0; i<2; i++)
         {
-            if(tmpBitmap & (1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
+            if(tmpBitmap & ((__u64)1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
             {
                 tmpSrcPtr[i+2] = tmpSpare + 8 + 4 * i;
                 tmpDstPtr[i+2] = LML_SPARE_BUF + 4 * (i + SECTOR_CNT_OF_SINGLE_PAGE);
@@ -740,7 +742,7 @@ static __s32 _CloseWritePage(void)
 *               < 0     read failed.
 ************************************************************************************************************************
 */
-__s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf)
+__s32 LML_PageRead(__u32 nPage, __u64 nBitmap, void* pBuf)
 {
     __s32 result;
     __u32 tmpSuperBlk, tmpSuperPage;
@@ -858,7 +860,7 @@ __s32 LML_PageRead(__u32 nPage, __u32 nBitmap, void* pBuf)
 *               < 0     write failed.
 ************************************************************************************************************************
 */
-__s32 LML_PageWrite(__u32 nPage, __u32 nBitmap, void* pBuf)
+__s32 LML_PageWrite(__u32 nPage, __u64 nBitmap, void* pBuf)
 {
     __s32 result;
     struct __LogicPageType_t tmpLogicPage;
@@ -1108,7 +1110,8 @@ __s32 LML_FlushPageCache(void)
 __s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 {
     __s32   i, result;
-    __u32   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
+    __u32   tmpMidPageCnt, tmpPageNum, tmpPageCnt;
+	__u64	tmpBitmap;
     __u8    *tmpBuf;
     struct __GlobalLogicPageType_t tmpHeadPage, tmpTailPage;
 
@@ -1140,7 +1143,7 @@ __s32 LML_Read(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
     //calculate the buffer address for page align
     for(i=0; i<SECTOR_CNT_OF_LOGIC_PAGE; i++)
     {
-        if(tmpHeadPage.SectorBitmap & (1<<i))
+        if(tmpHeadPage.SectorBitmap & ((__u64)1<<i))
         {
             break;
         }
@@ -1237,7 +1240,8 @@ void echo_write_data (__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 __s32 LML_Write(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
 {
     __s32   i, result;
-    __u32   tmpMidPageCnt, tmpPageNum, tmpBitmap, tmpPageCnt;
+    __u32   tmpMidPageCnt, tmpPageNum, tmpPageCnt;
+	__u64	tmpBitmap;
     __u8    *tmpBuf;
     struct __GlobalLogicPageType_t tmpHeadPage, tmpTailPage;
     
@@ -1266,7 +1270,7 @@ __s32 LML_Write(__u32 nSectNum, __u32 nSectorCnt, void* pBuf)
     //calculate the buffer address for page align
     for(i=0; i<SECTOR_CNT_OF_LOGIC_PAGE; i++)
     {
-        if(tmpHeadPage.SectorBitmap & (1<<i))
+        if(tmpHeadPage.SectorBitmap & ((__u64)1<<i))
         {
             break;
         }
@@ -1373,14 +1377,14 @@ __s32 LML_Init(void)
     NandDriverInfo.PageCachePool->PageCache1 = (__u8 *)MALLOC(SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
     if(!NandDriverInfo.PageCachePool->PageCache1)
     {
-        LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!");
+        LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!\n");
         return -ERR_MALLOC;
     }
     //NandDriverInfo.PageCachePool->PageCache2 = NULL;
      NandDriverInfo.PageCachePool->PageCache2 = (__u8 *)MALLOC(SECTOR_CNT_OF_LOGIC_PAGE * SECTOR_SIZE);
     if(!NandDriverInfo.PageCachePool->PageCache2)
     {
-        LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!");
+        LOGICCTL_ERR("[LOGICCTL_ERR] Request memory for nand flash page cache failed!!\n");
         return -ERR_MALLOC;
     }
 

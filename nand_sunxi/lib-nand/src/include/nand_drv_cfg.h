@@ -34,14 +34,15 @@
 #define __NAND_DRV_CFG_H
 
 #include "../../osal/nand_osal.h"
+#include <asm/arch/nand_bsp.h>
 
 //==============================================================================
 //  define the value of some variable for
 //==============================================================================
 
 #define  NAND_VERSION_0                 0x02
-#define  NAND_VERSION_1                 0x10
-#define  NAND_DRV_DATE                  0x20120804
+#define  NAND_VERSION_1                 0x11
+#define  NAND_DRV_DATE                  0x20121022
 
 
 

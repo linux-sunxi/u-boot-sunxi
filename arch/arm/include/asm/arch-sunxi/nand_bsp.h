@@ -31,65 +31,115 @@
 #ifndef __BSP_NAND_H__
 #define __BSP_NAND_H__
 
-#include <nand.h>
-
 //---------------------------------------------------------------
 //  nand driver 版本号
 //---------------------------------------------------------------
 #define  NAND_VERSION_0                 0x02
-#define  NAND_VERSION_1                 0x06
+#define  NAND_VERSION_1                 0x11
 
 //---------------------------------------------------------------
 //  结构体 定义
 //---------------------------------------------------------------
-typedef struct  boot_nand_para_set_t0
+typedef struct
 {
-    unsigned char        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
-    unsigned short       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
-	unsigned char		 RbCnt;
-	unsigned char		 RbConnectInfo;						//the connect  information of the all rb  chips are connected
-    unsigned char        RbConnectMode;						//the rb connect  mode
-	unsigned char        BankCntPerChip;                     //the count of the banks in one nand chip, multiple banks can support Inter-Leave
-    unsigned char        DieCntPerChip;                      //the count of the dies in one nand chip, block management is based on Die
-    unsigned char        PlaneCntPerDie;                     //the count of planes in one die, multiple planes can support multi-plane operation
-    unsigned char        SectorCntPerPage;                   //the count of sectors in one single physic page, one sector is 0.5k
-    unsigned short       PageCntPerPhyBlk;                   //the count of physic pages in one physic block
-    unsigned short       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
-    unsigned short       OperationOpt;                       //the mask of the operation types which current nand flash can support support
-    unsigned char        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
-    unsigned char        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
-    unsigned char        NandChipId[5];                      //the nand chip id of current connecting nand chip
-    unsigned short        ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
-	unsigned int 		 good_block_ratio;					//good block ratio get from hwscan
-	unsigned int		 ReadRetryType;						//the read retry type
-	unsigned int		 Reserved[32];
-}boot_nand_para_t0;
+    __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
+    __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
+	__u8		RbCnt;
+	__u8		RbConnectInfo;						//the connect  information of the all rb  chips are connected
+    __u8        RbConnectMode;						//the rb connect  mode
+	__u8        BankCntPerChip;                     //the count of the banks in one nand chip, multiple banks can support Inter-Leave
+    __u8        DieCntPerChip;                      //the count of the dies in one nand chip, block management is based on Die
+    __u8        PlaneCntPerDie;                     //the count of planes in one die, multiple planes can support multi-plane operation
+    __u8        SectorCntPerPage;                   //the count of sectors in one single physic page, one sector is 0.5k
+    __u16       PageCntPerPhyBlk;                   //the count of physic pages in one physic block
+    __u16       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
+    __u32       OperationOpt;                       //the mask of the operation types which current nand flash can support support
+    __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
+    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
+    __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
+    __u16       ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
+	__u32 		good_block_ratio;					//good block ratio get from hwscan
+	__u32		ReadRetryType;						//the read retry type
+	__u32       DDRType;
+	__u32		Reserved[32];
+}boot_nand_para_t;
 
-typedef struct boot_flash_info0
-{
-	unsigned int chip_cnt;
-	unsigned int blk_cnt_per_chip;
-	unsigned int blocksize;
-	unsigned int pagesize;
-	unsigned int pagewithbadflag; /*bad block flag was written at the first byte of spare area of this page*/
-}boot_flash_info_t0;
+typedef struct boot_flash_info{
+	__u32 chip_cnt;
+	__u32 blk_cnt_per_chip;
+	__u32 blocksize;
+	__u32 pagesize;
+	__u32 pagewithbadflag; /*bad block flag was written at the first byte of spare area of this page*/
+}boot_flash_info_t;
 
 
 //for simple
-#if 0
-struct boot_physical_param
-{
-	unsigned char   chip; //chip no
-	unsigned short  block; // block no within chip
-	unsigned short  page; // apge no within block
-	unsigned short  sectorbitmap; //done't care
+struct boot_physical_param{
+	__u8   chip; //chip no
+	__u16  block; // block no within chip
+	__u16  page; // apge no within block
+	__u64  sectorbitmap; //done't care
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf
 };
-#endif
+
 //---------------------------------------------------------------
 //  函数 定义
 //---------------------------------------------------------------
+
+//for logic
+extern __s32 LML_Init(void);
+extern __s32 LML_Exit(void);
+extern __s32 LML_Read(__u32 nLba, __u32 nLength, void* pBuf);
+extern __s32 LML_Write(__u32 nLba, __u32 nLength, void* pBuf);
+extern __s32 LML_FlushPageCache(void);
+extern __s32 NAND_CacheFlush(void);
+extern __s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf);
+extern __s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf);
+extern __s32 NAND_CacheOpen(void);
+extern __s32 NAND_CacheClose(void);
+
+//for format
+extern __s32 FMT_Init(void);
+extern __s32 FMT_Exit(void);
+extern __s32 FMT_FormatNand(void);
+extern void  ClearNandStruct( void );
+
+//for scan
+__s32  SCN_AnalyzeNandSystem(void);
+
+//for physical
+extern __s32 PHY_Init(void);
+extern __s32 PHY_Exit(void);
+extern __s32 PHY_ChangeMode(__u8 serial_mode);
+
+//for simplie(boot0)
+extern __s32 PHY_SimpleErase(struct boot_physical_param * eraseop);
+extern __s32 PHY_SimpleRead(struct boot_physical_param * readop);
+extern __s32 PHY_SimpleWrite(struct boot_physical_param * writeop);
+extern __s32 PHY_SimpleWrite_1K(struct boot_physical_param * writeop);
+extern __s32 PHY_SimpleWrite_Seq(struct boot_physical_param * writeop);
+extern __s32 PHY_SimpleRead_Seq(struct boot_physical_param * readop);
+extern __s32 PHY_SimpleRead_1K(struct boot_physical_param * readop);
+extern __s32 BOOT_AnalyzeNandSystem(void);
+
+//for param get&set
+extern __u32 NAND_GetValidBlkRatio(void);
+extern __s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio);
+extern __u32 NAND_GetFrequencePar(void);
+extern __s32 NAND_SetFrequencePar(__u32 FrequencePar);
+extern __u32 NAND_GetNandVersion(void);
+extern __s32 NAND_GetParam(boot_nand_para_t * nand_param);
+extern __s32 NAND_GetFlashInfo(boot_flash_info_t *info);
+extern __u32 NAND_GetDiskSize(void);
+extern void  NAND_SetSrcClkName(__u32 pll_name);
+
+//for lsb mode
+extern __s32 NFC_LSBEnable(__u32 chip, __u32 read_retry_type);
+extern __s32 NFC_LSBDisable(__u32 chip, __u32 read_retry_type);
+extern __s32 NFC_LSBInit(__u32 read_retry_type);
+extern __s32 NFC_LSBExit(__u32 read_retry_type);
+
 /*
 *   Description:
 *   1. if u wanna set dma callback hanlder(sleep during dma transfer) to free cpu for other tasks,

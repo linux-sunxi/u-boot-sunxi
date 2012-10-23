@@ -394,9 +394,23 @@ __s32 _read_single_page(struct boot_physical_param *readop,__u8 dma_wait_mode)
 
     if(SUPPORT_READ_RETRY)  
     {
-        if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x30))  //toshiba & Samsung mode
-            RetryCount[readop->chip] = 0;
-            
+        if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x50))  //toshiba & Samsung mode & Sandisk mode & micron mode
+        {
+			RetryCount[readop->chip] = 0;
+			if((READ_RETRY_MODE>=0x30)&&(READ_RETRY_MODE<0x40))  //Sandisk mode
+			{
+				if((readop->page!=255)&&((readop->page==0)||((readop->page)%2))) //page low or page high
+				{
+					READ_RETRY_TYPE = 0x301009;
+					NFC_ReadRetryInit(READ_RETRY_TYPE);
+				}
+				else
+				{
+					READ_RETRY_TYPE = 0x301409;
+					NFC_ReadRetryInit(READ_RETRY_TYPE);
+				}
+			}
+        }    
         for( k = 0; k<READ_RETRY_CYCLE+1;k++)
 		{
 			if(RetryCount[readop->chip]==(READ_RETRY_CYCLE+1))
@@ -440,17 +454,33 @@ __s32 _read_single_page(struct boot_physical_param *readop,__u8 dma_wait_mode)
 
 			if((ret != -ERR_ECC)||(k==READ_RETRY_CYCLE))
 			{
-			    if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x20))  //toshiba mode
-			    {
-    			    //exit toshiba readretry
-    				PHY_ResetChip(readop->chip);
-			    } 
-			    else if((READ_RETRY_MODE>=0x20)&&(READ_RETRY_MODE<0x30))   //samsung mode
-			    {
-			        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
-			    }
-			    
-				break;
+				if(k==0)
+				{
+					break;
+				}
+				else
+				{
+					if((READ_RETRY_MODE>=0x10)&&(READ_RETRY_MODE<0x20))  //toshiba mode
+				    {
+	    			    //exit toshiba readretry
+	    				PHY_ResetChip(readop->chip);
+				    }
+					else if((READ_RETRY_MODE>=0x30)&&(READ_RETRY_MODE<0x40))  //sandisk
+					{
+						NFC_ReadRetry_off(readop->chip);
+
+					}
+				    else if((READ_RETRY_MODE>=0x20)&&(READ_RETRY_MODE<0x30))   //samsung mode
+				    {
+				        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
+				    }
+					else if((READ_RETRY_MODE>=0x40)&&(READ_RETRY_MODE<0x50))   //micron mode
+				    {
+				        NFC_SetDefaultParam(readop->chip, default_value, READ_RETRY_TYPE);
+				    }
+				    
+					break;
+				}
 			}
 
 			RetryCount[readop->chip]++;    				    				

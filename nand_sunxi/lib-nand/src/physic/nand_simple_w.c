@@ -35,7 +35,7 @@ __s32 _write_signle_page (struct boot_physical_param *writeop,__u32 program1,__u
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
+	__u8 sparebuf[4*32];
 	__u8 addr[5];
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
@@ -90,7 +90,7 @@ __s32 _write_signle_page_seq (struct boot_physical_param *writeop,__u32 program1
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
+	__u8 sparebuf[4*32];
 	__u8 addr[5];
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
@@ -146,7 +146,7 @@ __s32 _write_signle_page_1K (struct boot_physical_param *writeop,__u32 program1,
 	__u32 rb;
 	__u32 random_seed;
 	//__u8 *sparebuf;
-	__u8 sparebuf[4*16];
+	__u8 sparebuf[4*32];
 	__u8 addr[5];
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i,addr_cycle;
@@ -253,6 +253,7 @@ __s32 PHY_SimpleWrite (struct boot_physical_param *writeop)
 	return ret;
 }
 
+
 __s32 PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 {
 	__s32 status;
@@ -282,6 +283,8 @@ __s32 PHY_SimpleWrite_Seq (struct boot_physical_param *writeop)
 
 	return ret;
 }
+
+
 
 __s32 PHY_SimpleWrite_1K (struct boot_physical_param *writeop)
 {
