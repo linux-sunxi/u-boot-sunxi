@@ -42,7 +42,7 @@
 //---------------------------------------------------------------
 //  结构体 定义
 //---------------------------------------------------------------
-typedef struct  boot_nand_para_set_t
+typedef struct  boot_nand_para_set_t0
 {
     unsigned char        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
     unsigned short       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
@@ -63,16 +63,16 @@ typedef struct  boot_nand_para_set_t
 	unsigned int 		 good_block_ratio;					//good block ratio get from hwscan
 	unsigned int		 ReadRetryType;						//the read retry type
 	unsigned int		 Reserved[32];
-}boot_nand_para_t;
+}boot_nand_para_t0;
 
-typedef struct boot_flash_info
+typedef struct boot_flash_info0
 {
 	unsigned int chip_cnt;
 	unsigned int blk_cnt_per_chip;
 	unsigned int blocksize;
 	unsigned int pagesize;
 	unsigned int pagewithbadflag; /*bad block flag was written at the first byte of spare area of this page*/
-}boot_flash_info_t;
+}boot_flash_info_t0;
 
 
 //for simple
@@ -85,60 +85,9 @@ struct boot_physical_param
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf
 };
-
 //---------------------------------------------------------------
 //  函数 定义
 //---------------------------------------------------------------
-
-//for logic
-extern int LML_Init(void);
-extern int LML_Exit(void);
-extern int LML_Read(unsigned int nLba, unsigned int nLength, void* pBuf);
-extern int LML_Write(unsigned int nLba, unsigned int nLength, void* pBuf);
-extern int LML_FlushPageCache(void);
-extern int NAND_CacheFlush(void);
-extern int NAND_CacheRead(unsigned int blk, unsigned int nblk, void *buf);
-extern int NAND_CacheWrite(unsigned int blk, unsigned int nblk, void *buf);
-extern int NAND_CacheOpen(void);
-extern int NAND_CacheClose(void);
-extern int NAND_LogicRead(uint nSectNum, uint nSectorCnt, void * pBuf);
-extern int NAND_LogicWrite(uint nSectNum, uint nSectorCnt, void * pBuf);
-extern uint NAND_GetDiskSize(void);
-//for format
-extern int FMT_Init(void);
-extern int FMT_Exit(void);
-extern int FMT_FormatNand(void);
-extern void  ClearNandStruct( void );
-
-//for scan
-int  SCN_AnalyzeNandSystem(void);
-
-//for physical
-extern int PHY_Init(void);
-extern int PHY_Exit(void);
-extern int PHY_ChangeMode(unsigned char serial_mode);
-
-//for simplie(boot0)
-extern int PHY_SimpleErase(struct boot_physical_param * eraseop);
-extern int PHY_SimpleRead(struct boot_physical_param * readop);
-extern int PHY_SimpleWrite(struct boot_physical_param * writeop);
-extern int PHY_SimpleWrite_1K(struct boot_physical_param * writeop);
-extern int PHY_SimpleWrite_Seq(struct boot_physical_param * writeop);
-extern int PHY_SimpleRead_Seq(struct boot_physical_param * readop);
-extern int PHY_SimpleRead_1K(struct boot_physical_param * readop);
-extern int BOOT_AnalyzeNandSystem(void);
-
-//for param get&set
-extern unsigned int NAND_GetValidBlkRatio(void);
-extern int NAND_SetValidBlkRatio(unsigned int ValidBlkRatio);
-extern unsigned int NAND_GetFrequencePar(void);
-extern int NAND_SetFrequencePar(unsigned int FrequencePar);
-extern unsigned int NAND_GetNandVersion(void);
-extern int NAND_GetParam(boot_nand_para_t * nand_param);
-extern int NAND_GetFlashInfo(boot_flash_info_t *info);
-extern unsigned int NAND_GetDiskSize(void);
-extern void  NAND_SetSrcClkName(unsigned int pll_name);
-
 /*
 *   Description:
 *   1. if u wanna set dma callback hanlder(sleep during dma transfer) to free cpu for other tasks,
@@ -151,9 +100,6 @@ extern void  NAND_SetSrcClkName(unsigned int pll_name);
 *   4. input para  : 0:dma poll method;  1:dma callback isr,free cpu for other tasks.
 *   5. return value: 0:set succeed; -1:set failed.
 */
-extern int NAND_SetDrqCbMethod(unsigned int used);
-
-
 int sunxi_nand_scan_partition(void);
 int sunxi_nand_getpart_num(void);
 int sunxi_nand_getpart_offset(int part_index);

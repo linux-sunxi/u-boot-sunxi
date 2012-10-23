@@ -231,6 +231,7 @@ void set_boot_type_arg(void){
 
 void sunxi_script_init(void)
 {
+#if 0
     char  addr[8]; 
 	char *const argv[6] = { "fatload", "sunxi_flash", "0", addr, "script.bin", NULL };
 
@@ -247,7 +248,7 @@ void sunxi_script_init(void)
 	{
 	    sw_gpio_init();
     }
-
+#endif
 	return ;
 }
 /* add board specific code here */

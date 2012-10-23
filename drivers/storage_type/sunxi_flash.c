@@ -26,7 +26,6 @@
 
 #include <common.h>
 #include <mmc.h>
-#include <asm/arch/nand_bsp.h>
 #include <asm/arch/boot_type.h>
 #include "sunxi_flash.h"
 
@@ -246,8 +245,7 @@ int sunxi_flash_handle_init(void)
 	int card_no;
 
     workmode = uboot_spare_head.boot_data.work_mode;
-	storage_type = uboot_spare_head.boot_data.storage_type;
-
+	
 #ifdef DEBUG
     printf("workmode = %d\n", workmode);
 #endif
@@ -255,6 +253,8 @@ int sunxi_flash_handle_init(void)
 	if(workmode == WORK_MODE_BOOT)
 	{
 	    int nand_used, sdc_used;
+
+		storage_type = uboot_spare_head.boot_data.storage_type;
         if((storage_type == 1) || (storage_type == 2))
 		{
 		    if(2 == storage_type)
@@ -309,6 +309,8 @@ int sunxi_flash_handle_init(void)
 			sunxi_sprite_write = sunxi_flash_nand_write;
 			sunxi_sprite_size  = sunxi_flash_nand_size;
 			sunxi_sprite_exit  = sunxi_flash_nand_exit;	
+
+			uboot_spare_head.boot_data.storage_type = 0;
         }
         else                                   /* burn sdcard 2 */
 		{
@@ -327,6 +329,8 @@ int sunxi_flash_handle_init(void)
 			sunxi_sprite_write = sunxi_sprite_mmc_write;
 			sunxi_sprite_size  = sunxi_sprite_mmc_size;
 			sunxi_sprite_exit  = sunxi_sprite_mmc_exit;	
+
+			uboot_spare_head.boot_data.storage_type = 2;
 	    }
 
 		if(workmode & 0x07)     //sdcard burn mode

@@ -23,8 +23,9 @@
 #include <command.h>
 #include <fastboot.h>
 
+#define  SUNXI_FLASH_READ_FIRST_SIZE      (32 * 1024)
 
-static int sunxi_flash_read_all(u32 start, ulong buf)
+static int sunxi_flash_read_all(u32 start, ulong buf, const char *part_name)
 {
 	int ret;
 	u32 rbytes, rblock;
@@ -33,7 +34,7 @@ static int sunxi_flash_read_all(u32 start, ulong buf)
 	struct fastboot_boot_img_hdr *fb_hdr;
 
 	addr = (void *)buf;
-	ret = sunxi_flash_read(start_block, 4 * 1024 * 1024/512, addr);
+	ret = sunxi_flash_read(start_block, SUNXI_FLASH_READ_FIRST_SIZE/512, addr);
 	if(!ret)
 	{
 		printf("read all error: start=%x, addr=%x\n", start_block, (u32)addr);
@@ -41,19 +42,25 @@ static int sunxi_flash_read_all(u32 start, ulong buf)
 		return 1;
 	}
 	fb_hdr = (struct fastboot_boot_img_hdr *)addr;
-	rbytes = fb_hdr->kernel_size + fb_hdr->ramdisk_size + fb_hdr->second_size + 1024 * 1024;
-	if(rbytes <= 4 * 1024 * 1024)
+	if (memcmp(fb_hdr->magic, FASTBOOT_BOOT_MAGIC, 8)) 
 	{
-		return 0;
+		printf("boota: bad boot image magic, maybe not a boot.img?\n");
+		printf("try to read all\n");
+		debug("part name=%s\n", part_name);
+		rbytes = sunxi_partition_get_size_byname(part_name) * 512;
 	}
-	rbytes += 511;
-	rblock = (rbytes/512) - (4 * 1024 * 1024/512);
-	start_block += 4 * 1024 * 1024/512;
-	addr = (void *)(buf + 4 * 1024 * 1024);
+	else
+	{
+		rbytes = fb_hdr->kernel_size + fb_hdr->ramdisk_size + fb_hdr->second_size + 1024 * 1024 + 511;
+	}
+	rblock = rbytes/512 - SUNXI_FLASH_READ_FIRST_SIZE/512;
+	debug("rblock=%d, start=%d\n", rblock, start_block);
+	start_block += SUNXI_FLASH_READ_FIRST_SIZE/512;
+	addr = (void *)(buf + SUNXI_FLASH_READ_FIRST_SIZE);
 
 	ret = sunxi_flash_read(start_block, rblock, addr);
 
-	printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes - 511,
+	printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes,
 		       ret ? "OK" : "ERROR");
 
 	return ret == 0 ? 1 : 0;
@@ -86,7 +93,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 		addr = (ulong)simple_strtoul(argv[2], NULL, 16);
 
-		if((!strncmp(part_name, "boot", 4)) || (!strncmp(part_name, "recovery", 4)))
+		if((!strncmp(part_name, "boot", 4)) || (!strncmp(part_name, "recovery", 8)))
 		{
 			readall_flag = 1;
 		}
@@ -103,7 +110,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			{
 				puts("read boot or recovery all\n");
 			
-				return sunxi_flash_read_all(start_block, addr);
+				return sunxi_flash_read_all(start_block, addr, (const char *)part_name);
 			}
 			rblock = sunxi_partition_get_size_byname((const char *)part_name);
 		}

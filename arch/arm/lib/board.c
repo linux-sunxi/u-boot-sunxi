@@ -206,6 +206,7 @@ extern int power_init(void);
 #endif
 extern int check_update_key(void);
 extern int display_inner(void);
+extern int script_init(void);
 /*
  * Breathe some life into the board...
  *
@@ -258,6 +259,7 @@ init_fnc_t *init_sequence[] = {
 	console_init_f,		/* stage 1 init of console */
 	display_banner,		/* say that we are here */
 	display_inner,      /* show the inner version */
+	script_init,
 #if defined(CONFIG_DISPLAY_CPUINFO)
 	print_cpuinfo,		/* display cpu info (and speed) */
 #endif
@@ -462,6 +464,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if !defined(CONFIG_SYS_NO_FLASH)
 	ulong flash_size;
 #endif
+	int workmode;
 
 	gd = id;
 	bd = gd->bd;
@@ -526,7 +529,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 	sunxi_flash_handle_init();
 	sunxi_partition_init();
-	sunxi_script_init();
+//	sunxi_script_init();
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){
@@ -654,10 +657,18 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
+	workmode = uboot_spare_head.boot_data.work_mode;
 
-	/* main_loop() can return to retry autoboot, if so just run it again. */
-	for (;;) {
-		main_loop();
+    if(workmode & WORK_MODE_PRODUCT)
+    {
+    	//sunxi_sprite_mode(workmode);
+    }
+	else
+	{/* main_loop() can return to retry autoboot, if so just run it again. */
+    	for (;;) 
+		{
+			main_loop();
+		}
 	}
 
 	/* NOTREACHED - no way out of command loop except booting */

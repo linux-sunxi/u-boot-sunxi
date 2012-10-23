@@ -98,6 +98,22 @@ int display_inner(void)
 	return 0;
 }
 
+int script_init(void)
+{
+    uint offset, length;
+	char *addr;
+
+	offset = uboot_spare_head.boot_head.uboot_length;
+	length = uboot_spare_head.boot_head.length - uboot_spare_head.boot_head.uboot_length;
+	addr   = (char *)CONFIG_SYS_TEXT_BASE + offset;
+
+    debug("script offset=%x, length = %x\n", offset, length);
+
+	memcpy((void *)SYS_CONFIG_MEMBASE, addr, length);
+
+	return 0;
+}
+
 int power_init(void)
 {
 	int clock;

@@ -50,7 +50,7 @@ struct __OptionalPhyOpPar_t
     __u16       MultiPlaneBlockOffset;              //the value of the block number offset between the left-plane block and the right pane block
 };
 
-typedef struct 
+typedef struct
 {
     __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
     __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
@@ -65,7 +65,7 @@ typedef struct
     __u16       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
     __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
-    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
+    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
     __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
 	__u32 		good_block_ratio;					//good block ratio get from hwscan
@@ -98,7 +98,7 @@ struct __NandStorageInfo_t
     __u16       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
     __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
-    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
+    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
     __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                         //the ratio of the valid physical blocks, based on 1024
     __u32		ReadRetryType;						//the read retry type
@@ -287,7 +287,7 @@ struct __NandPhyInfoPar_t
     __u16       OperationOpt;                       //the bitmap that marks which optional operation that the nand flash can support
     __u16       ValidBlkRatio;                      //the valid block ratio, based on 1024 blocks
     __u16       AccessFreq;                         //the highest access frequence of the nand flash chip, based on MHz
-    __u16       EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
+    __u16       EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
     __u32 		ReadRetryType;
     __u32       DDRType;
     struct __OptionalPhyOpPar_t *OptionOp;          //the pointer point to the optional operation parameter

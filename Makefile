@@ -242,7 +242,7 @@ LIBS += drivers/input/libinput.o
 LIBS += drivers/misc/libmisc.o
 LIBS += drivers/mmc/libmmc.o
 LIBS += drivers/storage_type/libstorage_type.o
-LIBS += drivers/mtd/libmtd.o
+#LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/onenand/libonenand.o
 LIBS += drivers/mtd/ubi/libubi.o
@@ -280,6 +280,7 @@ LIBS += common/libcommon.o
 LIBS += lib/libfdt/libfdt.o
 LIBS += api/libapi.o
 LIBS += post/libpost.o
+LIBS += sprite/libsprite.o
 
 ifeq ($(SOC),omap3)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o

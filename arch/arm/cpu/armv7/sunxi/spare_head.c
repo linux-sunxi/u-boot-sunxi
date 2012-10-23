@@ -4,8 +4,8 @@
  *
  *
  */
-#include <common.h> 
-#include <asm/arch/spare_head.h>
+#include <common.h>
+#include <asm/arch/private_uboot.h>
 
 struct spare_boot_head_t  uboot_spare_head = {
 	                                  {
@@ -13,7 +13,8 @@ struct spare_boot_head_t  uboot_spare_head = {
 							   		      UBOOT_MAGIC,
 							   		      STAMP_VALUE,
 							   		      ALIGN_SIZE,
-							   		      sizeof( struct spare_boot_head_t ),
+							   		      0,
+							   		      0,
 							   		      UBOOT_VERSION,
 							   		      UBOOT_PLATFORM
 							 	      },
@@ -26,7 +27,7 @@ struct spare_boot_head_t  uboot_spare_head = {
 							 	      	  {             //uart gpio
 							 	      	    {2, 22, 2, -1, -1, -1, 0, 0},
 		                                    {2, 23, 2, -1, -1, -1, 0, 0}
-										  },		    
+										  },
 							 	      	  0,			//twi port
 							 	      	  {             //twi gpio
 							 	      	  	{2, 0, 2, -1, -1, -1, 0, 0},

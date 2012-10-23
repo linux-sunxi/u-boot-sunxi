@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2007
+# Copyright 2000-2008
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -23,19 +23,18 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libmtd.o
+LIB 	:= $(obj)libsprite.o
 
-#COBJS-$(CONFIG_MTD_DEVICE) += mtdcore.o
-#COBJS-$(CONFIG_MTD_PARTITIONS) += mtdpart.o
-#COBJS-$(CONFIG_MTD_CONCAT) += mtdconcat.o
-#COBJS-$(CONFIG_HAS_DATAFLASH) += at45.o
-#COBJS-$(CONFIG_FLASH_CFI_DRIVER) += cfi_flash.o
-#COBJS-$(CONFIG_FLASH_CFI_MTD) += cfi_mtd.o
-#COBJS-$(CONFIG_HAS_DATAFLASH) += dataflash.o
-#COBJS-$(CONFIG_FTSMC020) += ftsmc020.o
-#COBJS-$(CONFIG_FLASH_CFI_LEGACY) += jedec_flash.o
-#COBJS-$(CONFIG_MW_EEPROM) += mw_eeprom.o
-#COBJS-$(CONFIG_SPEARSMI) += spr_smi.o
+COBJS-y	+= queue.o
+COBJS-y += sprite_queue.o
+COBJS-y += sprite_card.o
+COBJS-y += encrypt/encrypt.o
+COBJS-y += encrypt/twofish/twofish.o
+COBJS-y += encrypt/twofish/twofish_new.o
+COBJS-y += sparse/sparse.o
+COBJS-y += sprite_download.o
+COBJS-y += sprite_verify.o
+COBJS-y += firmware/imgdecode.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
@@ -46,6 +45,7 @@ all:	$(LIB)
 $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 
+
 #########################################################################
 
 # defines $(obj).depend target
@@ -53,4 +53,4 @@ include $(SRCTREE)/rules.mk
 
 sinclude $(obj).depend
 
-#########################################################################
+########################################################################

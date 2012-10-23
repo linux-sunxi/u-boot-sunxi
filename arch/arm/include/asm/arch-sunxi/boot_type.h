@@ -25,7 +25,7 @@
 #ifndef _BOOT_TYPE_H_
 #define _BOOT_TYPE_H_
 
-#include "spare_head.h"
+#include "private_uboot.h"
 
 extern struct spare_boot_head_t  uboot_spare_head;
 

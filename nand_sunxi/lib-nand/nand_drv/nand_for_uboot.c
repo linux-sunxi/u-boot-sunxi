@@ -1,5 +1,21 @@
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
 #include <common.h>
-#include <asm/arch/nand_bsp.h>
+#include "../src/include/nand_type.h"
 #include <malloc.h>
 
 #define  OOB_BUF_SIZE                   32
@@ -8,6 +24,8 @@ extern int NAND_Print(const char * str, ...);
 static int OSAL_printf(const char * str, ...)
 {
     NAND_Print(str);
+
+    return 0;
 }
 
 static block_dev_desc_t 	nand_blk_dev;
@@ -20,7 +38,7 @@ block_dev_desc_t *nand_get_dev(int dev)
 	return ((block_dev_desc_t *) & nand_blk_dev);
 }
 
-unsigned long  nand_read_uboot(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
+unsigned long  nand_read_uboot(int dev_num, uint start, uint blkcnt, void *dst)
 {
 	start += sunxi_partition_get_offset(dev_num);
 #ifdef DEBUG
@@ -33,12 +51,12 @@ unsigned long  nand_read_uboot(int dev_num, unsigned long start, unsigned long b
 	return 0;
 }
 
-unsigned long  nand_write_uboot(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
+unsigned long  nand_write_uboot(int dev_num, uint start, uint blkcnt, void *dst)
 {
 	start += sunxi_partition_get_offset(dev_num);
 #ifdef DEBUG
     printf("nand try to write from %x, length %x block\n", start, blkcnt);
-#endif	
+#endif
 	if(!NAND_LogicWrite((int)start, (int )blkcnt, dst))
 	{
 		return blkcnt;
