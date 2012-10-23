@@ -76,6 +76,7 @@ typedef struct boot_flash_info0
 
 
 //for simple
+#if 0
 struct boot_physical_param
 {
 	unsigned char   chip; //chip no
@@ -85,6 +86,7 @@ struct boot_physical_param
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf
 };
+#endif
 //---------------------------------------------------------------
 //  º¯Êý ¶¨Òå
 //---------------------------------------------------------------
