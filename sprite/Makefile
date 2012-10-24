@@ -35,6 +35,8 @@ COBJS-y += sparse/sparse.o
 COBJS-y += sprite_download.o
 COBJS-y += sprite_verify.o
 COBJS-y += firmware/imgdecode.o
+COBJS-y += sprite_privatedata.o
+COBJS-y += sprite_main.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

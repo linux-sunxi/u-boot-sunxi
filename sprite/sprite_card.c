@@ -28,8 +28,8 @@
 #include "sprite_queue.h"
 #include "sprite_download.h"
 #include "sprite_verify.h"
+#include "firmware/imgdecode.h"
 
-//static HIMAGEITEM  imghd = 0, imgitemhd = 0;
 static void *imghd = NULL;
 static void *imgitemhd = NULL;
 /*
@@ -91,13 +91,9 @@ uint sprite_card_firmware_start(void)
 */
 int sprite_card_firmware_probe(void)
 {
-	uint  start;
-
-	start = sprite_card_firmware_start();
-	if(!start)
+	imghd = Img_Open("c://imgfile");
+	if(!imghd)
 	{
-		printf("sunxi sprite: read mbr error\n");
-
 		return -1;
 	}
 
@@ -119,9 +115,20 @@ int sprite_card_firmware_probe(void)
 *
 ************************************************************************************************************
 */
-int sprite_card_fetch_download_map(download_info *dl_map)
+int sprite_card_fetch_download_map(download_info  *dl_map)
 {
-	//read dl info
+	imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890dlinfo");
+	if(!imgitemhd)
+	{
+		return -1;
+	}
+	if(Img_ReadItem(imghd, imgitemhd, (void *)dl_map, sizeof(download_info)))
+	{
+		printf("sunxi sprite error : read dl map failed\n");
+
+		return -1;
+	}
+	Img_CloseItem(imghd, imgitemhd);
 
 	return 0;
 }
@@ -185,6 +192,7 @@ int sunxi_sprite_card_download_part(download_info *dl_map)
 		return -1;
 	}
 	half_buffer = base_buffer + 512 * 1024;
+	qdata = next_qdata = NULL;
 
     for(i=0;i<dl_map->download_count;i++)
     {
@@ -198,16 +206,14 @@ int sunxi_sprite_card_download_part(download_info *dl_map)
     	//卡量产，直接读取
     	//二者都将采用中断自动执行的方式，不停的填充buffer空间
     	//当填充完成，没有新buffer可用，则启动定时中断查询是否有新空间
-		//imgitemhd = Img_OpenItem(imghd, dl_map.one_part_info[i].dl_style, dl_map.one_part_info[i].dl_filename);
-		imgitemhd = NULL; //this is only for test
+		imgitemhd = Img_OpenItem(imghd, "RFSFAT16", (char *)dl_map->one_part_info[i].dl_filename);
 		if(!imgitemhd)
 		{
 			printf("sprite error: open part %s failed\n", dl_map->one_part_info[i].dl_filename);
 
 			goto _card_download_error;
 		}
-    	//part_datasize = Img_GetItemSize(imghd, imgitemhd);
-        part_datasize = 1024;// this is only for test，get the data size
+    	part_datasize = Img_GetItemSize(imghd, imgitemhd);
         if(part_datasize > part_tmpsize)      //检查分区大小是否合法
         {
         	//data is larger than part size
@@ -216,8 +222,7 @@ int sunxi_sprite_card_download_part(download_info *dl_map)
         	goto _card_download_error;
         }
         //开始获取分区数据
-		//start = Img_GetItemStart(imghd, imgitemhd);
-		imgfile_start = 0;   //test only
+		imgfile_start = Img_GetItemStart(imghd, imgitemhd);
 		if(!imgfile_start)
 		{
 			printf("sunxi sprite: cant get part data imgfile_start\n");
@@ -309,20 +314,19 @@ int sunxi_sprite_card_download_part(download_info *dl_map)
 			}
 		}
 		exit_code();
-		//Img_CloseItem(imghd, imgitemhd);
+		Img_CloseItem(imghd, imgitemhd);
 		//校验数据
         if(dl_map->one_part_info[i].vf_filename)
         {
-        	//imgitemhd = Img_OpenItem(imghd, dl_map->one_part_info[i].dl_style, dl_map->one_part_info[i].vf_filename);
-			imgitemhd = NULL;
+        	imgitemhd = Img_OpenItem(imghd, "RFSFAT16", (char *)dl_map->one_part_info[i].vf_filename);
 			if(!imgitemhd)
 			{
 				printf("sprite error: open part %s failed\n", dl_map->one_part_info[i].vf_filename);
-				//Img_CloseItem(imghd, imgitemhd);
+				Img_CloseItem(imghd, imgitemhd);
+
 				continue;
 			}
-        	//if(!Img_ReadItemData(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
-	        if(imgitemhd);
+        	if(!Img_ReadItem(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
 	        {
 	            printf("sprite update warning: fail to read data from %s\n", dl_map->one_part_info[i].vf_filename);
 				//Img_CloseItem(imghd, imgitemhd);
@@ -340,11 +344,11 @@ int sunxi_sprite_card_download_part(download_info *dl_map)
             {
             	printf("sunxi sprite: part %s verify error\n", dl_map->one_part_info[i].dl_filename);
             	printf("origin checksum=%x, active checksum=%x\n", origin_verify, active_verify);
-            	//Img_CloseItem(imghd, imgitemhd);
+            	Img_CloseItem(imghd, imgitemhd);
 
             	return -1;
             }
-            //Img_CloseItem(imghd, imgitemhd);
+            Img_CloseItem(imghd, imgitemhd);
         }
         else
         {
@@ -377,29 +381,25 @@ int sunxi_sprite_deal_uboot(int production_media, char *storage_info)
 	char buffer[1024 * 1024];
 	uint item_original_size;
 
-    //imgitemhd = Img_OpenItem(imghd, "BOOT    ", "UBOOT_0000000000");
-    //if(!imgitemhd)
-    if(1)
+    imgitemhd = Img_OpenItem(imghd, "BOOT    ", "UBOOT_0000000000");
+    if(!imgitemhd)
     {
         printf("sprite update error: fail to open uboot item\n");
         return -1;
     }
     //uboot长度
-    //item_original_size = Img_GetItemSize(imghd, imgitemhd);
-    if(!item_original_size)
+    item_original_size = Img_GetItemSize(imghd, imgitemhd);
     {
         printf("sprite update error: fail to get uboot item size\n");
         return -1;
     }
     /*获取uboot的数据*/
-    //if(!Img_ReadItemData(imghd, imgitemhd, (void *)buffer, item_original_size))
-    if(0)
+    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, item_original_size))
     {
         printf("update error: fail to read data from for uboot\n");
         return -1;
     }
-    //Img_CloseItem(imghd, imgitemhd);
-    imgitemhd = NULL;
+    Img_CloseItem(imghd, imgitemhd);
 
     if(sunxi_sprite_download_uboot(buffer, production_media, storage_info))
     {
@@ -432,11 +432,11 @@ int sunxi_sprite_deal_boot0(int production_media, char *storage_info)
 
 	if(production_media == 0)
 	{
-		//imgitemhd = Img_OpenItem(imghd, "BOOT    ", "NANDBOOT0_000000");
+		imgitemhd = Img_OpenItem(imghd, "BOOT    ", "NANDBOOT0_000000");
 	}
 	else
 	{
-		//imgitemhd = Img_OpenItem(imghd, "BOOT    ", "CARDBOOT0_000000");
+		imgitemhd = Img_OpenItem(imghd, "BOOT    ", "CARDBOOT0_000000");
 	}
     if(!imgitemhd)
     {
@@ -444,20 +444,20 @@ int sunxi_sprite_deal_boot0(int production_media, char *storage_info)
         return -1;
     }
     //boot0长度
-//    item_original_size = Img_GetItemSize(imghd, imgitemhd);
-//    if(!item_original_size)
-//    {
-//        printf("sprite update error: fail to get boot0 item size\n");
-//        return -1;
-//    }
-//    /*获取boot0的数据*/
-//    if(!Img_ReadItemData(imghd, imgitemhd, (void *)buffer, item_original_size))
-//    {
-//        printf("update error: fail to read data from for boot0\n");
-//        return -1;
-//    }
-//    Img_CloseItem(imghd, imgitemhd);
-//    imgitemhd = NULL;
+    item_original_size = Img_GetItemSize(imghd, imgitemhd);
+    if(!item_original_size)
+    {
+        printf("sprite update error: fail to get boot0 item size\n");
+        return -1;
+    }
+    /*获取boot0的数据*/
+    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, item_original_size))
+    {
+        printf("update error: fail to read data from for boot0\n");
+        return -1;
+    }
+    Img_CloseItem(imghd, imgitemhd);
+    imgitemhd = NULL;
 
     if(sunxi_sprite_download_boot0(buffer, production_media, storage_info))
     {

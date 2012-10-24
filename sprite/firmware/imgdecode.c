@@ -41,6 +41,7 @@
 
 #include <config.h>
 #include <common.h>
+#include <malloc.h>
 
 #include "imgdecode.h"
 #include "imagefile_new.h"
@@ -103,7 +104,7 @@ HIMAGE 	Img_Open	(char * ImageFile)
 	IMAGE_HANDLE * pImage = NULL;
 	uint ItemTableSize;					//固件索引表的大小
 
-	if(strcmp((const char *)ImageFile, "c://imgfile\n"))
+	if(strcmp((const char *)ImageFile, "c://imgfile"))
 	{
 		printf("sunxi sprite error: unable to get firmware full path\n");
 
@@ -313,7 +314,7 @@ uint Img_GetItemStart	(HIMAGE hImage, HIMAGEITEM hItem)
 	IMAGE_HANDLE* pImage = (IMAGE_HANDLE *)hImage;
 	ITEM_HANDLE * pItem  = (ITEM_HANDLE  *)hItem;
 	long long       start;
-	long long		  offset;
+	long long		offset;
 
 	if (NULL == pItem)
 	{
@@ -327,6 +328,68 @@ uint Img_GetItemStart	(HIMAGE hImage, HIMAGEITEM hItem)
 	start = offset/512;
 
 	return ((uint)start + img_file_start);
+}
+//------------------------------------------------------------------------------------------------------------
+//
+// 函数说明
+//
+//
+// 参数说明
+//
+//
+// 返回值
+//     返回实际读取数据的长度
+//
+// 其他
+//    无
+//
+//------------------------------------------------------------------------------------------------------------
+
+int Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, long long buffer_size)
+{
+	IMAGE_HANDLE* pImage = (IMAGE_HANDLE *)hImage;
+	ITEM_HANDLE * pItem  = (ITEM_HANDLE  *)hItem;
+	long long     start;
+	long long	  offset;
+	long long     size;
+	char          tmp[2 * 1024 * 1024];
+
+	if (NULL == pItem)
+	{
+		printf("sunxi sprite error : item is NULL\n");
+
+		return -1;
+	}
+	size = pImage->ItemTable[pItem->index].filelenHi;
+	size <<= 32;
+	size |= pImage->ItemTable[pItem->index].filelenLo;
+	if(size > buffer_size)
+	{
+		printf("sunxi sprite error : buffer is smaller than data size\n");
+
+		return -1;
+	}
+	if(size > 2 * 1024 * 1024)
+	{
+		printf("sunxi sprite error : this function cant be used to read data over 2M bytes\n");
+
+		return -1;
+	}
+
+	offset = pImage->ItemTable[pItem->index].offsetHi;
+	offset <<= 32;
+	offset |= pImage->ItemTable[pItem->index].offsetLo;
+	start = offset/512;
+
+	if(!sunxi_flash_read((uint)start + img_file_start, (uint)(size/512), tmp))
+	{
+		printf("sunxi sprite error : read item data failed\n");
+
+		return -1;
+	}
+	memcpy(buffer, tmp, (uint)size);
+
+	return 0;
 }
 //------------------------------------------------------------------------------------------------------------
 //

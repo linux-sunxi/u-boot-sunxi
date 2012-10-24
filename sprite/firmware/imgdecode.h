@@ -68,6 +68,8 @@ extern   long long 		Img_GetItemSize	(HIMAGE hImage, HIMAGEITEM hItem);
 
 extern   uint 			Img_GetItemStart(HIMAGE hImage, HIMAGEITEM hItem);
 
+extern   int 			Img_ReadItem	(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, long long buffer_size);
+
 extern   int 			Img_CloseItem	(HIMAGE hImage, HIMAGEITEM hItem);
 
 extern   void 	 		Img_Close		(HIMAGE hImage);

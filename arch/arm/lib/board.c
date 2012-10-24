@@ -80,9 +80,7 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 
 #ifdef CONFIG_ALLWINNER
 #include <asm/arch/boot_type.h>
-extern void sw_gpio_init(void);
-extern int script_parser_fetch(char *main_name, char *sub_name, int value[], int count);
-extern int script_parser_init_early(void);
+#include <asm/arch/sys_config.h>
 #endif
 
 /************************************************************************
@@ -658,7 +656,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif
 	workmode = uboot_spare_head.boot_data.work_mode;
-
     if(workmode & WORK_MODE_PRODUCT)
     {
     	//sunxi_sprite_mode(workmode);

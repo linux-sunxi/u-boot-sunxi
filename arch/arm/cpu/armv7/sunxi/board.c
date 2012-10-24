@@ -110,6 +110,7 @@ int script_init(void)
     debug("script offset=%x, length = %x\n", offset, length);
 
 	memcpy((void *)SYS_CONFIG_MEMBASE, addr, length);
+	script_parser_init((char *)SYS_CONFIG_MEMBASE);
 
 	return 0;
 }
@@ -129,16 +130,26 @@ int power_init(void)
 		{
 			if(!axp_set_dcdc2(set_vol))
 			{
+				debug("axp_set_dcdc2 ok\n");
 				clock = sunxi_clock_set_corepll(set_clock, set_vol);
 			}
 			else
 			{
+				debug("axp_set_dcdc2 fail\n");
 				clock = sunxi_clock_get_corepll();
 			}
 			printf("set core vol = %d, core clock = %d\n", set_vol, clock);	
 
 			return 0;
 		}
+		else
+		{
+			debug("axp_probe_power_supply_condition error\n");
+		}
+	}
+	else
+	{
+		debug("axp_probe error\n");
 	}
 	
 	puts("set both dcdc2 and clock as default\n");

@@ -365,6 +365,28 @@ void puts(const char *s)
 	}
 }
 
+int sunxi_printf(const char *fmt, ...)
+{
+	va_list args;
+	uint i,msecond;
+	char printbuffer[CONFIG_SYS_PBSIZE-12];
+	char printbuffer_with_timestamp[CONFIG_SYS_PBSIZE];
+
+	va_start(args, fmt);
+
+	/* For this to work, printbuffer must be larger than
+	 * anything we ever want to print.
+	 */
+	msecond=get_timer_masked();
+	i = vsprintf(printbuffer, fmt, args);
+	i = sprintf(printbuffer_with_timestamp,"[%07lu.%03lu]%s",msecond/1000,msecond%1000,printbuffer);
+	va_end(args);
+	/* Print the string */
+	puts(printbuffer_with_timestamp);
+	return i;
+
+}
+
 int printf(const char *fmt, ...)
 {
 	va_list args;

@@ -89,8 +89,8 @@ char *sw_cfg_get_str(const char *script_buf, const char *main_key, const char *s
  *                        Script Operations
  *
 -#########################################################################################*/
-static  char  *script_mod_buf = (char *)0; //pointer to first key
-static  int    script_main_key_count = 0;
+static  char  *script_mod_buf = (char *)4; //pointer to first key
+static  int    script_main_key_count = -1;
 
 static  int   _test_str_length(char *str)
 {
@@ -113,7 +113,8 @@ int script_parser_init(char *script_buf)
     script_head_t   *script_head;
 
 	script_mod_buf = NULL;
-    if(script_buf)
+	debug("script init, addr=%x\n", script_buf);
+	if(script_buf)
     {
         script_mod_buf = script_buf;
         script_head = (script_head_t *)script_mod_buf;
@@ -145,7 +146,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
     int    i, j;
     int    pattern, word_count;
     /* check params */
-    if(!script_mod_buf)
+    if((!script_mod_buf) || (script_main_key_count <= 0))
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
