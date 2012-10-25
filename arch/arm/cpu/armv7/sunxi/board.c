@@ -34,6 +34,7 @@
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/watchdog.h>
 
 int gpio_init(void)
 {
@@ -65,16 +66,18 @@ int gpio_init(void)
 	return 0;
 }
 
+void reset_cpu(ulong addr)
+{
+	watchdog_set(0);
+	while (1);
+}
+
 /* do some early init */
 void s_init(void)
 {
+	watchdog_init();
 	clock_init();
 	gpio_init();
-}
-
-void reset_cpu(ulong addr)
-{
-	sunxi_reset();
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF

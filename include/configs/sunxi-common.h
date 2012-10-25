@@ -285,6 +285,11 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7f
 #define CONFIG_CMD_I2C
 
+/* Watchdog */
+#if 0
+#define CONFIG_WATCHDOG			/* automatic watchdog support */
+#endif
+
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 

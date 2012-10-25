@@ -28,13 +28,12 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
-SOBJS	+= reset.o
-
 COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= pinmux.o
+COBJS	+= watchdog.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))

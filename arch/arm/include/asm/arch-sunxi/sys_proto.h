@@ -27,6 +27,5 @@
 
 void sr32(u32 *, u32, u32, u32);
 void sdelay(unsigned long);
-void watchdog_init(void);
 
 #endif
