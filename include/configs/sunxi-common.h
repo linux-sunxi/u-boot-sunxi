@@ -277,6 +277,14 @@
 #define CONFIG_SUNXI_GPIO
 #define CONFIG_CMD_GPIO
 
+/* I2C */
+#define CONFIG_SPL_I2C_SUPPORT
+#define CONFIG_SYS_I2C_SPEED		400000
+#define CONFIG_HARD_I2C
+#define CONFIG_SUNXI_I2C
+#define CONFIG_SYS_I2C_SLAVE		0x7f
+#define CONFIG_CMD_I2C
+
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 
