@@ -1,10 +1,8 @@
 /*
- * (C) Copyright 2002
- * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
- * Marius Groeger <mgroeger@sysgo.de>
+ * Copyright 2008-2012 Freescale Semiconductor, Inc.
  *
- * (C) Copyright 2002
- * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
+ * (C) Copyright 2000
+ * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -25,41 +23,25 @@
  * MA 02111-1307 USA
  */
 
-/*
- * CPU specific code
- */
-
 #include <common.h>
-#include <command.h>
-#include <asm/system.h>
+#include <asm/fsl_law.h>
+#include <asm/mmu.h>
 
-static void cache_flush(void);
+struct law_entry law_table[] = {
+	SET_LAW(CONFIG_SYS_FLASH_BASE_PHYS, LAW_SIZE_256M, LAW_TRGT_IF_IFC),
+#ifdef CONFIG_SYS_BMAN_MEM_PHYS
+	SET_LAW(CONFIG_SYS_BMAN_MEM_PHYS, LAW_SIZE_32M, LAW_TRGT_IF_BMAN),
+#endif
+#ifdef CONFIG_SYS_QMAN_MEM_PHYS
+	SET_LAW(CONFIG_SYS_QMAN_MEM_PHYS, LAW_SIZE_32M, LAW_TRGT_IF_QMAN),
+#endif
+	SET_LAW(QIXIS_BASE_PHYS, LAW_SIZE_4K, LAW_TRGT_IF_IFC),
+#ifdef CONFIG_SYS_DCSRBAR_PHYS
+	SET_LAW(CONFIG_SYS_DCSRBAR_PHYS, LAW_SIZE_4M, LAW_TRGT_IF_DCSR),
+#endif
+#ifdef CONFIG_SYS_NAND_BASE_PHYS
+	SET_LAW(CONFIG_SYS_NAND_BASE_PHYS, LAW_SIZE_1M, LAW_TRGT_IF_IFC),
+#endif
+};
 
-int cleanup_before_linux (void)
-{
-	/*
-	 * this function is called just before we call linux
-	 * it prepares the processor for linux
-	 *
-	 * we turn off caches etc ...
-	 */
-
-	disable_interrupts ();
-
-	/* turn off I/D-cache */
-	icache_disable();
-	dcache_disable();
-
-	/* flush I/D-cache */
-	cache_flush();
-
-	return 0;
-}
-
-/* flush I/D-cache */
-static void cache_flush (void)
-{
-	unsigned long i = 0;
-
-	asm ("mcr p15, 0, %0, c7, c7, 0": :"r" (i));
-}
+int num_law_entries = ARRAY_SIZE(law_table);

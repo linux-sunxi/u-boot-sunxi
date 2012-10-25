@@ -1,6 +1,5 @@
-#
-# (C) Copyright 2000-2006
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+# Copyright 2010-2012 Freescale Semiconductor, Inc.
+# TsiChung Liew (Tsi-Chung.Liew@freescale.com)
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -23,18 +22,15 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(CPU).o
+LIB	= $(obj)lib$(BOARD).o
 
-START	= start.o
-COBJS	= cpu.o speed.o timer.o
+COBJS	= $(BOARD).o
 
-SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
-START	:= $(addprefix $(obj),$(START))
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
-all:	$(obj).depend $(START) $(LIB)
-
-$(LIB):	$(OBJS)
+$(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################

@@ -22,6 +22,7 @@
 #
 #
 
+subdirs-$(CONFIG_CMD_CBFS) += cbfs
 subdirs-$(CONFIG_CMD_CRAMFS) := cramfs
 subdirs-$(CONFIG_CMD_EXT4) += ext4
 ifndef CONFIG_CMD_EXT4
