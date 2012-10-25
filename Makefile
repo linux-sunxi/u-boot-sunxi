@@ -801,6 +801,7 @@ clean:
 	       $(obj)tools/dump{env,}image		  \
 	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
 	       $(obj)tools/mk{$(BOARD),}spl				  \
+	       $(obj)tools/mksunxiboot					  \
 	       $(obj)tools/mxsboot					  \
 	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
 	       $(obj)tools/kernel-doc/docproc				  \
