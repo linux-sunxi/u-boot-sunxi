@@ -21,24 +21,27 @@
 # MA 02111-1307 USA
 #
 
-
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(VENDOR).o
+LIB	:= $(obj)lib$(BOARD).o
 
-COBJS	:= board.o
+COBJS-y	:= board.o
+COBJS-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
+COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
+COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
+COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
+COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
+COBJS-$(CONFIG_MELE_A1000)	+= dram_mele_a1000.o
+COBJS-$(CONFIG_MINI_X)		+= dram_mini_x.o
 
-SRCS	:= $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
+COBJS	:= $(COBJS-y)
+SRCS 	:= $(COBJS:.o=.c)
+OBJS 	:= $(addprefix $(obj),$(COBJS))
+
+all:	$(LIB)
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
-
-clean:
-	rm -f $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 
@@ -47,4 +50,4 @@ include $(SRCTREE)/rules.mk
 
 sinclude $(obj).depend
 
-#########################################################################
+########################################################################

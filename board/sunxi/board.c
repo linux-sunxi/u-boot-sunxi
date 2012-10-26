@@ -45,8 +45,18 @@ int board_init(void) {
 	return 0;
 }
 
-void dram_init_banksize(void) {
 
+#ifdef CONFIG_DISPLAY_BOARDINFO
+int checkboard(void)
+{
+	printf("Board: %s\n", CONFIG_BOARD_NAME);
+
+	return 0;
+}
+#endif
+
+void dram_init_banksize(void)
+{
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = DRAMC_get_dram_size() * 1024 * 1024;
 }

@@ -33,7 +33,40 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 
-#include <asm/arch/cpu.h>			/* get chip and board defs */
+/* Define the board name to print upon bootup on the console */
+#ifdef CONFIG_A10_EVB
+#define CONFIG_BOARD_NAME	"A10-EVB"
+#endif
+#ifdef CONFIG_A13_EVB
+#define CONFIG_BOARD_NAME	"A13-EVB"
+#endif
+#ifdef CONFIG_A13_MID
+#define CONFIG_BOARD_NAME	"A13 MID"
+#endif
+#ifdef CONFIG_A13_OLINUXINO
+#define CONFIG_BOARD_NAME	"A13-OLinuXino"
+#endif
+#ifdef CONFIG_CUBIEBOARD
+#define CONFIG_BOARD_NAME	"Cubieboard"
+#endif
+#ifdef CONFIG_CUBIEBOARD_512
+#define CONFIG_BOARD_NAME	"Cubieboard 512"
+#endif
+#ifdef CONFIG_HACKBERRY
+#define CONFIG_BOARD_NAME	"Hackberry"
+#endif
+#ifdef CONFIG_MELE_A1000
+#define CONFIG_BOARD_NAME	"Mele A1000"
+#endif
+#ifdef CONFIG_MINI_X
+#define CONFIG_BOARD_NAME	"Mini-X"
+#endif
+
+#ifndef CONFIG_BOARD_NAME
+#error "Define CONFIG_BOARD_NAME for your board port!"
+#endif
+
+#include <asm/arch/cpu.h>	/* get chip and board defs */
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
 
