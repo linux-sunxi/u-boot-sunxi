@@ -491,6 +491,16 @@ $(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.bin
 			--pad-to=$(CONFIG_SPL_PAD_TO) --gap-fill=0xff $@
 		cat $(obj)u-boot.img >> $@
 
+# sunxi: Combined object with SPL U-Boot with sunxi header (sunxi-spl.bin)
+# and the full-blown U-Boot attached to it
+$(obj)u-boot-sunxi-with-spl.bin: $(obj)spl/sunxi-spl.bin $(obj)u-boot.bin
+		tr "\000" "\377" < /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
+			of=$(obj)spl/sunxi-spl-pad.bin 2>/dev/null
+		dd if=$(obj)spl/sunxi-spl.bin of=$(obj)spl/sunxi-spl-pad.bin \
+			conv=notrunc 2>/dev/null
+		cat $(obj)spl/sunxi-spl-pad.bin $(obj)u-boot.bin > $@
+		rm $(obj)spl/sunxi-spl-pad.bin
+
 ifneq ($(CONFIG_TEGRA),)
 $(obj)u-boot-nodtb-tegra.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
 		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
@@ -858,6 +868,7 @@ clobber:	tidy
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
 	@rm -f $(obj)dts/*.tmp
 	@rm -f $(obj)spl/u-boot-spl{,-pad}.ais
+	@rm -f $(obj)spl/sun?i-spl.bin
 
 mrproper \
 distclean:	clobber unconfig

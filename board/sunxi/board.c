@@ -30,7 +30,12 @@
 #include <asm/arch/dram.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/mmc.h>
+#ifdef CONFIG_AXP152_POWER
+#include <axp152.h>
+#endif
+#ifdef CONFIG_AXP209_POWER
 #include <axp209.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -68,4 +73,59 @@ int board_mmc_init(bd_t *bis)
 
 	return 0;
 }
+#endif
+
+#ifdef CONFIG_SPL_BUILD
+void sunxi_board_init(void)
+{
+	int power_failed = 0;
+	int ramsize;
+
+	printf("DRAM:");
+	ramsize = sunxi_dram_init();
+	if (!ramsize) {
+		printf(" ?");
+		ramsize = sunxi_dram_init();
+	}
+	if (!ramsize) {
+		printf(" ?");
+		ramsize = sunxi_dram_init();
+	}
+	printf(" %dMB\n", ramsize>>20);
+	if (!ramsize)
+		hang();
+
+#ifdef CONFIG_AXP152_POWER
+	power_failed = axp152_init();
+	power_failed |= axp152_set_dcdc2(1400);
+	power_failed |= axp152_set_dcdc3(1500);
+	power_failed |= axp152_set_dcdc4(1250);
+	power_failed |= axp152_set_ldo2(3000);
+#endif
+#ifdef CONFIG_AXP209_POWER
+	power_failed |= axp209_init();
+	power_failed |= axp209_set_dcdc2(1400);
+	power_failed |= axp209_set_dcdc3(1250);
+	power_failed |= axp209_set_ldo2(3000);
+	power_failed |= axp209_set_ldo3(2800);
+	power_failed |= axp209_set_ldo4(2800);
+#endif
+
+	/*
+	 * Only clock up the CPU to full speed if we are reasonably
+	 * assured it's being powered with suitable core voltage
+	 */
+	if (!power_failed)
+		clock_set_pll1(1008000000);
+	else
+		printf("Failed to set core voltage!. Can't set CPU frequency\n");
+}
+
+#ifdef CONFIG_SPL_DISPLAY_PRINT
+void spl_display_print(void)
+{
+	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
+}
+#endif
+
 #endif

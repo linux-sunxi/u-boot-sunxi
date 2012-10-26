@@ -29,6 +29,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <serial.h>
+#include <i2c.h>
 #include <asm/gpio.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
@@ -36,6 +37,30 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/watchdog.h>
 #include <netdev.h>
+#ifdef CONFIG_SPL_BUILD
+#include <spl.h>
+#endif
+
+#ifdef CONFIG_SPL_BUILD
+/* Pointer to the global data structure for SPL */
+DECLARE_GLOBAL_DATA_PTR;
+
+/* The sunxi internal brom will try to loader external bootloader
+ * from mmc0, nannd flash, mmc2.
+ * Unfortunately we can't check how SPL was loaded so assume
+ * it's always the first SD/MMC controller
+ */
+u32 spl_boot_device(void)
+{
+	return BOOT_DEVICE_MMC1;
+}
+
+/* No confiration data available in SPL yet. Hardcode bootmode */
+u32 spl_boot_mode(void)
+{
+	return MMCSD_MODE_RAW;
+}
+#endif
 
 int gpio_init(void)
 {
@@ -79,6 +104,18 @@ void s_init(void)
 	watchdog_init();
 	clock_init();
 	gpio_init();
+
+#ifdef CONFIG_SPL_BUILD
+	gd = &gdata;
+	preloader_console_init();
+
+#ifdef CONFIG_SPL_I2C_SUPPORT
+	/* Needed early by sunxi_board_init if PMU is enabled */
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#endif
+
+	sunxi_board_init();
+#endif
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
