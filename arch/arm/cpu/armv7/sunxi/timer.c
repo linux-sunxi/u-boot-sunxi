@@ -181,7 +181,7 @@ static void timerX_callback_default(void *data);
 struct __timer_callback
 {
 	void (*func_back)( void *data);
-	unsigned int data;
+	unsigned int  data;
 };
 
 struct __timer_callback timer_callback[2] = 
@@ -206,8 +206,10 @@ void timer0_func(void *data)
         return ;
     }
 	timer_control->tirqen  &= ~0x01;
-    timer_control->tirqsta |=  0x01;
+    timer_control->tirqsta  =  0x01;
     irq_disable(INTC_IRQNO_TIMER0);
+
+	debug("timer 0 occur\n");
 
     timer_callback[0].func_back((void *)timer_callback[0].data); 
 
@@ -223,8 +225,10 @@ void timer1_func(void *data)
         return ;
     }
 	timer_control->tirqen  &= ~0x02;
-    timer_control->tirqsta |=  0x02;
+    timer_control->tirqsta  =  0x02;
     irq_disable(INTC_IRQNO_TIMER1);
+
+	debug("timer 1 occur\n");
 
     timer_callback[1].func_back((void *)timer_callback[1].data); 
 
@@ -277,11 +281,19 @@ void add_timer(struct timer_list *timer)
 	timer_tcontrol->ctl = reg_val;
 	timer_tcontrol->inter = timer->expires * (24000 / 32);	
 	timer_callback[timer_num].func_back = timer->function;
-	irq_install_handler(INTC_IRQNO_TIMER0 + timer_num, timer_callback[timer_num].func_back, (void *)&timer->data);
+	timer_callback[timer_num].data      = timer->data;
+	if(!timer_num)
+	{
+		irq_install_handler(INTC_IRQNO_TIMER0 + timer_num, timer0_func, (void *)&timer_callback[timer_num].data);
+	}
+	else
+	{
+		irq_install_handler(INTC_IRQNO_TIMER0 + timer_num, timer1_func, (void *)&timer_callback[timer_num].data);
+	}
 	debug("timer number = %d\n", timer_num);
 	irq_enable(INTC_IRQNO_TIMER0 + timer_num);
-	timer_tcontrol->ctl |= (1 << timer_num);
-	timer_reg->tirqsta |= (1 << timer_num);
+	timer_tcontrol->ctl |= 1;
+	timer_reg->tirqsta  = (1 << timer_num);
 	timer_reg->tirqen  |= (1 << timer_num);
 	debug("timer number = %d\n", timer_num);
 
@@ -301,8 +313,8 @@ void del_timer(struct timer_list *timer)
 	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];	
 
 	irq_disable(INTC_IRQNO_TIMER0 + num);
-	timer_tcontrol->ctl = 0;
-	timer_reg->tirqsta |= (1<<num);
+	timer_tcontrol->ctl &= ~1;
+	timer_reg->tirqsta = (1<<num);
 	timer_reg->tirqen  &= ~(1<<num);
 
 	timer_callback[num].data = num;
