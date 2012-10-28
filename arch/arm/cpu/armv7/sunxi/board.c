@@ -30,53 +30,21 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/key.h>
-#include <asm/arch/dram.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/arch/early_print.h>
-#include <version.h>
-#include <mmc.h>
-#include <fat.h>
 #ifdef CONFIG_SPL_BUILD
 #include <spl.h>
 #endif
 
 #ifdef CONFIG_SPL_BUILD
-/* Pointer to as well as the global data structure for SPL */
+/* Pointer to the global data structure for SPL */
 DECLARE_GLOBAL_DATA_PTR;
 
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
- * We check where we boot from by checking the config
- * of the gpio pin.
+ * Unfortunately we can't check how SPL was loaded so assume
+ * it's always the first SD/MMC controller
  */
 u32 spl_boot_device(void) {
-
-	u32 cfg;
-
-#ifdef CONFIG_SPL_NOR_SUPPORT
-	/* TODO */
-#endif
-
-#ifdef CONFIG_SPL_MMC_SUPPORT
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
-	if( cfg == SUNXI_GPC7_SDC2_CLK )
-		return BOOT_DEVICE_MMC2;
-#endif
-
-#ifdef CONFIG_SPL_NAND_SUPPORT
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
-	if( cfg == SUNXI_GPC2_NCLE )
-		return BOOT_DEVICE_NAND;
-#endif
-
-#ifdef CONFIG_SPL_MMC_SUPPORT
-	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
-	if( cfg == SUNXI_GPF2_SDC0_CLK )
-		return BOOT_DEVICE_MMC1;
-#endif
-
-	/* if we are here, something goes wrong. Fall back on MMC */
 	return BOOT_DEVICE_MMC1;
 }
 

@@ -102,8 +102,6 @@
 /* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
-#define PHYS_SDRAM_1_SIZE			(512 << 20)				/* 0x20000000, 512 MB Bank #1 */
-
 #if 0
 /* Nand config */
 #define CONFIG_NAND
@@ -129,8 +127,6 @@
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
-
-#define CONFIG_DOS_PARTITION
 
 /*
  * Size of malloc() pool
@@ -181,7 +177,6 @@
 
 #define CONFIG_ENV_OFFSET			(544 << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
-#define CONFIG_CMD_SAVEENV
 
 #define CONFIG_BOOTCOMMAND \
 	"if run loadbootenv; then " \
@@ -218,19 +213,14 @@
 #define CONFIG_SYS_BOOT_GET_CMDLINE
 #define CONFIG_AUTO_COMPLETE
 
+#include <config_cmd_default.h>
+
+#define CONFIG_DOS_PARTITION
 #define CONFIG_CMD_FAT			/* with this we can access fat bootfs */
 #define CONFIG_FAT_WRITE		/* enable write access */ 
 #define CONFIG_CMD_EXT2			/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_EXT4			/* with this we can access ext4 bootfs */
 #define CONFIG_CMD_ZFS			/* with this we can access ZFS bootfs */
-#define CONFIG_CMD_BOOTA		/* boot android image */
-#define CONFIG_CMD_RUN			/* run a command */
-#define CONFIG_CMD_BOOTD		/* boot the default command */
-#define CONFIG_CMD_SOURCE		/* boot.scr suppot */
-#define CONFIG_CMD_BDI			/* info about boot descriptor */
-#define CONFIG_CMD_LOADB		/* load binaries over serial */
-#define CONFIG_CMD_SAVES		/* save data over serial */
-#define CONFIG_CMD_DUMPASCII		/* save ascii data over serial */
 
 #if 0	/* Set in boards.cfg */
 #define CONFIG_SPL
@@ -258,6 +248,9 @@
 
 /* #define CONFIG_WATCHDOG */			/* automatic watchdog support */
 #define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
+#undef CONFIG_CMD_FPGA
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
 
 /* I2C */
 #define CONFIG_SPL_I2C_SUPPORT

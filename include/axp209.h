@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-int axp209_set_dcdc2(int mvolt);
-int axp209_set_dcdc3(int mvolt);
-int axp209_set_ldo2(int mvolt);
-int axp209_set_ldo3(int mvolt);
-int axp209_set_ldo4(int mvolt);
-void axp209_poweroff(void);
-int axp209_init(void);
+extern int axp209_set_dcdc2(int mvolt);
+extern int axp209_set_dcdc3(int mvolt);
+extern int axp209_set_ldo2(int mvolt);
+extern int axp209_set_ldo3(int mvolt);
+extern int axp209_set_ldo4(int mvolt);
+extern void axp209_poweroff(void);
+extern int axp209_init(void);

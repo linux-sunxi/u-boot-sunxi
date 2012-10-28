@@ -25,10 +25,6 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <mmc.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/mmc.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/clock.h>
 #ifdef CONFIG_AXP209_POWER
