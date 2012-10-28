@@ -31,14 +31,14 @@ COBJS  := board.o dram.o
 SRCS   := $(COBJS:.o=.c)
 OBJS   := $(addprefix $(obj),$(COBJS))
 
-$(LIB):        $(obj).depend $(OBJS)
-       $(call cmd_link_o_target, $(OBJS))
+$(LIB): $(obj).depend $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 clean:
-       rm -f $(OBJS)
+	rm -f $(OBJS)
 
 distclean:     clean
-       rm -f $(LIB) core *.bak $(obj).depend
+	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 
