@@ -34,19 +34,19 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_SUN5I				/* sun5i SoC generation */
+#define CONFIG_SUN5I		/* sun5i SoC generation */
 
 #define CONFIG_SYS_PROMPT		"sun5i#"
-#define CONFIG_MACH_TYPE			4138
+#define CONFIG_MACH_TYPE		4138
 
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 
 #ifndef CONFIG_CONS_INDEX
 #ifdef CONFIG_UART0_PORT_F
-#define CONFIG_CONS_INDEX			1			/* UART0 on PORT_F (sdcard) */
+#define CONFIG_CONS_INDEX		1	/* UART0 on PORT_F (sdcard) */
 #else
-#define CONFIG_CONS_INDEX			2			/* UART1 */
+#define CONFIG_CONS_INDEX		2	/* UART1 */
 #endif
 #endif
 

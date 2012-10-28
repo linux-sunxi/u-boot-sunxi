@@ -26,8 +26,8 @@
 
 #include <asm/arch/cpu.h>
 
-#define SUNXI_WDOG_CTL    0x01C20C90
-#define SUNXI_WDOG_MODE   0x01C20C94
+#define SUNXI_WDOG_CTL		0x01C20C90
+#define SUNXI_WDOG_MODE		0x01C20C94
 
 .globl sunxi_reset
 sunxi_reset:

@@ -28,21 +28,21 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define TIMER_MODE   (0 << 7)   /* continuous mode */
-#define TIMER_DIV    (0 << 4)   /* pre scale 1 */
-#define TIMER_SRC    (1 << 2)   /* osc24m */
-#define TIMER_RELOAD (1 << 1)   /* reload internal value */
-#define TIMER_EN     (1 << 0)   /* enable timer */
+#define TIMER_MODE   (0 << 7)	/* continuous mode */
+#define TIMER_DIV    (0 << 4)	/* pre scale 1 */
+#define TIMER_SRC    (1 << 2)	/* osc24m */
+#define TIMER_RELOAD (1 << 1)	/* reload internal value */
+#define TIMER_EN     (1 << 0)	/* enable timer */
 
-#define TIMER_CLOCK	       (24 * 1000 * 1000)
+#define TIMER_CLOCK		(24 * 1000 * 1000)
 #define COUNT_TO_USEC(x)	((x) / 24)
 #define USEC_TO_COUNT(x)	((x) * 24)
 #define TICKS_PER_HZ		(TIMER_CLOCK / CONFIG_SYS_HZ)
 #define TICKS_TO_HZ(x)		((x) / TICKS_PER_HZ)
 
-#define TIMER_LOAD_VAL     0xffffffff
+#define TIMER_LOAD_VAL		0xffffffff
 
-#define TIMER_NUM    (0)        /* we use timer 0 */
+#define TIMER_NUM		0	/* we use timer 0 */
 
 static struct sunxi_timer *timer_base =
 	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[TIMER_NUM];
@@ -54,7 +54,9 @@ static struct sunxi_timer *timer_base =
 int timer_init(void)
 {
 	writel(TIMER_LOAD_VAL, &timer_base->inter);
-	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC | TIMER_RELOAD | TIMER_EN, &timer_base->ctl);
+	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC | TIMER_RELOAD | TIMER_EN,
+	       &timer_base->ctl);
+
 	return 0;
 }
 
@@ -74,6 +76,7 @@ ulong get_timer_masked(void)
 	else			/* rollover */
 		gd->tbl += (TICKS_TO_HZ(TIMER_LOAD_VAL) - gd->lastinc) + now;
 	gd->lastinc = now;
+
 	return gd->tbl;
 }
 

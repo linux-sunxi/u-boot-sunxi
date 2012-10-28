@@ -32,14 +32,15 @@
 #define DRAM_CCM_BASE			SUNXI_CCM_BASE
 #define DRAM_TIMER_BASE			SUNXI_TIMER_BASE
 
-#define DRAM_CCM_SDRAM_PLL_REG    (DRAM_CCM_BASE + 0x20)
-#define DRAM_CCM_SDRAM_PLL_TUN_REG (DRAM_CCM_BASE + 0x24)
-#define DRAM_CCM_AHB_GATE_REG     (DRAM_CCM_BASE + 0x60)
-#define DRAM_CCM_SDRAM_CLK_REG    (DRAM_CCM_BASE + 0x100)
-#define DRAM_CCM_GPS_CLK_REG      (DRAM_CCM_BASE + 0xd0)
-#define DRAM_CCM_MUS_CLK_REG      (DRAM_CCM_BASE + 0x15c)
-#define TIMER_CPU_CFG_REG   (DRAM_TIMER_BASE + 0x13c)
+#define DRAM_CCM_SDRAM_PLL_REG		(DRAM_CCM_BASE + 0x20)
+#define DRAM_CCM_SDRAM_PLL_TUN_REG	(DRAM_CCM_BASE + 0x24)
+#define DRAM_CCM_AHB_GATE_REG		(DRAM_CCM_BASE + 0x60)
+#define DRAM_CCM_SDRAM_CLK_REG		(DRAM_CCM_BASE + 0x100)
+#define DRAM_CCM_GPS_CLK_REG		(DRAM_CCM_BASE + 0xd0)
+#define DRAM_CCM_MUS_CLK_REG		(DRAM_CCM_BASE + 0x15c)
+#define TIMER_CPU_CFG_REG		(DRAM_TIMER_BASE + 0x13c)
 
+// test-only: these defines need to be converted to a struct
 #define SDR_CCR				(DRAMC_IO_BASE + 0x00)
 #define SDR_DCR				(DRAMC_IO_BASE + 0x04)
 #define SDR_IOCR			(DRAMC_IO_BASE + 0x08)
@@ -62,7 +63,7 @@
 #define SDR_MR				(DRAMC_IO_BASE + 0x1f0)
 #define SDR_EMR				(DRAMC_IO_BASE + 0x1f4)
 #define SDR_EMR2			(DRAMC_IO_BASE + 0x1f8)
-#define SDR_EMR3  			(DRAMC_IO_BASE + 0x1fc)
+#define SDR_EMR3			(DRAMC_IO_BASE + 0x1fc)
 #define SDR_DLLCR			(DRAMC_IO_BASE + 0x200)
 #define SDR_DLLCR0			(DRAMC_IO_BASE + 0x204)
 #define SDR_DLLCR1			(DRAMC_IO_BASE + 0x208)
@@ -78,67 +79,66 @@
 #define SDR_CR				(DRAMC_IO_BASE + 0x230)
 #define SDR_CFSR			(DRAMC_IO_BASE + 0x234)
 #define SDR_0x23c			(DRAMC_IO_BASE + 0x23c)
-#define SDR_APR  			(DRAMC_IO_BASE + 0x240)
-#define SDR_LTR	  			(DRAMC_IO_BASE + 0x244)
+#define SDR_APR				(DRAMC_IO_BASE + 0x240)
+#define SDR_LTR				(DRAMC_IO_BASE + 0x244)
 #define SDR_HPCR			(DRAMC_IO_BASE + 0x250)
 #define SDR_SCSR			(DRAMC_IO_BASE + 0x2e0)
 
+// test-only: is this already the struct? then use it and remove the defines above
 struct sunxi_dram_reg {
-
-	u32 ccr;        /* 0x00 controller configuration register */
-	u32 dcr;        /* 0x04 dram configuration register */
-	u32 iocr;       /* 0x08 i/o configuration register */
-	u32 csr;        /* 0x0c controller status register */
-	u32 drr;        /* 0x10 dram refresh register */
-	u32 tpr0;       /* 0x14 dram timing parameters register 0 */
-	u32 tpr1;       /* 0x18 dram timing parameters register 1 */
-	u32 tpr2;       /* 0x1c dram timing parameters register 2 */
-	u32 gdllcr;     /* 0x20 global dll control register */
-	u8  res0[0x28];
-	u32 rslr0;      /* 0x4c rank system latency register */
-	u32 rslr1;      /* 0x50 rank system latency register */
+	u32 ccr;		/* 0x00 controller configuration register */
+	u32 dcr;		/* 0x04 dram configuration register */
+	u32 iocr;		/* 0x08 i/o configuration register */
+	u32 csr;		/* 0x0c controller status register */
+	u32 drr;		/* 0x10 dram refresh register */
+	u32 tpr0;		/* 0x14 dram timing parameters register 0 */
+	u32 tpr1;		/* 0x18 dram timing parameters register 1 */
+	u32 tpr2;		/* 0x1c dram timing parameters register 2 */
+	u32 gdllcr;		/* 0x20 global dll control register */
+	u8 res0[0x28];
+	u32 rslr0;		/* 0x4c rank system latency register */
+	u32 rslr1;		/* 0x50 rank system latency register */
 	u8 res1[0x8];
-	u32 rdgr0;      /* 0x5c rank dqs gating register */
-	u32 rdgr1;      /* 0x60 rank dqs gating register */
-	u8  res2[0x34];
-	u32 odtcr;      /* 0x98 odt configuration register */
-	u32 dtr0;       /* 0x9c data training register 0 */
-	u32 dtr1;       /* 0xa0 data training register 1 */
-	u32 dtar;       /* 0xa4 data training address register */
-	u32 zqcr0;      /* 0xa8 zq control register 0 */
-	u32 zqcr1;      /* 0xac zq control register 1 */
-	u32 zqsr;       /* 0xb0 zq status register */
-	u32 idcr;       /* 0xb4 initializaton delay configure register */
-	u8  res3[0x138];
-	u32 mr;         /* 0x1f0 mode register */
-	u32 emr;        /* 0x1f4 extended mode register */
-	u32 emr2;       /* 0x1f8 extended mode register */
-	u32 emr3;       /* 0x1fc extended mode register */
-	u32 dllctr;     /* 0x200 dll control register */
-	u32 dllcr[5];   /* 0x204 dll control register 0(byte 0) */
-	                /* 0x208 dll control register 1(byte 1) */
-	                /* 0x20c dll control register 2(byte 2) */
-	                /* 0x210 dll control register 3(byte 3) */
-	                /* 0x214 dll control register 4(byte 4) */
-	u32 dqtr0;      /* 0x218 dq timing register */
-	u32 dqtr1;      /* 0x21c dq timing register */
-	u32 dqtr2;      /* 0x220 dq timing register */
-	u32 dqtr3;      /* 0x224 dq timing register */
-	u32 dqstr;      /* 0x228 dqs timing register */
-	u32 dqsbtr;     /* 0x22c dqsb timing register */
-	u32 mcr;        /* 0x230 mode configure register */
-	u8  res[0xc];
-	u32 apr;        /* 0x240 arbiter period register */
-	u32 pldtr;      /* 0x244 priority level data threshold register */
-	u8  res5[0x8];
-	u32 hpcr[32];   /* 0x250 host port configure register */
-	u8  res6[0x10];
-	u32 csel;       /* 0x2e0 controller select register */
+	u32 rdgr0;		/* 0x5c rank dqs gating register */
+	u32 rdgr1;		/* 0x60 rank dqs gating register */
+	u8 res2[0x34];
+	u32 odtcr;		/* 0x98 odt configuration register */
+	u32 dtr0;		/* 0x9c data training register 0 */
+	u32 dtr1;		/* 0xa0 data training register 1 */
+	u32 dtar;		/* 0xa4 data training address register */
+	u32 zqcr0;		/* 0xa8 zq control register 0 */
+	u32 zqcr1;		/* 0xac zq control register 1 */
+	u32 zqsr;		/* 0xb0 zq status register */
+	u32 idcr;		/* 0xb4 initializaton delay configure reg */
+	u8 res3[0x138];
+	u32 mr;			/* 0x1f0 mode register */
+	u32 emr;		/* 0x1f4 extended mode register */
+	u32 emr2;		/* 0x1f8 extended mode register */
+	u32 emr3;		/* 0x1fc extended mode register */
+	u32 dllctr;		/* 0x200 dll control register */
+	u32 dllcr[5];		/* 0x204 dll control register 0(byte 0) */
+	/* 0x208 dll control register 1(byte 1) */
+	/* 0x20c dll control register 2(byte 2) */
+	/* 0x210 dll control register 3(byte 3) */
+	/* 0x214 dll control register 4(byte 4) */
+	u32 dqtr0;		/* 0x218 dq timing register */
+	u32 dqtr1;		/* 0x21c dq timing register */
+	u32 dqtr2;		/* 0x220 dq timing register */
+	u32 dqtr3;		/* 0x224 dq timing register */
+	u32 dqstr;		/* 0x228 dqs timing register */
+	u32 dqsbtr;		/* 0x22c dqsb timing register */
+	u32 mcr;		/* 0x230 mode configure register */
+	u8 res[0xc];
+	u32 apr;		/* 0x240 arbiter period register */
+	u32 pldtr;		/* 0x244 priority level data threshold reg */
+	u8 res5[0x8];
+	u32 hpcr[32];		/* 0x250 host port configure register */
+	u8 res6[0x10];
+	u32 csel;		/* 0x2e0 controller select register */
 
 };
 
 struct dram_para {
-
 	u32 clock;
 	u32 type;
 	u32 rank_num;
@@ -160,65 +160,66 @@ struct dram_para {
 	u32 emr3;
 };
 
-#define SDRAM_RST_PIN_HIGH        (1)
-#define SDRAM_RST_PIN_LOW         (0)
+#define SDRAM_RST_PIN_HIGH	1
+#define SDRAM_RST_PIN_LOW	0
 
 #ifdef CONFIG_SUN4I
-#define DCLK_OUT_OFFSET           (15)
+#define DCLK_OUT_OFFSET		15
 #endif
 #ifdef CONFIG_SUN5I
-#define DCLK_OUT_OFFSET           (16)
+#define DCLK_OUT_OFFSET		16
 #endif
-#define DRAM_CTRL_SELECT_MAGIC    (0x16237495)
+#define DRAM_CTRL_SELECT_MAGIC	0x16237495
 
-#define MCR_ENABLE_MODE           (3)
-#define MCR_MODE_NORMAL           (0)
-#define MCR_DQ_OUT_MODE_HS        (3)
-#define MCR_DQ_IN_MODE_HS         (3)
-#define MCR_ADDR_OUT_MODE_HS      (3)
-#define MCR_ADDR_IN_MODE_HS       (1)
-#define MCR_DQ_HS_TURNON_DLY      (7)
+#define MCR_ENABLE_MODE		3
+#define MCR_MODE_NORMAL		0
+#define MCR_DQ_OUT_MODE_HS	3
+#define MCR_DQ_IN_MODE_HS	3
+#define MCR_ADDR_OUT_MODE_HS	3
+#define MCR_ADDR_IN_MODE_HS	1
+#define MCR_DQ_HS_TURNON_DLY	7
 
-#define CCR_INTF_TIMING_DISABLE   (1)
-#define CCR_INTF_TIMING_ENABLE    (0)
-#define CCR_INIT_CHIP             (1)
-#define CCR_DAT_TRAIN_TRIG        (1)
+#define CCR_INTF_TIMING_DISABLE	1
+#define CCR_INTF_TIMING_ENABLE	0
+#define CCR_INIT_CHIP		1
+#define CCR_DAT_TRAIN_TRIG	1
 
-#define DLL_ENABLE                (0)
-#define DLL_DISABLE               (1)
-#define DLL_RESET                 (1)
+#define DLL_ENABLE		0
+#define DLL_DISABLE		1
+#define DLL_RESET		1
 
-#define DCR_TYPE_DDR2             (0)
-#define DCR_TYPE_DDR3             (1)
-#define DCR_IO_WIDTH_8            (1)
-#define DCR_IO_WIDTH_16           (2)
-#define DCR_CHIP_DENSITY_256Mb    (0)
-#define DCR_CHIP_DENSITY_512Mb    (1)
-#define DCR_CHIP_DENSITY_1Gb      (2)
-#define DCR_CHIP_DENSITY_2Gb      (3)
-#define DCR_CHIP_DENSITY_4Gb      (4)
-#define DCR_CHIP_DENSITY_8Gb      (5)
-#define DCR_BUS_WIDTH_16          (1)
-#define DCR_BUS_WIDTH_32          (3)
-#define DCR_ONE_RANK              (0)
-#define DCR_TWO_RANKS             (1)
-#define DCR_CMD_ON_ALL_RANKS      (1)
-#define DCR_INTERLEAVE_MODE       (1)
+#define DCR_TYPE_DDR2		0
+#define DCR_TYPE_DDR3		1
+#define DCR_IO_WIDTH_8		1
+#define DCR_IO_WIDTH_16		2
+#define DCR_CHIP_DENSITY_256Mb	0
+#define DCR_CHIP_DENSITY_512Mb	1
+#define DCR_CHIP_DENSITY_1Gb	2
+#define DCR_CHIP_DENSITY_2Gb	3
+#define DCR_CHIP_DENSITY_4Gb	4
+#define DCR_CHIP_DENSITY_8Gb	5
+#define DCR_BUS_WIDTH_16	1
+#define DCR_BUS_WIDTH_32	3
+#define DCR_ONE_RANK		0
+#define DCR_TWO_RANKS		1
+#define DCR_CMD_ON_ALL_RANKS	1
+#define DCR_INTERLEAVE_MODE	1
 
-#define ZQCR0_IMP_DIV             (0x7b)
+#define ZQCR0_IMP_DIV		0x7b
 
-#define MR_BURST_LENGTH           (0)
-#define MR_POWER_DOWN             (1)
-#define MR_CAS_LATENCY            (2)
-#define MR_WRITE_RECOVERY         (5)
+#define MR_BURST_LENGTH		0
+#define MR_POWER_DOWN		1
+#define MR_CAS_LATENCY		2
+#define MR_WRITE_RECOVERY	5
 
+// test-only: remove unused code
 /* For SUN5I I had tese set as follows for some reason
-#define MR_POWER_DOWN             (0)
-#define MR_CAS_LATENCY            (9-4)
+#define MR_POWER_DOWN		0
+#define MR_CAS_LATENCY		(9-4)
 */
 
-#define DQS_GATE_ON               (1)
-#define DQS_DRIFT_COMPENSATION    (0)
+#define DQS_GATE_ON		1
+#define DQS_DRIFT_COMPENSATION	0
 
 int sunxi_dram_init(void);
 unsigned DRAMC_get_dram_size(void);

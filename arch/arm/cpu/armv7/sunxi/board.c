@@ -27,6 +27,8 @@
 #include <common.h>
 #include <asm/io.h>
 #include <serial.h>
+#include <i2c.h>
+#include <asm/gpio.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
@@ -55,7 +57,8 @@ u32 spl_boot_mode(void)
 }
 #endif
 
-int gpio_init(void) {
+int gpio_init(void)
+{
 #if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
 #ifdef CONFIG_SUN4I
 	/* disable GPB22,23 as uart0 tx,rx to avoid conflict */
@@ -78,7 +81,8 @@ int gpio_init(void) {
 }
 
 /* do some early init */
-void s_init(void) {
+void s_init(void)
+{
 #ifdef CONFIG_WATCHDOG
 	watchdog_init();
 #endif
@@ -93,20 +97,21 @@ void s_init(void) {
 	/* Needed early by sunxi_board_init if PMU is enabled */
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
+
 	sunxi_board_init();
 #endif
 
 }
 
 extern void sunxi_reset(void);
-void reset_cpu(ulong addr) {
-
+void reset_cpu(ulong addr)
+{
 	sunxi_reset();
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
-void enable_caches(void) {
-
+void enable_caches(void)
+{
 	/* Enable D-cache. I-cache is already enabled in start.S */
 	dcache_enable();
 }

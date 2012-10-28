@@ -27,20 +27,18 @@
 #include <common.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/clock.h>
-#ifdef CONFIG_AXP209_POWER
+#include <asm/arch/mmc.h>
 #include <axp209.h>
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
 /* add board specific code here */
-int board_init(void) {
-
+int board_init(void)
+{
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 
 	return 0;
 }
-
 
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
@@ -57,16 +55,20 @@ void dram_init_banksize(void)
 	gd->bd->bi_dram[0].size = DRAMC_get_dram_size() * 1024 * 1024;
 }
 
-int dram_init(void) {
+int dram_init(void)
+{
+	gd->ram_size =
+	    get_ram_size((long *)PHYS_SDRAM_1,
+			 DRAMC_get_dram_size() * 1024 * 1024);
 
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, DRAMC_get_dram_size() * 1024 * 1024);
 	return 0;
 }
 
 #ifdef CONFIG_GENERIC_MMC
-int board_mmc_init(bd_t *bis) {
-
+int board_mmc_init(bd_t * bis)
+{
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+
 	return 0;
 }
 #endif
@@ -75,7 +77,9 @@ int board_mmc_init(bd_t *bis) {
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
+
 	sunxi_dram_init();
+
 #ifdef CONFIG_AXP209_POWER
 	power_failed |= axp209_init();
 	power_failed |= axp209_set_dcdc2(1400);
@@ -84,8 +88,8 @@ void sunxi_board_init(void)
 	power_failed |= axp209_set_ldo3(2800);
 	power_failed |= axp209_set_ldo4(2800);
 #endif
+
 	if (!power_failed)
 		clock_set_pll1(1008000000);
 }
-
 #endif
