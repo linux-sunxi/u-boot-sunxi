@@ -89,6 +89,9 @@ void sunxi_board_init(void)
 	power_failed |= axp209_set_ldo4(2800);
 #endif
 
+	/* Only clock up the CPU to full speed if we are reasonably
+	 * assured it's being powered with suitable core voltage
+	 */
 	if (!power_failed)
 		clock_set_pll1(1008000000);
 }
