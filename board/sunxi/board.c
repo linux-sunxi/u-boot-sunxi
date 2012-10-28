@@ -40,15 +40,6 @@ int board_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_DISPLAY_BOARDINFO
-int checkboard(void)
-{
-	printf("Board: %s\n", CONFIG_BOARD_NAME);
-
-	return 0;
-}
-#endif
-
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
@@ -95,4 +86,14 @@ void sunxi_board_init(void)
 	if (!power_failed)
 		clock_set_pll1(1008000000);
 }
+
+#ifdef CONFIG_SPL_DISPLAY_PRINT
+void spl_display_print(void)
+{
+	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
+
+	return 0;
+}
+#endif
+
 #endif

@@ -33,39 +33,6 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 
-/* Define the board name to print upon bootup on the console */
-#ifdef CONFIG_A10_EVB
-#define CONFIG_BOARD_NAME	"A10-EVB"
-#endif
-#ifdef CONFIG_A13_EVB
-#define CONFIG_BOARD_NAME	"A13-EVB"
-#endif
-#ifdef CONFIG_A13_MID
-#define CONFIG_BOARD_NAME	"A13 MID"
-#endif
-#ifdef CONFIG_A13_OLINUXINO
-#define CONFIG_BOARD_NAME	"A13-OLinuXino"
-#endif
-#ifdef CONFIG_CUBIEBOARD
-#define CONFIG_BOARD_NAME	"Cubieboard"
-#endif
-#ifdef CONFIG_CUBIEBOARD_512
-#define CONFIG_BOARD_NAME	"Cubieboard 512"
-#endif
-#ifdef CONFIG_HACKBERRY
-#define CONFIG_BOARD_NAME	"Hackberry"
-#endif
-#ifdef CONFIG_MELE_A1000
-#define CONFIG_BOARD_NAME	"Mele A1000"
-#endif
-#ifdef CONFIG_MINI_X
-#define CONFIG_BOARD_NAME	"Mini-X"
-#endif
-
-#ifndef CONFIG_BOARD_NAME
-#error "Define CONFIG_BOARD_NAME for your board port!"
-#endif
-
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
@@ -74,7 +41,6 @@
  * Display CPU and Board information
  */
 #define CONFIG_DISPLAY_CPUINFO
-#define CONFIG_DISPLAY_BOARDINFO
 
 /* Clock Defines */
 
@@ -232,6 +198,10 @@
 #define CONFIG_SPL
 #endif
 
+#ifndef CONFIG_SYS_BOARD_NAME
+#define CONFIG_SYS_BOARD_NAME CONFIG_SYS_BOARD
+#endif
+
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
@@ -244,6 +214,7 @@
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_DISPLAY_PRINT
 
 /* end of 24KB in sram */
 #define LOW_LEVEL_SRAM_STACK		0x00006000
