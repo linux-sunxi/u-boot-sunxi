@@ -27,8 +27,8 @@
 #endif
 
 #if defined(CONFIG_CMD_WATCHDOG) || defined(CONFIG_WATCHDOG)
-static struct sunxi_wdog * const wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+static struct sunxi_wdog *const wdog =
+	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 
 void watchdog_reset(void)
 {
@@ -42,12 +42,11 @@ static void watchdog_set(int interval)
 	writel(interval << 2 | 1 << 1 | 1 << 0, &wdog->mode);
 	watchdog_reset();
 }
-
 #endif
 
 #ifdef CONFIG_WATCHDOG
 void watchdog_init(void)
 {
-	watchdog_set(23); /* max possible timeout */
+	watchdog_set(23);	/* max possible timeout */
 }
 #endif
