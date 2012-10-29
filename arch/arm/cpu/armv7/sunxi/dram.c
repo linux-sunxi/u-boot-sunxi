@@ -33,7 +33,7 @@
 
 static void mctl_ddr3_reset(void)
 {
-	__u32 reg_val;
+	u32 reg_val;
 
 #ifdef CONFIG_SUN4I
 	writel(0, TIMER_CPU_CFG_REG);
@@ -86,9 +86,9 @@ static void mctl_enable_dll0(void)
  */
 static void mctl_enable_dllx(void)
 {
-	__u32 i = 0;
-	__u32 n;
-	__u32 bus_width;
+	u32 i = 0;
+	u32 n;
+	u32 bus_width;
 
 	bus_width = readl(SDR_DCR);
 	bus_width >>= 6;
@@ -126,7 +126,7 @@ static void mctl_disable_dll(void)
 }
 #endif
 
-static __u32 hpcr_value[32] = {
+static u32 hpcr_value[32] = {
 #ifdef CONFIG_SUN5I
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -151,15 +151,15 @@ static __u32 hpcr_value[32] = {
 
 static void mctl_configure_hostport(void)
 {
-	__u32 i;
+	u32 i;
 
 	for (i = 0; i < 32; i++)
 		writel(hpcr_value[i], SDR_HPCR + (i << 2));
 }
 
-static void mctl_setup_dram_clock(__u32 clk)
+static void mctl_setup_dram_clock(u32 clk)
 {
-	__u32 reg_val;
+	u32 reg_val;
 
 	/* setup DRAM PLL */
 	reg_val = readl(DRAM_CCM_SDRAM_PLL_REG);
@@ -172,7 +172,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 	reg_val &= ~(0x3 << 16);
 	reg_val |= 0x1 << 16;		/* p factor */
 	reg_val &= ~(0x1 << 29);	/* PLL on */
-	reg_val |= (__u32) 0x1 << 31;	/* PLL En */
+	reg_val |= (u32) 0x1 << 31;	/* PLL En */
 	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
 	sdelay(0x100000);
 
@@ -212,7 +212,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 
 static int dramc_scan_readpipe(void)
 {
-	__u32 reg_val;
+	u32 reg_val;
 
 	/* data training trigger */
 	setbits_le32(SDR_CCR, 0x1 << 30);
@@ -230,7 +230,7 @@ static int dramc_scan_readpipe(void)
 }
 
 // test-only: cant this be done via DCLK_OUT_OFFSET (dram.h)??? (no #ifdef here)
-static void dramc_clock_output_en(__u32 on)
+static void dramc_clock_output_en(u32 on)
 {
 #ifdef CONFIG_SUN5I
 	if (on)
@@ -247,12 +247,12 @@ static void dramc_clock_output_en(__u32 on)
 }
 
 // test-only: arghhh! clean-up this #ifdef mess!!!!
-static void dramc_set_autorefresh_cycle(__u32 clk)
+static void dramc_set_autorefresh_cycle(u32 clk)
 {
-	__u32 reg_val;
-	__u32 tmp_val;
+	u32 reg_val;
+	u32 tmp_val;
 #ifdef CONFIG_SUN4I
-	__u32 dram_size;
+	u32 dram_size;
 
 	dram_size = readl(SDR_DCR);
 	dram_size >>= 3;
@@ -288,9 +288,9 @@ else
  */
 unsigned dramc_get_dram_size(void)
 {
-	__u32 reg_val;
-	__u32 dram_size;
-	__u32 chip_den;
+	u32 reg_val;
+	u32 dram_size;
+	u32 chip_den;
 
 	reg_val = readl(SDR_DCR);
 	chip_den = (reg_val >> 3) & 0x7;
@@ -309,8 +309,8 @@ unsigned dramc_get_dram_size(void)
 
 int dramc_init(struct dram_para *para)
 {
-	__u32 reg_val;
-	__s32 ret_val;
+	u32 reg_val;
+	int ret_val;
 
 	/* check input dram parameter structure */
 	if (!para)
