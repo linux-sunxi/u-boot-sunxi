@@ -125,18 +125,6 @@ static void mctl_enable_dllx(void)
 	sdelay(0x1000);
 }
 
-// test-only: not used at all, really needed???
-#if 0
-static void mctl_disable_dll(void)
-{
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
-	int i;
-
-	for (i = 0; i < 5; i++)
-		clrsetbits_le32(&dram->dllcr[i], 0x1 << 30, 0x1U << 31);
-}
-#endif
-
 static u32 hpcr_value[32] = {
 #ifdef CONFIG_SUN5I
 	0, 0, 0, 0,

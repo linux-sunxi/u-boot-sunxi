@@ -167,12 +167,6 @@ struct dram_para {
 #define MR_CAS_LATENCY		2
 #define MR_WRITE_RECOVERY	5
 
-// test-only: remove unused code
-/* For SUN5I I had tese set as follows for some reason
-#define MR_POWER_DOWN		0
-#define MR_CAS_LATENCY		(9-4)
-*/
-
 #define DQS_GATE_ON		1
 #define DQS_DRIFT_COMPENSATION	0
 
