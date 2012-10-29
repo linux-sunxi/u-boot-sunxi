@@ -31,38 +31,34 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
-// test-only: no volatile access, this should be converted to readl/writel
-#define mctl_read_w(n)      (*((volatile unsigned int *)(n)))
-#define mctl_write_w(n,c)   (*((volatile unsigned int *)(n)) = (c))
-
 static void mctl_ddr3_reset(void)
 {
 	__u32 reg_val;
 
 #ifdef CONFIG_SUN4I
-	mctl_write_w(TIMER_CPU_CFG_REG, 0);
-	reg_val = mctl_read_w(TIMER_CPU_CFG_REG);
+	writel(0, TIMER_CPU_CFG_REG);
+	reg_val = readl(TIMER_CPU_CFG_REG);
 	reg_val >>= 6;
 	reg_val &= 0x3;
 
 	if (reg_val != 0) {
-		reg_val = mctl_read_w(SDR_CR);
+		reg_val = readl(SDR_CR);
 		reg_val |= (0x1 << 12);
-		mctl_write_w(SDR_CR, reg_val);
+		writel(reg_val, SDR_CR);
 		sdelay(0x100);
-		reg_val = mctl_read_w(SDR_CR);
+		reg_val = readl(SDR_CR);
 		reg_val &= ~(0x1 << 12);
-		mctl_write_w(SDR_CR, reg_val);
+		writel(reg_val, SDR_CR);
 	} else
 #endif
 	{
-		reg_val = mctl_read_w(SDR_CR);
+		reg_val = readl(SDR_CR);
 		reg_val &= ~(0x1 << 12);
-		mctl_write_w(SDR_CR, reg_val);
+		writel(reg_val, SDR_CR);
 		sdelay(0x100);
-		reg_val = mctl_read_w(SDR_CR);
+		reg_val = readl(SDR_CR);
 		reg_val |= (0x1 << 12);
-		mctl_write_w(SDR_CR, reg_val);
+		writel(reg_val, SDR_CR);
 	}
 }
 
@@ -70,42 +66,40 @@ static void mctl_set_drive(void)
 {
 	__u32 reg_val;
 
-	reg_val = mctl_read_w(SDR_CR);
+	reg_val = readl(SDR_CR);
 	reg_val |= (0x6 << 12);
 	reg_val |= 0xFFC;
 	reg_val &= ~0x3;
-	mctl_write_w(SDR_CR, reg_val);
+	writel(reg_val, SDR_CR);
 }
 
 static void mctl_itm_disable(void)
 {
 	__u32 reg_val = 0x0;
 
-	reg_val = mctl_read_w(SDR_CCR);
+	reg_val = readl(SDR_CCR);
 	reg_val |= 0x1 << 28;
-	mctl_write_w(SDR_CCR, reg_val);
+	writel(reg_val, SDR_CCR);
 }
 
 static void mctl_itm_enable(void)
 {
 	__u32 reg_val = 0x0;
 
-	reg_val = mctl_read_w(SDR_CCR);
+	reg_val = readl(SDR_CCR);
 	reg_val &= ~(0x1 << 28);
-	mctl_write_w(SDR_CCR, reg_val);
+	writel(reg_val, SDR_CCR);
 }
 
 static void mctl_enable_dll0(void)
 {
-	mctl_write_w(SDR_DLLCR0,
-		     (mctl_read_w(SDR_DLLCR0) & ~0x40000000) | 0x80000000);
+	writel((readl(SDR_DLLCR0) & ~0x40000000) | 0x80000000, SDR_DLLCR0);
 	sdelay(0x100);
 
-	mctl_write_w(SDR_DLLCR0, mctl_read_w(SDR_DLLCR0) & ~0xC0000000);
+	writel(readl(SDR_DLLCR0) & ~0xC0000000, SDR_DLLCR0);
 	sdelay(0x1000);
 
-	mctl_write_w(SDR_DLLCR0,
-		     (mctl_read_w(SDR_DLLCR0) & ~0x80000000) | 0x40000000);
+	writel((readl(SDR_DLLCR0) & ~0x80000000) | 0x40000000, SDR_DLLCR0);
 	sdelay(0x1000);
 }
 
@@ -118,7 +112,7 @@ static void mctl_enable_dllx(void)
 	__u32 n;
 	__u32 bus_width;
 
-	bus_width = mctl_read_w(SDR_DCR);
+	bus_width = readl(SDR_DCR);
 	bus_width >>= 6;
 	bus_width &= 7;
 
@@ -130,22 +124,20 @@ static void mctl_enable_dllx(void)
 	}
 
 	for (i = 1; i < n; i++) {
-		mctl_write_w(SDR_DLLCR0 + (i << 2),
-			     (mctl_read_w(SDR_DLLCR0 + (i << 2)) & ~0x40000000)
-			     | 0x80000000);
+		writel((readl(SDR_DLLCR0 + (i << 2)) & ~0x40000000)
+		       | 0x80000000, SDR_DLLCR0 + (i << 2));
 	}
 	sdelay(0x100);
 
 	for (i = 1; i < n; i++) {
-		mctl_write_w(SDR_DLLCR0 + (i << 2),
-			     mctl_read_w(SDR_DLLCR0 + (i << 2)) & ~0xC0000000);
+		writel(readl(SDR_DLLCR0 + (i << 2)) & ~0xC0000000,
+		       SDR_DLLCR0 + (i << 2));
 	}
 	sdelay(0x1000);
 
 	for (i = 1; i < n; i++) {
-		mctl_write_w(SDR_DLLCR0 + (i << 2),
-			     (mctl_read_w(SDR_DLLCR0 + (i << 2)) & ~0x80000000)
-			     | 0x40000000);
+		writel((readl(SDR_DLLCR0 + (i << 2)) & ~0x80000000)
+		       | 0x40000000, SDR_DLLCR0 + (i << 2));
 	}
 	sdelay(0x1000);
 }
@@ -156,30 +148,30 @@ static void mctl_disable_dll(void)
 {
 	__u32 reg_val;
 
-	reg_val = mctl_read_w(SDR_DLLCR0);
+	reg_val = readl(SDR_DLLCR0);
 	reg_val &= ~(0x1 << 30);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_DLLCR0, reg_val);
+	writel(reg_val, SDR_DLLCR0);
 
-	reg_val = mctl_read_w(SDR_DLLCR1);
+	reg_val = readl(SDR_DLLCR1);
 	reg_val &= ~(0x1 << 30);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_DLLCR1, reg_val);
+	writel(reg_val, SDR_DLLCR1);
 
-	reg_val = mctl_read_w(SDR_DLLCR2);
+	reg_val = readl(SDR_DLLCR2);
 	reg_val &= ~(0x1 << 30);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_DLLCR2, reg_val);
+	writel(reg_val, SDR_DLLCR2);
 
-	reg_val = mctl_read_w(SDR_DLLCR3);
+	reg_val = readl(SDR_DLLCR3);
 	reg_val &= ~(0x1 << 30);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_DLLCR3, reg_val);
+	writel(reg_val, SDR_DLLCR3);
 
-	reg_val = mctl_read_w(SDR_DLLCR4);
+	reg_val = readl(SDR_DLLCR4);
 	reg_val &= ~(0x1 << 30);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_DLLCR4, reg_val);
+	writel(reg_val, SDR_DLLCR4);
 }
 #endif
 
@@ -211,7 +203,7 @@ static void mctl_configure_hostport(void)
 	__u32 i;
 
 	for (i = 0; i < 32; i++)
-		mctl_write_w(SDR_HPCR + (i << 2), hpcr_value[i]);
+		writel(hpcr_value[i], SDR_HPCR + (i << 2));
 }
 
 static void mctl_setup_dram_clock(__u32 clk)
@@ -219,7 +211,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 	__u32 reg_val;
 
 	/* setup DRAM PLL */
-	reg_val = mctl_read_w(DRAM_CCM_SDRAM_PLL_REG);
+	reg_val = readl(DRAM_CCM_SDRAM_PLL_REG);
 	reg_val &= ~0x3;
 	reg_val |= 0x1;			/* m factor */
 	reg_val &= ~(0x3 << 4);
@@ -230,42 +222,42 @@ static void mctl_setup_dram_clock(__u32 clk)
 	reg_val |= 0x1 << 16;		/* p factor */
 	reg_val &= ~(0x1 << 29);	/* PLL on */
 	reg_val |= (__u32) 0x1 << 31;	/* PLL En */
-	mctl_write_w(DRAM_CCM_SDRAM_PLL_REG, reg_val);
+	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
 	sdelay(0x100000);
 
-	reg_val = mctl_read_w(DRAM_CCM_SDRAM_PLL_REG);
+	reg_val = readl(DRAM_CCM_SDRAM_PLL_REG);
 	reg_val |= 0x1 << 29;
-	mctl_write_w(DRAM_CCM_SDRAM_PLL_REG, reg_val);
+	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
 
 #ifdef CONFIG_SUN4I
 	/* reset GPS */
-	reg_val = mctl_read_w(DRAM_CCM_GPS_CLK_REG);
+	reg_val = readl(DRAM_CCM_GPS_CLK_REG);
 	reg_val &= ~0x3;
-	mctl_write_w(DRAM_CCM_GPS_CLK_REG, reg_val);
-	reg_val = mctl_read_w(DRAM_CCM_AHB_GATE_REG);
+	writel(reg_val, DRAM_CCM_GPS_CLK_REG);
+	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
 	reg_val |= (0x1 << 26);
-	mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
+	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 	sdelay(0x20);
-	reg_val = mctl_read_w(DRAM_CCM_AHB_GATE_REG);
+	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
 	reg_val &= ~(0x1 << 26);
-	mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
+	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 #endif
 
 	/* setup MBUS clock */
 	reg_val = (0x1 << 31) | (0x2 << 24) | (0x1);
-	mctl_write_w(DRAM_CCM_MUS_CLK_REG, reg_val);
+	writel(reg_val, DRAM_CCM_MUS_CLK_REG);
 
 	/*
 	 * open DRAMC AHB & DLL register clock
 	 * close it first
 	 */
-	reg_val = mctl_read_w(DRAM_CCM_AHB_GATE_REG);
+	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
 #ifdef CONFIG_SUN5I
 	reg_val &= ~(0x3 << 14);
 #else
 	reg_val &= ~(0x1 << 14);
 #endif
-	mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
+	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 	sdelay(0x1000);
 
 	/* then open it */
@@ -274,7 +266,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 #else
 	reg_val |= 0x1 << 14;
 #endif
-	mctl_write_w(DRAM_CCM_AHB_GATE_REG, reg_val);
+	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 	sdelay(0x1000);
 }
 
@@ -283,16 +275,16 @@ static int dramc_scan_readpipe(void)
 	__u32 reg_val;
 
 	/* data training trigger */
-	reg_val = mctl_read_w(SDR_CCR);
+	reg_val = readl(SDR_CCR);
 	reg_val |= 0x1 << 30;
-	mctl_write_w(SDR_CCR, reg_val);
+	writel(reg_val, SDR_CCR);
 
 	/* check whether data training process is end */
-	while (mctl_read_w(SDR_CCR) & (0x1 << 30))
+	while (readl(SDR_CCR) & (0x1 << 30))
 		;
 
 	/* check data training result */
-	reg_val = mctl_read_w(SDR_CSR);
+	reg_val = readl(SDR_CSR);
 	if (reg_val & (0x1 << 20))
 		return -1;
 
@@ -305,24 +297,24 @@ static void dramc_clock_output_en(__u32 on)
 	__u32 reg_val;
 
 #ifdef CONFIG_SUN5I
-	reg_val = mctl_read_w(SDR_CR);
+	reg_val = readl(SDR_CR);
 
 	if (on)
 		reg_val |= 0x1 << 16;
 	else
 		reg_val &= ~(0x1 << 16);
 
-	mctl_write_w(SDR_CR, reg_val);
+	writel(reg_val, SDR_CR);
 #endif
 #ifdef CONFIG_SUN4I
-	reg_val = mctl_read_w(DRAM_CCM_SDRAM_CLK_REG);
+	reg_val = readl(DRAM_CCM_SDRAM_CLK_REG);
 
 	if (on)
 		reg_val |= 0x1 << 15;
 	else
 		reg_val &= ~(0x1 << 15);
 
-	mctl_write_w(DRAM_CCM_SDRAM_CLK_REG, reg_val);
+	writel(reg_val, DRAM_CCM_SDRAM_CLK_REG);
 #endif
 }
 
@@ -334,7 +326,7 @@ static void dramc_set_autorefresh_cycle(__u32 clk)
 #ifdef CONFIG_SUN4I
 	__u32 dram_size;
 
-	dram_size = mctl_read_w(SDR_DCR);
+	dram_size = readl(SDR_DCR);
 	dram_size >>= 3;
 	dram_size &= 0x7;
 
@@ -352,13 +344,13 @@ static void dramc_set_autorefresh_cycle(__u32 clk)
 	tmp_val = tmp_val * 9 - 200;
 	reg_val |= tmp_val << 8;
 	reg_val |= 0x8 << 24;
-	mctl_write_w(SDR_DRR, reg_val);
+	writel(reg_val, SDR_DRR);
 #ifdef CONFIG_SUN4I
 }
 
 else
 {
-	mctl_write_w(SDR_DRR, 0x0);
+	writel(0x0, SDR_DRR);
 }
 #endif
 }
@@ -372,7 +364,7 @@ unsigned dramc_get_dram_size(void)
 	__u32 dram_size;
 	__u32 chip_den;
 
-	reg_val = mctl_read_w(SDR_DCR);
+	reg_val = readl(SDR_DCR);
 	chip_den = (reg_val >> 3) & 0x7;
 
 	// test-only: use an algorythm, like dram_size = (32 << chip_den)
@@ -414,7 +406,7 @@ int dramc_init(struct dram_para *para)
 #ifdef CONFIG_SUN5I
 	// test-only: new code? does it work? change or remove comment
 	/* This is new unknown code! */
-	mctl_write_w(SDR_0x23c, 0);
+	writel(0, SDR_0x23c);
 #endif
 
 	/* reset external DRAM */
@@ -426,7 +418,7 @@ int dramc_init(struct dram_para *para)
 
 #ifdef CONFIG_SUN4I
 	/* select dram controller 1 */
-	mctl_write_w(SDR_SCSR, 0x16237495);
+	writel(0x16237495, SDR_SCSR);
 #endif
 
 	mctl_itm_disable();
@@ -460,14 +452,14 @@ int dramc_init(struct dram_para *para)
 	reg_val |= 0x1 << 12;
 	reg_val |= ((0x1) & 0x3) << 13;
 
-	mctl_write_w(SDR_DCR, reg_val);
+	writel(reg_val, SDR_DCR);
 
 #ifdef CONFIG_SUN5I
 	/* set odt impendance divide ratio */
 	reg_val = ((para->zq) >> 8) & 0xfffff;
 	reg_val |= ((para->zq) & 0xff) << 20;
 	reg_val |= (para->zq) & 0xf0000000;
-	mctl_write_w(SDR_ZQCR0, reg_val);
+	writel(reg_val, SDR_ZQCR0);
 #endif
 
 	/* dram clock on */
@@ -475,7 +467,7 @@ int dramc_init(struct dram_para *para)
 
 	sdelay(0x10);
 
-	while (mctl_read_w(SDR_CCR) & (0x1U << 31))
+	while (readl(SDR_CCR) & (0x1U << 31))
 		;
 
 	mctl_enable_dllx();
@@ -485,7 +477,7 @@ int dramc_init(struct dram_para *para)
 	reg_val = ((para->zq) >> 8) & 0xfffff;
 	reg_val |= ((para->zq) & 0xff) << 20;
 	reg_val |= (para->zq) & 0xf0000000;
-	mctl_write_w(SDR_ZQCR0, reg_val);
+	writel(reg_val, SDR_ZQCR0);
 #endif
 
 #ifdef CONFIG_SUN4I
@@ -493,16 +485,16 @@ int dramc_init(struct dram_para *para)
 	reg_val = 0x00cc0000;
 	reg_val |= (para->odt_en) & 0x3;
 	reg_val |= ((para->odt_en) & 0x3) << 30;
-	mctl_write_w(SDR_IOCR, reg_val);
+	writel(reg_val, SDR_IOCR);
 #endif
 
 	/* set refresh period */
 	dramc_set_autorefresh_cycle(para->clock);
 
 	/* set timing parameters */
-	mctl_write_w(SDR_TPR0, para->tpr0);
-	mctl_write_w(SDR_TPR1, para->tpr1);
-	mctl_write_w(SDR_TPR2, para->tpr2);
+	writel(para->tpr0, SDR_TPR0);
+	writel(para->tpr1, SDR_TPR1);
+	writel(para->tpr2, SDR_TPR2);
 
 	/* set mode register */
 	if (para->type == 3) {
@@ -519,24 +511,24 @@ int dramc_init(struct dram_para *para)
 		reg_val |= para->cas << 4;
 		reg_val |= 0x5 << 9;
 	}
-	mctl_write_w(SDR_MR, reg_val);
+	writel(reg_val, SDR_MR);
 
-	mctl_write_w(SDR_EMR, para->emr1);
-	mctl_write_w(SDR_EMR2, para->emr2);
-	mctl_write_w(SDR_EMR3, para->emr3);
+	writel(para->emr1, SDR_EMR);
+	writel(para->emr2, SDR_EMR2);
+	writel(para->emr3, SDR_EMR3);
 
 	/* set DQS window mode */
-	reg_val = mctl_read_w(SDR_CCR);
+	reg_val = readl(SDR_CCR);
 	reg_val |= 0x1U << 14;
 	reg_val &= ~(0x1U << 17);
-	mctl_write_w(SDR_CCR, reg_val);
+	writel(reg_val, SDR_CCR);
 
 	/* initial external DRAM */
-	reg_val = mctl_read_w(SDR_CCR);
+	reg_val = readl(SDR_CCR);
 	reg_val |= 0x1U << 31;
-	mctl_write_w(SDR_CCR, reg_val);
+	writel(reg_val, SDR_CCR);
 
-	while (mctl_read_w(SDR_CCR) & (0x1U << 31))
+	while (readl(SDR_CCR) & (0x1U << 31))
 		;
 
 	/* scan read pipe value */
