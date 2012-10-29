@@ -295,19 +295,7 @@ unsigned dramc_get_dram_size(void)
 	reg_val = readl(SDR_DCR);
 	chip_den = (reg_val >> 3) & 0x7;
 
-	// test-only: use an algorythm, like dram_size = (32 << chip_den)
-	if (chip_den == 0)
-		dram_size = 32;
-	else if (chip_den == 1)
-		dram_size = 64;
-	else if (chip_den == 2)
-		dram_size = 128;
-	else if (chip_den == 3)
-		dram_size = 256;
-	else if (chip_den == 4)
-		dram_size = 512;
-	else
-		dram_size = 1024;
+	dram_size = min(1024, 32 << chip_den);
 
 	if (((reg_val >> 1) & 0x3) == 0x1)
 		dram_size <<= 1;
