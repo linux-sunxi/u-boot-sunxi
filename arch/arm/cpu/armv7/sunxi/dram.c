@@ -42,64 +42,42 @@ static void mctl_ddr3_reset(void)
 	reg_val &= 0x3;
 
 	if (reg_val != 0) {
-		reg_val = readl(SDR_CR);
-		reg_val |= (0x1 << 12);
-		writel(reg_val, SDR_CR);
+		setbits_le32(SDR_CR, 0x1 << 12);
 		sdelay(0x100);
-		reg_val = readl(SDR_CR);
-		reg_val &= ~(0x1 << 12);
-		writel(reg_val, SDR_CR);
+		clrbits_le32(SDR_CR, 0x1 << 12);
 	} else
 #endif
 	{
-		reg_val = readl(SDR_CR);
-		reg_val &= ~(0x1 << 12);
-		writel(reg_val, SDR_CR);
+		clrbits_le32(SDR_CR, 0x1 << 12);
 		sdelay(0x100);
-		reg_val = readl(SDR_CR);
-		reg_val |= (0x1 << 12);
-		writel(reg_val, SDR_CR);
+		setbits_le32(SDR_CR, 0x1 << 12);
 	}
 }
 
 static void mctl_set_drive(void)
 {
-	__u32 reg_val;
-
-	reg_val = readl(SDR_CR);
-	reg_val |= (0x6 << 12);
-	reg_val |= 0xFFC;
-	reg_val &= ~0x3;
-	writel(reg_val, SDR_CR);
+	clrsetbits_le32(SDR_CR, 0x3, (0x6 << 12) | 0xFFC);
 }
 
 static void mctl_itm_disable(void)
 {
-	__u32 reg_val = 0x0;
-
-	reg_val = readl(SDR_CCR);
-	reg_val |= 0x1 << 28;
-	writel(reg_val, SDR_CCR);
+	setbits_le32(SDR_CCR, 0x1 << 28);
 }
 
 static void mctl_itm_enable(void)
 {
-	__u32 reg_val = 0x0;
-
-	reg_val = readl(SDR_CCR);
-	reg_val &= ~(0x1 << 28);
-	writel(reg_val, SDR_CCR);
+	clrbits_le32(SDR_CCR, 0x1 << 28);
 }
 
 static void mctl_enable_dll0(void)
 {
-	writel((readl(SDR_DLLCR0) & ~0x40000000) | 0x80000000, SDR_DLLCR0);
+	clrsetbits_le32(SDR_DLLCR0, 0x40000000, 0x80000000);
 	sdelay(0x100);
 
-	writel(readl(SDR_DLLCR0) & ~0xC0000000, SDR_DLLCR0);
+	clrbits_le32(SDR_DLLCR0, 0xC0000000);
 	sdelay(0x1000);
 
-	writel((readl(SDR_DLLCR0) & ~0x80000000) | 0x40000000, SDR_DLLCR0);
+	clrsetbits_le32(SDR_DLLCR0, 0x80000000, 0x40000000);
 	sdelay(0x1000);
 }
 
@@ -123,22 +101,16 @@ static void mctl_enable_dllx(void)
 		i = 1;
 	}
 
-	for (i = 1; i < n; i++) {
-		writel((readl(SDR_DLLCR0 + (i << 2)) & ~0x40000000)
-		       | 0x80000000, SDR_DLLCR0 + (i << 2));
-	}
+	for (i = 1; i < n; i++)
+		clrsetbits_le32(SDR_DLLCR0 + (i << 2), 0x40000000, 0x80000000);
 	sdelay(0x100);
 
-	for (i = 1; i < n; i++) {
-		writel(readl(SDR_DLLCR0 + (i << 2)) & ~0xC0000000,
-		       SDR_DLLCR0 + (i << 2));
-	}
+	for (i = 1; i < n; i++)
+		clrbits_le32(SDR_DLLCR0 + (i << 2), 0xC0000000);
 	sdelay(0x1000);
 
-	for (i = 1; i < n; i++) {
-		writel((readl(SDR_DLLCR0 + (i << 2)) & ~0x80000000)
-		       | 0x40000000, SDR_DLLCR0 + (i << 2));
-	}
+	for (i = 1; i < n; i++)
+		clrsetbits_le32(SDR_DLLCR0 + (i << 2), 0x80000000, 0x40000000);
 	sdelay(0x1000);
 }
 
@@ -146,32 +118,11 @@ static void mctl_enable_dllx(void)
 #if 0
 static void mctl_disable_dll(void)
 {
-	__u32 reg_val;
-
-	reg_val = readl(SDR_DLLCR0);
-	reg_val &= ~(0x1 << 30);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_DLLCR0);
-
-	reg_val = readl(SDR_DLLCR1);
-	reg_val &= ~(0x1 << 30);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_DLLCR1);
-
-	reg_val = readl(SDR_DLLCR2);
-	reg_val &= ~(0x1 << 30);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_DLLCR2);
-
-	reg_val = readl(SDR_DLLCR3);
-	reg_val &= ~(0x1 << 30);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_DLLCR3);
-
-	reg_val = readl(SDR_DLLCR4);
-	reg_val &= ~(0x1 << 30);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_DLLCR4);
+	clrsetbits_le32(SDR_DLLCR0, 0x1 << 30, 0x1U << 31);
+	clrsetbits_le32(SDR_DLLCR1, 0x1 << 30, 0x1U << 31);
+	clrsetbits_le32(SDR_DLLCR2, 0x1 << 30, 0x1U << 31);
+	clrsetbits_le32(SDR_DLLCR3, 0x1 << 30, 0x1U << 31);
+	clrsetbits_le32(SDR_DLLCR4, 0x1 << 30, 0x1U << 31);
 }
 #endif
 
@@ -225,22 +176,14 @@ static void mctl_setup_dram_clock(__u32 clk)
 	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
 	sdelay(0x100000);
 
-	reg_val = readl(DRAM_CCM_SDRAM_PLL_REG);
-	reg_val |= 0x1 << 29;
-	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
+	setbits_le32(DRAM_CCM_SDRAM_PLL_REG, 0x1 << 29);
 
 #ifdef CONFIG_SUN4I
 	/* reset GPS */
-	reg_val = readl(DRAM_CCM_GPS_CLK_REG);
-	reg_val &= ~0x3;
-	writel(reg_val, DRAM_CCM_GPS_CLK_REG);
-	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
-	reg_val |= (0x1 << 26);
-	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
+	clrbits_le32(DRAM_CCM_GPS_CLK_REG, 0x3);
+	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 26);
 	sdelay(0x20);
-	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
-	reg_val &= ~(0x1 << 26);
-	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
+	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 26);
 #endif
 
 	/* setup MBUS clock */
@@ -251,22 +194,19 @@ static void mctl_setup_dram_clock(__u32 clk)
 	 * open DRAMC AHB & DLL register clock
 	 * close it first
 	 */
-	reg_val = readl(DRAM_CCM_AHB_GATE_REG);
 #ifdef CONFIG_SUN5I
-	reg_val &= ~(0x3 << 14);
+	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x3 << 14);
 #else
-	reg_val &= ~(0x1 << 14);
+	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 14);
 #endif
-	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 	sdelay(0x1000);
 
 	/* then open it */
 #ifdef CONFIG_SUN5I
-	reg_val |= 0x3 << 14;
+	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x3 << 14);
 #else
-	reg_val |= 0x1 << 14;
+	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 14);
 #endif
-	writel(reg_val, DRAM_CCM_AHB_GATE_REG);
 	sdelay(0x1000);
 }
 
@@ -275,9 +215,7 @@ static int dramc_scan_readpipe(void)
 	__u32 reg_val;
 
 	/* data training trigger */
-	reg_val = readl(SDR_CCR);
-	reg_val |= 0x1 << 30;
-	writel(reg_val, SDR_CCR);
+	setbits_le32(SDR_CCR, 0x1 << 30);
 
 	/* check whether data training process is end */
 	while (readl(SDR_CCR) & (0x1 << 30))
@@ -294,27 +232,17 @@ static int dramc_scan_readpipe(void)
 // test-only: cant this be done via DCLK_OUT_OFFSET (dram.h)??? (no #ifdef here)
 static void dramc_clock_output_en(__u32 on)
 {
-	__u32 reg_val;
-
 #ifdef CONFIG_SUN5I
-	reg_val = readl(SDR_CR);
-
 	if (on)
-		reg_val |= 0x1 << 16;
+		setbits_le32(SDR_CR, 0x1 << 16);
 	else
-		reg_val &= ~(0x1 << 16);
-
-	writel(reg_val, SDR_CR);
+		clrbits_le32(SDR_CR, 0x1 << 16);
 #endif
 #ifdef CONFIG_SUN4I
-	reg_val = readl(DRAM_CCM_SDRAM_CLK_REG);
-
 	if (on)
-		reg_val |= 0x1 << 15;
+		setbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << 15);
 	else
-		reg_val &= ~(0x1 << 15);
-
-	writel(reg_val, DRAM_CCM_SDRAM_CLK_REG);
+		clrbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << 15);
 #endif
 }
 
@@ -518,15 +446,10 @@ int dramc_init(struct dram_para *para)
 	writel(para->emr3, SDR_EMR3);
 
 	/* set DQS window mode */
-	reg_val = readl(SDR_CCR);
-	reg_val |= 0x1U << 14;
-	reg_val &= ~(0x1U << 17);
-	writel(reg_val, SDR_CCR);
+	clrsetbits_le32(SDR_CCR, 0x1U << 17, 0x1U << 14);
 
 	/* initial external DRAM */
-	reg_val = readl(SDR_CCR);
-	reg_val |= 0x1U << 31;
-	writel(reg_val, SDR_CCR);
+	setbits_le32(SDR_CCR, 0x1U << 31);
 
 	while (readl(SDR_CCR) & (0x1U << 31))
 		;
