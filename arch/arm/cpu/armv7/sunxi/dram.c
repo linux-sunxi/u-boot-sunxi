@@ -35,8 +35,6 @@
 #define mctl_read_w(n)      (*((volatile unsigned int *)(n)))
 #define mctl_write_w(n,c)   (*((volatile unsigned int *)(n)) = (c))
 
-// test-only: no uppercase function and variable names
-
 static void mctl_ddr3_reset(void)
 {
 	__u32 reg_val;
@@ -280,8 +278,7 @@ static void mctl_setup_dram_clock(__u32 clk)
 	sdelay(0x1000);
 }
 
-// test-only: no upped case characters
-static int DRAMC_scan_readpipe(void)
+static int dramc_scan_readpipe(void)
 {
 	__u32 reg_val;
 
@@ -303,7 +300,7 @@ static int DRAMC_scan_readpipe(void)
 }
 
 // test-only: cant this be done via DCLK_OUT_OFFSET (dram.h)??? (no #ifdef here)
-static void DRAMC_clock_output_en(__u32 on)
+static void dramc_clock_output_en(__u32 on)
 {
 	__u32 reg_val;
 
@@ -330,7 +327,7 @@ static void DRAMC_clock_output_en(__u32 on)
 }
 
 // test-only: arghhh! clean-up this #ifdef mess!!!!
-static void DRAMC_set_autorefresh_cycle(__u32 clk)
+static void dramc_set_autorefresh_cycle(__u32 clk)
 {
 	__u32 reg_val;
 	__u32 tmp_val;
@@ -369,7 +366,7 @@ else
 /*
  * Get DRAM Size in MB unit;
  */
-unsigned DRAMC_get_dram_size(void)
+unsigned dramc_get_dram_size(void)
 {
 	__u32 reg_val;
 	__u32 dram_size;
@@ -402,7 +399,7 @@ unsigned DRAMC_get_dram_size(void)
 	return dram_size;
 }
 
-int DRAMC_init(struct dram_para *para)
+int dramc_init(struct dram_para *para)
 {
 	__u32 reg_val;
 	__s32 ret_val;
@@ -425,7 +422,7 @@ int DRAMC_init(struct dram_para *para)
 	mctl_set_drive();
 
 	/* dram clock off */
-	DRAMC_clock_output_en(0);
+	dramc_clock_output_en(0);
 
 #ifdef CONFIG_SUN4I
 	/* select dram controller 1 */
@@ -474,7 +471,7 @@ int DRAMC_init(struct dram_para *para)
 #endif
 
 	/* dram clock on */
-	DRAMC_clock_output_en(1);
+	dramc_clock_output_en(1);
 
 	sdelay(0x10);
 
@@ -500,7 +497,7 @@ int DRAMC_init(struct dram_para *para)
 #endif
 
 	/* set refresh period */
-	DRAMC_set_autorefresh_cycle(para->clock);
+	dramc_set_autorefresh_cycle(para->clock);
 
 	/* set timing parameters */
 	mctl_write_w(SDR_TPR0, para->tpr0);
@@ -544,7 +541,7 @@ int DRAMC_init(struct dram_para *para)
 
 	/* scan read pipe value */
 	mctl_itm_enable();
-	ret_val = DRAMC_scan_readpipe();
+	ret_val = dramc_scan_readpipe();
 
 	if (ret_val < 0)
 		return 0;
@@ -552,5 +549,5 @@ int DRAMC_init(struct dram_para *para)
 	/* configure all host port */
 	mctl_configure_hostport();
 
-	return DRAMC_get_dram_size();
+	return dramc_get_dram_size();
 }

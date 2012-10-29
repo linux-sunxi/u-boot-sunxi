@@ -20,5 +20,5 @@ static struct dram_para dram_para = {
 
 int sunxi_dram_init(void)
 {
-	return DRAMC_init(&dram_para);
+	return dramc_init(&dram_para);
 }
