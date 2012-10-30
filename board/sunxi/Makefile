@@ -29,4 +29,5 @@ obj-y	+= board.o
 obj-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 obj-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 obj-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
+obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
 obj-$(CONFIG_MELE_A1000)	+= dram_mele_a1000.o
