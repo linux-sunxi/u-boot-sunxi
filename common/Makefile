@@ -64,6 +64,7 @@ COBJS-$(CONFIG_ENV_IS_IN_SPI_FLASH) += env_sf.o
 COBJS-$(CONFIG_ENV_IS_NOWHERE) += env_nowhere.o
 
 # command
+COBJS-y += cmd_sunxi_display.o
 COBJS-y += cmd_sunxi_flash.o
 COBJS-y += cmd_shutdown.o
 COBJS-y += cmd_fel.o
