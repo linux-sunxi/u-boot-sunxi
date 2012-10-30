@@ -331,6 +331,19 @@ Reinhard Meyer <reinhard.meyer@emk-elektronik.de>
 	TOP5200		MPC5200
 	TOP9000		ARM926EJS (AT91SAM9xxx SoC)
 
+Henrik Nordstrom <henrik@henriknordstrom.net>
+	A13_OLINUXINO	ARM V7 (Allwinner A13 SoC)
+	A13_MID		ARM V7 (Allwinner A13 SoC)
+	CUBIEBOARD	ARM V7 (Allwinner A10 SoC)
+	CUBIEBOARD_512	ARM V7 (Allwinner A10 SoC)
+	HACKBERRY	ARM V7 (Allwinner A10 SoC)
+	MELE_A1000	ARM V7 (Allwinner A10 SoC)
+	MINI-X		ARM V7 (Allwinner A10 SoC)
+	SUN4I		ARM V7 (Allwinner A10 SoC)
+	SUN4I_SDCON	ARM V7 (Allwinner A10 SoC)
+	SUN5I		ARM V7 (Allwinner A13 SoC)
+	SUN5I_SDCON	ARM V7 (Allwinner A13 SoC)
+	
 Kyle Moffett <Kyle.D.Moffett@boeing.com>
 
 	HWW1U1A		P2020
