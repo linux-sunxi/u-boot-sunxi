@@ -248,49 +248,43 @@ static void dramc_clock_output_en(u32 on)
 #endif
 }
 
-#ifdef CONFIG_SUN4I
+// test-only: arghhh! clean-up this #ifdef mess!!!!
 static void dramc_set_autorefresh_cycle(u32 clk)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 reg_val;
 	u32 tmp_val;
+#ifdef CONFIG_SUN4I
 	u32 dram_size;
 
+	dram_size = readl(&dram->dcr);
+	dram_size >>= 3;
+	dram_size &= 0x7;
+
 	if (clk < 600) {
-		dram_size = readl(&dram->dcr);
-		dram_size >>= 3;
-		dram_size &= 0x7;
 		if (dram_size <= 0x2)
-			reg_val = (131 * clk) >> 10;
+			tmp_val = (131 * clk) >> 10;
 		else
-			reg_val = (336 * clk) >> 10;
-
-		tmp_val = (7987 * clk) >> 10;
-		tmp_val = tmp_val * 9 - 200;
-		reg_val |= tmp_val << 8;
-		reg_val |= 0x8 << 24;
-		writel(reg_val, &dram->drr);
-	} else {
-		writel(0x0, &dram->drr);
-	}
-}
-#endif /* SUN4I */
-
-#ifdef CONFIG_SUN5I
-static void dramc_set_autorefresh_cycle(u32 clk)
-{
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
-	u32 reg_val;
-	u32 tmp_val;
+			tmp_val = (336 * clk) >> 10;
+		reg_val = tmp_val;
+#else
 	reg_val = 131;
+#endif
 
 	tmp_val = (7987 * clk) >> 10;
 	tmp_val = tmp_val * 9 - 200;
 	reg_val |= tmp_val << 8;
 	reg_val |= 0x8 << 24;
 	writel(reg_val, &dram->drr);
+#ifdef CONFIG_SUN4I
 }
-#endif /* SUN5I */
+
+else
+{
+	writel(0x0, &dram->drr);
+}
+#endif
+}
 
 /*
  * Get DRAM Size in MB unit;
