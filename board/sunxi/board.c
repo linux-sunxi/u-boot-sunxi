@@ -95,4 +95,14 @@ void sunxi_board_init(void)
 	if (!power_failed)
 		clock_set_pll1(1008000000);
 }
+
+#ifdef CONFIG_SPL_DISPLAY_PRINT
+void spl_display_print(void)
+{
+	printf("Board: %s\n", CONFIG_BOARD_NAME);
+
+	return 0;
+}
+#endif
+
 #endif
