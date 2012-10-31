@@ -40,6 +40,51 @@
 #define DRAM_CCM_MUS_CLK_REG		(DRAM_CCM_BASE + 0x15c)
 #define TIMER_CPU_CFG_REG		(DRAM_TIMER_BASE + 0x13c)
 
+// test-only: these defines need to be converted to a struct
+#define SDR_CCR				(DRAMC_IO_BASE + 0x00)
+#define SDR_DCR				(DRAMC_IO_BASE + 0x04)
+#define SDR_IOCR			(DRAMC_IO_BASE + 0x08)
+#define SDR_CSR				(DRAMC_IO_BASE + 0x0c)
+#define SDR_DRR				(DRAMC_IO_BASE + 0x10)
+#define SDR_TPR0			(DRAMC_IO_BASE + 0x14)
+#define SDR_TPR1			(DRAMC_IO_BASE + 0x18)
+#define SDR_TPR2			(DRAMC_IO_BASE + 0x1c)
+#define SDR_RSLR0			(DRAMC_IO_BASE + 0x4c)
+#define SDR_RSLR1			(DRAMC_IO_BASE + 0x50)
+#define SDR_RDQSGR			(DRAMC_IO_BASE + 0x5c)
+#define SDR_ODTCR			(DRAMC_IO_BASE + 0x98)
+#define SDR_DTR0			(DRAMC_IO_BASE + 0x9c)
+#define SDR_DTR1			(DRAMC_IO_BASE + 0xa0)
+#define SDR_DTAR			(DRAMC_IO_BASE + 0xa4)
+#define SDR_ZQCR0			(DRAMC_IO_BASE + 0xa8)
+#define SDR_ZQCR1			(DRAMC_IO_BASE + 0xac)
+#define SDR_ZQSR			(DRAMC_IO_BASE + 0xb0)
+#define SDR_IDCR			(DRAMC_IO_BASE + 0xb4)
+#define SDR_MR				(DRAMC_IO_BASE + 0x1f0)
+#define SDR_EMR				(DRAMC_IO_BASE + 0x1f4)
+#define SDR_EMR2			(DRAMC_IO_BASE + 0x1f8)
+#define SDR_EMR3			(DRAMC_IO_BASE + 0x1fc)
+#define SDR_DLLCR			(DRAMC_IO_BASE + 0x200)
+#define SDR_DLLCR0			(DRAMC_IO_BASE + 0x204)
+#define SDR_DLLCR1			(DRAMC_IO_BASE + 0x208)
+#define SDR_DLLCR2			(DRAMC_IO_BASE + 0x20c)
+#define SDR_DLLCR3			(DRAMC_IO_BASE + 0x210)
+#define SDR_DLLCR4			(DRAMC_IO_BASE + 0x214)
+#define SDR_DQTR0			(DRAMC_IO_BASE + 0x218)
+#define SDR_DQTR1			(DRAMC_IO_BASE + 0x21c)
+#define SDR_DQTR2			(DRAMC_IO_BASE + 0x220)
+#define SDR_DQTR3			(DRAMC_IO_BASE + 0x224)
+#define SDR_DQSTR0			(DRAMC_IO_BASE + 0x228)
+#define SDR_DQSTR1			(DRAMC_IO_BASE + 0x22c)
+#define SDR_CR				(DRAMC_IO_BASE + 0x230)
+#define SDR_CFSR			(DRAMC_IO_BASE + 0x234)
+#define SDR_0x23c			(DRAMC_IO_BASE + 0x23c)
+#define SDR_APR				(DRAMC_IO_BASE + 0x240)
+#define SDR_LTR				(DRAMC_IO_BASE + 0x244)
+#define SDR_HPCR			(DRAMC_IO_BASE + 0x250)
+#define SDR_SCSR			(DRAMC_IO_BASE + 0x2e0)
+
+// test-only: is this already the struct? then use it and remove the defines above
 struct sunxi_dram_reg {
 	u32 ccr;		/* 0x00 controller configuration register */
 	u32 dcr;		/* 0x04 dram configuration register */
@@ -83,14 +128,14 @@ struct sunxi_dram_reg {
 	u32 dqstr;		/* 0x228 dqs timing register */
 	u32 dqsbtr;		/* 0x22c dqsb timing register */
 	u32 mcr;		/* 0x230 mode configure register */
-	u8 res[0x8];
-	u32 reg_23c;		/* 0x23c register description unknown!!! */
+	u8 res[0xc];
 	u32 apr;		/* 0x240 arbiter period register */
 	u32 pldtr;		/* 0x244 priority level data threshold reg */
 	u8 res5[0x8];
 	u32 hpcr[32];		/* 0x250 host port configure register */
 	u8 res6[0x10];
 	u32 csel;		/* 0x2e0 controller select register */
+
 };
 
 struct dram_para {
