@@ -34,6 +34,7 @@
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN4I				/* which is sun4i */
 #define CONFIG_A10_EVB				/* working with A10-EVB board */
+#define CONFIG_MACH_TYPE 4104
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
