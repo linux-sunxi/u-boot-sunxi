@@ -31,6 +31,7 @@
 #include <asm/arch/nand_bsp.h>
 #include <asm/arch/android_misc.h>
 #include <asm/arch/gpio.h>
+#include <asm/arch/dram.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -122,12 +123,12 @@ int board_late_init(void)
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
+	gd->bd->bi_dram[0].size = dramc_get_dram_size();
 }
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, dramc_get_dram_size());
 	return 0;
 }
 

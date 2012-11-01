@@ -40,6 +40,7 @@ COBJS	+= usb/usbc.o \
            usb/usbc_host.o \
            usb/usbc_phy.o
 
+COBJS	+= dram.o
 
 #COBJS-$(CONFIG_XXXX)	+= xxxx.o
 
