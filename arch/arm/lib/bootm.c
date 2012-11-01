@@ -30,6 +30,7 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <fastboot.h>
+#include <asm/arch/clock.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -208,8 +209,12 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	setup_end_tag (bd);
 #endif
 
+	/* nand exit */
+	NAND_Exit();
+
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
+	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
 
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);
 	/* does not return */
