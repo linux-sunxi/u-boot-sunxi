@@ -33,51 +33,61 @@
 
 static void mctl_ddr3_reset(void)
 {
-	u32 reg_val;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 
 #ifdef CONFIG_SUN4I
+	u32 reg_val;
+
 	writel(0, TIMER_CPU_CFG_REG);
 	reg_val = readl(TIMER_CPU_CFG_REG);
 	reg_val >>= 6;
 	reg_val &= 0x3;
 
 	if (reg_val != 0) {
-		setbits_le32(SDR_CR, 0x1 << 12);
+		setbits_le32(&dram->mcr, 0x1 << 12);
 		sdelay(0x100);
-		clrbits_le32(SDR_CR, 0x1 << 12);
+		clrbits_le32(&dram->mcr, 0x1 << 12);
 	} else
 #endif
 	{
-		clrbits_le32(SDR_CR, 0x1 << 12);
+		clrbits_le32(&dram->mcr, 0x1 << 12);
 		sdelay(0x100);
-		setbits_le32(SDR_CR, 0x1 << 12);
+		setbits_le32(&dram->mcr, 0x1 << 12);
 	}
 }
 
 static void mctl_set_drive(void)
 {
-	clrsetbits_le32(SDR_CR, 0x3, (0x6 << 12) | 0xFFC);
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+
+	clrsetbits_le32(&dram->mcr, 0x3, (0x6 << 12) | 0xFFC);
 }
 
 static void mctl_itm_disable(void)
 {
-	setbits_le32(SDR_CCR, 0x1 << 28);
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+
+	setbits_le32(&dram->ccr, 0x1 << 28);
 }
 
 static void mctl_itm_enable(void)
 {
-	clrbits_le32(SDR_CCR, 0x1 << 28);
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+
+	clrbits_le32(&dram->ccr, 0x1 << 28);
 }
 
 static void mctl_enable_dll0(void)
 {
-	clrsetbits_le32(SDR_DLLCR0, 0x40000000, 0x80000000);
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+
+	clrsetbits_le32(&dram->dllcr[0], 0x40000000, 0x80000000);
 	sdelay(0x100);
 
-	clrbits_le32(SDR_DLLCR0, 0xC0000000);
+	clrbits_le32(&dram->dllcr[0], 0xC0000000);
 	sdelay(0x1000);
 
-	clrsetbits_le32(SDR_DLLCR0, 0x80000000, 0x40000000);
+	clrsetbits_le32(&dram->dllcr[0], 0x80000000, 0x40000000);
 	sdelay(0x1000);
 }
 
@@ -86,11 +96,12 @@ static void mctl_enable_dll0(void)
  */
 static void mctl_enable_dllx(void)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 i = 0;
 	u32 n;
 	u32 bus_width;
 
-	bus_width = readl(SDR_DCR);
+	bus_width = readl(&dram->dcr);
 	bus_width >>= 6;
 	bus_width &= 7;
 
@@ -102,15 +113,15 @@ static void mctl_enable_dllx(void)
 	}
 
 	for (i = 1; i < n; i++)
-		clrsetbits_le32(SDR_DLLCR0 + (i << 2), 0x40000000, 0x80000000);
+		clrsetbits_le32(&dram->dllcr[i], 0x40000000, 0x80000000);
 	sdelay(0x100);
 
 	for (i = 1; i < n; i++)
-		clrbits_le32(SDR_DLLCR0 + (i << 2), 0xC0000000);
+		clrbits_le32(&dram->dllcr[i], 0xC0000000);
 	sdelay(0x1000);
 
 	for (i = 1; i < n; i++)
-		clrsetbits_le32(SDR_DLLCR0 + (i << 2), 0x80000000, 0x40000000);
+		clrsetbits_le32(&dram->dllcr[i], 0x80000000, 0x40000000);
 	sdelay(0x1000);
 }
 
@@ -139,10 +150,11 @@ static u32 hpcr_value[32] = {
 
 static void mctl_configure_hostport(void)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 i;
 
 	for (i = 0; i < 32; i++)
-		writel(hpcr_value[i], SDR_HPCR + (i << 2));
+		writel(hpcr_value[i], &dram->hpcr[i]);
 }
 
 static void mctl_setup_dram_clock(u32 clk)
@@ -200,49 +212,52 @@ static void mctl_setup_dram_clock(u32 clk)
 
 static int dramc_scan_readpipe(void)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 reg_val;
 
 	/* data training trigger */
-	setbits_le32(SDR_CCR, 0x1 << 30);
+	setbits_le32(&dram->ccr, 0x1 << 30);
 
 	/* check whether data training process is end */
-	while (readl(SDR_CCR) & (0x1 << 30))
+	while (readl(&dram->ccr) & (0x1 << 30))
 		;
 
 	/* check data training result */
-	reg_val = readl(SDR_CSR);
+	reg_val = readl(&dram->csr);
 	if (reg_val & (0x1 << 20))
 		return -1;
 
 	return 0;
 }
 
-// test-only: cant this be done via DCLK_OUT_OFFSET (dram.h)??? (no #ifdef here)
 static void dramc_clock_output_en(u32 on)
 {
 #ifdef CONFIG_SUN5I
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+
 	if (on)
-		setbits_le32(SDR_CR, 0x1 << 16);
+		setbits_le32(&dram->mcr, 0x1 << DCLK_OUT_OFFSET);
 	else
-		clrbits_le32(SDR_CR, 0x1 << 16);
+		clrbits_le32(&dram->mcr, 0x1 << DCLK_OUT_OFFSET);
 #endif
 #ifdef CONFIG_SUN4I
 	if (on)
-		setbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << 15);
+		setbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << DCLK_OUT_OFFSET);
 	else
-		clrbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << 15);
+		clrbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << DCLK_OUT_OFFSET);
 #endif
 }
 
 // test-only: arghhh! clean-up this #ifdef mess!!!!
 static void dramc_set_autorefresh_cycle(u32 clk)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 reg_val;
 	u32 tmp_val;
 #ifdef CONFIG_SUN4I
 	u32 dram_size;
 
-	dram_size = readl(SDR_DCR);
+	dram_size = readl(&dram->dcr);
 	dram_size >>= 3;
 	dram_size &= 0x7;
 
@@ -260,13 +275,13 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 	tmp_val = tmp_val * 9 - 200;
 	reg_val |= tmp_val << 8;
 	reg_val |= 0x8 << 24;
-	writel(reg_val, SDR_DRR);
+	writel(reg_val, &dram->drr);
 #ifdef CONFIG_SUN4I
 }
 
 else
 {
-	writel(0x0, SDR_DRR);
+	writel(0x0, &dram->drr);
 }
 #endif
 }
@@ -276,11 +291,12 @@ else
  */
 unsigned dramc_get_dram_size(void)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 reg_val;
 	u32 dram_size;
 	u32 chip_den;
 
-	reg_val = readl(SDR_DCR);
+	reg_val = readl(&dram->dcr);
 	chip_den = (reg_val >> 3) & 0x7;
 
 	dram_size = min(1024, 32 << chip_den);
@@ -297,6 +313,7 @@ unsigned dramc_get_dram_size(void)
 
 int dramc_init(struct dram_para *para)
 {
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
 	u32 reg_val;
 	int ret_val;
 
@@ -310,7 +327,7 @@ int dramc_init(struct dram_para *para)
 #ifdef CONFIG_SUN5I
 	// test-only: new code? does it work? change or remove comment
 	/* This is new unknown code! */
-	writel(0, SDR_0x23c);
+	writel(0, &dram->reg_23c);
 #endif
 
 	/* reset external DRAM */
@@ -322,7 +339,7 @@ int dramc_init(struct dram_para *para)
 
 #ifdef CONFIG_SUN4I
 	/* select dram controller 1 */
-	writel(0x16237495, SDR_SCSR);
+	writel(0x16237495, &dram->csel);
 #endif
 
 	mctl_itm_disable();
@@ -356,14 +373,14 @@ int dramc_init(struct dram_para *para)
 	reg_val |= 0x1 << 12;
 	reg_val |= ((0x1) & 0x3) << 13;
 
-	writel(reg_val, SDR_DCR);
+	writel(reg_val, &dram->dcr);
 
 #ifdef CONFIG_SUN5I
 	/* set odt impendance divide ratio */
 	reg_val = ((para->zq) >> 8) & 0xfffff;
 	reg_val |= ((para->zq) & 0xff) << 20;
 	reg_val |= (para->zq) & 0xf0000000;
-	writel(reg_val, SDR_ZQCR0);
+	writel(reg_val, &dram->zqcr0);
 #endif
 
 	/* dram clock on */
@@ -371,7 +388,7 @@ int dramc_init(struct dram_para *para)
 
 	sdelay(0x10);
 
-	while (readl(SDR_CCR) & (0x1U << 31))
+	while (readl(&dram->ccr) & (0x1U << 31))
 		;
 
 	mctl_enable_dllx();
@@ -381,7 +398,7 @@ int dramc_init(struct dram_para *para)
 	reg_val = ((para->zq) >> 8) & 0xfffff;
 	reg_val |= ((para->zq) & 0xff) << 20;
 	reg_val |= (para->zq) & 0xf0000000;
-	writel(reg_val, SDR_ZQCR0);
+	writel(reg_val, &dram->zqcr0);
 #endif
 
 #ifdef CONFIG_SUN4I
@@ -389,16 +406,16 @@ int dramc_init(struct dram_para *para)
 	reg_val = 0x00cc0000;
 	reg_val |= (para->odt_en) & 0x3;
 	reg_val |= ((para->odt_en) & 0x3) << 30;
-	writel(reg_val, SDR_IOCR);
+	writel(reg_val, &dram->iocr);
 #endif
 
 	/* set refresh period */
 	dramc_set_autorefresh_cycle(para->clock);
 
 	/* set timing parameters */
-	writel(para->tpr0, SDR_TPR0);
-	writel(para->tpr1, SDR_TPR1);
-	writel(para->tpr2, SDR_TPR2);
+	writel(para->tpr0, &dram->tpr0);
+	writel(para->tpr1, &dram->tpr1);
+	writel(para->tpr2, &dram->tpr2);
 
 	/* set mode register */
 	if (para->type == 3) {
@@ -415,19 +432,19 @@ int dramc_init(struct dram_para *para)
 		reg_val |= para->cas << 4;
 		reg_val |= 0x5 << 9;
 	}
-	writel(reg_val, SDR_MR);
+	writel(reg_val, &dram->mr);
 
-	writel(para->emr1, SDR_EMR);
-	writel(para->emr2, SDR_EMR2);
-	writel(para->emr3, SDR_EMR3);
+	writel(para->emr1, &dram->emr);
+	writel(para->emr2, &dram->emr2);
+	writel(para->emr3, &dram->emr3);
 
 	/* set DQS window mode */
-	clrsetbits_le32(SDR_CCR, 0x1U << 17, 0x1U << 14);
+	clrsetbits_le32(&dram->ccr, 0x1U << 17, 0x1U << 14);
 
 	/* initial external DRAM */
-	setbits_le32(SDR_CCR, 0x1U << 31);
+	setbits_le32(&dram->ccr, 0x1U << 31);
 
-	while (readl(SDR_CCR) & (0x1U << 31))
+	while (readl(&dram->ccr) & (0x1U << 31))
 		;
 
 	/* scan read pipe value */
