@@ -61,6 +61,9 @@
 #ifdef CONFIG_MINI_X
 #define CONFIG_BOARD_NAME	"Mini-X"
 #endif
+#ifdef CONFIG_A7HD
+#define CONFIG_BOARD_NAME	"Hyundai A7HD"
+#endif
 
 #ifndef CONFIG_BOARD_NAME
 #error "Define CONFIG_BOARD_NAME for your board port!"
