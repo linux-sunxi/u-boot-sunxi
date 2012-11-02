@@ -69,12 +69,12 @@ typedef struct tag_IMAGE_HANDLE
 
 #define INVALID_INDEX		0xFFFFFFFF
 
-#pragma pack(push, 1)
+
 typedef struct tag_ITEM_HANDLE{
 	uint	index;					//在ItemTable中的索引
-	long long pos;
+	uint    reserved[3];
+//	long long pos;
 }ITEM_HANDLE;
-#pragma pack(pop)
 
 #define ITEM_PHOENIX_TOOLS 	  "PXTOOLS "
 
@@ -104,7 +104,7 @@ HIMAGE 	Img_Open	(char * ImageFile)
 	IMAGE_HANDLE * pImage = NULL;
 	uint ItemTableSize;					//固件索引表的大小
 
-	if(strcmp((const char *)ImageFile, "c://imgfile"))
+	if(strcmp((const char *)ImageFile, "c:/imgfile"))
 	{
 		printf("sunxi sprite error: unable to get firmware full path\n");
 
@@ -118,7 +118,7 @@ HIMAGE 	Img_Open	(char * ImageFile)
 
 		return NULL;
 	}
-
+	debug("img start = %x\n", img_file_start);
 	pImage = (IMAGE_HANDLE *)malloc(sizeof(IMAGE_HANDLE));
 	if (NULL == pImage)
 	{
@@ -130,12 +130,14 @@ HIMAGE 	Img_Open	(char * ImageFile)
 	//------------------------------------------------
 	//读img头
 	//------------------------------------------------
+	debug("try to read mmc start %d\n", img_file_start);
 	if(!sunxi_flash_read(img_file_start, IMAGE_HEAD_SIZE/512, &pImage->ImageHead))
 	{
 		printf("sunxi sprite error: read iamge head fail\n");
 
 		goto _img_open_fail_;
 	}
+	debug("read mmc ok\n");
 	//------------------------------------------------
 	//比较magic
 	//------------------------------------------------
@@ -217,35 +219,40 @@ HIMAGEITEM 	Img_OpenItem	(HIMAGE hImage, char * MainType, char * subType)
 		return NULL;
 	}
 	pItem->index = INVALID_INDEX;
-	pItem->pos = 0;
 
 	for (i = 0; i < pImage->ImageHead.itemcount ; i++)
 	{
-		int nCmp = memcmp(ITEM_PHOENIX_TOOLS, MainType, MAINTYPE_LEN);
-
-		if (nCmp == 0)//
+//		int nCmp = memcmp(ITEM_PHOENIX_TOOLS, MainType, MAINTYPE_LEN);
+//
+//		if (nCmp == 0)//
+//		{
+//			if (memcmp(MainType, pImage->ItemTable[i].mainType, MAINTYPE_LEN) == 0 )
+//			{
+//				pItem->index = i;
+//
+//				return pItem;
+//			}
+//		}
+//		else
+//		{
+//			nCmp = memcmp(MainType, pImage->ItemTable[i].mainType, MAINTYPE_LEN);
+//			if(nCmp == 0)
+//			{
+//				nCmp = memcmp(subType,  pImage->ItemTable[i].subType,  SUBTYPE_LEN);
+//				if( nCmp == 0)
+//				{
+//					pItem->index = i;
+//
+//					return pItem;
+//				}
+//			}
+//		}
+		if(!memcmp(subType,  pImage->ItemTable[i].subType,  SUBTYPE_LEN))
 		{
-			if (memcmp(MainType, pImage->ItemTable[i].mainType, MAINTYPE_LEN) == 0 )
-			{
-				pItem->index = i;
+			pItem->index = i;
+			debug("try to malloc %x\n", (uint)pItem);
 
-				return pItem;
-			}
-		}
-		else
-		{
-			nCmp = memcmp(MainType, pImage->ItemTable[i].mainType, MAINTYPE_LEN);
-			if(nCmp == 0)
-			{
-				nCmp = memcmp(subType,  pImage->ItemTable[i].subType,  SUBTYPE_LEN);
-				if( nCmp == 0)
-				{
-					pItem->index = i;
-
-					return pItem;
-				}
-			}
-
+			return pItem;
 		}
 	}
 
@@ -345,51 +352,64 @@ uint Img_GetItemStart	(HIMAGE hImage, HIMAGEITEM hItem)
 //
 //------------------------------------------------------------------------------------------------------------
 
-int Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, long long buffer_size)
+uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_size)
 {
 	IMAGE_HANDLE* pImage = (IMAGE_HANDLE *)hImage;
 	ITEM_HANDLE * pItem  = (ITEM_HANDLE  *)hItem;
 	long long     start;
 	long long	  offset;
-	long long     size;
-	char          tmp[2 * 1024 * 1024];
+	uint	      file_size;
+	void          *tmp;
 
 	if (NULL == pItem)
 	{
 		printf("sunxi sprite error : item is NULL\n");
 
-		return -1;
+		return 0;
 	}
-	size = pImage->ItemTable[pItem->index].filelenHi;
-	size <<= 32;
-	size |= pImage->ItemTable[pItem->index].filelenLo;
-	if(size > buffer_size)
+	if(pImage->ItemTable[pItem->index].filelenHi)
+	{
+		printf("sunxi sprite error : the item too big\n");
+
+		return 0;
+	}
+	file_size = pImage->ItemTable[pItem->index].filelenLo;
+	debug("file size=%d, buffer size=%d\n", file_size, buffer_size);
+	if(file_size > buffer_size)
 	{
 		printf("sunxi sprite error : buffer is smaller than data size\n");
 
-		return -1;
+		return 0;
 	}
-	if(size > 2 * 1024 * 1024)
+	if(file_size > 2 * 1024 * 1024)
 	{
 		printf("sunxi sprite error : this function cant be used to read data over 2M bytes\n");
 
-		return -1;
+		return 0;
 	}
-
+	file_size = (file_size + 1023) & (~(1024 - 1));
 	offset = pImage->ItemTable[pItem->index].offsetHi;
 	offset <<= 32;
 	offset |= pImage->ItemTable[pItem->index].offsetLo;
 	start = offset/512;
 
-	if(!sunxi_flash_read((uint)start + img_file_start, (uint)(size/512), tmp))
+	tmp = malloc(file_size);
+	if(!tmp)
+	{
+		printf("sunxi sprite error : fail to get memory for temp data\n");
+
+		return 0;
+	}
+	if(!sunxi_flash_read((uint)start + img_file_start, file_size/512, tmp))
 	{
 		printf("sunxi sprite error : read item data failed\n");
 
-		return -1;
+		return 0;
 	}
-	memcpy(buffer, tmp, (uint)size);
+	memcpy(buffer, tmp, buffer_size);
+	free(tmp);
 
-	return 0;
+	return buffer_size;
 }
 //------------------------------------------------------------------------------------------------------------
 //
@@ -760,6 +780,7 @@ int Img_CloseItem	(HIMAGE hImage, HIMAGEITEM hItem)
 
 		return -1;
 	}
+	debug("try to free %x\n", (uint)pItem);
 	free(pItem);
 	pItem = NULL;
 

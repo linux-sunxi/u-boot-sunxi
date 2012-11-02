@@ -1,6 +1,6 @@
 #
-# Copyright (c) 2009 Wind River Systems, Inc.
-# Tom Rix <Tom.Rix at windriver.com>
+# (C) Copyright 2006
+# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,24 +23,19 @@
 
 include $(TOPDIR)/config.mk
 
-LIB 	:= $(obj)libpower.o
+LIB	:= $(obj)libaudio.o
 
-COBJS-$(CONFIG_FTPMU010_POWER)	+= ftpmu010.o
-COBJS-$(CONFIG_TWL4030_POWER)	+= twl4030.o
-COBJS-$(CONFIG_TWL6030_POWER)	+= twl6030.o
-COBJS-$(CONFIG_SUNXI_AXP)		+= axp.o
-COBJS-$(CONFIG_SUNXI_AXP)		+= axp209.o
-COBJS-$(CONFIG_SUNXI_AXP)		+= axp229.o
+
+COBJS-y += sunxi_codec.o
 
 COBJS	:= $(COBJS-y)
-SRCS 	:= $(COBJS:.o=.c)
-OBJS 	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 
-$(LIB):	$(obj).depend $(OBJS)
+$(LIB): $(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
-
 
 #########################################################################
 
@@ -49,4 +44,4 @@ include $(SRCTREE)/rules.mk
 
 sinclude $(obj).depend
 
-########################################################################
+#########################################################################

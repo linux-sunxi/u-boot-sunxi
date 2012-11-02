@@ -20,11 +20,12 @@
 
 #include <config.h>
 #include <common.h>
-#include <asm/arch/partition.h>
+#include <asm/arch/sunxi_mbr.h>
+#include <asm/arch/sys_config.h>
 #include "sprite_queue.h"
 #include "sprite_privatedata.h"
 
-download_info  dl_map;
+sunxi_download_info  dl_map;
 /*
 ************************************************************************************************************
 *
@@ -44,12 +45,12 @@ download_info  dl_map;
 int sunxi_sprite_download_init(int workmode)
 {
 	//初始化队列，用于读取数据
-    if(sunxi_queue_init())
-    {
-    	printf("sunxi queue init fail\n");
+//   if(sunxi_queue_init())
+//   {
+//   	printf("sunxi queue init fail\n");
 
-    	return -1;
-    }
+//    	return -1;
+//    }
 	//这里区分量产模式，卡量产还是usb量产
 	if(workmode == WORK_MODE_CARD_PRODUCT)
 	{
@@ -100,6 +101,7 @@ int sunxi_sprite_download_init(int workmode)
 */
 int sunxi_sprite_erase_flash(void)
 {
+#if 0
 	int need_erase_flash;
     char buf[1024 * 1024];
     char *tmp_buf;
@@ -126,13 +128,13 @@ int sunxi_sprite_erase_flash(void)
     	}
     	//校验MBR
     	tmp_buf = buf;
-    	for(i=0;i<MBR_MAX_PART_COUNT;i++)
+    	for(i=0;i<SUNXI_MBR_MAX_PART_COUNT;i++)
         {
         	local_mbr = (sunxi_mbr_t *)tmp_buf;
-        	if(crc32(0, tmp_buf + 4, MBR_SIZE - 4) != local_mbr->crc32)
+        	if(crc32(0, (const unsigned char *)(tmp_buf + 4), SUNXI_MBR_SIZE - 4) != local_mbr->crc32)
         	{
         		printf("bad mbr table\n");
-        		tmp_buf += MBR_SIZE;
+        		tmp_buf += SUNXI_MBR_SIZE;
         	}
 	        else
 	        {
@@ -141,13 +143,13 @@ int sunxi_sprite_erase_flash(void)
 	        }
 	    }
 //	    sprite_flash_erase();
-        if(i < MBR_MAX_PART_COUNT)
+        if(i < SUNXI_MBR_MAX_PART_COUNT)
 	    {
 	    	sunx_sprite_restore_part_data(local_mbr);
 	    }
 		sprite_flash_exit();
     }
-
+#endif
     return 0;
 }
 /*
@@ -186,38 +188,80 @@ int sunxi_sprite_hardware_scan(void *buffer)
 *
 ************************************************************************************************************
 */
+void dump_dlmap(sunxi_download_info *dl_map)
+{
+	int i;
+
+	printf("download count=%d\n", dl_map->download_count);
+	for(i=0;i<dl_map->download_count;i++)
+	{
+		printf("part name=%s\n", dl_map->one_part_info[i].name);
+		printf("part download file=%s\n", dl_map->one_part_info[i].dl_filename);
+		printf("part download vfile=%s\n", dl_map->one_part_info[i].vf_filename);
+	}
+}
+
 int sunxi_sprite_mode(int workmode)
 {
-	int production_meida;
+	int production_media;
 	char  storage_info[512];
 
+	debug("sunxi sprite begin\n");
 	//获取当前是量产介质是nand或者卡
-	production_meida = uboot_spare_head.boot_data.storage_type;
+	production_media = uboot_spare_head.boot_data.storage_type;
 	//初始化各自硬件
 	if(sunxi_sprite_download_init(workmode))
 	{
 		return -1;
 	}
+	debug("hardware init ok\n");
 	//擦除flash
 	sunxi_sprite_erase_flash();
+	debug("erase ok\n");
 	sunxi_sprite_hardware_scan((void*)storage_info);
+	debug("hardware scan ok\n");
 	//烧写分区数据
 	//这里区分量产模式，卡量产还是usb量产
 	if(workmode == WORK_MODE_CARD_PRODUCT)
 	{
 		//测试卡上固件的合法性
+		debug("card burn\n");
 		if(sprite_card_firmware_probe())
 	    {
 	    	printf("sunxi sprite firmware probe fail\n");
 
 	    	return -1;
 	    }
+	    debug("firmware probe ok\n");
 	    //获取dl_map文件，用于指引下载的数据
 	    if(sprite_card_fetch_download_map(&dl_map))
 	    {
+	    	printf("sunxi sprite error : fetch download map error\n");
+
 	    	return -1;
 	    }
-	    sunxi_sprite_card_download_part(&dl_map);
+	    debug("dl map probe ok\n");
+#ifdef DEBUG
+		dump_dlmap(&dl_map);
+#endif
+	    if(sunxi_sprite_card_download_part(&dl_map))
+	    {
+	    	printf("sunxi sprite error : download part error\n");
+
+	    	return -1;
+	    }
+	    if(sunxi_sprite_deal_uboot(production_media, storage_info))
+	    {
+	    	printf("sunxi sprite error : download uboot error\n");
+
+	    	return -1;
+	    }
+	    if(sunxi_sprite_deal_boot0(production_media, storage_info))
+	    {
+	    	printf("sunxi sprite error : download boot0 error\n");
+
+	    	return -1;
+	    }
 	}
 	else if(workmode == WORK_MODE_USB_PRODUCT)
 	{

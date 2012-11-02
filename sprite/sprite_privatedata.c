@@ -20,7 +20,7 @@
 
 #include <config.h>
 #include <common.h>
-#include <asm/arch/partition.h>
+#include <asm/arch/sunxi_mbr.h>
 
 #define  VERIFY_ONCE_DATA_LENGTH    (512 * 1024)
 

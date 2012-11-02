@@ -64,7 +64,7 @@ COBJS-$(CONFIG_ENV_IS_IN_SPI_FLASH) += env_sf.o
 COBJS-$(CONFIG_ENV_IS_NOWHERE) += env_nowhere.o
 
 # command
-COBJS-y += cmd_sunxi_display.o
+#COBJS-y += cmd_sunxi_display.o
 COBJS-y += cmd_sunxi_flash.o
 COBJS-y += cmd_shutdown.o
 COBJS-y += cmd_fel.o
@@ -74,6 +74,7 @@ COBJS-$(CONFIG_CMD_SOURCE) += cmd_source.o
 COBJS-$(CONFIG_CMD_BDI) += cmd_bdinfo.o
 COBJS-$(CONFIG_CMD_BEDBUG) += bedbug.o cmd_bedbug.o
 COBJS-$(CONFIG_CMD_BMP) += cmd_bmp.o
+COBJS-y += cmd_sunxi_bmp.o
 COBJS-$(CONFIG_CMD_BOOTLDR) += cmd_bootldr.o
 COBJS-$(CONFIG_CMD_CACHE) += cmd_cache.o
 COBJS-$(CONFIG_CMD_CONSOLE) += cmd_console.o

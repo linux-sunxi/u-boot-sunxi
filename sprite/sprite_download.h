@@ -26,7 +26,7 @@
 
 int sunxi_sprite_download_raw_init(uint flash_part_start);
 
-int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint len);
+int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors);
 
 int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storage_info);
 

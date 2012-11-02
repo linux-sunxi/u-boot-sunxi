@@ -45,6 +45,10 @@ typedef struct block_dev_desc {
 				      unsigned long start,
 				      lbaint_t blkcnt,
 				      void *buffer);
+	unsigned long	(*block_int_read)(int dev,
+				      unsigned long start,
+				      lbaint_t blkcnt,
+				      void *buffer);
 	unsigned long	(*block_write)(int dev,
 				       unsigned long start,
 				       lbaint_t blkcnt,

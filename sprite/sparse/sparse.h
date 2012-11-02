@@ -29,7 +29,7 @@
 
 
 extern int  unsparse_probe(char *source, unsigned int length, unsigned int flash_start);
-extern int  unsparse_direct_write(void *pbuf, void *next_pbuf, unsigned int length);
+extern int  unsparse_direct_write(void *pbuf, void *next_pbuf, unsigned int sectors);
 extern unsigned int unsparse_checksum(void);
 
 

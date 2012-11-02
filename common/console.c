@@ -379,7 +379,7 @@ int sunxi_printf(const char *fmt, ...)
 	 */
 	msecond=get_timer_masked();
 	i = vsprintf(printbuffer, fmt, args);
-	i = sprintf(printbuffer_with_timestamp,"[%07lu.%03lu]%s",msecond/1000,msecond%1000,printbuffer);
+	i = sprintf(printbuffer_with_timestamp,"[%7lu.%03lu]%s",msecond/1000,msecond%1000,printbuffer);
 	va_end(args);
 	/* Print the string */
 	puts(printbuffer_with_timestamp);

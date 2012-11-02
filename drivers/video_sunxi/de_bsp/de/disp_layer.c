@@ -522,7 +522,6 @@ __s32 BSP_disp_layer_set_framebuffer(__u32 sel, __u32 hid, __disp_fb_t * pfb)//k
     {
         return DIS_PARA_FAILED;
     }
-
     layer_man = &gdisp.screen[sel].layer_manage[hid];
     if(layer_man->status & LAYER_USED)
     {

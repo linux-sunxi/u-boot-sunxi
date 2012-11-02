@@ -63,20 +63,22 @@ int sunxi_sprite_download_raw_init(uint flash_part_start)
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint len)
+int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors)
 {
-	uint sectors = len/512;
-
-	if(sunxi_sprite_write(flash_start, sectors, buffer))
-	{
-		flash_start += sectors;
-
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	debug("write start %d, sector %d\n", flash_start, sectors);
+//	if(sunxi_sprite_write(flash_start, sectors, buffer))
+//	{
+//		flash_start += sectors;
+//		debug("raw write ok\n");
+//
+//		return 0;
+//	}
+//	else
+//	{
+//		debug("raw write fail\n");
+//		return -1;
+//	}
+	return 0;
 }
 /*
 ************************************************************************************************************

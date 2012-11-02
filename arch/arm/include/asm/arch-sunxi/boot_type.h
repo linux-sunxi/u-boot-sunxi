@@ -31,9 +31,9 @@ extern struct spare_boot_head_t  uboot_spare_head;
 
 extern int uart_console;
 
-extern int (* sunxi_flash_read) (unsigned int start_block, unsigned int nblock, void *buffer);
-extern int (* sunxi_flash_write)(unsigned int start_block, unsigned int nblock, void *buffer);
-extern uint (* sunxi_flash_size)(void);
-extern int (* sunxi_flash_exit) (void);
+extern int sunxi_flash_read (unsigned int start_block, unsigned int nblock, void *buffer);
+extern int sunxi_flash_write(unsigned int start_block, unsigned int nblock, void *buffer);
+extern uint sunxi_flash_size (void);
+extern int sunxi_flash_exit (void);
 
 #endif

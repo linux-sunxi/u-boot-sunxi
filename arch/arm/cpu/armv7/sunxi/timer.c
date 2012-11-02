@@ -208,6 +208,7 @@ void timer0_func(void *data)
 	timer_control->tirqen  &= ~0x01;
     timer_control->tirqsta  =  0x01;
     irq_disable(INTC_IRQNO_TIMER0);
+	timer_used_status &= ~1;
 
 	debug("timer 0 occur\n");
 
@@ -227,6 +228,7 @@ void timer1_func(void *data)
 	timer_control->tirqen  &= ~0x02;
     timer_control->tirqsta  =  0x02;
     irq_disable(INTC_IRQNO_TIMER1);
+	timer_used_status &= ~(1<<1);
 
 	debug("timer 1 occur\n");
 
@@ -251,6 +253,10 @@ void add_timer(struct timer_list *timer)
 	if(timer->expires <= 0)
 	{
 		timer->expires = 1000;
+	}
+	if(!timer->expires)
+	{
+		return ;
 	}
 	if(!(timer_used_status & 0x01))
 	{

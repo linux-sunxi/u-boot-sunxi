@@ -289,7 +289,7 @@ void board_init_f(ulong bootflag)
 
 	memset((void *)gd, 0, sizeof(gd_t));
 
-	gd->mon_len = _bss_end_ofs;
+	gd->mon_len = _bss_end_ofs + sizeof(struct spare_boot_head_t);
 
 	//while((*(volatile unsigned int *)(0)) != 1);
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
@@ -317,7 +317,7 @@ void board_init_f(ulong bootflag)
 	gd->ram_size -= CONFIG_SYS_MEM_TOP_HIDE;
 #endif
 
-	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size - (100 * 1024 * 1024);
+	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
 
 #ifdef CONFIG_LOGBUFFER
 #ifndef CONFIG_ALT_LB_ADDR
@@ -428,13 +428,13 @@ void board_init_f(ulong bootflag)
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
 
-	gd->relocaddr = addr;
+	gd->relocaddr = addr + sizeof(struct spare_boot_head_t);
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
+	memcpy((void *)addr, (void *)_TEXT_BASE, sizeof(struct spare_boot_head_t));
 	memcpy(id, (void *)gd, sizeof(gd_t));
-
-	relocate_code(addr_sp, id, addr);
+	relocate_code(addr_sp, id, addr + sizeof(struct spare_boot_head_t));
 
 	/* NOTREACHED - relocate_code() does not return */
 }
@@ -490,8 +490,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 	/* The Malloc area is immediately below the monitor copy in DRAM */
-	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
+	malloc_start = dest_addr - TOTAL_MALLOC_LEN - sizeof(struct spare_boot_head_t);
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
+
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts("Flash: ");
 
@@ -519,14 +520,19 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		hang();
 	}
 #endif
+	/* set up exceptions */
+	interrupt_init();
+	/* enable exceptions */
+	enable_interrupts();
 
 #ifdef CONFIG_ALLWINNER
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
+	DRV_DISP_Init();
+	board_display_layer_open();
 	sunxi_flash_handle_init();
 	sunxi_partition_init();
-//	sunxi_script_init();
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){
@@ -543,11 +549,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif/*CONFIG_GENERIC_MMC*/
 #endif/*CONFIG_ALLWINNER*/
-
- 	/* set up exceptions */
-	interrupt_init();
-	/* enable exceptions */
-	enable_interrupts();
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();
@@ -654,20 +655,23 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
-	DRV_DISP_Init();
 	workmode = uboot_spare_head.boot_data.work_mode;
-    if(workmode & WORK_MODE_PRODUCT)
+	debug("work mode %d\n", workmode);
+	
+	if(workmode == WORK_MODE_BOOT)
     {
-    	//sunxi_sprite_mode(workmode);
-    }
-	else
-	{/* main_loop() can return to retry autoboot, if so just run it again. */
+    	/* main_loop() can return to retry autoboot, if so just run it again. */
     	for (;;) 
 		{
 			main_loop();
 		}
-	}
+    }
+	if(workmode & WORK_MODE_PRODUCT)
+	{
+    	sunxi_sprite_mode(workmode);
+    }
 
+	hang();
 	/* NOTREACHED - no way out of command loop except booting */
 }
 

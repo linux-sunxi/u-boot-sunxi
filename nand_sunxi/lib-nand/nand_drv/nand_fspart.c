@@ -19,7 +19,7 @@
 **********************************************************************************************************************
 */
 #include <common.h>
-#include <asm/arch/partition.h>
+#include <asm/arch/sunxi_mbr.h>
 #include <fastboot.h>
 
 

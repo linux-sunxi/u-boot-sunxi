@@ -76,24 +76,25 @@ int irq_disable(int irq_no)
 {
     if(irq_no < 32)
     {
-        sunxi_int_regs->enable[0]  &=  (1 << irq_no);
-        sunxi_int_regs->mask[0]    |= ~(1 << irq_no);
+        sunxi_int_regs->enable[0]  &= ~(1 << irq_no);
+        sunxi_int_regs->mask[0]    |= (1 << irq_no);
     }
     else if(irq_no < 64)
     {
     	irq_no                    -= 32;
-        sunxi_int_regs->enable[1] &=  (1 << irq_no);
-        sunxi_int_regs->mask[1]   |= ~(1 << irq_no);
+        sunxi_int_regs->enable[1] &=  ~(1 << irq_no);
+        sunxi_int_regs->mask[1]   |=  (1 << irq_no);
     }
     else
     {
         irq_no                    -= 64;
-        sunxi_int_regs->enable[2] &=  (1 << irq_no);
-        sunxi_int_regs->mask[2]   |= ~(1 << irq_no);
+        sunxi_int_regs->enable[2] &=  ~(1 << irq_no);
+        sunxi_int_regs->mask[2]   |=  (1 << irq_no);
     }
 
     return 0;
 }
+
 
 void irq_install_handler (int irq, interrupt_handler_t handle_irq, void *data)
 {

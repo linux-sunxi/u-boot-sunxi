@@ -40,7 +40,7 @@ static  void  timer0_test_func(void *p)
 
 	del_timer(timer_t);
 	timer_test_flag[0] = 0;
-	
+
 	return;
 }
 
@@ -65,7 +65,7 @@ int do_timer_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	timer0_t.data = (void *)&timer0_t;
 	timer0_t.expires = base_count;
 	timer0_t.function = timer0_test_func;
-	
+
 	init_timer(&timer0_t);
 	add_timer(&timer0_t);
 	timer_test_flag[0] = 1;
@@ -90,7 +90,7 @@ static  void  timer1_test_func(void *p)
 
 	del_timer(timer_t);
 	timer_test_flag[1] = 0;
-	
+
 	return;
 }
 
@@ -117,7 +117,7 @@ int do_timer_test1(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	timer1_t.data = (void *)&timer1_t;
 	timer1_t.expires = base_count;
 	timer1_t.function = timer1_test_func;
-	
+
 	init_timer(&timer1_t);
 	add_timer(&timer1_t);
 
@@ -132,11 +132,4 @@ U_BOOT_CMD(
 );
 
 
-///* Implemented in $(CPU)/interrupts.c */
-//int do_irqinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
-//
-//U_BOOT_CMD(
-//	irqinfo,    1,    1,     do_irqinfo,
-//	"print information about IRQs",
-//	""
-//);
+

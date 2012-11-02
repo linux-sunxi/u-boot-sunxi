@@ -1,4 +1,5 @@
 #include "dev_disp.h"
+#include <asm/arch/timer.h>
 
 
 fb_info_t g_fbi;
@@ -8,6 +9,10 @@ __disp_drv_t g_disp_drv;
 #define HZ 100
 #define EFAULT 1
 
+static __u32    lcd_flow_cnt[2] = {0};
+static __bool   lcd_op_finished[2] = {0};
+struct timer_list lcd_timer[2];
+static __bool   lcd_open_start[2] = {0};
 static unsigned int gbuffer[4096];
 static __u32 suspend_output_type[2] = {0,0};
 static __u32 suspend_status = 0;//0:normal; suspend_status&1 != 0:in early_suspend; suspend_status&2 != 0:in suspend;
@@ -32,7 +37,67 @@ __s32 disp_delay_ms(__u32 ms)
     udelay(ms*1000);
     return 0;   
 }
+// [before][step_0][delay_0][step_1][delay_1]......[step_n-2][delay_n-2][step_n-1][delay_n-1][after]
+void DRV_lcd_open_callback(void *parg)
+{
+    __lcd_flow_t *flow;
+    __u32 sel = (__u32)parg;
+    __s32 i = lcd_flow_cnt[sel]++;
 
+    flow = BSP_disp_lcd_get_open_flow(sel);
+
+	if(i < flow->func_num)
+    {
+    	debug("de timer delay %d\n", flow->func[i].delay);
+    	flow->func[i].func(sel);
+        if(flow->func[i].delay == 0)
+        {
+            DRV_lcd_open_callback((void*)sel);
+        }
+        else
+        {
+			lcd_timer[sel].data = sel;
+			lcd_timer[sel].expires = flow->func[i].delay;
+			lcd_timer[sel].function = DRV_lcd_open_callback;
+			add_timer(&lcd_timer[sel]);
+    	}
+    }
+    else if(i == flow->func_num)
+    {
+        BSP_disp_lcd_open_after(sel);
+        lcd_op_finished[sel] = 1;
+    }
+}
+
+__s32 DRV_lcd_open(__u32 sel)
+{
+    lcd_flow_cnt[sel] = 0;
+    lcd_op_finished[sel] = 0;
+	lcd_open_start[sel] = 1;
+     
+	init_timer(&lcd_timer[sel]);
+
+    BSP_disp_lcd_open_before(sel);
+    DRV_lcd_open_callback((void*)sel);
+
+    return 0;
+}
+__bool DRV_lcd_check_open_finished(__u32 sel)
+{
+	if(lcd_open_start[sel] == 1)
+	{
+	    if(lcd_op_finished[sel])
+	    {
+	        del_timer(&lcd_timer[sel]);
+	    }
+		return lcd_op_finished[sel];
+	}
+
+	return 1;
+}
+
+
+/*
 __s32 DRV_lcd_open(__u32 sel)
 {
     __u32 i = 0;
@@ -50,7 +115,6 @@ __s32 DRV_lcd_open(__u32 sel)
 	        flow->func[i].func(sel);
 
 	    	disp_delay_ms(timeout);
-
 	    }
 
 	    BSP_disp_lcd_open_after(sel);
@@ -60,6 +124,7 @@ __s32 DRV_lcd_open(__u32 sel)
 
     return 0;
 }
+*/
 
 __s32 DRV_lcd_close(__u32 sel)
 {
@@ -114,24 +179,27 @@ __s32 DRV_DISP_Init(void)
     para.base_sdram     = 0x01c01000;
     para.base_pioc      = 0x01c20800;
     para.base_pwm       = 0x01c20c00;
-	  para.disp_int_process    = disp_int_process;
+	para.disp_int_process    = disp_int_process;
 
-	  memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
+	memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
     
     BSP_disp_init(&para);
     BSP_disp_open();
     
     DRV_lcd_open(0);
-    
+    //board_display_device_open();
 
     return 0;
 }
 
 __s32 DRV_DISP_Exit(void)
 {
-    BSP_disp_close();
-    BSP_disp_exit(g_disp_drv.exit_mode);
+    //BSP_disp_close();
+	del_timer(lcd_timer[0]);
+	del_timer(lcd_timer[1]);
 
+	BSP_disp_exit(g_disp_drv.exit_mode);
+	
     return 0;
 }
 
@@ -1219,6 +1287,14 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			//ret = disp_resume(0);
 			break;
 #endif
+		case DISP_CMD_SET_EXIT_MODE:
+	    	ret =  g_disp_drv.exit_mode = ubuffer[0];
+			break;
+
+		case DISP_CMD_LCD_CHECK_OPEN_FINISH:
+			ret = DRV_lcd_check_open_finished(ubuffer[0]);
+			break;
+		
         case DISP_CMD_PRINT_REG:
             ret = BSP_disp_print_reg(1, ubuffer[0]);
             break;
