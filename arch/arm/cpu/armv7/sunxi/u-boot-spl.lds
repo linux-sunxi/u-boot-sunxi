@@ -37,16 +37,17 @@ SECTIONS
 {
 	.text      :
 	{
-	__start = .;
-	  arch/arm/cpu/armv7/start.o	(.text)
-	  *(.text*)
-	} >.sram
+		__start = .;
+		arch/arm/cpu/armv7/start.o	(.text)
+		*(.text*)
+	} > .sram
 
 	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(.rodata*)) } >.sram
 
 	. = ALIGN(4);
 	.data : { *(SORT_BY_ALIGNMENT(.data*)) } >.sram
+
 	. = ALIGN(4);
 	__image_copy_end = .;
 	_end = .;
@@ -58,5 +59,5 @@ SECTIONS
 		*(.bss*)
 		. = ALIGN(4);
 		__bss_end__ = .;
-	} >.sdram
+	} > .sdram
 }
