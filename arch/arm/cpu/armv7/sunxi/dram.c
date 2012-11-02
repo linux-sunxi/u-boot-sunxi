@@ -292,31 +292,6 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 }
 #endif /* SUN5I */
 
-/*
- * Get DRAM Size in MB unit;
- */
-unsigned dramc_get_dram_size(void)
-{
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
-	u32 reg_val;
-	u32 dram_size;
-	u32 chip_den;
-
-	reg_val = readl(&dram->dcr);
-	chip_den = (reg_val >> 3) & 0x7;
-
-	dram_size = min(1024, 32 << chip_den);
-
-	if (((reg_val >> 1) & 0x3) == 0x1)
-		dram_size <<= 1;
-	if (((reg_val >> 6) & 0x7) == 0x3)
-		dram_size <<= 1;
-	if (((reg_val >> 10) & 0x3) == 0x1)
-		dram_size <<= 1;
-
-	return dram_size;
-}
-
 int dramc_init(struct dram_para *para)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
@@ -463,5 +438,5 @@ int dramc_init(struct dram_para *para)
 	/* configure all host port */
 	mctl_configure_hostport();
 
-	return dramc_get_dram_size();
+	return get_ram_size((long *)PHYS_SDRAM_1, 1 << 30);
 }

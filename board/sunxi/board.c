@@ -49,17 +49,9 @@ int checkboard(void)
 }
 #endif
 
-void dram_init_banksize(void)
-{
-	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = dramc_get_dram_size() * 1024 * 1024;
-}
-
 int dram_init(void)
 {
-	gd->ram_size =
-	    get_ram_size((long *)PHYS_SDRAM_1,
-			 dramc_get_dram_size() * 1024 * 1024);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, 1 << 30);
 
 	return 0;
 }
