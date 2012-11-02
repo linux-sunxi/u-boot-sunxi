@@ -514,6 +514,16 @@ $(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.bin
 			conv=notrunc 2>/dev/null
 		cat $(obj)spl/u-boot-spl-pad.img $(obj)u-boot.img > $@
 
+# sunxi: Combined object with SPL U-Boot with sunxi header (sunxi-spl.bin)
+# and the full-blown U-Boot attached to it
+$(obj)u-boot-sunxi-with-spl.bin: $(obj)spl/sunxi-spl.bin $(obj)u-boot.bin
+		tr "\000" "\377" < /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
+			of=$(obj)spl/sunxi-spl-pad.bin 2>/dev/null
+		dd if=$(obj)spl/sunxi-spl.bin of=$(obj)spl/sunxi-spl-pad.bin \
+			conv=notrunc 2>/dev/null
+		cat $(obj)spl/sunxi-spl-pad.bin $(obj)u-boot.bin > $@
+		rm $(obj)spl/sunxi-spl-pad.bin
+
 ifeq ($(SOC),tegra20)
 ifeq ($(CONFIG_OF_SEPARATE),y)
 $(obj)u-boot-dtb-tegra.bin:	$(obj)spl/u-boot-spl.bin $(obj)u-boot.bin $(obj)u-boot.dtb
