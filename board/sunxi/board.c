@@ -102,7 +102,8 @@ void sunxi_board_init(void)
 	power_failed |= axp209_set_ldo4(2800);
 #endif
 
-	/* Only clock up the CPU to full speed if we are reasonably
+	/*
+	 * Only clock up the CPU to full speed if we are reasonably
 	 * assured it's being powered with suitable core voltage
 	 */
 	if (!power_failed)
@@ -113,8 +114,6 @@ void sunxi_board_init(void)
 void spl_display_print(void)
 {
 	printf("Board: %s\n", CONFIG_BOARD_NAME);
-
-	return 0;
 }
 #endif
 
