@@ -69,7 +69,22 @@ int board_mmc_init(bd_t *bis) {
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
-	sunxi_dram_init();
+	int ramsize;
+
+	printf("DRAM:");
+	ramsize = sunxi_dram_init();
+	if (!ramsize) {
+		printf(" ?");
+		ramsize = sunxi_dram_init();
+	}
+	if (!ramsize) {
+		printf(" ?");
+		ramsize = sunxi_dram_init();
+	}
+	printf(" %dMB\n", ramsize);
+	if (!ramsize)
+		hang();
+
 #ifdef CONFIG_AXP209_POWER
 	power_failed |= axp209_init();
 	power_failed |= axp209_set_dcdc2(1400);
