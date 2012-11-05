@@ -92,3 +92,25 @@ int gpio_set_value(unsigned gpio, int value)
 {
 	return sunxi_gpio_output(gpio, value);
 }
+
+int name_to_gpio(const char *name)
+{
+	int group = 0;
+	int groupsize = 9 * 32;
+	long pin;
+	const char *eptr;
+	if (*name == 'P' || *name == 'p')
+		name++;
+	if (*name >= 'A') {
+		group = *name - (*name > 'a' ? 'a' : 'A');
+		groupsize = 32;
+		name++;
+	}
+
+	pin = simple_strtol(name, &eptr, 10);
+	if (!*name || *eptr)
+		return -1;
+	if (pin < 0 || pin > groupsize || group >= 9)
+		return -1;
+	return group * 32 + pin;
+}
