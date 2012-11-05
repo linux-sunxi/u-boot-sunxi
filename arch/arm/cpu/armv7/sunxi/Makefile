@@ -31,7 +31,7 @@ COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
-COBJS	+= gpio.o
+COBJS	+= pinmux.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif
