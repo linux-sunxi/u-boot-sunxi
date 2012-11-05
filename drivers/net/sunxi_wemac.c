@@ -494,6 +494,7 @@ int sunxi_wemac_initialize(void)
 		(struct sunxi_sramc_regs *)SUNXI_SRAMC_BASE;
 	struct eth_device *dev;
 	struct wemac_eth_dev *priv;
+	int pin;
 
 	dev = malloc(sizeof(*dev));
 	if (dev == NULL)
@@ -511,14 +512,10 @@ int sunxi_wemac_initialize(void)
 	/* Map SRAM to EMAC */
 	setbits_le32(&sram->ctrl1, 0x5 << 2);
 
-	/* PA0~PA7 */
-	clrsetbits_le32(&pio->cfg[0], 0xAAAAAAAA, 0x22222222);
-
-	/* PA8~PA15 */
-	clrsetbits_le32(&pio->cfg[1], 0xAAAAAAAA, 0x22222222);
-
-	/* PA16~PA17 */
-	clrsetbits_le32(&pio->cfg[2], 0xFFFFFFAA, 0x00000022);
+	/* Configure pin mux settings for MII Ethernet */
+	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++) {
+		sunxi_gpio_set_cfgpin(pin, 2);
+	}
 
 	/* Set up clock gating */
 	setbits_le32(&ccm->ahb_gate0, 1 << AHB_GATE_OFFSET_EMAC);
