@@ -173,6 +173,7 @@ done
 echo "#define CONFIG_SYS_ARCH  \"${arch}\""  >> config.h
 echo "#define CONFIG_SYS_CPU   \"${cpu}\""   >> config.h
 echo "#define CONFIG_SYS_BOARD \"${board}\"" >> config.h
+echo "#define CONFIG_SYS_TARGET \"${BOARD_NAME}\"" >> config.h
 
 [ "${vendor}" ] && echo "#define CONFIG_SYS_VENDOR \"${vendor}\"" >> config.h
 
