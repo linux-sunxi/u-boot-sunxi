@@ -21,6 +21,8 @@
 #include <fat.h>
 #include <fs.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 static block_dev_desc_t *fs_dev_desc;
 static disk_partition_t fs_partition;
 static int fs_type = FS_TYPE_ANY;
@@ -141,7 +143,7 @@ static inline void fs_close_ext(void)
 #define fs_read_ext fs_read_unsupported
 #endif
 
-static const struct {
+static struct {
 	int fstype;
 	int (*probe)(void);
 } fstypes[] = {
@@ -158,6 +160,15 @@ static const struct {
 int fs_set_blk_dev(const char *ifname, const char *dev_part_str, int fstype)
 {
 	int part, i;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+	static int relocated;
+
+	if (!relocated) {
+		for (i = 0; i < ARRAY_SIZE(fstypes); i++)
+			fstypes[i].probe += gd->reloc_off;
+		relocated = 1;
+	}
+#endif
 
 	part = get_device_and_partition(ifname, dev_part_str, &fs_dev_desc,
 					&fs_partition, 1);
@@ -236,8 +247,8 @@ int fs_read(const char *filename, ulong addr, int offset, int len)
 	return ret;
 }
 
-int do_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
-		int fstype)
+int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
+		int fstype, int cmdline_base)
 {
 	unsigned long addr;
 	const char *addr_str;
@@ -247,14 +258,16 @@ int do_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	int len_read;
 	char buf[12];
 
-	if (argc < 5)
+	if (argc < 2)
+		return CMD_RET_USAGE;
+	if (argc > 7)
 		return CMD_RET_USAGE;
 
-	if (fs_set_blk_dev(argv[1], argv[2], fstype))
+	if (fs_set_blk_dev(argv[1], (argc >= 3) ? argv[2] : NULL, fstype))
 		return 1;
 
 	if (argc >= 4) {
-		addr = simple_strtoul(argv[3], NULL, 0);
+		addr = simple_strtoul(argv[3], NULL, cmdline_base);
 	} else {
 		addr_str = getenv("loadaddr");
 		if (addr_str != NULL)
@@ -272,11 +285,11 @@ int do_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		}
 	}
 	if (argc >= 6)
-		bytes = simple_strtoul(argv[5], NULL, 0);
+		bytes = simple_strtoul(argv[5], NULL, cmdline_base);
 	else
 		bytes = 0;
 	if (argc >= 7)
-		pos = simple_strtoul(argv[6], NULL, 0);
+		pos = simple_strtoul(argv[6], NULL, cmdline_base);
 	else
 		pos = 0;
 
@@ -297,11 +310,13 @@ int do_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 {
 	if (argc < 2)
 		return CMD_RET_USAGE;
+	if (argc > 4)
+		return CMD_RET_USAGE;
 
 	if (fs_set_blk_dev(argv[1], (argc >= 3) ? argv[2] : NULL, fstype))
 		return 1;
 
-	if (fs_ls(argc == 4 ? argv[3] : "/"))
+	if (fs_ls(argc >= 4 ? argv[3] : "/"))
 		return 1;
 
 	return 0;

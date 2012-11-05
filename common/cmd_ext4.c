@@ -59,7 +59,7 @@
 int do_ext4_load(cmd_tbl_t *cmdtp, int flag, int argc,
 						char *const argv[])
 {
-	return do_fsload(cmdtp, flag, argc, argv, FS_TYPE_EXT);
+	return do_load(cmdtp, flag, argc, argv, FS_TYPE_EXT, 16);
 }
 
 int do_ext4_ls(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
@@ -123,17 +123,18 @@ fail:
 U_BOOT_CMD(ext4write, 6, 1, do_ext4_write,
 	"create a file in the root directory",
 	"<interface> <dev[:part]> [Absolute filename path] [Address] [sizebytes]\n"
-	"	  - create a file in / directory");
+	"    - create a file in / directory");
 
 #endif
 
 U_BOOT_CMD(ext4ls, 4, 1, do_ext4_ls,
 	   "list files in a directory (default /)",
 	   "<interface> <dev[:part]> [directory]\n"
-	   "	  - list files from 'dev' on 'interface' in a 'directory'");
+	   "    - list files from 'dev' on 'interface' in a 'directory'");
 
 U_BOOT_CMD(ext4load, 6, 0, do_ext4_load,
 	   "load binary file from a Ext4 filesystem",
 	   "<interface> <dev[:part]> [addr] [filename] [bytes]\n"
-	   "	  - load binary file 'filename' from 'dev' on 'interface'\n"
-	   "		 to address 'addr' from ext4 filesystem");
+	   "    - load binary file 'filename' from 'dev' on 'interface'\n"
+	   "      to address 'addr' from ext4 filesystem.\n"
+	   "      All numeric parameters are assumed to be hex.");
