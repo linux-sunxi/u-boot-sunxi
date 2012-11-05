@@ -45,6 +45,7 @@ COBJS-$(CONFIG_OMAP_GPIO)	+= omap_gpio.o
 COBJS-$(CONFIG_DB8500_GPIO)	+= db8500_gpio.o
 COBJS-$(CONFIG_BCM2835_GPIO)	+= bcm2835_gpio.o
 COBJS-$(CONFIG_S3C2440_GPIO)	+= s3c2440_gpio.o
+COBJS-$(CONFIG_SUNXI_GPIO)	+= sunxi_gpio.o
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)

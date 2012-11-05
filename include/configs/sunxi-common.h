@@ -239,4 +239,8 @@
 #define CONFIG_SPL_POWER_SUPPORT
 #define CONFIG_AXP209_POWER
 
+/* GPIO */
+#define CONFIG_SUNXI_GPIO
+#define CONFIG_CMD_GPIO
+
 #endif /* __CONFIG_H */
