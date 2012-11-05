@@ -262,6 +262,10 @@
 #define CONFIG_CMD_LED
 #endif
 
+/* GPIO */
+#define CONFIG_SUNXI_GPIO
+#define CONFIG_CMD_GPIO
+
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 

@@ -167,5 +167,7 @@ enum sunxi_gpio_number {
 int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
 int sunxi_gpio_get_cfgpin(u32 pin);
 int sunxi_gpio_set_pull(u32 pin, u32 val);
+int name_to_gpio(const char *name);
+#define name_to_gpio	name_to_gpio
 
 #endif /* _SUNXI_GPIO_H */
