@@ -170,8 +170,7 @@ static int mmc_clk_io_on(int sdc_no)
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
 	static struct sunxi_gpio *gpio_f =
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_F];
-// test-only: remove unused code (#if 0)
-#if 0
+#if CONFIG_MMC1_PG
 	static struct sunxi_gpio *gpio_g =
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_G];
 #endif
@@ -192,7 +191,7 @@ static int mmc_clk_io_on(int sdc_no)
 		break;
 
 	case 1:
-#if 0
+#if CONFIG_MMC1_PG
 		/* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
 		writel(0x444444, &gpio_g->cfg[0]);
 		writel(0x555, &gpio_g->pull[0]);
@@ -419,12 +418,11 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		} else {
 			pdes[des_idx].buf_addr_ptr2 = (u32) & pdes[des_idx + 1];
 		}
-// test-only: remove unused code
-//              MMCDBG("frag %d, remain %d, des[%d](%08x): "
-//                      "[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
-//                      i, remain, des_idx, (u32)&pdes[des_idx],
-//                      (u32)((u32*)&pdes[des_idx])[0], (u32)((u32*)&pdes[des_idx])[1],
-//                      (u32)((u32*)&pdes[des_idx])[2], (u32)((u32*)&pdes[des_idx])[3]);
+		MMCDBG("frag %d, remain %d, des[%d](%08x): "
+			"[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
+			i, remain, des_idx, (u32)&pdes[des_idx],
+			(u32)((u32*)&pdes[des_idx])[0], (u32)((u32*)&pdes[des_idx])[1],
+			(u32)((u32*)&pdes[des_idx])[2], (u32)((u32*)&pdes[des_idx])[3]);
 	}
 	flush_cache((unsigned long)pdes,
 		    sizeof(struct sunxi_mmc_des) * (des_idx + 1));

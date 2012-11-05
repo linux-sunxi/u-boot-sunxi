@@ -30,8 +30,8 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_ALLWINNER			/* It's a Allwinner chip */
-#define	CONFIG_SUNXI				/* which is sunxi family */
+#define CONFIG_ALLWINNER	/* It's a Allwinner chip */
+#define	CONFIG_SUNXI		/* which is sunxi family */
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
@@ -194,11 +194,6 @@
 #define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
 #define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
-
-/* test-only: remove unused code/defines */
-#if 0	/* Set in boards.cfg */
-#define CONFIG_SPL
-#endif
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000

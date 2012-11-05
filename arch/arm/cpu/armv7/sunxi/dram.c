@@ -1,10 +1,14 @@
 /*
+ * sunxi DRAM controller initialization
+ * (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
+ *
+ * Based on sun4i Linux kernel sources mach-sunxi/pm/standby/dram*.c
+ * and earlier U-Boot Allwiner A10 SPL work
+ *
  * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Berg Xing <bergxing@allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
- *
- * Sunxi platform dram controller init.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -97,9 +101,7 @@ static void mctl_enable_dll0(void)
 static void mctl_enable_dllx(void)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
-	u32 i = 0;
-	u32 n;
-	u32 bus_width;
+	u32 i, n, bus_width;
 
 	bus_width = readl(&dram->dcr);
 	bus_width >>= 6;
@@ -109,7 +111,6 @@ static void mctl_enable_dllx(void)
 		n = 5;
 	} else {
 		n = 3;
-		i = 1;
 	}
 
 	for (i = 1; i < n; i++)

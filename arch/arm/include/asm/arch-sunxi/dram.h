@@ -115,60 +115,8 @@ struct dram_para {
 	u32 emr3;
 };
 
-#define SDRAM_RST_PIN_HIGH	1
-#define SDRAM_RST_PIN_LOW	0
-
-#ifdef CONFIG_SUN4I
 #define DCLK_OUT_OFFSET		15
-#endif
-#ifdef CONFIG_SUN5I
-#define DCLK_OUT_OFFSET		16
-#endif
 #define DRAM_CTRL_SELECT_MAGIC	0x16237495
-
-#define MCR_ENABLE_MODE		3
-#define MCR_MODE_NORMAL		0
-#define MCR_DQ_OUT_MODE_HS	3
-#define MCR_DQ_IN_MODE_HS	3
-#define MCR_ADDR_OUT_MODE_HS	3
-#define MCR_ADDR_IN_MODE_HS	1
-#define MCR_DQ_HS_TURNON_DLY	7
-
-#define CCR_INTF_TIMING_DISABLE	1
-#define CCR_INTF_TIMING_ENABLE	0
-#define CCR_INIT_CHIP		1
-#define CCR_DAT_TRAIN_TRIG	1
-
-#define DLL_ENABLE		0
-#define DLL_DISABLE		1
-#define DLL_RESET		1
-
-#define DCR_TYPE_DDR2		0
-#define DCR_TYPE_DDR3		1
-#define DCR_IO_WIDTH_8		1
-#define DCR_IO_WIDTH_16		2
-#define DCR_CHIP_DENSITY_256Mb	0
-#define DCR_CHIP_DENSITY_512Mb	1
-#define DCR_CHIP_DENSITY_1Gb	2
-#define DCR_CHIP_DENSITY_2Gb	3
-#define DCR_CHIP_DENSITY_4Gb	4
-#define DCR_CHIP_DENSITY_8Gb	5
-#define DCR_BUS_WIDTH_16	1
-#define DCR_BUS_WIDTH_32	3
-#define DCR_ONE_RANK		0
-#define DCR_TWO_RANKS		1
-#define DCR_CMD_ON_ALL_RANKS	1
-#define DCR_INTERLEAVE_MODE	1
-
-#define ZQCR0_IMP_DIV		0x7b
-
-#define MR_BURST_LENGTH		0
-#define MR_POWER_DOWN		1
-#define MR_CAS_LATENCY		2
-#define MR_WRITE_RECOVERY	5
-
-#define DQS_GATE_ON		1
-#define DQS_DRIFT_COMPENSATION	0
 
 int sunxi_dram_init(void);
 int dramc_init(struct dram_para *para);
