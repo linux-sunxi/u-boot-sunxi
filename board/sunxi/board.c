@@ -43,7 +43,7 @@ int board_init(void)
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	printf("Board: %s\n", CONFIG_BOARD_NAME);
+	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
 
 	return 0;
 }
@@ -105,7 +105,7 @@ void sunxi_board_init(void)
 #ifdef CONFIG_SPL_DISPLAY_PRINT
 void spl_display_print(void)
 {
-	printf("Board: %s\n", CONFIG_BOARD_NAME);
+	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
 }
 #endif
 
