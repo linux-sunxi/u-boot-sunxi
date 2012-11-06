@@ -34,16 +34,3 @@ int print_cpuinfo(void)
 	return 0;
 }
 #endif
-
-#if defined(CONFIG_SUNXI_WEMAC)
-/*
- * Initializes on-chip ethernet controllers.
- * to override, implement board_eth_init()
- */
-int cpu_eth_init(bd_t *bis)
-{
-	sunxi_wemac_initialize(bis);
-
-	return 0;
-}
-#endif
