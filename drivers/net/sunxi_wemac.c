@@ -487,7 +487,6 @@ static int sunxi_wemac_eth_send(struct eth_device *dev, void *packet, int len)
 
 int sunxi_wemac_initialize(void)
 {
-	struct sunxi_gpio *pio = (struct sunxi_gpio *)SUNXI_PIO_BASE;
 	struct sunxi_ccm_reg *const ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	struct sunxi_sramc_regs *sram =
