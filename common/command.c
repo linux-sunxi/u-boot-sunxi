@@ -28,6 +28,7 @@
 #include <common.h>
 #include <command.h>
 #include <linux/ctype.h>
+#include <malloc.h>
 
 /*
  * Use puts() instead of printf() to avoid printf buffer overflow
@@ -41,8 +42,14 @@ int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
 	int rcode = 0;
 
 	if (argc == 1) {	/*show list of commands */
-		cmd_tbl_t *cmd_array[cmd_items];
+		cmd_tbl_t **cmd_array;
 		int i, j, swaps;
+
+		cmd_array = malloc(cmd_items * sizeof(*cmd_array));
+		if (!cmd_array) {
+			printf("error: not enough memory\n");
+			return 1;
+		}
 
 		/* Make array of commands from .uboot_cmd section */
 		cmdtp = cmd_start;
@@ -72,13 +79,16 @@ int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
 			const char *usage = cmd_array[i]->usage;
 
 			/* allow user abort */
-			if (ctrlc ())
+			if (ctrlc()) {
+				free(cmd_array);
 				return 1;
+			}
 			if (usage == NULL)
 				continue;
 			printf("%-*s- %s\n", CONFIG_SYS_HELP_CMD_WIDTH,
 			       cmd_array[i]->name, usage);
 		}
+		free(cmd_array);
 		return 0;
 	}
 	/*
