@@ -526,16 +526,17 @@ $(obj)u-boot-sunxi-with-spl.bin: $(obj)spl/sunxi-spl.bin $(obj)u-boot.bin
 
 ifeq ($(SOC),tegra20)
 ifeq ($(CONFIG_OF_SEPARATE),y)
-$(obj)u-boot-dtb-tegra.bin:	$(obj)spl/u-boot-spl.bin $(obj)u-boot.bin $(obj)u-boot.dtb
-		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
-		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin $(obj)u-boot.dtb > $@
-		rm $(obj)spl/u-boot-spl-pad.bin
+nodtb=dtb
+dtbfile=$(obj)u-boot.dtb
 else
-$(obj)u-boot-nodtb-tegra.bin:	$(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
-		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin > $@
-		rm $(obj)spl/u-boot-spl-pad.bin
+nodtb=nodtb
+dtbfile=
 endif
+
+$(obj)u-boot-$(nodtb)-tegra.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin $(dtbfile)
+		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
+		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin $(dtbfile) > $@
+		rm $(obj)spl/u-boot-spl-pad.bin
 endif
 
 ifeq ($(CONFIG_SANDBOX),y)
