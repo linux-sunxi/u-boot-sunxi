@@ -235,12 +235,12 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7f
 #define CONFIG_CMD_I2C
 
-/* PMU */
-#define CONFIG_SPL_POWER_SUPPORT
-#define CONFIG_AXP209_POWER
-
 /* GPIO */
 #define CONFIG_SUNXI_GPIO
 #define CONFIG_CMD_GPIO
+
+/* PMU */
+#define CONFIG_SPL_POWER_SUPPORT
+#define CONFIG_AXP209_POWER
 
 #endif /* __CONFIG_H */
