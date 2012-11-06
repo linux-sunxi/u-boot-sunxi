@@ -161,7 +161,6 @@ struct sunxi_sramc_regs {
 #define EMAC_CRCERR		(1 << 4)
 #define EMAC_LENERR		(3 << 5)
 
-#define WEMAC_PHY		0x100	/* PHY address 0x01 */
 #define DMA_CPU_TRRESHOLD	2000
 
 struct wemac_eth_dev {
@@ -213,7 +212,7 @@ static int wemac_phy_read(const char *devname, unsigned char addr,
 	struct wemac_regs *regs = (struct wemac_regs *)dev->iobase;
 
 	/* issue the phy address and reg */
-	writel(WEMAC_PHY | reg, &regs->mac_madr);
+	writel(addr << 8 | reg, &regs->mac_madr);
 
 	/* pull up the phy io line */
 	writel(0x1, &regs->mac_mcmd);
@@ -240,7 +239,7 @@ static int wemac_phy_write(const char *devname, unsigned char addr,
 	struct wemac_regs *regs = (struct wemac_regs *)dev->iobase;
 
 	/* issue the phy address and reg */
-	writel(WEMAC_PHY | reg, &regs->mac_madr);
+	writel(addr << 8 | reg, &regs->mac_madr);
 
 	/* pull up the phy io line */
 	writel(0x1, &regs->mac_mcmd);
@@ -275,7 +274,7 @@ static void emac_setup(struct eth_device *dev)
 	writel(EMAC_MAC_CTL0_SETUP, &regs->mac_ctl0);
 
 	/* Set MAC CTL1 */
-	wemac_phy_read(dev->name, 0, 0, &phy_val);
+	wemac_phy_read(dev->name, 1, 0, &phy_val);
 	debug("PHY SETUP, reg 0 value: %x\n", phy_val);
 	duplex_flag = !!(phy_val & (1 << 8));
 
@@ -348,11 +347,11 @@ static int sunxi_wemac_eth_init(struct eth_device *dev, bd_t *bd)
 	wemac_reset(dev);
 
 	/* PHY POWER UP */
-	wemac_phy_read(dev->name, 0, 0, &phy_reg);
-	wemac_phy_write(dev->name, 0, 0, phy_reg & (~(1 << 11)));
+	wemac_phy_read(dev->name, 1, 0, &phy_reg);
+	wemac_phy_write(dev->name, 1, 0, phy_reg & (~(1 << 11)));
 	mdelay(1);
 
-	wemac_phy_read(dev->name, 0, 0, &phy_reg);
+	wemac_phy_read(dev->name, 1, 0, &phy_reg);
 
 	priv->speed = miiphy_speed(dev->name, 0);
 	priv->duplex = miiphy_duplex(dev->name, 0);
