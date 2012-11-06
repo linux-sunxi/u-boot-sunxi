@@ -29,32 +29,7 @@
 #include <mmc.h>
 #include <nand.h>
 
-#include <asm/arch/nand_bsp.h>
 #include <asm/arch/boot_type.h>
-
-#define SPARSE_HEADER_MAJOR_VER 1
-
-#if 0
-int mmc_compare(unsigned mmcc, unsigned char *src, unsigned offset, unsigned len)
-{
-	u8 data[512];
-
-	while (len > 0) {
-		if (mmc_read(mmcc, offset, data, 512) != 1) {
-			printf("mmc read error offset %d\n", offset);
-			return -1;
-		}
-		if (memcmp(data, src, 512)) {
-			printf("mmc data mismatch offset %d\n", offset);
-			return -1;
-		}
-		len -= 512;
-		offset++;
-		src += 512;
-	}
-	return 0;
-}
-#endif
 
 int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
 	      unsigned id)
@@ -118,7 +93,8 @@ int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
 			//if(!storage_type)
 			//r = WRITE(&nand_info[0], offset, &len, source, 0);
 			r = sunxi_flash_write(offset>>9, len>>9, source);
-			if (r < 0) {
+			if (!r) 
+			{
 				printf("sparse: mmc write failed\n");
 				return 1;
 			}
@@ -161,16 +137,12 @@ int _unsparse(unsigned char *source, u32 offset, u32 partition_size,
 u8 do_unsparse(unsigned char *source, u32 offset, u32 partition_size, char *slot_no)
 {
 	unsigned mmcc = simple_strtoul(slot_no, NULL, 16);
-#ifdef DEBUG
-	printf("do_unsparse storage_type = %d\n", storage_type);
-#endif
+
+	debug("do_unsparse storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
 	if (_unsparse(source, offset, partition_size, mmcc))
 		return 1;
 
 	printf("flash sparse ok!\n");
-#if 0
-	if (_unsparse(source, offset, partition_size, mmcc, mmc_compare))
-		return 1;
-#endif
+
 	return 0;
 }

@@ -7,8 +7,9 @@
  */
 #ifndef __GIC_H
 #define __GIC_H
-#include "type.h"
+
 #include "platform.h"
+
 /* GIC registers */
 #define GIC_DIST_CON		(ARMA9_GIC_BASE + 0x0000)
 #define GIC_CON_TYPE		(ARMA9_GIC_BASE + 0x0004)
@@ -154,11 +155,11 @@
 #define GIC_IRQ_MOD_CFG0		GIC_IRQ_MOD_CFG(0)		// 0xc00 - SGI
 #define GIC_IRQ_MOD_CFG1		GIC_IRQ_MOD_CFG(1)  	// 0xc04 - PPI
 #define GIC_IRQ_MOD_CFG2		GIC_IRQ_MOD_CFG(2)  	// 0xc08 - SPI0 ~ 15
-#define GIC_IRQ_MOD_CFG3		GIC_IRQ_MOD_CFG(3)  	// 0xc0C - SPI16 ~ 31 
-#define GIC_IRQ_MOD_CFG4		GIC_IRQ_MOD_CFG(4)  	// 0xc10 - SPI32 ~ 47 
-#define GIC_IRQ_MOD_CFG5		GIC_IRQ_MOD_CFG(5)  	// 0xc14 - SPI48 ~ 63 
-#define GIC_IRQ_MOD_CFG6		GIC_IRQ_MOD_CFG(6)  	// 0xc18 - SPI64 ~ 79 
-#define GIC_IRQ_MOD_CFG7		GIC_IRQ_MOD_CFG(7)  	// 0xc1C - SPI80 ~ 95 
+#define GIC_IRQ_MOD_CFG3		GIC_IRQ_MOD_CFG(3)  	// 0xc0C - SPI16 ~ 31
+#define GIC_IRQ_MOD_CFG4		GIC_IRQ_MOD_CFG(4)  	// 0xc10 - SPI32 ~ 47
+#define GIC_IRQ_MOD_CFG5		GIC_IRQ_MOD_CFG(5)  	// 0xc14 - SPI48 ~ 63
+#define GIC_IRQ_MOD_CFG6		GIC_IRQ_MOD_CFG(6)  	// 0xc18 - SPI64 ~ 79
+#define GIC_IRQ_MOD_CFG7		GIC_IRQ_MOD_CFG(7)  	// 0xc1C - SPI80 ~ 95
 #define GIC_IRQ_MOD_CFG8		GIC_IRQ_MOD_CFG(8)  	// 0xc20 - SPI96 ~ 111
 #define GIC_IRQ_MOD_CFG9		GIC_IRQ_MOD_CFG(9)  	// 0xc24 - SPI112 ~ 127
 
@@ -283,7 +284,7 @@
 #define GIC_SRC_HSTMR0      GIC_SRC_SPI(51 ) // (83)
 #define GIC_SRC_HSTMR1      GIC_SRC_SPI(52 ) // (84)
 #define GIC_SRC_HSTMR2      GIC_SRC_SPI(53 ) // (85)
-#define GIC_SRC_HSTMR3      GIC_SRC_SPI(54 ) // (86)   
+#define GIC_SRC_HSTMR3      GIC_SRC_SPI(54 ) // (86)
 
 #define GIC_SRC_TZASC       GIC_SRC_SPI(56 ) // (88)
 
@@ -372,8 +373,8 @@
 #define GIC_SRC_DMA         GIC_SRC_SPI(6)  // (38)
 #define GIC_SRC_WATCHDOG1   GIC_SRC_SPI(7)  // (39)
 #define GIC_SRC_WATCHDOG2   GIC_SRC_SPI(8)  // (40)
-#define GIC_SRC_RTIMER0     GIC_SRC_SPI(9)  // (41)	
-#define GIC_SRC_RTIMER1     GIC_SRC_SPI(9)  // (41)	
+#define GIC_SRC_RTIMER0     GIC_SRC_SPI(9)  // (41)
+#define GIC_SRC_RTIMER1     GIC_SRC_SPI(9)  // (41)
 #define GIC_SRC_RWATCHDOG   GIC_SRC_SPI(9)  // (41)
 #define GIC_SRC_SPINLOCK    GIC_SRC_SPI(10) // (42)
 #define GIC_SRC_MBOX        GIC_SRC_SPI(11) // (43)
@@ -431,14 +432,14 @@
 #define GIC_SPI_LEVEL_TRIGGER	(0)	//2b'00
 #define GIC_SPI_EDGE_TRIGGER	(2)	//2b'10
 
-typedef void (*pIRQ_Handler)(void);
-extern s32 irq_request(u32 irq_no, pIRQ_Handler hdle);
-extern s32 irq_free(u32 irq_no);
-extern s32 irq_enable(u32 irq_no);
-extern s32 irq_disable(u32 irq_no);
+extern void irq_install_handler (int irq, interrupt_handler_t handle_irq, void *data);
+extern void irq_free_handler(int irq);
+extern int irq_enable(int irq_no);
+extern int irq_disable(int irq_no);
 
-void init_gic(void);
-void gic_irq_handler(void);
-extern s32 gic_test(void);
+int arch_interrupt_init (void);
+
+int arch_interrupt_exit (void);
+
 
 #endif

@@ -168,9 +168,9 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	ulong initrd_start, initrd_end;
 	void (*kernel_entry)(int zero, int arch, uint params);
 	bd_t *bd = gd->bd;
-#ifdef DEBUG
-	printf("do_boota_linux storage_type = %d\n", storage_type);
-#endif
+
+	debug("do_boota_linux storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
+
 	kernel_entry = (void (*)(int, int, uint))(hdr->kernel_addr);
 
 #ifdef CONFIG_CMDLINE_TAG
@@ -215,6 +215,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	sunxi_flash_exit();
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
+	sr32(SUNXI_CCM_APB1_GATING, 16, 2, 0);
 	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
 
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);

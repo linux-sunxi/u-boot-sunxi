@@ -67,10 +67,11 @@ static inline void dram_bank_mmu_setup(int bank)
 /* to activate the MMU we need to set up virtual memory: use 1M areas */
 static inline void mmu_setup(void)
 {
-	u32 *page_table = (u32 *)gd->tlb_addr;
+	//u32 *page_table = (u32 *)gd->tlb_addr;
+	u32 *page_table = (u32 *)MMU_BASE_ADDRESS;
 	int i;
 	u32 reg;
-
+#if 0
 	arm_init_before_mmu();
 	/* Set up an identity-mapping for all 4GB, rw for everyone */
 	for (i = 0; i < 4096; i++)
@@ -79,7 +80,16 @@ static inline void mmu_setup(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
 		dram_bank_mmu_setup(i);
 	}
-
+#endif
+	/* modified by jerry */
+	arm_init_before_mmu();
+	/* the front 1G of memory(treated as 4G for all) is set up as none cacheable */
+	for (i = 0; i < 1024; i++)
+		page_table[i] = i << 20 | (3 << 10) | (0 << 3) | 0x2;
+	/* Set up as write through and buffered(not write back) for other 3GB, rw for everyone */
+	for (i = 1024; i < 4096; i++)
+		page_table[i] = i << 20 | (3 << 10) | (1 << 3) | 0x2;
+	
 	/* Copy the page table address to cp15 */
 	asm volatile("mcr p15, 0, %0, c2, c0, 0"
 		     : : "r" (page_table) : "memory");
@@ -96,7 +106,6 @@ static int mmu_enabled(void)
 {
 	return get_cr() & CR_M;
 }
-
 /* cache_bit must be either CR_I or CR_C */
 static void cache_enable(uint32_t cache_bit)
 {
@@ -145,6 +154,7 @@ int icache_status (void)
 {
 	return 0;					/* always off */
 }
+
 #else
 void icache_enable(void)
 {
@@ -177,6 +187,7 @@ int dcache_status (void)
 {
 	return 0;					/* always off */
 }
+
 #else
 void dcache_enable(void)
 {
@@ -192,4 +203,6 @@ int dcache_status(void)
 {
 	return (get_cr() & CR_C) != 0;
 }
+
 #endif
+

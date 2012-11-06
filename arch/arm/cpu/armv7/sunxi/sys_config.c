@@ -14,20 +14,13 @@
  */
 #define SZ_32M                            0x02000000
 #define SZ_16M                            0x01000000
-/*#include <linux/kernel.h>*/
-#include <linux/init.h>
 
-#include <linux/ctype.h>
-#include <linux/string.h>
-/*
-#include <linux/slab.h>
-#include <linux/module.h>
-*/
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/platform.h>
 #include <asm/arch/sys_config.h>
-#define GFP_ATOMIC_GPIO ((gfp_t) 0)
+#include <asm/arch/cpu.h>
+
 static script_sub_key_t *sw_cfg_get_subkey(const char *script_buf, const char *main_key, const char *sub_key)
 {
     script_head_t *hd = (script_head_t *)script_buf;
@@ -95,8 +88,8 @@ char *sw_cfg_get_str(const char *script_buf, const char *main_key, const char *s
  *                        Script Operations
  *
 -#########################################################################################*/
-static  char  *script_mod_buf = (char *)0x4; //pointer to first key
-static  int    script_main_key_count = 0;
+static  char  *script_mod_buf = (char *)4; //pointer to first key
+static  int    script_main_key_count = -1;
 
 static  int   _test_str_length(char *str)
 {
@@ -113,21 +106,14 @@ static  int   _test_str_length(char *str)
 
     return length;
 }
-int script_parser_init_early(void)
-{
-    script_head_t   *script_head;
-        script_mod_buf = (char *)SYS_CONFIG_MEMBASE;
-        script_head = (script_head_t *)script_mod_buf;
-        script_main_key_count = script_head->main_key_count;
-        return SCRIPT_PARSER_OK;
-}
 
 int script_parser_init(char *script_buf)
 {
     script_head_t   *script_head;
 
 	script_mod_buf = NULL;
-    if(script_buf)
+	debug("script init, addr=%x\n", script_buf);
+	if(script_buf)
     {
         script_mod_buf = script_buf;
         script_head = (script_head_t *)script_mod_buf;
@@ -158,11 +144,8 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
     script_sub_key_t   *sub_key = NULL;
     int    i, j;
     int    pattern, word_count;
-
-    /*printf("enter script parse fetch. \n");*/
-
     /* check params */
-    if(!script_mod_buf)
+    if((!script_mod_buf) || (script_main_key_count <= 0))
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
@@ -192,8 +175,6 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
         strncpy(sub_bkname, sub_name, 31);
         sub_char = sub_bkname;
     }
-   /* printf("gpio: main name is : %s, sub_name is: %s\n", main_char, sub_char);*/
-
     for(i=0;i<script_main_key_count;i++)
     {
         main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
@@ -212,8 +193,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
             }
             pattern    = (sub_key->pattern>>16) & 0xffff; /* get datatype */
             word_count = (sub_key->pattern>> 0) & 0xffff; /*get count of word */
-           /* printf("pattern is: 0x%x, word_count is: 0x%x, ", pattern, word_count);
-*/
+
             switch(pattern)
             {
                 case SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD:
@@ -340,111 +320,6 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 
 	return SCRIPT_PARSER_KEY_NOT_FIND;
 }
-
-
-int script_parser_fetch_ex(char *main_name, char *sub_name, int value[], script_parser_value_type_t *type, int count)
-{
-    char   main_bkname[32], sub_bkname[32];
-    char   *main_char, *sub_char;
-    script_main_key_t  *main_key = NULL;
-    script_sub_key_t   *sub_key = NULL;
-    int    i, j;
-    int    pattern, word_count;
-    script_parser_value_type_t *value_type = type;
-
-   /* printf("enter script parse fetch. \n");*/
-
-    if(!script_mod_buf)
-    {
-        return SCRIPT_PARSER_EMPTY_BUFFER;
-    }
-
-    if((main_name == NULL) || (sub_name == NULL))
-    {
-        return SCRIPT_PARSER_KEYNAME_NULL;
-    }
-
-    if(value == NULL)
-    {
-        return SCRIPT_PARSER_DATA_VALUE_NULL;
-    }
-
-    main_char = main_name;
-    if(_test_str_length(main_name) > 31)
-    {
-        memset(main_bkname, 0, 32);
-        strncpy(main_bkname, main_name, 31);
-        main_char = main_bkname;
-    }
-    sub_char = sub_name;
-    if(_test_str_length(sub_name) > 31)
-    {
-        memset(sub_bkname, 0, 32);
-        strncpy(sub_bkname, sub_name, 31);
-        sub_char = sub_bkname;
-    }
-   /* printf("gpio: main name is : %s, sub_name is: %s\n", main_char, sub_char);
-    */
-    for(i=0;i<script_main_key_count;i++)
-    {
-        main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
-        if(strcmp(main_key->main_name, main_char))
-        {
-            continue;
-        }
-
-        for(j=0;j<main_key->lenth;j++)
-        {
-            sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
-            if(strcmp(sub_key->sub_name, sub_char))
-            {
-                continue;
-            }
-            pattern    = (sub_key->pattern>>16) & 0xffff;
-            word_count = (sub_key->pattern>> 0) & 0xffff;
-           /* printf("pattern is: 0x%x, word_count is: 0x%x, \n", pattern, word_count);
-*/
-            switch(pattern)
-            {
-                case SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD:
-                    value[0] = *(int *)(script_mod_buf + (sub_key->offset<<2));
-                    *value_type = SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD;
-                    break;
-
-                case SCIRPT_PARSER_VALUE_TYPE_STRING:
-                    if(count < word_count)
-                    {
-                        word_count = count;
-                    }
-                    memcpy((char *)value, script_mod_buf + (sub_key->offset<<2), word_count << 2);
-                    *value_type = SCIRPT_PARSER_VALUE_TYPE_STRING;
-                    break;
-
-                case SCIRPT_PARSER_VALUE_TYPE_MULTI_WORD:
-                    *value_type = SCIRPT_PARSER_VALUE_TYPE_MULTI_WORD;
-                    break;
-                case SCIRPT_PARSER_VALUE_TYPE_GPIO_WORD:
-                {
-                    script_gpio_set_t  *user_gpio_cfg = (script_gpio_set_t *)value;
-
-                    if(sizeof(script_gpio_set_t) > (count<<2))
-                    {
-                        return SCRIPT_PARSER_BUFFER_NOT_ENOUGH;
-                    }
-                    strcpy( user_gpio_cfg->gpio_name, sub_char);
-                    memcpy(&user_gpio_cfg->port, script_mod_buf + (sub_key->offset<<2),  sizeof(script_gpio_set_t) - 32);
-                    *value_type = SCIRPT_PARSER_VALUE_TYPE_GPIO_WORD;
-                    break;
-                }
-            }
-
-            return SCRIPT_PARSER_OK;
-        }
-    }
-
-    return SCRIPT_PARSER_KEY_NOT_FIND;
-}
-
 
 int script_parser_subkey_count(char *main_name)
 {
@@ -615,26 +490,22 @@ int script_parser_mainkey_get_gpio_cfg(char *main_name, void *gpio_cfg, int gpio
  *                           GPIO(PIN) Operations
  *
 -##############################################################################################################*/
-#define CSP_OSAL_PHY_2_VIRT(phys, size) SW_VA_PORTC_IO_BASE
 #define CSP_OSAL_MALLOC(size) malloc((size))
 #define CSP_OSAL_FREE(ptr) free((ptr))
 
 u32     gpio_g_pioMemBase = 0;
-#define PIOC_REGS_BASE gpio_g_pioMemBase
 
-extern char sys_cofig_data[];
-extern char sys_cofig_data_end[];
 #define __REG(x)                        (*(volatile unsigned int *)(x))
 
-#define PIO_REG_CFG(n, i)               ((volatile unsigned int *)( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x00))
-#define PIO_REG_DLEVEL(n, i)            ((volatile unsigned int *)( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x14))
-#define PIO_REG_PULL(n, i)              ((volatile unsigned int *)( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x1C))
-#define PIO_REG_DATA(n)                   ((volatile unsigned int *)( PIOC_REGS_BASE + ((n)-1)*0x24 + 0x10))
+#define PIO_REG_CFG(n, i)               ((volatile unsigned int *)( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x00))
+#define PIO_REG_DLEVEL(n, i)            ((volatile unsigned int *)( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x14))
+#define PIO_REG_PULL(n, i)              ((volatile unsigned int *)( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x1C))
+#define PIO_REG_DATA(n)                   ((volatile unsigned int *)( SUNXI_PIO_BASE + ((n)-1)*0x24 + 0x10))
 
-#define PIO_REG_CFG_VALUE(n, i)          __REG( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x00)
-#define PIO_REG_DLEVEL_VALUE(n, i)       __REG( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x14)
-#define PIO_REG_PULL_VALUE(n, i)         __REG( PIOC_REGS_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x1C)
-#define PIO_REG_DATA_VALUE(n)            __REG( PIOC_REGS_BASE + ((n)-1)*0x24 + 0x10)
+#define PIO_REG_CFG_VALUE(n, i)          __REG( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x00)
+#define PIO_REG_DLEVEL_VALUE(n, i)       __REG( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x14)
+#define PIO_REG_PULL_VALUE(n, i)         __REG( SUNXI_PIO_BASE + ((n)-1)*0x24 + ((i)<<2) + 0x1C)
+#define PIO_REG_DATA_VALUE(n)            __REG( SUNXI_PIO_BASE + ((n)-1)*0x24 + 0x10)
 
 typedef struct
 {
@@ -647,8 +518,8 @@ typedef struct
 typedef struct
 {
     char    gpio_name[32];
-    int port;
-    int port_num;
+    int     port;
+    int     port_num;
     gpio_status_set_t user_gpio_status;
     gpio_status_set_t hardware_gpio_status;
 } system_gpio_set_t;
@@ -669,7 +540,8 @@ typedef struct
 
 int sw_gpio_init(void)
 {
-    gpio_g_pioMemBase = (u32)PIO_BASE;
+    gpio_g_pioMemBase = SUNXI_PIO_BASE;
+
     return script_parser_init((char *)SYS_CONFIG_MEMBASE);
     
 }

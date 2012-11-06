@@ -26,95 +26,22 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <serial.h>
+#include <pmu.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/boot_type.h>
-#include <asm/arch/ccmu.h>
-#include <errno.h>
-#include <netdev.h>
-#ifdef CONFIG_SPL_BUILD
-DECLARE_GLOBAL_DATA_PTR;
-
-/* Define global data structure pointer to it*/
-static gd_t gdata __attribute__ ((section(".data")));
-static bd_t bdata __attribute__ ((section(".data")));
-#endif
-
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
  * We check where we boot from by checking the config
  * of the gpio pin.
  */
-int storage_type = 0;
 int uart_console = 0;
-int mmc_card_no  = 2;
 
-#ifdef CONFIG_CMD_NET
-extern int gmac_initialize(bd_t *bis);
-int cpu_eth_init(bd_t *bis)
+u32 get_base(void) 
 {
-	int rc = -ENODEV;
-
-	rc = gmac_initialize(bis);
-
-	return rc;
-}
-#endif
-sunxi_boot_type_t boot_from(void) {
-	return SUNXI_BOOT_TYPE_NULL;
-}
-
-int watchdog_init(void) {
-
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-	/* disable watchdog */
-	writel(0, &(wdog->mode));
-
-	return 0;
-}
-
-int clock_init(void)
-{
-	/* set cpu clk and init uart  nand (or dram if possible) clk */
-	return 0;
-}
-
-void gpio_init(void) {
-#if 0
-	u32 i;
-	static struct sunxi_gpio *gpio_c =
-		&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-
-	/* set nand controller pin */
-	for(i=0; i < 4; i++) {
-		writel(0x22222222, &gpio_c->cfg[i]);
-	}
-	writel(0x55555555, &gpio_c->drv[0]);
-	writel(0x15555, &gpio_c->drv[1]);
-#endif
-int sdram_init(void) {
-
-	return 0;
-}
-	return 0;
-}
-/*
-void clock_init_u_boot(void)
-{
-	ccm_setup_pll1_cpux_clk(CLK_PLL1);
-	ccm_set_cpu_l2_axi_div(L2_PERIPH_DIV,L2_DIV,AXI_DIV);
-	ccm_set_ahb1_clk_src(AHB1_CLK_SRC);
-	ccm_set_apb2_clk(APB2_CLK);
-	ccm_clock_enable(UART0_CKID);
-	ccm_module_enable(UART0_CKID);	
-}
-*/
-u32 get_base(void) {
 
 	u32 val;
 
@@ -123,43 +50,154 @@ u32 get_base(void) {
 	val >>= 28;
 	return val;
 }
-u32 is_running_in_sdram(void) {
 
-	if (get_base() > 4)
-		return 1;	/* in SDRAM */
-
-	return 0;		/* running in SRAM */
-}
-extern void sw_gpio_init(void);
 /* do some early init */
 void s_init(void)
 {
-	int in_sdram = 0;
-#ifdef CONFIG_SPL
-		in_sdram = is_running_in_sdram();
-#endif
-	watchdog_init();
-	sw_gpio_init();
-	clock_init();
-	gpio_init();
-#ifdef CONFIG_SPL
-	if (!in_sdram)
-		sdram_init();
-#endif
+	watchdog_disable();
 }
 
-extern int sunxi_reset(void);
-void reset_cpu(ulong addr) {
-	sunxi_flash_exit();
-	sunxi_reset();
+void reset_cpu(ulong addr) 
+{
+	watchdog_enable();
+loop_to_die:
+	goto loop_to_die;
 }
 
-#ifndef CONFIG_SYS_DCACHE_OFF
+void v7_outer_cache_enable(void)
+{
+	return ;
+}
+
+void v7_outer_cache_inval_all(void)
+{
+	return ;
+}
+
+void v7_outer_cache_flush_range(u32 start, u32 stop)
+{
+	return ;
+}
+
 void enable_caches(void)
 {
-	/* Enable D-cache. I-cache is already enabled in start.S */
-#ifdef CONFIG_SPL
-		dcache_enable();
-#endif
+    icache_enable();
+    dcache_enable();
 }
-#endif
+
+void disable_caches(void)
+{
+    icache_disable();
+	dcache_disable();
+}
+
+int display_inner(void)
+{
+	printf("uboot inner version : %s\n", uboot_spare_head.boot_head.version);
+
+	return 0;
+}
+
+int script_init(void)
+{
+    uint offset, length;
+	char *addr;
+
+	offset = uboot_spare_head.boot_head.uboot_length;
+	length = uboot_spare_head.boot_head.length - uboot_spare_head.boot_head.uboot_length;
+	addr   = (char *)CONFIG_SYS_TEXT_BASE + offset;
+
+    debug("script offset=%x, length = %x\n", offset, length);
+
+	memcpy((void *)SYS_CONFIG_MEMBASE, addr, length);
+	script_parser_init((char *)SYS_CONFIG_MEMBASE);
+
+	return 0;
+}
+
+int power_init(void)
+{
+	int clock;
+	int set_vol;
+	int set_clock;
+
+	set_vol = uboot_spare_head.boot_data.run_core_vol;
+	set_clock = uboot_spare_head.boot_data.run_clock;
+
+	if(!axp_probe())
+	{
+		if(!axp_probe_power_supply_condition())
+		{
+			if(!axp_set_dcdc2(set_vol))
+			{
+				debug("axp_set_dcdc2 ok\n");
+				clock = sunxi_clock_set_corepll(set_clock, set_vol);
+			}
+			else
+			{
+				debug("axp_set_dcdc2 fail\n");
+				clock = sunxi_clock_get_corepll();
+			}
+			printf("set core vol = %d, core clock = %d\n", set_vol, clock);	
+
+			return 0;
+		}
+		else
+		{
+			debug("axp_probe_power_supply_condition error\n");
+		}
+	}
+	else
+	{
+		debug("axp_probe error\n");
+	}
+	
+	puts("set both dcdc2 and clock as default\n");
+	
+	return 0;
+}
+
+int check_update_key(void)
+{
+	int ret, count;
+
+    sunxi_key_init();
+	count = 0;
+	__msdelay(10);
+	
+	ret = sunxi_key_read();			        //读取按键信息
+	if(ret < 0) 							//没有按键按下
+	{
+		printf("no key found\n");
+		return 0;
+	}
+
+	while(1)
+	{
+		ret = axp_probe_key();	            //获取power按键信息
+		if(ret & PMU_SHORT_KEY_PRESSED) 	//没有POWER按键按下
+		{
+			count ++;
+		}
+
+		__msdelay(40);
+		ret = sunxi_key_read();		        //读取按键信息
+		if(ret < 0) 						//没有按键按下
+		{
+			printf("key not pressed anymore\n");
+			{
+				return 0;
+			}
+		}
+
+		if(count == 3)
+		{
+			printf("you can unclench the key to update now\n");
+
+			early_fel();
+		}
+	}
+}
+
+
+

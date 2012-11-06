@@ -37,8 +37,9 @@
 #define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535
 #endif
 
-static struct list_head mmc_devices;
-static int cur_dev_num = -1;
+//static struct list_head mmc_devices;
+//static int cur_dev_num = -1;
+LIST_HEAD(mmc_devices);
 
 int __board_mmc_getcd(u8 *cd, struct mmc *mmc) {
 	return -1;
@@ -1152,7 +1153,8 @@ int mmc_register(struct mmc *mmc)
 {
 	/* Setup the universal parts of the block interface just once */
 	mmc->block_dev.if_type = IF_TYPE_MMC;
-	mmc->block_dev.dev = cur_dev_num++;
+	//mmc->block_dev.dev = cur_dev_num++;
+	mmc->block_dev.dev = mmc->control_num;
 	mmc->block_dev.removable = 1;
 	mmc->block_dev.block_read = mmc_bread;
 	mmc->block_dev.block_write = mmc_bwrite;
@@ -1256,13 +1258,13 @@ void print_mmc_devices(char separator)
 
 int get_mmc_num(void)
 {
-	return cur_dev_num;
+	//return cur_dev_num;
+    return board_mmc_get_num();
 }
 
 int mmc_initialize(bd_t *bis)
 {
-	INIT_LIST_HEAD (&mmc_devices);
-	cur_dev_num = mmc_card_no;
+//	INIT_LIST_HEAD (&mmc_devices);
 
 	if (board_mmc_init(bis) < 0)
 		cpu_mmc_init(bis);

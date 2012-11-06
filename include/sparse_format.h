@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define SPARSE_HEADER_MAJOR_VER 1
 
 typedef struct sparse_header {
   __le32	magic;		/* 0xed26ff3a */

@@ -241,7 +241,7 @@ LIBS += drivers/input/libinput.o
 LIBS += drivers/misc/libmisc.o
 LIBS += drivers/mmc/libmmc.o
 LIBS += drivers/storage_type/libstorage_type.o
-LIBS += drivers/mtd/libmtd.o
+#LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/onenand/libonenand.o
 LIBS += drivers/mtd/ubi/libubi.o
@@ -252,6 +252,7 @@ LIBS += drivers/pci/libpci.o
 LIBS += drivers/pcmcia/libpcmcia.o
 LIBS += drivers/power/libpower.o
 LIBS += drivers/spi/libspi.o
+LIBS += drivers/audio/libaudio.o
 ifeq ($(CPU),mpc83xx)
 LIBS += drivers/qe/libqe.o
 LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
@@ -273,12 +274,14 @@ LIBS += drivers/usb/gadget/libusb_gadget.o
 LIBS += drivers/usb/host/libusb_host.o
 LIBS += drivers/usb/musb/libusb_musb.o
 LIBS += drivers/usb/phy/libusb_phy.o
-LIBS += drivers/video/libvideo.o
+#LIBS += drivers/video/libvideo.o
+LIBS += drivers/video_sunxi/libvideo_sunxi.o
 LIBS += drivers/watchdog/libwatchdog.o
 LIBS += common/libcommon.o
 LIBS += lib/libfdt/libfdt.o
 LIBS += api/libapi.o
 LIBS += post/libpost.o
+LIBS += sprite/libsprite.o
 
 ifeq ($(SOC),omap3)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o

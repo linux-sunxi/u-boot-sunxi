@@ -25,7 +25,6 @@
 #include <command.h>
 #include <mmc.h>
 
-static int curr_device = -1;
 #ifndef CONFIG_GENERIC_MMC
 int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -118,7 +117,8 @@ static void print_mmcinfo(struct mmc *mmc)
 int do_mmcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	struct mmc *mmc;
-
+	int    card_no;
+/*
 	if (curr_device < 0) {
 		if (get_mmc_num() > 0)
 			curr_device = mmc_card_no;
@@ -127,8 +127,14 @@ int do_mmcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return 1;
 		}
 	}
-
-	mmc = find_mmc_device(curr_device);
+*/
+    card_no = get_mmc_num();
+    if((card_no != 0) && (card_no != 2))
+    {
+        puts("No MMC device available\n");
+	    return 1;
+    }
+	mmc = find_mmc_device(card_no);
 
 	if (mmc) {
 		mmc_init(mmc);
@@ -136,7 +142,7 @@ int do_mmcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		print_mmcinfo(mmc);
 		return 0;
 	} else {
-		printf("no mmc device at slot %x\n", curr_device);
+		printf("no mmc device at slot %x\n", card_no);
 		return 1;
 	}
 }
@@ -151,10 +157,11 @@ U_BOOT_CMD(
 int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	enum mmc_state state;
+	int    card_no;
 
 	if (argc < 2)
 		return cmd_usage(cmdtp);
-
+/*
 	if (curr_device < 0) {
 		if (get_mmc_num() > 0)
 			curr_device = mmc_card_no;
@@ -163,12 +170,19 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return 1;
 		}
 	}
+*/
+	card_no = get_mmc_num();
+	if((card_no != 0) && (card_no != 2))
+	{
+		puts("No MMC device available\n");
+		return 1;
+	}
 
 	if (strcmp(argv[1], "rescan") == 0) {
-		struct mmc *mmc = find_mmc_device(curr_device);
+		struct mmc *mmc = find_mmc_device(card_no);
 
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			printf("no mmc device at slot %x\n", card_no);
 			return 1;
 		}
 
@@ -180,14 +194,14 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return 0;
 	} else if (strncmp(argv[1], "part", 4) == 0) {
 		block_dev_desc_t *mmc_dev;
-		struct mmc *mmc = find_mmc_device(curr_device);
+		struct mmc *mmc = find_mmc_device(card_no);
 
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			printf("no mmc device at slot %x\n", card_no);
 			return 1;
 		}
 		mmc_init(mmc);
-		mmc_dev = mmc_get_dev(curr_device);
+		mmc_dev = mmc_get_dev(card_no);
 		if (mmc_dev != NULL &&
 				mmc_dev->type != DEV_TYPE_UNKNOWN) {
 			print_part(mmc_dev);
@@ -204,7 +218,7 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		struct mmc *mmc;
 
 		if (argc == 2)
-			dev = curr_device;
+			dev = card_no;
 		else if (argc == 3)
 			dev = simple_strtoul(argv[2], NULL, 10);
 		else if (argc == 4) {
@@ -241,12 +255,12 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 						part, (!ret) ? "OK" : "ERROR");
 			}
 		}
-		curr_device = dev;
+		board_mmc_set_num(dev);
 		if (mmc->part_config == MMCPART_NOAVAILABLE)
-			printf("mmc%d is current device\n", curr_device);
+			printf("mmc%d is current device\n", dev);
 		else
 			printf("mmc%d(part %d) is current device\n",
-				curr_device, mmc->part_num);
+				dev, mmc->part_num);
 
 		return 0;
 	}
@@ -261,7 +275,7 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		state = MMC_INVALID;
 
 	if (state != MMC_INVALID) {
-		struct mmc *mmc = find_mmc_device(curr_device);
+		struct mmc *mmc = find_mmc_device(card_no);
 		int idx = 2;
 		u32 blk, cnt, n;
 		void *addr;
@@ -275,28 +289,28 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		cnt = simple_strtoul(argv[idx + 1], NULL, 16);
 
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			printf("no mmc device at slot %x\n", card_no);
 			return 1;
 		}
 
 		printf("\nMMC %s: dev # %d, block # %d, count %d ... ",
-				argv[1], curr_device, blk, cnt);
+				argv[1], card_no, blk, cnt);
 
 		mmc_init(mmc);
 
 		switch (state) {
 		case MMC_READ:
-			n = mmc->block_dev.block_read(curr_device, blk,
+			n = mmc->block_dev.block_read(card_no, blk,
 						      cnt, addr);
 			/* flush cache after read */
 			flush_cache((ulong)addr, cnt * 512); /* FIXME */
 			break;
 		case MMC_WRITE:
-			n = mmc->block_dev.block_write(curr_device, blk,
+			n = mmc->block_dev.block_write(card_no, blk,
 						      cnt, addr);
 			break;
 		case MMC_ERASE:
-			n = mmc->block_dev.block_erase(curr_device, blk, cnt);
+			n = mmc->block_dev.block_erase(card_no, blk, cnt);
 			break;
 		default:
 			BUG();

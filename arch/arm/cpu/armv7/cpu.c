@@ -80,3 +80,11 @@ int cleanup_before_linux(void)
 
 	return 0;
 }
+
+int arch_cpu_init (void)
+{	
+	icache_enable();
+
+	return 0;
+}
+

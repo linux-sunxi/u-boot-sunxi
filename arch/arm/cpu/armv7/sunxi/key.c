@@ -28,122 +28,89 @@
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
 
-#undef SUNXI_KEY_DEBUG
+int sunxi_key_init(void) 
+{
+	struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
+    uint reg_val;
 
-static struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
-
-int sunxi_key_init(void) {
-
-	struct sunxi_lradc *sunxi_key_base =
-		(struct sunxi_lradc *)SUNXI_LRADC_BASE;
-
-	sr32(&sunxi_key_base->ctrl, 0, 1, LRADC_EN);
-	sr32(&sunxi_key_base->ctrl, 2, 2, LRADC_SAMPLE_RATE);
-	sr32(&sunxi_key_base->ctrl, 4, 2, LEVELB_VOL);
-	sr32(&sunxi_key_base->ctrl, 6, 1, LRADC_HOLD_EN);
-	sr32(&sunxi_key_base->ctrl, 12, 2, KEY_MODE_SELECT);
+	reg_val = sunxi_key_base->ctrl;
+    reg_val &= ~((7<<1) | (0xffU << 24));
+	reg_val |=  LRADC_HOLD_EN;
+	reg_val |=  LRADC_EN;
+    sunxi_key_base->ctrl = reg_val;
 
 	/* disable all key irq */
-	writel(0x0, &sunxi_key_base->intc);
-	/* clear all key pending */
-	writel(0xFFFFFFFF, &sunxi_key_base->ints);
+	sunxi_key_base->intc = 0;
+	sunxi_key_base->ints = 0x1f1f;
 
 	return 0;
 }
 
-u32 sunxi_read_key(void) {
+int sunxi_key_exit(void)
+{
+	struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
+	
+    sunxi_key_base->ctrl = 0;
+	/* disable all key irq */
+	sunxi_key_base->intc = 0;
+	sunxi_key_base->ints = 0x1f1f;
 
+	return 0;
+}
+
+
+int sunxi_key_read(void) 
+{
 	u32 ints;
-	u32 key = 0;
-	struct sunxi_lradc *sunxi_key_base =
-		(struct sunxi_lradc *)SUNXI_LRADC_BASE;
-
-	ints = readl(&sunxi_key_base->ints);
-
+	int key = -1;
+    struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
+	
+	ints = sunxi_key_base->ints;
 	/* if there is already data pending,
 	 read it */
-	if( ints & ADC0_DATA_PENDING) {
-		key = readl(&sunxi_key_base->data0);
+	if( ints & ADC0_DATA_PENDING) 
+	{
+		key = sunxi_key_base->data0 & 0x3f;
 #ifdef DEBUG
 		printf("key pressed, value=0x%x\n", key);
 #endif
 	}
 	/* clear the pending data */
-	writel(ints, &sunxi_key_base->ints);
+	sunxi_key_base->ints = ints;
 	return key;
 }
 
-/* check if one key is recovery key*/
-int sunxi_check_recovery(u32 key) {
-	int key_max = 0 , key_min = 0 ;
 
-#ifdef SUNXI_KEY_DEBUG
-	printf("recovery key max: %s\n", getenv("recovery_key_value_max"));
-	printf("recovery key min: %s\n", getenv("recovery_key_value_min"));
+int sunxi_key_probe(void) 
+{
+	u32 ints;
+	int key = -1;
+    struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
+	
+	ints = sunxi_key_base->ints;
+	
+	if( ints & (ADC0_KEYDOWN_PENDING | ADC0_DATA_PENDING)) 
+	{
+		key = 1;
+#ifdef DEBUG
+		puts("key pressed\n");
 #endif
-	key_max = simple_strtoul(getenv("recovery_key_value_max"), NULL, 16);
-	key_min = simple_strtoul(getenv("recovery_key_value_min"), NULL, 16);
-
-#ifdef SUNXI_KEY_DEBUG
-	printf("key: 0x%x ", key);
-	printf("key_max: 0x%x ", key_max);
-	printf("key_min: 0x%x \n", key_min);
-#endif
-
-	if(key && key_max && key_min) {
-		if(key <= key_max && key >= key_min)
-			return 1;
 	}
-
-	return 0;
+	/* clear the pending data */
+	sunxi_key_base->ints = ints;
+	return key;
 }
 
-/* check if one key is fastboot key */
-int sunxi_check_fastboot(u32 key) {
-	int key_max = 0 , key_min = 0 ;
-
-#ifdef SUNXI_KEY_DEBUG
-	printf("fastboot key max: %s\n", getenv("fastboot_key_value_max"));
-	printf("fastboot key min: %s\n", getenv("fastboot_key_value_min"));
-#endif
-	key_max = simple_strtoul(getenv("fastboot_key_value_max"), NULL, 16);
-	key_min = simple_strtoul(getenv("fastboot_key_value_min"), NULL, 16);
-
-#ifdef SUNXI_KEY_DEBUG
-	printf("key: 0x%x ", key);
-	printf("key_max: 0x%x ", key_max);
-	printf("key_min: 0x%x \n", key_min);
-#endif
-
-	if(key && key_max && key_min) {
-		if(key <= key_max && key >= key_min)
-			return 1;
-	}
-
-	return 0;
-}
-
-int sunxi_key_hexdump(void) {
-
-	puts("--lradc registers dump--\n");
-	printf("ctrl  : 0x%x\n", readl(&sunxi_key_base->ctrl));
-	printf("intc  : 0x%x\n", readl(&sunxi_key_base->intc));
-	printf("ints  : 0x%x\n", readl(&sunxi_key_base->ints));
-	printf("data0 : 0x%x\n", readl(&sunxi_key_base->data0));
-	printf("data1 : 0x%x\n", readl(&sunxi_key_base->data1));
-	puts("------------------------\n");
-
-	return 0;
-}
-
-int do_key_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
-
+int do_key_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) 
+{
+	struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
+	
 	puts("press a key:\n");
-	writel(0xFFFFFFFF, &sunxi_key_base->ints);
+	sunxi_key_base->ints = 0x1f1f;
 
-	while(1) {
-		if(sunxi_read_key()) {
-			sunxi_key_hexdump();
+	while(1) 
+	{
+		if(sunxi_key_read()) {
 			break;
 		}
 	}
@@ -154,6 +121,6 @@ int do_key_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 U_BOOT_CMD(
 	key_test, 1, 0,	do_key_test,
-	"Test the key value and dump key registers",
+	"Test the key value\n",
 	""
 );

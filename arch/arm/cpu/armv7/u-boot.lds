@@ -29,12 +29,22 @@ OUTPUT_ARCH(arm)
 ENTRY(_start)
 SECTIONS
 {
-	. = 0x00000000;
+	. = 0x4A000000;
 
 	. = ALIGN(4);
+
+	.head   :
+	{
+		arch/arm/cpu/armv7/sunxi/spare_head.o	(.data)
+	}
+
+	. = ALIGN(1);
+
 	.text	:
 	{
+		__int_vector_start = .;
 		arch/arm/cpu/armv7/start.o	(.text)
+		__int_vector_end = .;
 		*(.text)
 	}
 

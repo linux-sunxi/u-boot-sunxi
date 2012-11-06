@@ -80,9 +80,7 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 
 #ifdef CONFIG_ALLWINNER
 #include <asm/arch/boot_type.h>
-extern void sw_gpio_init(void);
-extern int script_parser_fetch(char *main_name, char *sub_name, int value[], int count);
-extern int script_parser_init_early(void);
+#include <asm/arch/sys_config.h>
 #endif
 
 /************************************************************************
@@ -109,6 +107,7 @@ inline void __blue_LED_on(void) {}
 void blue_LED_on(void) __attribute__((weak, alias("__blue_LED_on")));
 inline void __blue_LED_off(void) {}
 void blue_LED_off(void) __attribute__((weak, alias("__blue_LED_off")));
+
 /*
  ************************************************************************
  * Init Utilities							*
@@ -200,6 +199,12 @@ static int arm_pci_init(void)
 }
 #endif /* CONFIG_CMD_PCI || CONFIG_PCI */
 
+#if defined(CONFIG_SUNXI_AXP)
+extern int power_init(void);
+#endif
+extern int check_update_key(void);
+extern int display_inner(void);
+extern int script_init(void);
 /*
  * Breathe some life into the board...
  *
@@ -236,9 +241,9 @@ void dram_init_banksize(void)
 	__attribute__((weak, alias("__dram_init_banksize")));
 
 init_fnc_t *init_sequence[] = {
-#if defined(CONFIG_ARCH_CPU_INIT)
+//#if defined(CONFIG_ARCH_CPU_INIT)
 	arch_cpu_init,		/* basic arch cpu dependent setup */
-#endif
+//#endif
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
 #endif
@@ -251,6 +256,8 @@ init_fnc_t *init_sequence[] = {
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
 	display_banner,		/* say that we are here */
+	display_inner,      /* show the inner version */
+	script_init,
 #if defined(CONFIG_DISPLAY_CPUINFO)
 	print_cpuinfo,		/* display cpu info (and speed) */
 #endif
@@ -259,7 +266,11 @@ init_fnc_t *init_sequence[] = {
 #endif
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	init_func_i2c,
+#if defined(CONFIG_SUNXI_AXP)
+	power_init,
+#endif	
 #endif
+    check_update_key,
 	dram_init,		/* configure available RAM banks */
 	NULL,
 };
@@ -278,8 +289,9 @@ void board_init_f(ulong bootflag)
 
 	memset((void *)gd, 0, sizeof(gd_t));
 
-	gd->mon_len = _bss_end_ofs;
+	gd->mon_len = _bss_end_ofs + sizeof(struct spare_boot_head_t);
 
+	//while((*(volatile unsigned int *)(0)) != 1);
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0) {
 			hang ();
@@ -416,13 +428,13 @@ void board_init_f(ulong bootflag)
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
 
-	gd->relocaddr = addr;
+	gd->relocaddr = addr + sizeof(struct spare_boot_head_t);
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
+	memcpy((void *)addr, (void *)_TEXT_BASE, sizeof(struct spare_boot_head_t));
 	memcpy(id, (void *)gd, sizeof(gd_t));
-
-	relocate_code(addr_sp, id, addr);
+	relocate_code(addr_sp, id, addr + sizeof(struct spare_boot_head_t));
 
 	/* NOTREACHED - relocate_code() does not return */
 }
@@ -450,6 +462,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if !defined(CONFIG_SYS_NO_FLASH)
 	ulong flash_size;
 #endif
+	int workmode;
 
 	gd = id;
 	bd = gd->bd;
@@ -461,29 +474,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 
-//	debug("monitor flash len: %08lX\n", monitor_flash_len);
-#ifdef CONFIG_ALLWINNER
-#ifdef DEBUG
-//	printf("sunxi script init\n");
-#endif
-	sw_gpio_init();
-	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
-		storage_type = 0;
-	if((storage_type < 0) || (storage_type > 2)){
-		storage_type = 0;
-	}
-	else if(1 == storage_type){
-		mmc_card_no = 0;
-	}
-	else{
-		mmc_card_no = 2;
-	}
-	
-	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
-		uart_console = 0;
-#endif
+	debug("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
-
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
 #endif
@@ -498,7 +490,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 	/* The Malloc area is immediately below the monitor copy in DRAM */
-	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
+	malloc_start = dest_addr - TOTAL_MALLOC_LEN - sizeof(struct spare_boot_head_t);
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
 #if !defined(CONFIG_SYS_NO_FLASH)
@@ -528,16 +520,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		hang();
 	}
 #endif
+	/* set up exceptions */
+	interrupt_init();
+	/* enable exceptions */
+	enable_interrupts();
 
 #ifdef CONFIG_ALLWINNER
-	if(!storage_type){
-		puts("NAND:  ");
-		nand_init();		/* go init the NAND */
-	}
-	else{
-		puts("MMC:   ");
-        mmc_initialize(bd);
-	}
+#ifdef DEBUG
+    puts("ready to config storage\n");
+#endif
+	DRV_DISP_Init();
+	board_display_layer_open();
 	sunxi_flash_handle_init();
 	sunxi_partition_init();
 #else
@@ -556,11 +549,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif/*CONFIG_GENERIC_MMC*/
 #endif/*CONFIG_ALLWINNER*/
-
-
-#if defined(CONFIG_CMD_ONENAND)
-	onenand_init();
-#endif
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();
@@ -596,12 +584,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* miscellaneous platform dependent initialisations */
 	misc_init_r();
 #endif
-
-	 /* set up exceptions */
-	interrupt_init();
-	/* enable exceptions */
-	enable_interrupts();
-
 	/* Perform network card initialisation if necessary */
 #if defined(CONFIG_DRIVER_SMC91111) || defined (CONFIG_DRIVER_LAN91C96)
 	/* XXX: this needs to be moved to board init */
@@ -673,12 +655,23 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
+	workmode = uboot_spare_head.boot_data.work_mode;
+	debug("work mode %d\n", workmode);
+	
+	if(workmode == WORK_MODE_BOOT)
+    {
+    	/* main_loop() can return to retry autoboot, if so just run it again. */
+    	for (;;) 
+		{
+			main_loop();
+		}
+    }
+	if(workmode & WORK_MODE_PRODUCT)
+	{
+    	sunxi_sprite_mode(workmode);
+    }
 
-	/* main_loop() can return to retry autoboot, if so just run it again. */
-	for (;;) {
-		main_loop();
-	}
-
+	hang();
 	/* NOTREACHED - no way out of command loop except booting */
 }
 

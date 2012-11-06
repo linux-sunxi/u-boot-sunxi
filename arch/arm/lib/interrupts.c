@@ -53,6 +53,11 @@ int interrupt_init (void)
 	return arch_interrupt_init();
 }
 
+int interrupt_exit(void)
+{
+    return arch_interrupt_exit();
+}
+
 /* enable IRQ interrupts */
 void enable_interrupts (void)
 {

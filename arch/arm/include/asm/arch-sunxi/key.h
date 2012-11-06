@@ -26,11 +26,11 @@
 #define _SUNXI_KEY_H
 
 struct sunxi_lradc {
-	u32 ctrl;         /* lradc control */
-	u32 intc;         /* interrupt control */
-	u32 ints;         /* interrupt status */
-	u32 data0;        /* lradc 0 data */
-	u32 data1;        /* lradc 1 data */
+	volatile u32 ctrl;         /* lradc control */
+	volatile u32 intc;         /* interrupt control */
+	volatile u32 ints;         /* interrupt status */
+	volatile u32 data0;        /* lradc 0 data */
+	volatile u32 data1;        /* lradc 1 data */
 };
 
 #define LRADC_EN                  0x1    /* LRADC enable */
@@ -44,8 +44,5 @@ struct sunxi_lradc {
 #define ADC0_HOLDKEY_PENDING      (1 << 2)    /* key hold */
 #define ADC0_ALRDY_HOLD_PENDING   (1 << 3)    /* key already hold */
 #define ADC0_KEYUP_PENDING        (1 << 4)    /* key up */
-/*
-int sunxi_key_init(void);
-u32 sunxi_read_key(void);
-*/
+
 #endif

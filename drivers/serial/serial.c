@@ -191,11 +191,12 @@ int serial_init (void)
 	NS16550_init(serial_ports[3], clock_divisor);
 #endif
 #else
-	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
-		uart_console = 0;
-	if((uart_console < 0) || (uart_console > 4)){
+	uart_console = uboot_spare_head.boot_data.uart_port;
+	if((uart_console < 0) || (uart_console > 4))
+	{
 		uart_console = 0;
 	}
+	sunxi_set_gpio_all((void *)uboot_spare_head.boot_data.uart_gpio, 2);
 	clock_divisor = calc_divisor(serial_ports[uart_console]);
 	NS16550_init(serial_ports[uart_console], clock_divisor);
 #endif

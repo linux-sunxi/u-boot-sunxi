@@ -67,9 +67,6 @@ uchar env_get_char_spec(int index)
 
 int env_init(void)
 {
-#ifdef DEBUG
-	printf("env init\n");
-#endif
 	/* use default */
 	gd->env_addr = (ulong)&default_environment[0];
 	gd->env_valid = 1;
@@ -101,9 +98,8 @@ static int flash_saveenv(void)
 int saveenv(void)
 {
 	int ret;
-#ifdef DEBUG
-	printf("saveenv storage_type = %d\n", storage_type);
-#endif
+
+	printf("saveenv storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
 	flash_saveenv();
 
 	return ret;
@@ -114,7 +110,6 @@ static void flash_env_relocate_spec(void)
 #if !defined(ENV_IS_EMBEDDED)
 	char buf[CONFIG_ENV_SIZE];
 	u32 start;
-	u32 size;
 
 	start = sunxi_partition_get_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
 	if(start == (u32)(-1)){
@@ -123,7 +118,8 @@ static void flash_env_relocate_spec(void)
 		return;
 	}
 
-	if(sunxi_flash_read(start, CONFIG_ENV_SIZE/512, buf)){
+	if(!sunxi_flash_read(start, CONFIG_ENV_SIZE/512, buf))
+	{
 		use_default();
 		return;
 	}
@@ -135,9 +131,7 @@ static void flash_env_relocate_spec(void)
 
 void env_relocate_spec(void)
 {
-#ifdef DEBUG
-	printf("env_relocate_spec storage_type = %d\n", storage_type);
-#endif
+	printf("env_relocate_spec storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
 	flash_env_relocate_spec();
 }
 

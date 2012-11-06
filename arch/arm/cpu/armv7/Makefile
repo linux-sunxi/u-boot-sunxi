@@ -35,7 +35,7 @@ endif
 COBJS  += syslib.o
 
 SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
+OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
 START	:= $(addprefix $(obj),$(START))
 
 all:	$(obj).depend $(START) $(LIB)

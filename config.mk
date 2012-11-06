@@ -233,9 +233,9 @@ LDFLAGS += $(PLATFORM_LDFLAGS)
 LDFLAGS_FINAL += -Bstatic
 
 LDFLAGS_u-boot += -T $(obj)u-boot.lds $(LDFLAGS_FINAL)
-ifneq ($(CONFIG_SYS_TEXT_BASE),)
-LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
-endif
+#ifneq ($(CONFIG_SYS_TEXT_BASE),)
+#LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
+#endif
 
 LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
 ifneq ($(CONFIG_SPL_TEXT_BASE),)

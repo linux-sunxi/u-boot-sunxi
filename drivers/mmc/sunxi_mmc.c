@@ -102,7 +102,7 @@ struct sunxi_mmc_des {
 	u32	data_buf1_sz	:13,
 		data_buf2_sz	:13,
     				:6;
-#else 
+#else
 #define SDXC_DES_NUM_SHIFT 15
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32	data_buf1_sz	:16,
@@ -165,45 +165,32 @@ static int mmc_clk_io_on(int sdc_no)
 	unsigned int pll5_clk;
 	unsigned int divider;
 	unsigned int n, k, p;
+	int          index;
 	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
-#ifndef MMC_FPGA
-	static struct sunxi_gpio *gpio_c =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-	static struct sunxi_gpio *gpio_f =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_F];
 	MMCDBG("init mmc %d clock and io\n", sdc_no);
 	/* config gpio */
-	switch (sdc_no) {
-        case 0:
-            /* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
-            writel(0x222222, &gpio_f->cfg[0]);
-            writel(0x555, &gpio_f->pull[0]);
-            writel(0xaaa, &gpio_f->drv[0]);
-            break;
-
-        case 1:
-            break;
-
-        case 2:
-            /* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
-            writel(0x33<<24, &gpio_c->cfg[0]);
-            writel(0x3333, &gpio_c->cfg[1]);
-            writel(0x555<<12, &gpio_c->pull[0]);
-            writel(0xaaa<<12, &gpio_c->drv[0]);
-            break;
-
-        case 3:
-            break;
-
-        default:
-            return -1;
+	if((sdc_no != 0) && (sdc_no != 2))
+	{
+		return -1;
 	}
-
+	if(sdc_no == 0)
+	{
+		index = 0;
+	}
+	else if(sdc_no == 2)
+	{
+		index = 8;
+	}
+	else
+	{
+		return -1;
+	}
+	sunxi_set_gpio_all((void *)&uboot_spare_head.boot_data.sdcard_gpio[index], 6);
 	/* config ahb clock */
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
-	
+
 	/* config mod clock */
 	rval = readl(SUNXI_CCM_PLL5_CFG);
 	n = (rval >> 8) &  0x1f;
@@ -219,9 +206,9 @@ static int mmc_clk_io_on(int sdc_no)
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
-#else
-	mmchost->mod_clk = 24000000; 
-#endif
+
+	mmchost->mod_clk = 24000000;
+
 	return 0;
 }
 
@@ -313,7 +300,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 2)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
 			timeout = 0xfffff;
@@ -322,7 +309,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 3)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
 			timeout = 0xfffff;
@@ -604,6 +591,7 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->send_cmd = mmc_send_cmd;
 	mmc->set_ios = mmc_set_ios;
 	mmc->init = mmc_core_init;
+	mmc->control_num = sdc_no;
 
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 	mmc->host_caps = MMC_MODE_4BIT;

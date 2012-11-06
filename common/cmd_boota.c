@@ -53,6 +53,13 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	struct fastboot_boot_img_hdr *fb_hdr = (struct fastboot_boot_img_hdr *)addr;
 	image_header_t *hdr =(image_header_t *)(addr + CFG_FASTBOOT_MKBOOTIMAGE_PAGE_SIZE);
+	/* save the image header somewhere */
+	memcpy(boot_hdr, (void*) addr, sizeof(*hdr));
+	
+	if (memcmp(fb_hdr->magic, FASTBOOT_BOOT_MAGIC, 8)) {
+		puts("boota: bad boot image magic, maybe not a boot.img?\n");
+		return 1;
+	}
 #ifdef DEBUG
 	printf("---------------------\n");
 	printf("kernel size: 0x%x \n", fb_hdr->kernel_size);
@@ -64,18 +71,9 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("second size: 0x%x \n", fb_hdr->second_size);
 	printf("second addr: 0x%x \n", fb_hdr->second_addr);
 
-	printf("second size: 0x%x \n", fb_hdr->second_size);
-	printf("second addr: 0x%x \n", fb_hdr->second_addr);
-
 	printf("name: %s\n", fb_hdr->name);
 	printf("cmdline: %s\n", fb_hdr->cmdline);
 #endif
-	/* save the image header somewhere */
-	memcpy(boot_hdr, (void*) addr, sizeof(*hdr));
-	if (memcmp(fb_hdr->magic, FASTBOOT_BOOT_MAGIC, 8)) {
-		puts("boota: bad boot image magic, maybe not a boot.img?\n");
-		return 1;
-	}
 
 	kaddr = addr + fb_hdr->page_size;
 	raddr = kaddr + ALIGN(fb_hdr->kernel_size, fb_hdr->page_size);

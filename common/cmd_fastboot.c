@@ -65,7 +65,6 @@
 #endif
 #ifdef CONFIG_FASTBOOT
 
-#define MY_DEBUG
 /* Use do_reset for fastboot's 'reboot' command */
 extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 /* Use do_nand for fastboot's flash commands */
@@ -107,10 +106,6 @@ static unsigned int continue_booting;
 static unsigned int upload_size;
 static unsigned int upload_bytes;
 static unsigned int upload_error;
-#if defined(CONFIG_STORAGE_EMMC)
-static unsigned int mmc_controller_no;
-#endif
-
 /* To support the Android-style naming of flash */
 #define MAX_PTN 16
 static fastboot_ptentry ptable[MAX_PTN];
@@ -748,7 +743,7 @@ static int erase_ptn(struct fastboot_ptentry *ptn)
 	memset(addr, 0xff, FASTBOOT_ERASE_BUFFER_SIZE);
 	while(unerased_size >= FASTBOOT_ERASE_BUFFER_SIZE)
 	{
-		if(sunxi_flash_write(start, nblock, addr))
+		if(!sunxi_flash_write(start, nblock, addr))
 		{
 			return -1;
 		}
@@ -761,7 +756,7 @@ static int erase_ptn(struct fastboot_ptentry *ptn)
 		{
 			unerased_size += 0x1ff;
 		}
-		if(sunxi_flash_write(start, unerased_size/512, addr))
+		if(!sunxi_flash_write(start, unerased_size/512, addr))
 		{
 			return -1;
 		}
@@ -803,15 +798,13 @@ static int tx_handler(void)
 static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 {
 	int ret = 1;
-	unsigned char tmp_buffer;
-#ifdef DEBUG
-	printf("fast boot rx handle storage_type is %d\n",storage_type);
-#endif
+
+	debug("fast boot rx handle storage_type is %d\n",uboot_spare_head.boot_data.storage_type);
 	/* Use 65 instead of 64
 	   null gets dropped
 	   strcpy's need the extra byte */
 	char response[65];
-	tmp_buffer=buffer;
+
 	if (download_size)
 	{
 		/* Something to download */
@@ -840,7 +833,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				   since the partition name ends without a trailing 0 byte
 				   we need to clear the buffer after download finished
 				   for the next possible command. */
-				memset(tmp_buffer, 0, transfer_size);
+				memset((char *)buffer, 0, transfer_size);
 
 				if (download_error) {
 					/* There was an earlier error */
@@ -926,9 +919,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 
 		if(memcmp(cmdbuf, "reboot", 6) == 0)
 		{
-#ifdef MY_DEBUG
-			printf("reboot\n");
-#endif
+			debug("reboot\n");
 			sprintf(response,"OKAY");
 			fastboot_tx_status(response, strlen(response));
 			udelay (1000000); /* 1 sec */
@@ -945,9 +936,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   Board has a chance to handle other variables */
 		if(memcmp(cmdbuf, "getvar:", 7) == 0)
 		{
-#ifdef MY_DEBUG
-			printf("getvar\n");
-#endif
+			debug("getvar\n");
 			strcpy(response,"OKAY");
 
 			if(!strcmp(cmdbuf + strlen("version"), "version"))
@@ -965,7 +954,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 
 			} else if(!strcmp(cmdbuf + strlen("downloadsize"), "downloadsize")) {
 				if (interface.transfer_buffer_size)
-					sprintf(response + 4, "%08x", interface.transfer_buffer_size);
+					sprintf(response + 4, "08x", interface.transfer_buffer_size);
 			}
 			else
 			{
@@ -1012,20 +1001,16 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   What happens to it depends on the next command after data */
 
 		if(memcmp(cmdbuf, "download:", 9) == 0) {
-#ifdef MY_DEBUG
-			printf("download\n");
-#endif
-
+			
+			debug("download\n");
 			/* save the size */
 			download_size = simple_strtoul (cmdbuf + 9, NULL, 16);
 			/* Reset the bytes count, now it is safe */
 			download_bytes = 0;
 			/* Reset error */
 			download_error = 0;
-#ifdef MY_DEBUG
-			printf("download_size = %d\n", download_size);
-#endif
 
+			debug("download_size = %d\n", download_size);
 			printf ("Starting download of %d MB\n", download_size >> 20);
 
 			if (0 == download_size)
@@ -1083,10 +1068,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		*/
 
 		if(memcmp(cmdbuf, "boot", 4) == 0) {
-#ifdef MY_DEBUG
-			printf("boot\n");
-#endif
 
+			debug("boot\n");
 			if ((download_bytes) &&
 			    (CFG_FASTBOOT_MKBOOTIMAGE_PAGE_SIZE < download_bytes))
 			{
@@ -1107,7 +1090,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 					&interface.transfer_buffer[CFG_FASTBOOT_MKBOOTIMAGE_PAGE_SIZE];
 
 				bootm[1] = go[1] = start;
-				sprintf (start, "0x%x", hdr);
+				sprintf(start, "0x%x", (uint)hdr);
 
 				/* Execution should jump to kernel so send the response
 				   now and wait a bit.  */
@@ -1227,9 +1210,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		   Stop doing fastboot */
 		if (memcmp(cmdbuf, "continue", 8) == 0) {
 			sprintf(response, "OKAY");
-#ifdef MY_DEBUG
-			printf("continue\n");
-#endif
+
+			debug("continue\n");
 			continue_booting = 1;
 			ret = 0;
 		}
@@ -1239,7 +1221,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 		if ((memcmp(cmdbuf, "upload:", 7) == 0) ||
 		    (memcmp(cmdbuf, "uploadraw:", 10) == 0)) {
 /*#if defined(CONFIG_STORAGE_NAND)*/
-			if(!storage_type){
+			if(!uboot_spare_head.boot_data.storage_type){
 			unsigned int adv, delim_index, len;
 			struct fastboot_ptentry *ptn;
 			unsigned int is_raw = 0;
@@ -1359,7 +1341,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 						sprintf(type, "read.i");
 
 					sprintf(addr, "0x%x",
-						interface.transfer_buffer);
+						(uint)interface.transfer_buffer);
 					sprintf(start, "0x%x", ptn->start);
 					sprintf(length, "0x%x", upload_size);
 

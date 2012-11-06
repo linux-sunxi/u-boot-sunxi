@@ -41,7 +41,8 @@
      defined(CONFIG_CMD_USB) || \
      defined(CONFIG_MMC) || \
      defined(CONFIG_SYSTEMACE) ) || \
-     defined(CONFIG_CMD_FAT)
+     defined(CONFIG_CMD_FAT) || \
+     defined(CONFIG_ALLWINNER)
 
 struct block_drvr {
 	char *name;
@@ -49,6 +50,9 @@ struct block_drvr {
 };
 
 static const struct block_drvr block_drvr[] = {
+#if defined(CONFIG_ALLWINNER)
+    { .name = "sunxi_flash", .get_dev = sunxi_flash_get_dev, },
+#endif
 #if defined(CONFIG_CMD_IDE)
 	{ .name = "ide", .get_dev = ide_get_dev, },
 #endif
@@ -87,6 +91,9 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 	name = drvr->name;
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	name += gd->reloc_off;
+#endif
+#ifdef DEBUG
+	printf("input source device %s, target device %s", ifname, name);
 #endif
 	while (drvr->name) {
 		name = drvr->name;

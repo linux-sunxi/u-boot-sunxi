@@ -26,131 +26,505 @@
 
 #include <common.h>
 #include <mmc.h>
-#include <asm/arch/nand_bsp.h>
 #include <asm/arch/boot_type.h>
 #include "sunxi_flash.h"
 
-int (* sunxi_flash_read) (unsigned int start_block, unsigned int nblock, void *buffer);
-int (* sunxi_flash_write)(unsigned int start_block, unsigned int nblock, void *buffer);
-long long (* sunxi_flash_get_size)(void);
-int (* sunxi_flash_exit) (void);
-
-static struct mmc *mmc;
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    
+*
+*    
+*
+*    
+*    
+*
+************************************************************************************************************
+*/
 
 static int
-sunxi_flash_null_read(unsigned int start_block, unsigned int nblock, void *buffer){
+sunxi_null_op(unsigned int start_block, unsigned int nblock, void *buffer){
+	return 0;
+}
+
+static uint
+sunxi_null_size(void){
 	return 0;
 }
 
 static int
-sunxi_flash_null_write(unsigned int start_block, unsigned int nblock, void *buffer){
-	return 0;
-}
-
-static long long
-sunxi_flash_null_get_size(unsigned int start_block, unsigned int nblock, void *buffer){
-	return 0;
-}
-
-static int
-sunxi_flash_null_exit(unsigned int start_block, unsigned int nblock, void *buffer){
+sunxi_null_exit(void){
 	return -1;
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    
+*
+*    
+*
+*    
+*    
+*
+************************************************************************************************************
+*/
 
+
+int (* sunxi_flash_read_pt) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+//int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+int (* sunxi_flash_write_pt)(uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+uint (* sunxi_flash_size_pt)(void) = sunxi_null_size;
+int (* sunxi_flash_exit_pt) (void) = sunxi_null_exit;
+
+int (* sunxi_sprite_read_pt) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+int (* sunxi_sprite_write_pt)(uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+uint (* sunxi_sprite_size_pt)(void) = sunxi_null_size;
+int (* sunxi_sprite_exit_pt) (void) = sunxi_null_exit;
+
+static struct mmc *mmc_boot, *mmc_sprite;
+
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    
+*
+*    
+*
+*    
+*    
+*
+************************************************************************************************************
+*/
 
 static int
-sunxi_flash_nand_read(unsigned int start_block, unsigned int nblock, void *buffer){
-	unsigned int nsize;
+sunxi_flash_nand_read(uint start_block, uint nblock, void *buffer)
+{
+    int ret;
 
-	nsize = nblock<<9;
-	return sunxi_nand_read_opts(&nand_info[0], start_block<<9, &nsize, buffer, 0);
+	ret = NAND_LogicRead(start_block, nblock, buffer);
+	return (!ret)?nblock:0;
 }
 
 static int
-sunxi_flash_nand_write(unsigned int start_block, unsigned int nblock, void *buffer){
-	unsigned int nsize;
+sunxi_flash_nand_write(uint start_block, uint nblock, void *buffer)
+{
+    int ret;
 
-	nsize = nblock<<9;
-	return sunxi_nand_write_opts(&nand_info[0], start_block<<9, &nsize, buffer, 0);
+	debug("nand write : start %d, sector %d\n", start_block, nblock);
+	ret = NAND_LogicWrite(start_block, nblock, buffer);
+	return (!ret)?nblock:0;
 }
 
-static long long
-sunxi_flash_nand_get_size(void){
+static uint
+sunxi_flash_nand_size(void)
+{
 	return NAND_GetDiskSize();
 }
 
 static int
-sunxi_flash_nand_exit(void){
-
+sunxi_flash_nand_exit(void)
+{
 	return NAND_Exit();
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    
+*
+*    
+*
+*    
+*    
+*
+************************************************************************************************************
+*/
 
 static int
 sunxi_flash_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
-	status = mmc->block_dev.block_read(CONFIG_SYS_MMC_ENV_DEV, start_block + CONFIG_MMC_LOGICAL_OFFSET,
-					nblock, buffer);
 
-	return (status>0)?0:-1;
+	debug("mmc read : start %d, sector %d\n", start_block + CONFIG_MMC_LOGICAL_OFFSET, nblock);
+	status = mmc_boot->block_dev.block_read(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
+					nblock, buffer);
+	debug("mmc read status %d\n", status);
+
+	return status;
 }
+
+//int
+//sunxi_mmc_read_sequence(unsigned int start_block, unsigned int nblock, void *buffer){
+
+//	int status;
+	
+//	status = mmc_boot->block_dev.block_int_read(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
+//					nblock, buffer);
+
+//	return status;
+//}
+
 
 static int
 sunxi_flash_mmc_write(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
 	
-	status = mmc->block_dev.block_write(CONFIG_SYS_MMC_ENV_DEV, start_block + CONFIG_MMC_LOGICAL_OFFSET,
+	status = mmc_boot->block_dev.block_write(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
-	return (status>0)?0:-1;
+	return status;
 }
 
-static long long
-sunxi_flash_mmc_get_size(void){
+static uint
+sunxi_flash_mmc_size(void){
 
-	return mmc->block_dev.lba;
+	return mmc_boot->block_dev.lba;
 }
 
 static int
 sunxi_flash_mmc_exit(void){
 	return 0;
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    
+*
+*    
+*
+*    
+*    
+*
+************************************************************************************************************
+*/
+static int
+sunxi_sprite_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer){
 
-int sunxi_flash_handle_init(void){
-
-	sunxi_flash_read  = sunxi_flash_null_read;
-	sunxi_flash_write = sunxi_flash_null_write;
-	sunxi_flash_get_size  = sunxi_flash_null_get_size;
-	sunxi_flash_exit  = sunxi_flash_null_exit;
+	int status;
 	
-	if(storage_type == 0){
-		sunxi_flash_read  = sunxi_flash_nand_read;
-		sunxi_flash_write = sunxi_flash_nand_write;
-		sunxi_flash_get_size  = sunxi_flash_nand_get_size;
-		sunxi_flash_exit  = sunxi_flash_nand_exit;
-	}
-	else if((storage_type == 1) || (storage_type == 2)){
-		mmc = find_mmc_device(CONFIG_SYS_MMC_ENV_DEV);
-		if(!mmc){
-			printf("fail to find one useful mmc card\n");
-			return -1;
-		}
+	status = mmc_sprite->block_dev.block_read(mmc_sprite->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
+					nblock, buffer);
 
-		if (mmc_init(mmc)) {
-			puts("MMC init failed\n");
-			return  -1;
+	return status;
+}
+
+static int
+sunxi_sprite_mmc_write(unsigned int start_block, unsigned int nblock, void *buffer){
+
+	int status;
+	
+	status = mmc_sprite->block_dev.block_write(mmc_sprite->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
+					nblock, buffer);
+
+	return status;
+}
+
+static uint
+sunxi_sprite_mmc_size(void){
+
+	return mmc_sprite->block_dev.lba;
+}
+
+static int
+sunxi_sprite_mmc_exit(void){
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*											  function
+*
+*	 
+*
+*	 
+*
+*	 
+*	 
+*
+************************************************************************************************************
+*/
+
+int sunxi_flash_read (uint start_block, uint nblock, void *buffer)
+{
+	debug("sunxi flash read : start %d, sector %d\n", start_block, nblock);
+	return sunxi_flash_read_pt(start_block, nblock, buffer);
+}
+
+//int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+int sunxi_flash_write(uint start_block, uint nblock, void *buffer)
+{
+	return sunxi_flash_write_pt(start_block, nblock, buffer);
+}
+
+uint sunxi_flash_size(void)
+{
+	return sunxi_flash_size_pt();
+}
+
+int sunxi_flash_exit(void)
+{
+	return sunxi_flash_exit_pt();
+}
+
+
+
+int sunxi_sprite_read (uint start_block, uint nblock, void *buffer)
+{
+	return sunxi_sprite_read_pt(start_block, nblock, buffer);
+}
+
+//int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+int sunxi_sprite_write(uint start_block, uint nblock, void *buffer)
+{
+	return sunxi_sprite_write_pt(start_block, nblock, buffer);
+}
+
+uint sunxi_sprite_size(void)
+{
+	return sunxi_sprite_size_pt();
+}
+
+int sunxi_sprite_exit(void)
+{
+	return sunxi_sprite_exit_pt();
+}
+
+
+
+/*
+************************************************************************************************************
+*
+*											  function
+*
+*	 
+*
+*	 
+*
+*	 
+*	 
+*
+************************************************************************************************************
+*/
+
+int sunxi_flash_handle_init(void)
+{
+    int workmode;
+	int storage_type;
+	int card_no;
+
+    workmode = uboot_spare_head.boot_data.work_mode;
+#ifdef DEBUG
+    printf("workmode = %d\n", workmode);    
+#endif
+
+	if(workmode == WORK_MODE_BOOT)
+	{
+	    int nand_used, sdc_used;
+
+		storage_type = uboot_spare_head.boot_data.storage_type;
+		debug("storage type = %d\n", storage_type);
+        if((storage_type == 1) || (storage_type == 2))
+		{
+		    if(2 == storage_type)
+			{
+			    nand_used = 0;
+			    sdc_used  = 1;
+				script_parser_patch("nand_para", "nand_used", &nand_used, 1);
+		        script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
+			}
+			card_no = (storage_type == 1)?0:2;
+			printf("MMC:	 %d\n", card_no);
+			board_mmc_set_num(card_no);
+			board_mmc_pre_init(card_no);
+			mmc_boot = find_mmc_device(card_no);
+			if(!mmc_boot){
+				printf("fail to find one useful mmc card\n");
+				return -1;
+			}
+			debug("try to init mmc\n");
+			if (mmc_init(mmc_boot)) {
+				puts("MMC init failed\n");
+				return  -1;
+			}
+			debug("mmc %d init ok\n", card_no);
+			
+			sunxi_flash_read_pt  = sunxi_flash_mmc_read;
+			sunxi_flash_write_pt = sunxi_flash_mmc_write;
+			sunxi_flash_size_pt  = sunxi_flash_mmc_size;
+			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;			
 		}
-		
-		sunxi_flash_read  = sunxi_flash_mmc_read;
-		sunxi_flash_write = sunxi_flash_mmc_write;
-		sunxi_flash_get_size  = sunxi_flash_mmc_get_size;
-		sunxi_flash_exit  = sunxi_flash_mmc_exit;
+		else
+		{
+		    nand_used = 1;
+			sdc_used  = 0;
+            script_parser_patch("nand_para", "nand_used", &nand_used, 1);
+		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
+			
+		    puts("NAND:   ");
+		    NAND_Init();
+			
+			sunxi_flash_read_pt  = sunxi_flash_nand_read;
+			sunxi_flash_write_pt = sunxi_flash_nand_write;
+			sunxi_flash_size_pt  = sunxi_flash_nand_size;
+			sunxi_flash_exit_pt  = sunxi_flash_nand_exit;
+		}
+		sunxi_flash_init_uboot(0);
 	}
+	else if(workmode & WORK_MODE_PRODUCT)		/* 量产模式 */
+	{
+	    if(!NAND_Init())                       /* burn nand */
+        {
+            sunxi_sprite_read_pt  = sunxi_flash_nand_read;
+			sunxi_sprite_write_pt = sunxi_flash_nand_write;
+			sunxi_sprite_size_pt  = sunxi_flash_nand_size;
+			sunxi_sprite_exit_pt  = sunxi_flash_nand_exit;	
+
+			debug("sunxi sprite has installed nand function\n");
+			//uboot_spare_head.boot_data.storage_type = 0;
+        }
+        else                                   /* burn sdcard 2 */
+		{
+		    board_mmc_pre_init(2);
+			mmc_sprite = find_mmc_device(2);
+			if(!mmc_sprite){
+				printf("fail to find one useful mmc card\n");
+				return -1;
+			}
+
+			if (mmc_init(mmc_sprite)) {
+				puts("MMC init failed\n");
+				return  -1;
+			}
+			sunxi_sprite_read_pt  = sunxi_sprite_mmc_read;
+			sunxi_sprite_write_pt = sunxi_sprite_mmc_write;
+			sunxi_sprite_size_pt  = sunxi_sprite_mmc_size;
+			sunxi_sprite_exit_pt  = sunxi_sprite_mmc_exit;	
+
+			debug("sunxi sprite has installed sdcard2 function\n");
+			//uboot_spare_head.boot_data.storage_type = 2;
+	    }
+
+		if(workmode & 0x07)     //sdcard burn mode
+		{
+            board_mmc_pre_init(0);	
+			mmc_boot = find_mmc_device(0);
+			if(!mmc_boot)
+			{
+				printf("fail to find one useful mmc card\n");
+				return -1;
+			}
+
+			if (mmc_init(mmc_boot))
+			{
+				puts("MMC sprite init failed\n");
+				return  -1;
+			}
+			sunxi_flash_read_pt  = sunxi_flash_mmc_read;
+			sunxi_flash_write_pt = sunxi_flash_mmc_write;
+			sunxi_flash_size_pt  = sunxi_flash_mmc_size;
+			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;			    
+		}
+	}
+	else if(workmode & WORK_MODE_UPDATE)		/* 升级模式 */
+	{
+	}
+	else   /* undefined mode */
+	{
+	}
+	
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*											  function
+*
+*	 
+*
+*	 
+*
+*	 
+*	 
+*
+************************************************************************************************************
+*/
+
+static block_dev_desc_t 	sunxi_flash_blk_dev;
+
+block_dev_desc_t *sunxi_flash_get_dev(int dev)
+{
+	sunxi_flash_blk_dev.dev = dev;
+	sunxi_flash_blk_dev.lba = sunxi_partition_get_size(dev);
+
+	return ((block_dev_desc_t *) & sunxi_flash_blk_dev);
+}
+
+unsigned long  sunxi_flash_part_read(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
+{
+	start += sunxi_partition_get_offset(dev_num);
+#ifdef DEBUG
+    printf("nand try to read from %x, length %x block\n", (int )start, (int )blkcnt);
+#endif
+#ifdef DEBUG
+    int ret;
+
+    ret = sunxi_flash_read((int)start, (int )blkcnt, dst);
+    printf("read result = %d\n", ret);
+
+	return ret;
+#else
+    return sunxi_flash_read((int)start, (int )blkcnt, dst);
+#endif
+}
+
+unsigned long  sunxi_flash_part_write(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
+{
+	start += sunxi_partition_get_offset(dev_num);
+#ifdef DEBUG
+    printf("nand try to write from %x, length %x block\n", (int )start, (int )blkcnt);
+#endif
+#ifdef DEBUG
+	int ret;
+
+	ret = sunxi_flash_write((int)start, (int )blkcnt, dst);
+	printf("read result = %d\n", ret);
+
+	return ret;
+#else
+	return sunxi_flash_write((int)start, (int )blkcnt, dst);
+#endif
+}
+
+
+int sunxi_flash_init_uboot(int verbose)
+{
+#ifdef DEBUG
+    puts("sunxi flash init uboot\n");
+#endif
+	sunxi_flash_blk_dev.if_type = IF_TYPE_SUNXI_FLASH;
+	sunxi_flash_blk_dev.part_type = PART_TYPE_DOS;
+	sunxi_flash_blk_dev.dev = 0;
+	sunxi_flash_blk_dev.lun = 0;
+	sunxi_flash_blk_dev.type = 0;
+
+	/* FIXME fill in the correct size (is set to 32MByte) */
+	sunxi_flash_blk_dev.blksz = 512;
+	sunxi_flash_blk_dev.lba = 0;
+	sunxi_flash_blk_dev.removable = 0;
+	sunxi_flash_blk_dev.block_read = sunxi_flash_part_read;
+	sunxi_flash_blk_dev.block_write = sunxi_flash_part_write;
 
 	return 0;
 }
-
 
 

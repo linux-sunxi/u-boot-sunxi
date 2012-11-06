@@ -27,6 +27,14 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define DEBUG    1
+
+#ifndef __KERNEL__
+#define __KERNEL__
+#endif
+
+#define UBOOT_VERSION			"1.0.0"
+#define UBOOT_PLATFORM		    "0.0.0"
 /*
  * High Level Configuration Options
  */
@@ -41,6 +49,8 @@
 
 #define SYS_CONFIG_BASE             0x43000000
 #define CONFIG_SYS_TEXT_BASE		0x4A000000
+#define MMU_BASE_ADDRESS			0x20000
+#define FEL_BASE                    0xFFFF0020
 #if 0
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* currently u-boot is loaded from ice */
 #endif
@@ -50,8 +60,24 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
-/* Clock Defines */
+#define SUNXI_DISPLAY_FRAME_BUFFER_ADDR  0x5a000000
+#define SUNXI_DISPLAY_FRAME_BUFFER_SIZE  0x02000000
 
+#define CONFIG_USE_IRQ
+#define CONFIG_CMD_IRQ
+/* Clock Defines */
+#define MMU_BASE_ADDRESS			0x20000
+
+#define SYS_CONFIG_MEMBASE          0x43000000
+
+#define CONFIG_SUNXI_GPIO           1
+
+#define CONFIG_SYS_I2C_SPEED        400000
+#define CONFIG_SYS_I2C_SLAVE        0x68
+#define CONFIG_SUNXI_I2C			1
+#define CONFIG_SUNXI_AXP			1
+#define CONFIG_HARD_I2C			    1
+#define CONFIG_RTC_SUNXI            1
 
 /* Serial & console */
 #define CONFIG_SYS_NS16550
@@ -103,7 +129,7 @@
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no		
 #define CONFIG_STORAGE_EMMC
 #define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
 #define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
@@ -113,7 +139,7 @@
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (40 << 20))
 
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
@@ -128,7 +154,7 @@
 #define CONFIG_SYS_LONGHELP				/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"sun6i#"
+#define CONFIG_SYS_PROMPT		"sunxi#"
 #define CONFIG_SYS_CBSIZE	256			/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384			/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16			/* max number of command args */
@@ -155,13 +181,17 @@
 #define CONFIG_STACKSIZE			(256 << 10)				/* 256 KiB */
 #define LOW_LEVEL_SRAM_STACK		0x00003FFC
 
+#ifdef CONFIG_USE_IRQ
+#define CONFIG_STACKSIZE_IRQ    (4*1024)        /* IRQ stack */
+#define CONFIG_STACKSIZE_FIQ    (4*1024)        /* FIQ stack */
+#endif
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KB */
+#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
@@ -201,4 +231,5 @@
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
+
 #endif /* __CONFIG_H */

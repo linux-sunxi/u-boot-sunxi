@@ -26,14 +26,16 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
+#include <asm/arch/boot_type.h>
 
-int print_boot_type(void) {
 
+int print_boot_type(void) 
+{
 	sunxi_boot_type_t type;
 
 	puts("BOOT:  "); 
 
-	type = storage_type;
+	type = uboot_spare_head.boot_data.storage_type;
 	switch (type) {
 	case SUNXI_BOOT_TYPE_MMC0:
 		puts("MMC0\n");
