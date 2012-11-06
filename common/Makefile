@@ -75,6 +75,7 @@ COBJS-$(CONFIG_CMD_BDI) += cmd_bdinfo.o
 COBJS-$(CONFIG_CMD_BEDBUG) += bedbug.o cmd_bedbug.o
 COBJS-$(CONFIG_CMD_BMP) += cmd_bmp.o
 COBJS-y += cmd_sunxi_bmp.o
+COBJS-y += cmd_progress_bar.o
 COBJS-$(CONFIG_CMD_BOOTLDR) += cmd_bootldr.o
 COBJS-$(CONFIG_CMD_CACHE) += cmd_cache.o
 COBJS-$(CONFIG_CMD_CONSOLE) += cmd_console.o
