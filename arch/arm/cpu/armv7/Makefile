@@ -31,6 +31,7 @@ COBJS	+= cache_v7.o
 
 COBJS	+= cpu.o
 COBJS	+= syslib.o
+COBJS	+= cmd_boot.o
 
 ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX)$(CONFIG_TEGRA20)$(CONFIG_SUNXI),)
 SOBJS	+= lowlevel_init.o
