@@ -124,9 +124,6 @@ IRQ_STACK_START_IN:
  */
 
 reset:
-#if defined(CONFIG_SUNXI)
-	mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
-#endif
 	bl	save_boot_params
 	/*
 	 * set the cpu to SVC32 mode
