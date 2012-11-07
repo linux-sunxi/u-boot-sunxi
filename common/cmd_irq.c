@@ -23,7 +23,7 @@
 #include <common.h>
 #include <config.h>
 #include <command.h>
-#include <asm/arch/gic.h>
+#include <asm/arch/intc.h>
 #include <asm/arch/timer.h>
 
 struct timer_list timer0_t;

@@ -42,6 +42,7 @@
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN6I				/* which is sun6i */
 #define CONFIG_SUN6I_FPGA			/* working with fpga board */
+#define AW_FPGA_V4_PLATFORM
 #define CONFIG_CMD_BOOTA
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 

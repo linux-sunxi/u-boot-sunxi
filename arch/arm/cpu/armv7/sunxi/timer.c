@@ -26,7 +26,7 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
-#include <asm/arch/gic.h>
+#include <asm/arch/intc.h>
 
 #define TIMER_MODE   (0 << 7)   /* continuous mode */
 #define TIMER_DIV    (0 << 4)   /* pre scale 1 */
@@ -207,7 +207,7 @@ void timer0_func(void *data)
     }
 	timer_control->tirqen  &= ~0x01;
     timer_control->tirqsta  =  0x01;
-    irq_disable(GIC_SRC_TIMER0);
+    irq_disable(AW_IRQ_TIMER0);
 	timer_used_status &= ~1;
 
 	debug("timer 0 occur\n");
@@ -227,7 +227,7 @@ void timer1_func(void *data)
     }
 	timer_control->tirqen  &= ~0x02;
     timer_control->tirqsta  =  0x02;
-    irq_disable(GIC_SRC_TIMER1);
+    irq_disable(AW_IRQ_TIMER1);
 	timer_used_status &= ~(1<<1);
 
 	debug("timer 1 occur\n");
@@ -290,14 +290,14 @@ void add_timer(struct timer_list *timer)
 	timer_callback[timer_num].data      = timer->data;
 	if(!timer_num)
 	{
-		irq_install_handler(GIC_SRC_TIMER0 + timer_num, timer0_func, (void *)&timer_callback[timer_num].data);
+		irq_install_handler(AW_IRQ_TIMER0 + timer_num, timer0_func, (void *)&timer_callback[timer_num].data);
 	}
 	else
 	{
-		irq_install_handler(GIC_SRC_TIMER0 + timer_num, timer1_func, (void *)&timer_callback[timer_num].data);
+		irq_install_handler(AW_IRQ_TIMER0 + timer_num, timer1_func, (void *)&timer_callback[timer_num].data);
 	}
 	debug("timer number = %d\n", timer_num);
-	irq_enable(GIC_SRC_TIMER0 + timer_num);
+	irq_enable(AW_IRQ_TIMER0 + timer_num);
 	timer_tcontrol->ctl |= 1;
 	timer_reg->tirqsta  = (1 << timer_num);
 	timer_reg->tirqen  |= (1 << timer_num);
@@ -318,7 +318,7 @@ void del_timer(struct timer_list *timer)
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];	
 
-	irq_disable(GIC_SRC_TIMER0 + num);
+	irq_disable(AW_IRQ_TIMER0 + num);
 	timer_tcontrol->ctl &= ~1;
 	timer_reg->tirqsta = (1<<num);
 	timer_reg->tirqen  &= ~(1<<num);

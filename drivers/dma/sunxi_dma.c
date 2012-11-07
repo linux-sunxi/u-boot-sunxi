@@ -21,7 +21,7 @@
 #include <asm/arch/dma_i.h>
 #include <asm/arch/dma.h>
 #include <common.h>
-#include <asm/arch/gic.h>
+#include <asm/arch/intc.h>
 
 sw_dma_channal_set_t  dma_channal[CFG_SW_DMA_NORMAL_MAX + CFG_SW_DMA_DEDICATE_MAX] =
 {
@@ -81,7 +81,7 @@ void sunxi_dma_init(void)
 
 	memset((void *)dma_int_f, 0, (CFG_SW_DMA_NORMAL_MAX + CFG_SW_DMA_DEDICATE_MAX) * sizeof(struct dma_irq_handler));
 	dma_int_count = 0;
-	irq_install_handler(GIC_SRC_DMA, sunxi_dma_int_func, 0);
+	irq_install_handler(AW_IRQ_DMA, sunxi_dma_int_func, 0);
 
 	return ;
 }
@@ -92,7 +92,7 @@ void sunxi_dma_exit(void)
 
 	dma_int->inten = 0;
 	dma_int->intsts = 0xffffffff;
-	irq_free_handler(GIC_SRC_DMA);
+	irq_free_handler(AW_IRQ_DMA);
 }
 /*
 ****************************************************************************************************
@@ -388,7 +388,7 @@ int sunxi_dma_enable_int(uint hdma)
 	//enable golbal int
 	if(!dma_int_count)
 	{
-		irq_enable(GIC_SRC_DMA);
+		irq_enable(AW_IRQ_DMA);
 	}
 	dma_int_count ++;
 
@@ -429,7 +429,7 @@ int sunxi_dma_disaable_int(uint hdma)
 	dma_int_count --;
 	if(!dma_int_count)
 	{
-		irq_disable(GIC_SRC_DMA);
+		irq_disable(AW_IRQ_DMA);
 	}
 
 	return 0;
