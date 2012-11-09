@@ -218,8 +218,6 @@
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	64
 /* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
 #define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
-/* 200KB, enough for a full u-boot.bin */
-#define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	400
 
 /* #define CONFIG_WATCHDOG */			/* automatic watchdog support */
 #define CONFIG_CMD_WATCHDOG		/* watchdog command setting the timeout */
