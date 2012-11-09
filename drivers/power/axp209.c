@@ -135,7 +135,7 @@ int axp209_set_ldo4(int mvolt)
 	};
 	u8 reg;
 
-	// test-only: what is this next loop doing?? add some comment
+	/* Translate mvolt to register target value */
 	for (target = 0; mvolt < vindex[target] && target < 15; target++) {
 	}
 
