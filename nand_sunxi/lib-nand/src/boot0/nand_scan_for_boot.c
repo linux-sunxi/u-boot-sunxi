@@ -166,6 +166,7 @@ __s32  BOOT_AnalyzeNandSystem(void)
 		nfc_info.serial_access_mode = 1;
 		nfc_info.ddr_type = DDR_TYPE;
 		NFC_ChangMode(&nfc_info);
+		NandIndex = 0;	
 	}
 	
 	PHY_ChangeMode(1);

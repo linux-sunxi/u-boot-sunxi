@@ -278,12 +278,14 @@ void do_irq (struct pt_regs *pt_regs)
 {
 	u32 idnum;
 
+	debug("irq\n");
 	idnum = readl(GIC_INT_ACK_REG);
 	if (idnum == 1023)
 	{
 		printf("spurious irq !!\n");
 		return;
 	}
+	debug("irq = %d\n", idnum);
 	if (idnum >= GIC_IRQ_NUM) {
 		printf("irq NO.(%d) > GIC_IRQ_NUM(%d) !!\n", idnum, GIC_IRQ_NUM-32);
 		return;
@@ -332,7 +334,7 @@ static void gic_distributor_init(void)
 	{
 		gic_irqs = 1020;
 	}
-	else if (gic_irqs < GIC_IRQ_NUM)
+	if (gic_irqs < GIC_IRQ_NUM)
 	{
 		printf("GIC parameter config error, only support %d"
 				" irqs < %d(spec define)!!\n", gic_irqs, GIC_IRQ_NUM);

@@ -55,13 +55,13 @@ extern struct __NandPageCachePool_t PageCachePool;
 #define SECTOR_CNT_OF_SINGLE_PAGE           (NandStorageInfo.SectorCntPerPage)
 
 //define the sector count of a super physical page, the super page may be based on multi-plane
-#define SECTOR_CNT_OF_SUPER_PAGE            (NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie)
+#define SECTOR_CNT_OF_SUPER_PAGE            (NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie*NandStorageInfo.ChannelCnt)
 
 //define the sector bitmap for a single page
-#define FULL_BITMAP_OF_SINGLE_PAGE           ((__u64)(((__u64)1<<(SECTOR_CNT_OF_SINGLE_PAGE - 1)) | (((__u64)1<<(SECTOR_CNT_OF_SINGLE_PAGE - 1)) - 1)))
+#define FULL_BITMAP_OF_SINGLE_PAGE          ((__u32)((1<<SECTOR_CNT_OF_SINGLE_PAGE) - 1))
 
 //define the sector bitmap for a super page, the sector count of a super page may be equal to 32
-#define FULL_BITMAP_OF_SUPER_PAGE           ((__u64)(((__u64)1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | (((__u64)1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
+#define FULL_BITMAP_OF_SUPER_PAGE           ((__u32)((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) | ((1<<(SECTOR_CNT_OF_SUPER_PAGE - 1)) - 1)))
 
 //define the block number offset for the multi-plane operation
 #define MULTI_PLANE_BLOCK_OFFSET            (NandStorageInfo.OptPhyOpPar.MultiPlaneBlockOffset)
@@ -128,6 +128,9 @@ extern struct __NandPageCachePool_t PageCachePool;
 
 //define the information of the nand chip connect in the nand storage system
 #define CHIP_CONNECT_INFO                   (NandStorageInfo.ChipConnectInfo)
+
+//define the Channel cnt of nand
+#define CHANNEL_CNT                        (NandStorageInfo.ChannelCnt)
 
 //define the ReadRetryType of the nand chip connect in the nand storage system
 #define READ_RETRY_TYPE                   (NandStorageInfo.ReadRetryType)

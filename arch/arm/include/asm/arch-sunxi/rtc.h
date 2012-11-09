@@ -17,20 +17,32 @@
  * along with this program;
  *
  */
-#ifndef  __SUNXI_SPRITE_DOWNLOAD_H__
-#define  __SUNXI_SPRITE_DOWNLOAD_H__
+#ifndef _SUNXI_RTC_H_
+#define _SUNXI_RTC_H_
 
 
-#include <config.h>
-#include <common.h>
+/* Rtc */
+struct sunxi_rtc_regs {
+	volatile u32 losc_ctrl;
+	volatile u32 losc_auto_swt_status;
+	volatile u32 clock_prescalar;
+	volatile u32 res0[1];
+	volatile u32 yymmdd;
+	volatile u32 hhmmss;
+	volatile u32 res1[2];
+	volatile u32 alarm0_counter;
+	volatile u32 alarm0_current_value;
+	volatile u32 alarm0_enable;
+	volatile u32 alarm0_irq_enable;
+	volatile u32 alarm0_irq_status;
+	volatile u32 res2[3];
+	volatile u32 alarm1_wk_hms;
+	volatile u32 alarm1_enable;
+	volatile u32 alarm1_irq_enable;
+	volatile u32 alarm1_irq_status;
+	volatile u32 alarm_config;
+};
 
-int sunxi_sprite_download_raw_init(uint flash_part_start);
-
-int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors);
-
-int sunxi_sprite_download_uboot(void *buffer, int production_media);
-
-int sunxi_sprite_download_boot0(void *buffer, int production_media);
 
 
 #endif

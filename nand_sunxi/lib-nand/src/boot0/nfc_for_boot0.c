@@ -21,8 +21,10 @@
 #include "../include/nand_drv_cfg.h"
 #include "../include/nfc.h"
 
+__u32 NandIOBase[2];
+__u32 NandIndex;
 __u32 	pagesize;
-__u32   nand_io_base;
+
 
 __u8 read_retry_reg_adr[READ_RETRY_MAX_REG_NUM];
 __u8 read_retry_default_val[1][READ_RETRY_MAX_REG_NUM];
@@ -105,14 +107,21 @@ __s32 _wait_cmd_finish(void)
 
 void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
 {
-	NAND_DMAConfigStart(rw, buff_addr, len);
+	__u32 reg_val;
+	//set mbus dma mode
+	reg_val = NFC_READ_REG(NFC_REG_CTL);
+	reg_val &= (~(0x1<<15));
+	NFC_WRITE_REG(NFC_REG_CTL, reg_val);
+	//set dma address & byte counter
+    NFC_WRITE_REG(NFC_REG_MDMA_ADDR, buff_addr);
+	NFC_WRITE_REG(NFC_REG_DMA_CNT, len);
 }
 
 __s32 _wait_dma_end(void)
 {
 	__s32 timeout = 0xffff;
 
-	while( (timeout--) && ( NAND_QueryDmaStat()) );
+	while ( (timeout--) && (!(NFC_READ_REG(NFC_REG_ST) & NFC_DMA_INT_FLAG)) );
 	if (timeout <= 0)
 		return -ERR_TIMEOUT;
 
@@ -203,7 +212,7 @@ void _enable_ecc(__u32 pipline)
 
 	cfg |= NFC_ECC_EN;
 	NFC_WRITE_REG(NFC_REG_ECC_CTL, cfg);
-}
+}	 
 
 void _set_addr(__u8 *addr, __u8 cnt)
 {
@@ -240,7 +249,7 @@ __s32 _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 r
 	random_read_cmd1 = cur_cmd->value;
 	cur_cmd = cur_cmd->next;
 	read_data_cmd = cur_cmd->value;
-
+	
 	//access NFC internal RAM by DMA bus
 	NFC_WRITE_REG(NFC_REG_CTL, (NFC_READ_REG(NFC_REG_CTL)) | NFC_RAM_METHOD);
 	
@@ -730,35 +739,24 @@ __s32 NFC_Init(NFC_INIT_INFO *nand_info )
     for(i=0;i<8;i++)
         ddr_param[i] = 0;
 
-    nand_io_base = (__u32)NAND_IORemap(NAND_IO_BASE_ADDR, 4096);
+    NandIOBase[0] = (__u32)NAND_IORemap(NAND_IO_BASE_ADDR0, 4096);
+    NandIOBase[1] = (__u32)NAND_IORemap(NAND_IO_BASE_ADDR1, 4096);
     
     //init clk
-    NAND_AHBEnable();
     NAND_ClkRequest();
-    NAND_SetClk(20);
+    NAND_AHBEnable();
+    NAND_SetClk(10);
     NAND_ClkEnable();
     
     //init pin
     NAND_PIORequest();
     
-    //init dma
-    NAND_RequestDMA();
 
 	NFC_SetEccMode(0);
 
 	/*init nand control machine*/
 	ret = NFC_ChangMode( nand_info);
 
-	/*request special dma*/
-	if (NAND_RequestDMA() < 0)
-	{
-	    PRINT("NAND_RequestDMA  fail\n"); 
-	    return -1;
-	}
-	else
-	{
-	    PRINT("NAND_RequestDMA  ok\n"); 
-	}
 		
 		
 	return ret;
@@ -784,14 +782,12 @@ void NFC_Exit( void )
 
 	 //init clk
 	NAND_ClkDisable();
-	NAND_ClkRelease();
     NAND_AHBDisable();
+    NAND_ClkRelease();
 
     //init pin
     NAND_PIORelease();
     
-    //init dma
-    NAND_ReleaseDMA();
 }
 
 __s32 _vender_get_param(__u8 *para, __u8 *addr, __u32 count)

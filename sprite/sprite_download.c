@@ -96,7 +96,7 @@ int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors)
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storage_info)
+int sunxi_sprite_download_uboot(void *buffer, int production_media)
 {
     struct spare_boot_head_t    *uboot  = (struct spare_boot_head_t *)buffer;
 
@@ -118,7 +118,8 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storag
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		memcpy((void *)uboot->boot_data.nand_spare_data, storage_info, sizeof(boot_nand_para_t));
+		//memcpy((void *)uboot->boot_data.nand_spare_data, storage_info, sizeof(boot_nand_para_t));
+		nand_uboot_get_flash_info((void *)uboot->boot_data.nand_spare_data, STORAGE_BUFFER_SIZE);
 	}
 	/* regenerate check sum */
 	sunxi_sprite_generate_checksum(buffer, uboot->boot_head.length, uboot->boot_head.check_sum);
@@ -129,18 +130,16 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storag
 
 		return -1;
 	}
-#if 0
+
 	if(!production_media)
 	{
-		return Nand_Burn_Boot0((__u32)buffer, length);
+		return nand_download_uboot(uboot->boot_head.length, buffer);
 	}
 	else
 	{
-		return SDMMC_PhyWrite(BOOT0_SDMMC_START_ADDR, length/512, (void *)buffer, 2);
+		//return SDMMC_PhyWrite(BOOT0_SDMMC_START_ADDR, length/512, (void *)buffer, 2);
+		return 0;
 	}
-#else
-	return 0;
-#endif
 }
 /*
 ************************************************************************************************************
@@ -158,7 +157,7 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media, char *storag
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_download_boot0(void *buffer, int production_media, char *storage_info)
+int sunxi_sprite_download_boot0(void *buffer, int production_media)
 {
     boot0_file_head_t    *boot0  = (boot0_file_head_t *)buffer;
 
@@ -180,7 +179,8 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media, char *storag
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t));
+		//memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t));
+		nand_uboot_get_flash_info((void *)boot0->prvt_head.storage_data, STORAGE_BUFFER_SIZE);
 	}
 	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
 	/* regenerate check sum */
@@ -192,17 +192,15 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media, char *storag
 
 		return -1;
 	}
-#if 0
+
 	if(!production_media)
 	{
-		return Nand_Burn_Boot0((__u32)buffer, length);
+		return nand_download_boot0(boot0->boot_head.length, buffer);
 	}
 	else
 	{
-		return SDMMC_PhyWrite(BOOT0_SDMMC_START_ADDR, length/512, (void *)buffer, 2);
+		//return SDMMC_PhyWrite(BOOT0_SDMMC_START_ADDR, length/512, (void *)buffer, 2);
+		return 0;
 	}
-#else
-	return 0;
-#endif
 }
 

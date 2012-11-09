@@ -49,9 +49,10 @@ struct __OptionalPhyOpPar_t
     __u8        BadBlockFlagPosition;               //the flag that marks the position of the bad block flag,0x00-1stpage/ 0x01-1st&2nd page/ 0x02-last page/ 0x03-last 2 page
     __u16       MultiPlaneBlockOffset;              //the value of the block number offset between the left-plane block and the right pane block
 };
-#if 0
-typedef struct
+
+typedef struct 
 {
+	__u8		ChannelCnt;
     __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
     __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
 	__u8		RbCnt;
@@ -63,9 +64,9 @@ typedef struct
     __u8        SectorCntPerPage;                   //the count of sectors in one single physic page, one sector is 0.5k
     __u16       PageCntPerPhyBlk;                   //the count of physic pages in one physic block
     __u16       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
-    __u32       OperationOpt;                       //the mask of the operation types which current nand flash can support support
+    __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
-    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
+    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
     __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
 	__u32 		good_block_ratio;					//good block ratio get from hwscan
@@ -81,10 +82,11 @@ typedef struct boot_flash_info{
 	__u32 pagesize;
 	__u32 pagewithbadflag; /*bad block flag was written at the first byte of spare area of this page*/
 }boot_flash_info_t;
-#endif
+
 //define the nand flash storage system information
 struct __NandStorageInfo_t
 {
+	__u8		ChannelCnt;
     __u8        ChipCnt;                            //the count of the total nand flash chips are currently connecting on the CE pin
     __u16       ChipConnectInfo;                    //chip connect information, bit == 1 means there is a chip connecting on the CE pin
 	__u8		RbCnt;
@@ -98,7 +100,7 @@ struct __NandStorageInfo_t
     __u16       BlkCntPerDie;                       //the count of the physic blocks in one die, include valid block and invalid block
     __u16       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u8        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
-    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
+    __u8        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
     __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u16       ValidBlkRatio;                         //the ratio of the valid physical blocks, based on 1024
     __u32		ReadRetryType;						//the read retry type
@@ -149,7 +151,7 @@ struct __PhysicOpPara_t
     __u8        BankNum;                            //the number of the bank current accessed, bank NO. is different of chip NO.
     __u8        PageNum;                            //the number of the page current accessed, the page is based on single-plane or multi-plane
     __u16       BlkNum;                             //the number of the physic block, the block is based on single-plane or multi-plane
-    __u64       SectBitmap;                         //the bitmap of the sector in the page which need access data
+    __u32       SectBitmap;                         //the bitmap of the sector in the page which need access data
     void        *MDataPtr;                          //the pointer to main data buffer, it is the start address of a page size based buffer
     void        *SDataPtr;                          //the pointer to spare data buffer, it will be set to NULL if needn't access spare data
 };
@@ -247,14 +249,14 @@ struct __PageMapTblCachePool_t
 struct __GlobalLogicPageType_t
 {
     __u32       LogicPageNum;                       //the global page number of the logic page, it is based on super page size
-    __u64       SectorBitmap;                       //the bitmap of the sector in the logic page which data need access
+    __u32       SectorBitmap;                       //the bitmap of the sector in the logic page which data need access
 };
 
 
 //define the global logcial page based on zone and block parameter type
 struct __LogicPageType_t
 {
-    __u64       SectBitmap;                         //the bitmap marks which sectors' data in the logical page need access
+    __u32       SectBitmap;                         //the bitmap marks which sectors' data in the logical page need access
     __u16       BlockNum;                           //the value of the number of the logical block which the page is belonged to
     __u16       PageNum;                            //the value of the number of the page in the logical block
     __u8        ZoneNum;                            //the value of the number of the zone, which the page is belonged to
@@ -284,10 +286,10 @@ struct __NandPhyInfoPar_t
     __u8        SectCntPerPage;                     //the count of the sectors in one single physical page
     __u16       PageCntPerBlk;                      //the count of the pages in one single physical block
     __u16       BlkCntPerDie;                       //the count fo the physical blocks in one nand flash Die
-    __u32       OperationOpt;                       //the bitmap that marks which optional operation that the nand flash can support
+    __u16       OperationOpt;                       //the bitmap that marks which optional operation that the nand flash can support
     __u16       ValidBlkRatio;                      //the valid block ratio, based on 1024 blocks
     __u16       AccessFreq;                         //the highest access frequence of the nand flash chip, based on MHz
-    __u16       EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32
+    __u16       EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
     __u32 		ReadRetryType;
     __u32       DDRType;
     struct __OptionalPhyOpPar_t *OptionOp;          //the pointer point to the optional operation parameter

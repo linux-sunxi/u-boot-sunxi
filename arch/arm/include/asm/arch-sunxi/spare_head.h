@@ -35,6 +35,7 @@
 #define STAMP_VALUE             0x5F0A6C39
 #define ALIGN_SIZE				8 * 1024
 #define MAGIC_SIZE              8
+#define STORAGE_BUFFER_SIZE     (256)
 
 typedef struct _normal_gpio_cfg
 {

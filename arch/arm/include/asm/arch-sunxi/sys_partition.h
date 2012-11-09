@@ -17,21 +17,26 @@
  * along with this program;
  *
  */
-#ifndef  __SUNXI_SPRITE_DOWNLOAD_H__
-#define  __SUNXI_SPRITE_DOWNLOAD_H__
+
+#ifndef __SW_SYS_PARTITION_H
+#define __SW_SYS_PARTITION_H
 
 
-#include <config.h>
-#include <common.h>
+extern int sunxi_partition_get_total_num(void);
 
-int sunxi_sprite_download_raw_init(uint flash_part_start);
+extern int sunxi_partition_get_name(int index, char *buf);
 
-int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors);
+extern uint sunxi_partition_get_offset(int part_index);
 
-int sunxi_sprite_download_uboot(void *buffer, int production_media);
+extern uint sunxi_partition_get_size(int part_index);
 
-int sunxi_sprite_download_boot0(void *buffer, int production_media);
+extern uint sunxi_partition_get_offset_byname(const char *part_name);
+
+extern uint sunxi_partition_get_size_byname(const char *part_name);
+
+extern int sunxi_partition_get_info_byname(const char *part_name, uint *part_offset, uint *part_size);
+
+extern int sunxi_partition_init(void);
 
 
 #endif
-

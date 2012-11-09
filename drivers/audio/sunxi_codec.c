@@ -22,6 +22,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/codec.h>
 #include <asm/arch/dma.h>
+#include <asm/arch/dma_i.h>
 
 struct sunxi_codec_t    *sunxi_codec;
 uint hdma = 0;
@@ -44,7 +45,7 @@ uint hdma = 0;
 int sunxi_codec_init(void)
 {
 	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
-	sunxi_codec = (struct sunxi_codec_t *)SUNXI_AD_DA_BASE;
+	sunxi_codec = (struct sunxi_codec_t *)SUNXI_CODEC_BASE;
 
 	//open codec clock
 	ccm_reg->apb0_gate |= 1;
@@ -166,7 +167,7 @@ int sunxi_codec_start(void *buffer, uint length, uint loop_mode)
 
 	if(!hdma)
 	{
-		hdma = sunxi_dma_request(DMAC_DMATYPE_NORMAL);
+		hdma = sunxi_dma_request(0);
 		if(!hdma)
 		{
 			printf("sunxi codec error : request dma failed\n");
@@ -175,19 +176,18 @@ int sunxi_codec_start(void *buffer, uint length, uint loop_mode)
 		}
 	}
 
-	dma_cfg.cfg.src_drq_type 	 = 0x16;	//DRAM
+	dma_cfg.cfg.src_drq_type 	 = DMAC_CFG_DEST_TYPE_DRAM;
 	dma_cfg.cfg.src_addr_type 	 = 0;		//源端地址不变
 	dma_cfg.cfg.src_burst_length = 0;		//burst = 1
 	dma_cfg.cfg.src_data_width   = 1;    	//一次传输16bit
-	dma_cfg.cfg.dst_drq_type     = 0x13;	//D/A
+	dma_cfg.cfg.dst_drq_type     = DMAC_CFG_SRC_TYPE_CODEC;
 	dma_cfg.cfg.dst_addr_type    = 1;    	//目的端地址不变
 	dma_cfg.cfg.dst_burst_length = 0;		//burst = 1
 	dma_cfg.cfg.dst_data_width   = 1;    	//一次接收16bit
-	dma_cfg.cfg.continuous_mode  = loop_mode?1:0;    	//dma loop模式
 
-	dma_cfg.pgsz = 0;
-	dma_cfg.pgstp = 0;
-	dma_cfg.cmt_blk_cnt = 0;
+	dma_cfg.loop_mode = loop_mode;
+	dma_cfg.data_block_size = 0;
+	dma_cfg.wait_cyc = 0;
 
 	sunxi_dma_setting(hdma, (void *)&dma_cfg);
 	flush_cache((uint)buffer, length);

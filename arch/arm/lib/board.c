@@ -529,8 +529,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
-	DRV_DISP_Init();
-	board_display_layer_open();
+	//DRV_DISP_Init();
+	//board_display_layer_open();
 	sunxi_flash_handle_init();
 	sunxi_partition_init();
 #else

@@ -224,7 +224,7 @@ struct __NandPhyInfoPar_t SamsungNandTbl[] =
     { {0xec, 0xd7, 0xd5, 0x29, 0xff, 0xff, 0xff, 0xff }, 2,     8,     128,     4096,   0x0028,   974,    30,     0,       0,        0,     &PhysicArchiPara3 },   // K9LBG08
     { {0xec, 0xd7, 0x94, 0x72, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     4096,   0x0008,   974,    30,     2,       0,        0,     &PhysicArchiPara3 },   // K9GBG08
     { {0xec, 0xd5, 0x98, 0x71, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     2048,   0x0008,   950,    30,     3,       0,        0,     &PhysicArchiPara3 },   // K9AAG08
-                                                                                                                                            
+
     { {0xec, 0xd5, 0x94, 0x29, 0xff, 0xff, 0xff, 0xff }, 1,     8,     128,     4096,   0x0008,   974,    30,     0,       0,        0,     &PhysicArchiPara3 },   // K9GAG08U0D
     { {0xec, 0xd5, 0x84, 0x72, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     2048,   0x0000,   950,    24,     2,       0,        0,     &PhysicArchiPara3 },   // K9GAG08U0E
     { {0xec, 0xd5, 0x94, 0x76, 0x54, 0xff, 0xff, 0xff }, 1,    16,     128,     2048,   0x0408,   950,    30,     2,       0,        0,     &PhysicArchiPara3 },   // K9GAG08U0E
@@ -232,12 +232,12 @@ struct __NandPhyInfoPar_t SamsungNandTbl[] =
 	{ {0xec, 0xd7, 0x94, 0x76, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     3,       0,        0,     &PhysicArchiPara3 },   // K9GBG08U0A
 	{ {0xec, 0xd7, 0x94, 0x7A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    30,     3,       0,        0,     &PhysicArchiPara3 },   // K9GBG08U0A
 	{ {0xec, 0xde, 0xd5, 0x7A, 0x58, 0xff, 0xff, 0xff }, 2,    16,	   128, 	4096,	0x0888,   974,	  30,	  3,	   0,		 0, 	&PhysicArchiPara3 },   // K9LCG08U0A
-	                                                                                                                                                                                                                                                                                
-	{ {0xec, 0xd7, 0x94, 0x7A, 0x54, 0xc3, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    60,     1,       0,        3,     &PhysicArchiPara3 },   // toogle nand 1.0 
+
+	{ {0xec, 0xd7, 0x94, 0x7A, 0x54, 0xc3, 0xff, 0xff }, 1,    16,     128,     4096,   0x0088,   974,    60,     1,       0,        3,     &PhysicArchiPara3 },   // toogle nand 1.0
 	{ {0xec, 0xde, 0xa4, 0x7a, 0x68, 0xc4, 0xff, 0xff }, 1,    16,     128,     8192,   0x0588,   974,    60,     4,   0x200e04,     3,     &PhysicArchiPara3 },   // toogle nand 2.0 K9GCGD8U0A
 	{ {0xec, 0xd7, 0x94, 0x7E, 0x64, 0xc4, 0xff, 0xff }, 1,    16,     128,     4096,   0x0588,   974,    60,     4,   0x200e04,     3,     &PhysicArchiPara3 },   // toogle nand 2.0 K9GBGD8U0B
     { {0xec, 0xd7, 0x94, 0x7e, 0x64, 0x44, 0xff, 0xff }, 1,    16,     128,     4096,   0x0588,   974,    40,     4,   0x200e04,     0,     &PhysicArchiPara3 },   // 21nm sdr K9GBG08U0B
-    { {0xec, 0xde, 0xd5, 0x7e, 0x68, 0x44, 0xff, 0xff }, 2,    16,     128,     4096,   0x0d88,   974,    40,     4,   0x200e04,     0,     &PhysicArchiPara3 },   // 21nm sdr K9LCG08U0B
+
     //-----------------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,     0,       0,        0,      0                 },   // NULL
 };
@@ -280,15 +280,15 @@ struct __NandPhyInfoPar_t HynixNandTbl[] =
     { {0xad, 0xd7, 0x95, 0x25, 0xff, 0xff, 0xff, 0xff }, 2,     8,     128,     4096,   0x0008,   974,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UCG8V5A
     { {0xad, 0xd5, 0x95, 0x25, 0xff, 0xff, 0xff, 0xff }, 2,     8,     128,     4096,   0x0008,   974,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UCG8VFA
     { {0xad, 0xd5, 0x94, 0x9A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     1024,   0x0000,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UAG8T2B
-    { {0xad, 0xd7, 0x94, 0x9A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2A H27UCG8U5(D)A H27UDG8VF(D)A
+    //{ {0xad, 0xd7, 0x94, 0x9A, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2A H27UCG8U5(D)A H27UDG8VF(D)A
+    { {0xad, 0xd7, 0x94, 0x9A, 0xff, 0xff, 0xff, 0xff }, 1,    8,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2A H27UCG8U5(D)A H27UDG8VF(D)A
     { {0xad, 0xde, 0xd5, 0x9A, 0xff, 0xff, 0xff, 0xff }, 2,    16,     256,     2048,   0x0008,   950,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UDG8V5A
     { {0xad, 0xd7, 0x94, 0x25, 0xff, 0xff, 0xff, 0xff }, 1,     8,     128,     8192,   0x0008,   974,    30,     2,      0,         0,    &PhysicArchiPara3 },   // H27UBG8T2M
     { {0xad, 0xde, 0x94, 0xd2, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   950,    30,     2,  0x000604,      0,    &PhysicArchiPara3 },   // H27UCG8T2M
     { {0xad, 0xd7, 0x18, 0x8d, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     4096,   0x0188,   950,    30,     3,  0x000604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
     { {0xad, 0xd7, 0x94, 0xda, 0xff, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   950,    30,     3,  0x010604,      0,    &PhysicArchiPara3 },   // H27UBG8M2A
-    { {0xad, 0xde, 0x94, 0xda, 0x74, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   960,    40,     4,  0x020708,      0,    &PhysicArchiPara3 },   // H27UCG8T2A 20nm 8G
-    { {0xad, 0xd7, 0x94, 0x91, 0x60, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   960,    40,     4,  0x030708,      0,    &PhysicArchiPara3 },   // H27UBG8T2C 20nm 4G
-    { {0xad, 0xde, 0x94, 0xeb, 0x74, 0xff, 0xff, 0xff }, 1,    32,     256,     2048,   0x0188,   960,    40,     4,  0x030708,      0,    &PhysicArchiPara3 },   // H27UCG8T2B 20nm 8G
+    { {0xad, 0xde, 0x94, 0xda, 0x74, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0188,   960,    40,     4,  0x020708,      0,    &PhysicArchiPara3 },   // H27UCG8T2A
+    { {0xad, 0xd7, 0x94, 0x91, 0x60, 0xff, 0xff, 0xff }, 1,    16,     256,     2048,   0x0188,   960,    40,     4,  0x030708,      0,    &PhysicArchiPara3 },   // H27UBG8T2C
     //---------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,     0,      0,         0,   0                 },   // NULL
 };
@@ -321,10 +321,6 @@ struct __NandPhyInfoPar_t ToshibaNandTbl[] =
     { {0x98, 0xde, 0x94, 0x82, 0x76, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0588,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TH58NVG6D2ETA20
     { {0x98, 0xd7, 0x94, 0x32, 0x76, 0x56, 0xff, 0xff }, 1,    16,     128,     4096,   0x0588,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TH58NVG5D2HTA20
     { {0x98, 0xd5, 0x84, 0x32, 0x72, 0x56, 0xff, 0xff }, 1,    16,     128,     2048,   0x0580,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TH58NVG4D2HTA20
-	  { {0x98, 0xde, 0x84, 0x93, 0x72, 0x57, 0xff, 0xff }, 1,    32,     256,     2048,   0x0580,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TC58NVG6DCJTA00
-    { {0x98, 0xd7, 0x84, 0x93, 0x72, 0x57, 0xff, 0xff }, 1,    32,     256,     1024,   0x0580,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TC58TEG5DCJTA00
-    { {0x98, 0xde, 0x84, 0x93, 0x72, 0x57, 0xff, 0xff }, 1,    32,     256,     2048,   0x0580,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TC58TEG6DCJTA00
-    { {0x98, 0xde, 0x94, 0x93, 0x76, 0x57, 0xff, 0xff }, 1,    32,     256,     2048,   0x0588,   918,    40,     4, 0x100504,   0,   &PhysicArchiPara9},    // TC58TEG6DDJTA00
     //-------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,     0,     0,      0,        0         },   // NULL
 };
@@ -360,7 +356,7 @@ struct __NandPhyInfoPar_t MicronNandTbl[] =
     { {0x2c, 0x68, 0x04, 0x4A, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     4096,   0x0208,   950,    40,     2,     0,     0,   &PhysicArchiPara4 },   // MT29F32G08CBACA
     { {0x2c, 0x48, 0x04, 0x4A, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     2048,   0x0208,   950,    40,     2,     0,     0,   &PhysicArchiPara4 },   // MT29F16G08CBACA
     { {0x2c, 0x48, 0x04, 0x46, 0xff, 0xff, 0xff, 0xff }, 1,     8,     256,     2048,   0x0208,   950,    30,     2,     0,     0,   &PhysicArchiPara4 },   // MT29F16G08CBABA
-    { {0x2c, 0x64, 0x44, 0x4B, 0xff, 0xff, 0xff, 0xff }, 1,	   16,	   256,	    4096,	0x0388,   950,    40,     5, 0x400301,  0,   &PhysicArchiPara4 },	// MT29F64G08CBABA
+    { {0x2c, 0x64, 0x44, 0x4B, 0xA9, 0xff, 0xff, 0xff }, 1,    16,     256,     4096,   0x0208,   950,    40,     4,     0,     0,   &PhysicArchiPara4 },   // MT29F64G08CBABA
 	//-------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,    0,     0,      0,      0              },   // NULL
 };
@@ -433,24 +429,6 @@ struct __NandPhyInfoPar_t PowerNandTbl[] =
     //------------------------------------------------------------------------------------------------------------------------
     { {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0,     0,       0,        0,   0x0000,     0,     0,     0,      0,   0,          0        },   // NULL
 };
-
-
-//==============================================================================
-//============================ SANDDISK NAND FLASH ==============================
-//==============================================================================
-struct __NandPhyInfoPar_t SandiskNandTbl[] =
-{
-	//					 NAND_CHIP_ID				  DieCnt SecCnt  PagCnt   BlkCnt	OpOpt	DatBlk	Freq  EccMode	ReadRetry OperationPar
-	//------------------------------------------------------------------------------------------------------------------------
-	{ {0x45, 0xde, 0x94, 0x93, 0xff, 0xff, 0xff, 0xff }, 1, 	32,		256, 	2048,	0x0188,   950,	  40,	  4,	  0x301409,   0,	&PhysicArchiPara0 },   // SDTNQGAMA-008G
-	{ {0x45, 0xd7, 0x84, 0x93, 0xff, 0xff, 0xff, 0xff }, 1, 	32,		256, 	1024,	0x0180,   950,	  40,	  4,	  0x301409,   0,	&PhysicArchiPara0 },   // SDTNQFAMA-004G
-	//------------------------------------------------------------------------------------------------------------------------
-	{ {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }, 0, 	0,		 0, 	   0,	0x0000, 	0,	   0,	  0,	  0,   0,		   0		},	 // NULL
-};
-
-
-
-
 
 //==============================================================================
 //============================= DEFAULT NAND FLASH =============================

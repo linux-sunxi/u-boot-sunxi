@@ -34,18 +34,18 @@
 #define __NAND_DRV_CFG_H
 
 #include "../../osal/nand_osal.h"
-#include <asm/arch/nand_bsp.h>
 
 //==============================================================================
 //  define the value of some variable for
 //==============================================================================
 
+//#define __OS_NAND_DBG__
+
 #define  NAND_VERSION_0                 0x02
-#define  NAND_VERSION_1                 0x11
-#define  NAND_DRV_DATE                  0x20121022
+#define  NAND_VERSION_1                 0x10
+#define  NAND_DRV_DATE                  0x20120610
 
-
-
+#define MAX_NFC_CH                          (1)
 
 //define the max value of the count of chip select
 #define MAX_CHIP_SELECT_CNT                 (8)
@@ -128,6 +128,8 @@
 //  define some pr__s32 switch
 //==============================================================================
 //define if need pr__s32 the physic operation module debug message
+#ifndef __FPGA_TEST__
+
 #ifndef __OS_NAND_DBG__
     #define PHY_DBG_MESSAGE_ON                  (0)
 #else
@@ -139,7 +141,7 @@
 
 //define if need pr__s32 the nand hardware scan module debug message
 #ifndef __OS_NAND_DBG__
-    #define SCAN_DBG_MESSAGE_ON                 (0)
+    #define SCAN_DBG_MESSAGE_ON                 (1)
 #else
     #define SCAN_DBG_MESSAGE_ON                 (1)
 #endif
@@ -164,7 +166,38 @@
 
 //define if need pr__s32 the logic control layer error message
 #define LOGICCTL_ERR_MESSAGE_ON             (1)
+#else
 
+#define PHY_DBG_MESSAGE_ON                  (1)
+
+//define if need pr__s32 the physic operation module error message
+#define PHY_ERR_MESSAGE_ON                  (1)
+
+//define if need pr__s32 the nand hardware scan module debug message
+#define SCAN_DBG_MESSAGE_ON                 (1)
+
+//define if need pr__s32 the nand hardware scan module error message
+#define SCAN_ERR_MESSAGE_ON                 (1)
+
+//define if need pr__s32 the nand disk format module debug message
+#define FORMAT_DBG_MESSAGE_ON               (1)
+
+//define if need pr__s32 the nand disk format module error message
+#define FORMAT_ERR_MESSAGE_ON               (1)
+
+//define if need pr__s32 the mapping manage module debug message
+#define MAPPING_DBG_MESSAGE_ON              (0)
+
+//define if need pr__s32 the mapping manage module error message
+#define MAPPING_ERR_MESSAGE_ON              (1)
+
+//define if need pr__s32 the logic control layer debug message
+#define LOGICCTL_DBG_MESSAGE_ON             (0)
+
+//define if need pr__s32 the logic control layer error message
+#define LOGICCTL_ERR_MESSAGE_ON             (1)
+
+#endif
 
 #if PHY_DBG_MESSAGE_ON
 #define	   PHY_DBG(...)        			PRINT(__VA_ARGS__)

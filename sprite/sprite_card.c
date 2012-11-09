@@ -588,7 +588,7 @@ _card_download_error:
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_deal_uboot(int production_media, char *storage_info)
+int sunxi_sprite_deal_uboot(int production_media)
 {
 	char buffer[1024 * 1024];
 	uint item_original_size;
@@ -614,7 +614,7 @@ int sunxi_sprite_deal_uboot(int production_media, char *storage_info)
     Img_CloseItem(imghd, imgitemhd);
     imgitemhd = NULL;
 
-    if(sunxi_sprite_download_uboot(buffer, production_media, storage_info))
+    if(sunxi_sprite_download_uboot(buffer, production_media))
     {
     	printf("update error: fail to write uboot\n");
         return -1;
@@ -638,7 +638,7 @@ int sunxi_sprite_deal_uboot(int production_media, char *storage_info)
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_deal_boot0(int production_media, char *storage_info)
+int sunxi_sprite_deal_boot0(int production_media)
 {
 	char buffer[1024 * 1024];
 	uint item_original_size;
@@ -672,7 +672,7 @@ int sunxi_sprite_deal_boot0(int production_media, char *storage_info)
     Img_CloseItem(imghd, imgitemhd);
     imgitemhd = NULL;
 
-    if(sunxi_sprite_download_boot0(buffer, production_media, storage_info))
+    if(sunxi_sprite_download_boot0(buffer, production_media))
     {
     	printf("update error: fail to write boot0\n");
         return -1;

@@ -33,6 +33,7 @@
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/boot_type.h>
+#include <asm/arch/sys_partition.h>
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nannd flash, mmc2.
  * We check where we boot from by checking the config

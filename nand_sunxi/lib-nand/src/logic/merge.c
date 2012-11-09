@@ -13,6 +13,9 @@
 *            support three methods to make free physic block or free physic page.
 **********************************************************************************/
 
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_logic.h"
 
 extern struct __NandDriverGlobal_t     NandDriverInfo;

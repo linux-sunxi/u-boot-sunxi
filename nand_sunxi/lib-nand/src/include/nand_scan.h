@@ -46,8 +46,6 @@
 #define INTEL_NAND              0x89                //Intel nand flash manufacture number
 #define SPANSION_NAND           0x01                //spansion nand flash manufacture number
 #define POWER_NAND              0x92                //power nand flash manufacture number
-#define SANDISK                 0x45                //sandisk nand flash manufacture number
-
 
 //==============================================================================
 //  define the function __s32erface for nand storage scan module
@@ -68,12 +66,5 @@
 ************************************************************************************************************************
 */
 __s32  SCN_AnalyzeNandSystem(void);
-
-__u32 NAND_GetValidBlkRatio(void);
-__s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio);
-__u32 NAND_GetFrequencePar(void);
-__s32 NAND_SetFrequencePar(__u32 FrequencePar);
-__u32 NAND_GetNandVersion(void);
-__s32 NAND_GetParam(boot_nand_para_t * nand_param);
 
 #endif  //ifndef __NAND_SCAN_H__

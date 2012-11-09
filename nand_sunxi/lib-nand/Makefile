@@ -26,6 +26,7 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)libsunxi-nand.o
 
 COBJS	:= ./nand_drv/nand_for_uboot.o  		\
+           ./nand_drv/nand_uboot_fun.o  		\
 		   ./nand_drv/nand_osal_uboot.o 		\
 		   ./nand_drv/nand_fspart.o 			\
 		   ./src/format/nand_format.o			\
@@ -54,7 +55,7 @@ $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 	$(CROSS_COMPILE)ar cvr libnand $(OBJS)
 
-	cp libnand ./..
+	cp libnand ./../libnand
 
 #########################################################################
 

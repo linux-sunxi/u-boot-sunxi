@@ -27,6 +27,9 @@
 *
 ************************************************************************************************************************
 */
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_logic.h"
 
 //#define CACHE_DBG
@@ -41,7 +44,7 @@ typedef struct
 	__u32	size;
 
 	__u32	hit_page;
-	__u64   secbitmap;
+	__u32   secbitmap;
 
 	__u32	access_count;
 	__u32   dev_num;
@@ -53,13 +56,13 @@ __nand_cache_t nand_w_cache[N_NAND_W_CACHE];
 __nand_cache_t nand_r_cache;
 __u32 nand_current_dev_num;
 
-__u32 _get_valid_bits(__u64 secbitmap)
+__u32 _get_valid_bits(__u32 secbitmap)
 {
 	__u32 validbit = 0;
 
 	while(secbitmap)
 	{
-		if(secbitmap & (__u64)0x1)
+		if(secbitmap & 0x1)
 			validbit++;
 		secbitmap >>= 1;
 	}
@@ -67,11 +70,11 @@ __u32 _get_valid_bits(__u64 secbitmap)
 	return validbit;
 }
 
-__u32 _get_first_valid_bit(__u64 secbitmap)
+__u32 _get_first_valid_bit(__u32 secbitmap)
 {
 	__u32 firstbit = 0;
 
-	while(!(secbitmap & (__u64)0x1))
+	while(!(secbitmap & 0x1))
 	{
 		secbitmap >>= 1;
 		firstbit++;
@@ -90,20 +93,22 @@ __s32 _flush_w_cache(void)
 		{
 			if(nand_w_cache[i].secbitmap != FULL_BITMAP_OF_LOGIC_PAGE)
 				LML_PageRead(nand_w_cache[i].hit_page,(nand_w_cache[i].secbitmap ^ FULL_BITMAP_OF_LOGIC_PAGE)&FULL_BITMAP_OF_LOGIC_PAGE,nand_w_cache[i].data);
-			
+
 			LML_PageWrite(nand_w_cache[i].hit_page,FULL_BITMAP_OF_LOGIC_PAGE,nand_w_cache[i].data);
-			
+			//nand_w_cache[i].hit_page = 0xffffffff;
+			//nand_w_cache[i].secbitmap = 0;
+			//nand_w_cache[i].access_count = 0;
+
 
 			/*disable read cache with current page*/
 			if (nand_r_cache.hit_page == nand_w_cache[i].hit_page){
 					nand_r_cache.hit_page = 0xffffffff;
 					nand_r_cache.secbitmap = 0;
 			}
-			
-			
 			nand_w_cache[i].hit_page = 0xffffffff;
 			nand_w_cache[i].secbitmap = 0;
 			nand_w_cache[i].access_count = 0;
+
 			
 		}
 	}
@@ -121,18 +126,22 @@ __s32 _flush_w_cache_simple(__u32 i)
 			LML_PageRead(nand_w_cache[i].hit_page,(nand_w_cache[i].secbitmap ^ FULL_BITMAP_OF_LOGIC_PAGE)&FULL_BITMAP_OF_LOGIC_PAGE,nand_w_cache[i].data);
 
 		LML_PageWrite(nand_w_cache[i].hit_page,FULL_BITMAP_OF_LOGIC_PAGE,nand_w_cache[i].data);
-		
+		//nand_w_cache[i].hit_page = 0xffffffff;
+		//nand_w_cache[i].secbitmap = 0;
+		//nand_w_cache[i].access_count = 0;
+		//nand_w_cache[i].dev_num= 0xffffffff;
 
 		/*disable read cache with current page*/
 		if (nand_r_cache.hit_page == nand_w_cache[i].hit_page){
 				nand_r_cache.hit_page = 0xffffffff;
 				nand_r_cache.secbitmap = 0;
 		}
-		
 		nand_w_cache[i].hit_page = 0xffffffff;
 		nand_w_cache[i].secbitmap = 0;
 		nand_w_cache[i].access_count = 0;
 		nand_w_cache[i].dev_num= 0xffffffff;
+
+		
 
 	}
 
@@ -175,13 +184,12 @@ void _get_data_from_cache(__u32 blk, __u32 nblk, void *buf)
 {
 	__u32 i;
 	__u32 sec;
-	__u32 page,SecWithinPage;
-	__u64 SecBitmap;
+	__u32 page,SecBitmap,SecWithinPage;
 
 	for(sec = blk; sec < blk + nblk; sec++)
 	{
 		SecWithinPage = sec % SECTOR_CNT_OF_LOGIC_PAGE;
-		SecBitmap = ((__u64)1 << SecWithinPage);
+		SecBitmap = (1 << SecWithinPage);
 		page = sec / SECTOR_CNT_OF_LOGIC_PAGE;
 		for (i = 0; i < N_NAND_W_CACHE; i++)
 		{
@@ -194,7 +202,7 @@ void _get_data_from_cache(__u32 blk, __u32 nblk, void *buf)
 	}
 }
 
-void _get_one_page(__u32 page,__u64 SecBitmap,__u8 *data)
+void _get_one_page(__u32 page,__u32 SecBitmap,__u8 *data)
 {
 	__u32 i;
 	__u8 *tmp = data;
@@ -204,7 +212,7 @@ void _get_one_page(__u32 page,__u64 SecBitmap,__u8 *data)
 	{
 		for(i = 0;i < SECTOR_CNT_OF_LOGIC_PAGE; i++)
 		{
-			if(SecBitmap & ((__u64)1<<i))
+			if(SecBitmap & (1<<i))
 			{
 				MEMCPY(tmp + (i<<9),nand_r_cache.data + (i<<9),512);
 			}
@@ -225,7 +233,7 @@ void _get_one_page(__u32 page,__u64 SecBitmap,__u8 *data)
 
 			for(i = 0;i < SECTOR_CNT_OF_LOGIC_PAGE; i++)
 			{
-				if(SecBitmap & ((__u64)1<<i))
+				if(SecBitmap & (1<<i))
 				{
 					MEMCPY(tmp + (i<<9),nand_r_cache.data + (i<<9),512);
 				}
@@ -240,8 +248,7 @@ __s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf)
 {
 	__u32	nSector,StartSec;
 	__u32	page;
-	__u32	SecWithinPage;
-	__u64	SecBitmap;
+	__u32	SecBitmap,SecWithinPage;
 	__u8 	*pdata;
 
 	nSector 	= nblk;
@@ -254,7 +261,7 @@ __s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf)
 	while(nSector)
 	{
 		SecWithinPage = StartSec % SECTOR_CNT_OF_LOGIC_PAGE;
-		SecBitmap |= ((__u64)1 << SecWithinPage);
+		SecBitmap |= (1 << SecWithinPage);
 		page = StartSec / SECTOR_CNT_OF_LOGIC_PAGE;
 
 		/*close page if last sector*/
@@ -286,7 +293,7 @@ __s32 NAND_CacheRead(__u32 blk, __u32 nblk, void *buf)
 
 }
 
-__s32 _fill_nand_cache(__u32 page, __u64 secbitmap, __u8 *pdata)
+__s32 _fill_nand_cache(__u32 page, __u32 secbitmap, __u8 *pdata)
 {
 	__u8	hit;
 	__u8	i;
@@ -381,8 +388,7 @@ __s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf)
 {
 	__u32	nSector,StartSec;
 	__u32	page;
-	__u32	SecWithinPage;
-	__u64	SecBitmap;
+	__u32	SecBitmap,SecWithinPage;
 	__u32	i;
 	__u8 	*pdata;
 	//__u32  hit = 0;
@@ -397,7 +403,7 @@ __s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf)
 	while(nSector)
 	{
 		SecWithinPage = StartSec % SECTOR_CNT_OF_LOGIC_PAGE;
-		SecBitmap |= ((__u64)1 << SecWithinPage);
+		SecBitmap |= (1 << SecWithinPage);
 		page = StartSec / SECTOR_CNT_OF_LOGIC_PAGE;
 
 

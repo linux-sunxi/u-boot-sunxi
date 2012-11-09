@@ -53,9 +53,9 @@ struct spare_boot_data_head
 	int		                    work_mode;              // 工作模式
     int                         storage_type;           // 存储介质类型  0：nand   1：sdcard    2: spinor
     normal_gpio_cfg             nand_gpio[32];          // nand GPIO信息
-    char						nand_spare_data[256];	// nand 额外信息
+    char						nand_spare_data[STORAGE_BUFFER_SIZE];	// nand 额外信息
     normal_gpio_cfg             sdcard_gpio[32];		// sdcard GPIO信息
-    char             			sdcard_spare_data[256];	// sdcard 额外信息
+    char             			sdcard_spare_data[STORAGE_BUFFER_SIZE];	// sdcard 额外信息
     int							reserved[1];			// 保留数据位, 16bytes align
 };
 

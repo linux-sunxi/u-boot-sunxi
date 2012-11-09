@@ -29,6 +29,9 @@
 *
 ************************************************************************************************************************
 */
+#include "../include/nand_drv_cfg.h"
+#include "../include/nand_type.h"
+#include "../include/nand_physic.h"
 #include "../include/nand_format.h"
 #include "../include/nand_logic.h"
 
@@ -229,7 +232,7 @@ __s32 _CalculatePhyOpPar(struct __PhysicOpPara_t *pPhyPar, __u32 nZone, __u32 nB
 *               < 0     read page data failed.
 ************************************************************************************************************************
 */
-static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 SectBitmap, void *pBuf, void *pSpare)
+static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 SectBitmap, void *pBuf, void *pSpare)
 {
     __s32 i, result;
     __u8  *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
@@ -248,7 +251,7 @@ static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 S
         //process the pointer to spare area data
         for(i=0; i<2; i++)
         {
-            if(SectBitmap & ((__u64)1<<i))
+            if(SectBitmap & (1<<i))
             {
                 tmpSrcPtr[i] = FORMAT_SPARE_BUF + 4 * i;
                 tmpDstPtr[i] = (__u8 *)pSpare + 4 * i;
@@ -261,7 +264,7 @@ static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 S
 
         for(i=0; i<2; i++)
         {
-            if(SectBitmap & ((__u64)1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
+            if(SectBitmap & (1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
             {
                 tmpSrcPtr[i+2] = LML_SPARE_BUF + 4 * (i + SECTOR_CNT_OF_SINGLE_PAGE);
                 tmpDstPtr[i+2] = (__u8 *)pSpare + 8 + 4 * i;
@@ -339,7 +342,7 @@ static __s32 _VirtualPageRead(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 S
 *               < 0     write page data failed.
 ************************************************************************************************************************
 */
-static __s32 _VirtualPageWrite(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 SectBitmap, void *pBuf, void *pSpare)
+static __s32 _VirtualPageWrite(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u32 SectBitmap, void *pBuf, void *pSpare)
 {
     __s32 i, result;
     __u8  *tmpSrcData, *tmpDstData, *tmpSrcPtr[4], *tmpDstPtr[4];
@@ -359,7 +362,7 @@ static __s32 _VirtualPageWrite(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 
         //process the pointer to spare area data
         for(i=0; i<2; i++)
         {
-            if(SectBitmap & ((__u64)1<<i))
+            if(SectBitmap & (1<<i))
             {
                 tmpSrcPtr[i] = (__u8 *)pSpare + 4 * i;
                 tmpDstPtr[i] = FORMAT_SPARE_BUF + 4 * i;
@@ -372,7 +375,7 @@ static __s32 _VirtualPageWrite(__u32 nDieNum, __u32 nBlkNum, __u32 nPage, __u64 
 
         for(i=0; i<2; i++)
         {
-            if(SectBitmap & ((__u64)1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
+            if(SectBitmap & (1<<(i + SECTOR_CNT_OF_SINGLE_PAGE)))
             {
                 tmpSrcPtr[i+2] = (__u8 *)pSpare + 8 + 4 * i;
                 tmpDstPtr[i+2] = LML_SPARE_BUF + 4 * (i + SECTOR_CNT_OF_SINGLE_PAGE);
@@ -586,7 +589,7 @@ static void _DumpDieInfo(struct __ScanDieInfo_t *pDieInfo)
 		FORMAT_DBG("       [Index]             [LogicalBlk]         [LogBlk]        [DataBlk]\n");
         for(tmpLog=0; tmpLog<MAX_LOG_BLK_CNT; tmpLog++)
         {
-            tmpLogBlk = tmpLogBlk;
+            //tmpLogBlk = tmpLogBlk;
             tmpLogBlk = &tmpZoneInfo->LogBlkTbl[tmpLog];
             FORMAT_DBG("      %x           %x          %x        %x\n", tmpLog, tmpLogBlk->LogicBlkNum,
     		    tmpLogBlk->PhyBlk.PhyBlkNum,
@@ -928,11 +931,11 @@ static __u32 _CalCheckSum(__u32 *pTblBuf, __u32 nLength)
 */
 static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
 {
-    __u32   tmpBlkNum, tmpBnkNum, tmpPage, tmpBadFlag,result;
+    __u32   tmpBlkNum, tmpBnkNum, tmpPage, tmpBadFlag;
     __s32   i;
     __s16   tmpPageNum[4];
     __u16   tmpLogicInfo;
-    __u64   spare_bitmap;
+    __u32   spare_bitmap;
     struct  __NandUserData_t tmpSpare[2];
 
 
@@ -989,53 +992,16 @@ static __s32 _GetBlkLogicInfo(struct __ScanDieInfo_t *pDieInfo)
                 //calculate the number of the page in the super block to get spare data
                 tmpPage = tmpPageNum[i] * INTERLEAVE_BANK_CNT + tmpBnkNum;
                 //_VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, LOGIC_INFO_BITMAP, FORMAT_PAGE_BUF, (void *)&tmpSpare);
-                spare_bitmap = (SUPPORT_MULTI_PROGRAM ? ((__u64)0x3 | ((__u64)0x3 << SECTOR_CNT_OF_SINGLE_PAGE)) : (__u64)0x3);
-                result = _VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, spare_bitmap, FORMAT_PAGE_BUF, (void *)&tmpSpare);
+                spare_bitmap = (SUPPORT_MULTI_PROGRAM ? (0x3 | (0x3 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x3);
+                _VirtualPageRead(pDieInfo->nDie, tmpBlkNum, tmpPage, spare_bitmap, FORMAT_PAGE_BUF, (void *)&tmpSpare);
 
 				//check if the block is a bad block
-				if(NandStorageInfo.NandChipId[0]==0x45) //for sandisk 19nm flash bad blk scan
-				{
-					if(result==-ERR_ECC)
-					{
-						__u8* temp_mdata_ptr0 = (__u8*)FORMAT_PAGE_BUF;
-						__u8* temp_mdata_ptr1 = (__u8*)((__u32)FORMAT_PAGE_BUF + SECTOR_CNT_OF_SINGLE_PAGE*512); 
-						
-						if(((*temp_mdata_ptr0==0x00) && (*(temp_mdata_ptr0+1)==0x00) && (*(temp_mdata_ptr0+2)==0x00) && (*(temp_mdata_ptr0+3)==0x00) && (*(temp_mdata_ptr0+4)==0x00) && (*(temp_mdata_ptr0+5)==0x00))
-							||(SUPPORT_MULTI_PROGRAM && ((*temp_mdata_ptr1==0x00) && (*(temp_mdata_ptr1+1)==0x00) && (*(temp_mdata_ptr1+2)==0x00) && (*(temp_mdata_ptr1+3)==0x00) && (*(temp_mdata_ptr1+4)==0x00) && (*(temp_mdata_ptr1+5)==0x00))))   
-						{
-							tmpBadFlag = 1;
-					
-						}
-						else
-						{
-							if((tmpSpare[0].BadBlkFlag != 0xff) || (SUPPORT_MULTI_PROGRAM && (tmpSpare[1].BadBlkFlag != 0xff)))
-							{
-								tmpBadFlag = 1;
-								
-							}
-						}
-						
-													
-					}
-					else
-					{
-						if((tmpSpare[0].BadBlkFlag != 0xff) || (SUPPORT_MULTI_PROGRAM && (tmpSpare[1].BadBlkFlag != 0xff)))
-						{
-							tmpBadFlag = 1;
-						
-						}
-					}
-				}
-				else
-				{
-					if((tmpSpare[0].BadBlkFlag != 0xff) || (SUPPORT_MULTI_PROGRAM && (tmpSpare[1].BadBlkFlag != 0xff)))
-	                {
-	                    //set the bad flag of the physical block
-	                    tmpBadFlag = 1;
-						
-	                }
-
-				}
+                if((tmpSpare[0].BadBlkFlag != 0xff) || (SUPPORT_MULTI_PROGRAM && (tmpSpare[1].BadBlkFlag != 0xff)))
+                {
+                    //set the bad flag of the physical block
+                    tmpBadFlag = 1;
+                }
+			
                 if(tmpPage == 0)
                 {
                     //get the logical information of the physical block
@@ -2532,7 +2498,7 @@ __s32 FMT_Init(void)
 
     //init the logical architecture paramters
     LogicArchiPar.LogicBlkCntPerZone = NandStorageInfo.ValidBlkRatio;
-    LogicArchiPar.SectCntPerLogicPage = NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie;
+    LogicArchiPar.SectCntPerLogicPage = NandStorageInfo.SectorCntPerPage * NandStorageInfo.PlaneCntPerDie* NandStorageInfo.ChannelCnt;
     LogicArchiPar.PageCntPerLogicBlk = NandStorageInfo.PageCntPerPhyBlk * NandStorageInfo.BankCntPerChip;
     if(SUPPORT_EXT_INTERLEAVE)
     {
@@ -2664,6 +2630,7 @@ void ClearNandStruct( void )
 {
     MEMSET(&PageCachePool, 0x00, sizeof(struct __NandPageCachePool_t));
 }
+
 
 
 

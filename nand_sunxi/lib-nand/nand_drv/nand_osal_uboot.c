@@ -22,260 +22,11 @@
 #include  <malloc.h>
 #include  <asm/arch/dma.h>
 
-unsigned int hDMA;
+
 
 #define   CCMU_REGS_BASE    0x01c20000
 
-/* DMA 基础配置  */
-#define  CSP_DMAC_DMATYPE_NORMAL         			0
-#define  CSP_DMAC_DMATYPE_DEDICATED      			1
 
-#define CSP_DMAC_CFG_CONTINUOUS_ENABLE              (0x01)	//(0x01<<29)
-#define CSP_DMAC_CFG_CONTINUOUS_DISABLE             (0x00)	//(0x01<<29)
-
-//* DMA 等待时钟 */
-#define	CSP_DMAC_CFG_WAIT_1_DMA_CLOCK				(0x00)	//(0x00<<26)
-#define	CSP_DMAC_CFG_WAIT_2_DMA_CLOCK				(0x01)	//(0x01<<26)
-#define	CSP_DMAC_CFG_WAIT_3_DMA_CLOCK				(0x02)	//(0x02<<26)
-#define	CSP_DMAC_CFG_WAIT_4_DMA_CLOCK				(0x03)	//(0x03<<26)
-#define	CSP_DMAC_CFG_WAIT_5_DMA_CLOCK				(0x04)	//(0x04<<26)
-#define	CSP_DMAC_CFG_WAIT_6_DMA_CLOCK				(0x05)	//(0x05<<26)
-#define	CSP_DMAC_CFG_WAIT_7_DMA_CLOCK				(0x06)	//(0x06<<26)
-#define	CSP_DMAC_CFG_WAIT_8_DMA_CLOCK				(0x07)	//(0x07<<26)
-
-/* DMA 传输源端 配置 */
-/* DMA 目的端 传输宽度 */
-#define	CSP_DMAC_CFG_DEST_DATA_WIDTH_8BIT			(0x00)	//(0x00<<24)
-#define	CSP_DMAC_CFG_DEST_DATA_WIDTH_16BIT			(0x01)	//(0x01<<24)
-#define	CSP_DMAC_CFG_DEST_DATA_WIDTH_32BIT			(0x02)	//(0x02<<24)
-
-/* DMA 目的端 突发传输模式 */
-#define	CSP_DMAC_CFG_DEST_1_BURST       			(0x00)	//(0x00<<23)
-#define	CSP_DMAC_CFG_DEST_4_BURST		    		(0x01)	//(0x01<<23)
-
-/* DMA 目的端 地址变化模式 */
-#define	CSP_DMAC_CFG_DEST_ADDR_TYPE_LINEAR_MODE		(0x00)	//(0x00<<21)
-#define	CSP_DMAC_CFG_DEST_ADDR_TYPE_IO_MODE 		(0x01)	//(0x01<<21)
-#define	CSP_DMAC_CFG_DEST_ADDR_TYPE_HPAGE_MODE 		(0x02)	//(0x02<<21)
-#define	CSP_DMAC_CFG_DEST_ADDR_TYPE_VPAGE_MODE 		(0x03)	//(0x03<<21)
-
-
-/* DMA 传输源端 配置 */
-/* DMA 源端 传输宽度 */
-#define	CSP_DMAC_CFG_SRC_DATA_WIDTH_8BIT			(0x00)	//(0x00<<8)
-#define	CSP_DMAC_CFG_SRC_DATA_WIDTH_16BIT			(0x01)	//(0x01<<8)
-#define	CSP_DMAC_CFG_SRC_DATA_WIDTH_32BIT			(0x02)	//(0x02<<8)
-
-/* DMA 源端 突发传输模式 */
-#define	CSP_DMAC_CFG_SRC_1_BURST       				(0x00)	//(0x00<<7)
-#define	CSP_DMAC_CFG_SRC_4_BURST		    		(0x01)	//(0x01<<7)
-
-/* DMA 源端 地址变化模式 */
-#define	CSP_DMAC_CFG_SRC_ADDR_TYPE_LINEAR_MODE		(0x00)	//(0x00<<5)
-#define	CSP_DMAC_CFG_SRC_ADDR_TYPE_IO_MODE 			(0x01)	//(0x01<<5)
-#define	CSP_DMAC_CFG_SRC_ADDR_TYPE_HPAGE_MODE 		(0x02)	//(0x02<<5)
-#define	CSP_DMAC_CFG_SRC_ADDR_TYPE_VPAGE_MODE 		(0x03)	//(0x03<<5)
-
-/* DMA 传输目的端 D型DMA 目的选择 */
-#define	CSP_DMAC_CFG_DEST_TYPE_D_SRAM 				(0x00)	//(0x00<<16)
-#define	CSP_DMAC_CFG_DEST_TYPE_D_SDRAM				(0x01)	//(0x01<<16)
-#define	CSP_DMAC_CFG_DEST_TYPE_TCON0				(0x02)	//(0x02<<16)
-#define	CSP_DMAC_CFG_DEST_TYPE_NFC  		    	(0x03)	//(0x03<<16)
-
-/* DMA 传输源端 D型DMA 目的选择 */
-#define	CSP_DMAC_CFG_SRC_TYPE_D_SRAM 				(0x00)	//(0x00<<0)
-#define	CSP_DMAC_CFG_SRC_TYPE_D_SDRAM				(0x01)	//(0x01<<0)
-#define	CSP_DMAC_CFG_SRC_TYPE_TCON0				    (0x02)	//(0x02<<0)
-#define	CSP_DMAC_CFG_SRC_TYPE_NFC  		    	   	(0x03)	//(0x03<<0)
-
-typedef struct  CSP_dma_config
-{
-    unsigned int      src_drq_type     ; //源地址存储类型，如DRAM, SPI,NAND等，根据选择NDMA或者DDMA, 选择 __ndma_drq_type_t或者 __ddma_src_type_t
-    unsigned int      src_addr_type    ; //原地址类型 NDMA下 0:递增模式  1:保持不变  DDMA下 0:递增模式  1:保持不变  2:H模式  3:V模式
-    unsigned int      src_burst_length ; //发起一次burst宽度 填0对应于1，填1对应于4,
-    unsigned int      src_data_width   ; //数据传输宽度，0:一次传输8bit，1:一次传输16bit，2:一次传输32bit，3:保留
-    unsigned int      dst_drq_type     ; //源地址存储类型，如DRAM, SPI,NAND等，根据选择NDMA或者DDMA, 选择 __ndma_drq_type_t或者 __ddma_dst_type_t
-    unsigned int      dst_addr_type    ; //原地址类型 NDMA下 0:递增模式  1:保持不变  DDMA下 0:递增模式  1:保持不变  2:H模式  3:V模式
-    unsigned int      dst_burst_length ; //发起一次burst宽度 填0对应于1，填1对应于4,
-    unsigned int      dst_data_width   ; //数据传输宽度，0:一次传输8bit，1:一次传输16bit，2:一次传输32bit，3:保留
-    unsigned int      wait_state       ; //等待时钟个数 选择范围从0-7，只对NDMA有效
-    unsigned int      continuous_mode  ; //选择连续工作模式 0:传输一次即结束 1:反复传输，当一次DMA传输结束后，重新开始传输
-
-    unsigned int      cmt_blk_cnt	   ; //DMA传输comity counter
-}CSP_dma_config_t;
-
-
-
-/*
-****************************************************************************************************
-*
-*             OSAL_DmaRequest
-*
-*  Description:
-*       request dma
-*
-*  Parameters:
-*		type	0: normal timer
-*				1: special timer
-*  Return value:
-*		dma handler
-*		if 0, fail
-****************************************************************************************************
-*/
-unsigned int NAND_RequestDMA(void)
-{
-    hDMA = (unsigned int)sunxi_dma_request(1);
-    return hDMA;
-}
-/*
-****************************************************************************************************
-*
-*             OSAL_DmaRelease
-*
-*  Description:
-*       release dma
-*
-*  Parameters:
-*       hDma	dma handler
-*
-*  Return value:
-*		EPDK_OK/FAIL
-****************************************************************************************************
-*/
-int NAND_ReleaseDMA(void)
-{
-	/* stop dma                 */
-    sunxi_dma_stop(hDMA);
-
-    return sunxi_dma_release(hDMA);
-}
-/*
-****************************************************************************************************
-*
-*             OSAL_DmaConfig
-*
-*  Description:
-*       start interrupt
-*
-*  Parameters:
-*       hTmr	timer handler
-*		pArg    *(pArg + 0)         ctrl
-*               *(pArg + 1)         page size
-*               *(pArg + 2)         page step
-*               *(pArg + 3)         comity & block count
-*
-*  Return value:
-*		EPDK_OK/FAIL
-*
-**********************************************************************************************************************
-*/
-__s32 NAND_DMAConfigStart(int rw, unsigned int buff_addr, int len)
-{
-        __dma_setting_t  p;
-    CSP_dma_config_t dma_param;
-    CSP_dma_config_t *pArg = &dma_param;
-    __u32 saddr, daddr;
-
-	if(rw)  //write
-	{
-		if(buff_addr & 0xC0000000) //DRAM
-			dma_param.src_drq_type = CSP_DMAC_CFG_SRC_TYPE_D_SDRAM;
-		else  //SRAM
-			dma_param.src_drq_type = CSP_DMAC_CFG_SRC_TYPE_D_SRAM;
-		dma_param.src_addr_type = CSP_DMAC_CFG_SRC_ADDR_TYPE_LINEAR_MODE;  //linemode
-		dma_param.src_burst_length = CSP_DMAC_CFG_SRC_4_BURST;  //burst mode
-		dma_param.src_data_width = CSP_DMAC_CFG_SRC_DATA_WIDTH_32BIT;  //32bit
-
-		dma_param.dst_drq_type = CSP_DMAC_CFG_DEST_TYPE_NFC;
-		dma_param.dst_addr_type = CSP_DMAC_CFG_DEST_ADDR_TYPE_IO_MODE; //IO mode
-		dma_param.dst_burst_length = CSP_DMAC_CFG_DEST_4_BURST; // burst mode
-		dma_param.dst_data_width = CSP_DMAC_CFG_DEST_DATA_WIDTH_32BIT; //32 bit
-
-		dma_param.wait_state = CSP_DMAC_CFG_WAIT_1_DMA_CLOCK; // invalid value
-		dma_param.continuous_mode = CSP_DMAC_CFG_CONTINUOUS_DISABLE; //no continous
-
-		dma_param.cmt_blk_cnt =  0x7f077f07; //commit register
-
-	}
-	else //read
-	{
-		dma_param.src_drq_type = CSP_DMAC_CFG_SRC_TYPE_NFC;
-		dma_param.src_addr_type = CSP_DMAC_CFG_SRC_ADDR_TYPE_IO_MODE;  //IO mode
-		dma_param.src_burst_length = CSP_DMAC_CFG_SRC_4_BURST;  //burst mode
-		dma_param.src_data_width = CSP_DMAC_CFG_SRC_DATA_WIDTH_32BIT;  //32bit
-
-		if(buff_addr & 0xC0000000) //DRAM
-			dma_param.dst_drq_type = CSP_DMAC_CFG_DEST_TYPE_D_SDRAM;
-		else  //SRAM
-			dma_param.dst_drq_type = CSP_DMAC_CFG_DEST_TYPE_D_SRAM;
-		dma_param.dst_addr_type = CSP_DMAC_CFG_DEST_ADDR_TYPE_LINEAR_MODE; //line mode
-		dma_param.dst_burst_length = CSP_DMAC_CFG_DEST_4_BURST; // burst mode
-		dma_param.dst_data_width = CSP_DMAC_CFG_DEST_DATA_WIDTH_32BIT; //32 bit
-
-		dma_param.wait_state = CSP_DMAC_CFG_WAIT_1_DMA_CLOCK; // invalid value
-		dma_param.continuous_mode = CSP_DMAC_CFG_CONTINUOUS_DISABLE; //no continous
-
-		dma_param.cmt_blk_cnt =  0x7f077f07; //commit register
-	}
-
-
-    p.cfg.src_drq_type      = pArg->src_drq_type;
-    p.cfg.src_addr_type     = pArg->src_addr_type;
-    p.cfg.src_burst_length  = pArg->src_burst_length;
-    p.cfg.src_data_width    = pArg->src_data_width;
-    p.cfg.dst_drq_type      = pArg->dst_drq_type;
-    p.cfg.dst_addr_type     = pArg->dst_addr_type;
-    p.cfg.dst_burst_length  = pArg->dst_burst_length;
-    p.cfg.dst_data_width    = pArg->dst_data_width;
-    p.cfg.wait_state        = 0;
-    p.cfg.continuous_mode   = 0;
-
-    p.pgsz                  = 0;
-    p.pgstp                 = 0;
-    p.cmt_blk_cnt           = pArg->cmt_blk_cnt;
-
-    sunxi_dma_setting(hDMA, (__dma_setting_t *)&p);
-
-	if(rw) //write
-	{
-	    saddr = buff_addr;
-	    daddr = 0x01c03030;
-	}
-	else
-	{
-	    daddr = buff_addr;
-	    saddr = 0x01c03030;
-	}
-
-    flush_cache(buff_addr, len);
-    sunxi_dma_start(hDMA, saddr, daddr, len);
-
-	return 0;
-}
-/*
-**********************************************************************************************************************
-*                                       OSAL_DmaQueryStatus
-*
-* Description: This function is used to query interrupt pending and clear pending bits if some pending is be set
-*
-* Arguments  : hDma         dma handle
-*
-* Returns    : bit31~24     main interrupt no
-*              bit23~16     sub interrupt no
-*              bit1         dma end interrupt flag
-*              bit0         dma half end interrupt flag
-**********************************************************************************************************************
-*/
-__u32  	NAND_QueryDmaStat(void)
-{
-    return sunxi_dma_querystatus(hDMA);
-}
-
-
-int NAND_WaitDmaFinish(void)
-{
-    return 0;
-}
 
 int NAND_ClkRequest(void)
 {
@@ -293,11 +44,6 @@ int NAND_AHBEnable(void)
     return 0;
 }
 
-void NAND_AHBDisable(void)
-{
-    *(volatile __u32 *)(CCMU_REGS_BASE + 0x60) &= ~(1U << 13);
-}
-
 int NAND_ClkEnable(void)
 {
      *(volatile __u32 *)(CCMU_REGS_BASE + 0x80) |= 1U<< 31;
@@ -305,34 +51,25 @@ int NAND_ClkEnable(void)
      return 0;
 }
 
+void NAND_AHBDisable(void)
+{
+    *(volatile __u32 *)(CCMU_REGS_BASE + 0x60) &= ~(1U << 13);
+}
+
+
+
 void NAND_ClkDisable(void)
 {
     *(volatile __u32 *)(CCMU_REGS_BASE + 0x80) &= ~(1U << 31);
 }
 
-/*
-**********************************************************************************************************************
-*
-*             NAND_GetCmuClk
-*
-*  Description:
-*
-*
-*  Parameters:
-*
-*
-*  Return value:
-*
-*
-**********************************************************************************************************************
-*/
 __u32 _GetCmuClk(void)
 {
 	__u32 reg_val;
 	__u32 div_p, factor_n;
 	__u32 factor_k, factor_m;
 	__u32 clock;
-
+#ifndef CONFIG_SUN6I_FPGA
 	reg_val  = *(volatile unsigned int *)(0x01c20000 + 0x20);
 	div_p    = (reg_val >> 16) & 0x3;
 	factor_n = (reg_val >> 8) & 0x1f;
@@ -340,25 +77,17 @@ __u32 _GetCmuClk(void)
 	factor_m = ((reg_val >> 0) & 0x3) + 1;
 
 	clock = 24 * factor_n * factor_k/div_p/factor_m;
-
+#else
+	clock = 600;
+#endif
 	return clock;
 }
-/*
-**********************************************************************************************************************
-*
-*             NAND_GetCmuClk
-*
-*  Description:
-*
-*
-*  Parameters:
-*
-*
-*  Return value:
-*
-*
-**********************************************************************************************************************
-*/
+
+int NAND_WaitDmaFinish(void)
+{
+    return 0;
+}
+
 int NAND_SetClk(unsigned int nand_clock)
 {
 	__u32 edo_clk, cmu_clk;
@@ -416,6 +145,12 @@ int NAND_GetClk(void)
     return nand_max_clock;
 
 
+}
+
+__s32 NAND_CleanFlushDCacheRegion(__u32 buff_addr, __u32 len)
+{
+    flush_cache(buff_addr, len);
+    return 0;
 }
 
 void NAND_PIORequest(void)
@@ -478,8 +213,37 @@ void *NAND_IORemap(unsigned int base_addr, unsigned int size)
 */
 int NAND_Print(const char * str, ...)
 {
-#ifdef DEBUG
+//#ifdef DEBUG
     printf(str);
-#endif
+//#endif
     return 0;
+}
+void NAND_EnRbInt(void)
+{
+    return ;
+}
+
+void NAND_ClearRbInt(void)
+{
+    return ;
+}
+
+void NAND_RbInterrupt(void)
+{
+    return ;
+}
+
+__u32 NAND_DMASingleMap(__u32 rw, __u32 buff_addr, __u32 len)
+{
+	return;
+}
+
+__u32 NAND_DMASingleUnmap(__u32 rw, __u32 buff_addr, __u32 len)
+{
+	return;
+}
+
+__u32 NAND_VA_TO_PA(__u32 buff_addr)
+{
+	return;
 }

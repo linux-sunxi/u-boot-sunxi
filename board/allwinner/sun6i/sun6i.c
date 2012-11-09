@@ -41,34 +41,21 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static struct bootloader_message misc_message;
 
-void fastboot_flash_partition_init(void)
+void fastboot_partition_init(void)
 {
 	fastboot_ptentry fb_part;
 	int index, part_total;
 	char partition_sets[256];
-	char part_name[16];
-	char *pa_index;
-	int  part_name_count;	
+	char part_line[48];
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
-	memset(partition_sets, ' ', 256);
+	memset(partition_sets, 0, 256);
 
-	memset(part_name, 0, 16);
-	if(!uboot_spare_head.boot_data.storage_type)
+	for(index = 0; index < part_total; index++)
 	{
-		memcpy(part_name, "nanda", 5);
-		part_name_count = 0;
-	}
-	else
-	{
-		memcpy(part_name, "mmcblk0p2", 9);
-		part_name_count = 2;
-	}
-	pa_index = partition_sets;
-	for(index = 0; index < part_total; index++) {
 		sunxi_partition_get_name(index, &fb_part.name[0]);
 		fb_part.start = sunxi_partition_get_offset(index) * 512;
 		fb_part.length = sunxi_partition_get_size(index) * 512;
@@ -76,72 +63,29 @@ void fastboot_flash_partition_init(void)
 		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
 		fastboot_flash_add_ptn(&fb_part);
 
-		strcpy(pa_index, fb_part.name);
-		pa_index += strlen(fb_part.name);
-		*pa_index = '@' ;
-		pa_index ++;
-
-		strcpy(pa_index, part_name);
-		pa_index += strlen(part_name);
-		*pa_index = ':';
-		pa_index ++;			
-
+		memset(part_line, 0, 48);
 		if(!uboot_spare_head.boot_data.storage_type)
 		{
-			if(index < 10)
-			{
-				part_name[4] ++;
-			}
-			else
-			{
-				part_name[4] = '1';
-				part_name[5] = '0' + index - 10;
-			}
+			sprintf(part_line, "%s@nand%c:", fb_part.name, 'a' + index);
 		}
 		else
 		{
-			part_name_count ++;
-			if(part_name_count < 5)
+			if(!index)
 			{
-				part_name_count = 5;
-				part_name[8] = '5';	
-			}
-			else if(part_name_count < 10)
-			{
-				part_name[8] ++;
+				sprintf(part_line, "%s@mmcblk0p2:", fb_part.name);
 			}
 			else
 			{
-				part_name[8] = '1';
-				part_name[9] = '0' + part_name_count - 10;
+				sprintf(part_line, "%s@mmcblk0p%d:", fb_part.name, 4 + index);
 			}
 		}
+		strcat(partition_sets, part_line);
 	}
-	pa_index--;
-	if(uboot_spare_head.boot_data.storage_type)
-	{
-		if(part_name_count > 10)
-		{
-			pa_index--;
-		}
-		else
-		{
-			*(pa_index - 1) = '1';
-		}
-	}
-	*pa_index = '\0';
 	printf("-----------------------------------\n");
 
 	setenv("partitions", partition_sets);
-	
 }
 
-void fastboot_partition_init(void) 
-{
-	debug("fastboot_partition_init storage type = %d\n", uboot_spare_head.boot_data.storage_type);
-
-	fastboot_flash_partition_init();
-}
 static struct bootloader_message misc_message;
 
 int android_misc_flash_check(void) {
@@ -154,7 +98,7 @@ int android_misc_flash_check(void) {
 	{
 		puts("no misc partition is found\n");
 		return 0;
-	}	
+	}
 	memset(buffer, 0, 2048);
 #ifdef DEBUG
 	printf("misc_offset  : %d\n", (int )misc_offset);
@@ -223,7 +167,7 @@ int check_android_misc(void)
 }
 
 void set_boot_type_arg(void){
-	
+
 	if(uboot_spare_head.boot_data.storage_type){
 		setenv("bootcmd", "run setargs_mmc boot_normal");
 	}
@@ -261,8 +205,13 @@ void dram_init_banksize(void)
 int dram_init(void)
 {
 	//gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+#ifndef CONFIG_SUN6I_FPGA	
 	printf("Dram size: %d Mbit\n", uboot_spare_head.boot_data.dram_para.dram_size);
     gd->ram_size = uboot_spare_head.boot_data.dram_para.dram_size << 20;
+#else
+	printf("Dram size: %d Mbit\n", 512);
+	gd->ram_size = 512 * 1024  * 1024;
+#endif
 	return 0;
 }
 
@@ -270,7 +219,7 @@ int dram_init(void)
 int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(bis->bi_card_num);
-	
+
 	return 0;
 }
 
@@ -294,7 +243,7 @@ void board_mmc_set_num(int num)
 {
     gd->boot_card_num = num;
 }
- 
+
 
 int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
 
@@ -306,7 +255,7 @@ int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	puts("Board: A10-EVB\n");
+	puts("Board: SUN6I-BOARD\n");
 	return 0;
 }
 #endif
@@ -314,7 +263,7 @@ int checkboard(void)
 int board_display_layer_open(void)
 {
 	char arg[4];
-	
+
 	arg[0] = 0;
 	arg[1] = DISP_LAYER_WORK_MODE_NORMAL;
 
@@ -322,7 +271,7 @@ int board_display_layer_open(void)
 	if(gd->layer_hd == 0)
 	{
         printf("sunxi display error : display request layer failed\n");
-		
+
         return -1;
 	}
 
@@ -360,6 +309,7 @@ int board_display_layer_close(int status)
 
 	return 0;
 }
+
 static int board_display_wait_lcd_open(void)
 {
 	int ret;
@@ -451,9 +401,9 @@ int board_display_framebuffer_set(int width, int height, int bitcount, void *buf
 	layer_para->fb.trd_mode		= 0;
 	layer_para->ck_enable		= 0;
 	layer_para->mode            = DISP_LAYER_WORK_MODE_NORMAL;
-	layer_para->alpha_en 		= 1; 
+	layer_para->alpha_en 		= 1;
 	layer_para->alpha_val		= 0xff;
-	layer_para->pipe 			= 0; 
+	layer_para->pipe 			= 0;
 	layer_para->src_win.x		= 0;
 	layer_para->src_win.y		= 0;
 	layer_para->src_win.width	= width;
@@ -477,7 +427,7 @@ int board_display_framebuffer_change(void *buffer)
     uint arg[4];
 	__disp_fb_t disp_fb;
 
-	arg[0] = 0;    
+	arg[0] = 0;
 	arg[1] = gd->layer_hd;
 	arg[2] = (uint)&disp_fb;
 	arg[3] = 0;
@@ -487,9 +437,9 @@ int board_display_framebuffer_change(void *buffer)
 		printf("sunxi display error :set framebuffer failed\n");
 
 		return -1;
-	}	
+	}
 	disp_fb.addr[0] = (uint)buffer;
-	arg[0] = 0;    
+	arg[0] = 0;
     arg[1] = gd->layer_hd;
     arg[2] = (uint)&disp_fb;
     arg[3] = 0;
@@ -499,8 +449,8 @@ int board_display_framebuffer_change(void *buffer)
         printf("sunxi display error :set framebuffer failed\n");
 
 		return -1;
-	}	
-	
+	}
+
 	return 0;
 }
 
@@ -515,7 +465,7 @@ int board_display_device_open(void)
 	__u32 arg[4];
 	int i;
 
-	debug("De_OpenDevice\n");	
+	debug("De_OpenDevice\n");
 //screen0_output_type
 	if(script_parser_fetch("boot_disp", "output_type", &value, 1) < 0)
 	{
@@ -551,10 +501,10 @@ int board_display_device_open(void)
 	else
 	{
 		printf("invalid screen0_output_type %d\n", value);
-		
+
 		return -1;
 	}
-//screen0_output_mode	 
+//screen0_output_mode
 	if(script_parser_fetch("boot_disp", "output_mode", &value, 1) < 0)
 	{
 		printf("fetch script data boot_disp.output_mode fail\n");
@@ -565,7 +515,7 @@ int board_display_device_open(void)
 	{
 		printf("boot_disp.output_mode=%d\n", value);
 	}
-	
+
 	if(output_type == DISP_OUTPUT_TYPE_TV || output_type == DISP_OUTPUT_TYPE_HDMI)
 	{
 		output_mode = (__disp_tv_mode_t)value;
@@ -575,14 +525,14 @@ int board_display_device_open(void)
 		output_mode = (__disp_vga_mode_t)value;
 	}
 
-//auto hot plug detect	  
+//auto hot plug detect
 	if(script_parser_fetch("boot_disp", "auto_hpd", &value, 1) < 0)
 	{
 		printf("fetch script data boot_disp.auto_hpd fail\n");
 		err_count ++;
 		value = 0;
 	}else
-	{	 
+	{
 		printf("boot_disp.auto_hpd=%d\n", value);
 	}
 
@@ -594,7 +544,7 @@ int board_display_device_open(void)
 			printf("fetch script data lcd0_para.lcd_used fail\n");
 			value = 0;
 		}else
-		{	 
+		{
 			printf("lcd0_para.lcd_used=%d\n", value);
 		}
 
@@ -620,7 +570,7 @@ int board_display_device_open(void)
 				output_mode = DISP_TV_MOD_720P_50HZ;
 			}else
 			{
-  
+
 				ret = 0;
 				arg[0] = 0;
 				arg[1] = 0;
@@ -648,7 +598,7 @@ int board_display_device_open(void)
 				}
 			}
 		}
-		
+
 	}
 	else//has boot_disp config
 	{
@@ -687,7 +637,7 @@ int board_display_device_open(void)
 			}
 		}
 	}
-	
+
 	if(output_type == DISP_OUTPUT_TYPE_LCD)
 	{
 		debug("lcd open\n");

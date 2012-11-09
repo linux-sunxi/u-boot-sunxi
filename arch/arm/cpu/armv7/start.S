@@ -331,9 +331,16 @@ clbss_l:str	r2, [r0]		/* clear loop...		    */
 	mov r4, r6
 	add r0, r0, r4
 copy_int_loop:
-	cmp r2, r1
 	ldmia   r0!, {r7-r8}
 	stmia   r2!, {r7-r8}
+	cmp     r2, r1
+
+	@ldr     r7, [r0]
+	@add     r0, r0, #4
+	@str     r7, [r2]
+	@add     r2, r2, #4
+	@cmp     r2, r1
+
 	blo     copy_int_loop
 #endif
 /*

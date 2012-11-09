@@ -2,16 +2,16 @@
 #define  __PHY_BOOT__
 
 #include "nand_drv_cfg.h"
-#if 0
+
 struct boot_physical_param{
 	__u8   chip; //chip no
 	__u16  block; // block no within chip
 	__u16  page; // apge no within block
-	__u64  sectorbitmap; //done't care
+	__u16  sectorbitmap; //done't care
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf
 };
-#endif
+
 extern __s32 PHY_SimpleErase(struct boot_physical_param * eraseop);
 extern __s32 PHY_SimpleRead(struct boot_physical_param * readop);
 extern __s32 PHY_SimpleWrite(struct boot_physical_param * writeop);

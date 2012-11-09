@@ -31,7 +31,7 @@ struct sunxi_timer {
 	volatile u32 ctl;
 	volatile u32 inter;
 	volatile u32 val;
-	u8  res[4];
+	uint  	 res[1];
 };
 
 /* Audio video sync*/
@@ -51,15 +51,13 @@ struct sunxi_64cnt {
 
 /* Watchdog */
 struct sunxi_wdog {
-	volatile u32 ctl;		/* 0x90 */
-	volatile u32 mode;		/* 0x94 */
-};
-
-/* Rtc */
-struct sunxi_rtc {
-	volatile u32 ctl;		/* 0x100 */
-	volatile u32 yymmdd;		/* 0x104 */
-	volatile u32 hhmmss;		/* 0x108 */
+	volatile u32 irq_enable;		/* 0x90 */
+	volatile u32 irq_status;		/* 0x94 */
+	volatile u32 res0[2];
+	volatile u32 ctrl;
+	volatile u32 cfg;
+	volatile u32 mode;
+	volatile u32 res1[1];
 };
 
 /* Alarm */
@@ -71,25 +69,16 @@ struct sunxi_alarm {
 	volatile u32 irqsta;		/* 0x11c */
 };
 
-/* Timer general purpose register */
-struct sunxi_tgp {
-	u32 tgpd;
-};
 
 struct sunxi_timer_reg {
 	volatile u32 tirqen;		/* 0x00 */
 	volatile u32 tirqsta;	/* 0x04 */
-	u8  res1[8];
+	uint     res1[2];
 	struct sunxi_timer timer[6];	/* We have 6 timers */
-	u8  res2[16];
+	uint  	 res2[4];
 	struct sunxi_avs avs;
-	struct sunxi_wdog wdog;
-	u8  res3[8];
-	struct sunxi_64cnt cnt64;
-	u8  res4[0x5c];
-	struct sunxi_rtc rtc;
-	struct sunxi_alarm alarm;
-	struct sunxi_tgp tgp[4];
+	uint     res3[4];
+	struct sunxi_wdog wdog[4];
 };
 
 struct timer_list
@@ -99,6 +88,20 @@ struct timer_list
 	unsigned long data;
 	int   timer_num;
 };
+
+extern void watchdog_disable(void);
+
+extern void watchdog_enable(void);
+
+extern void init_timer(struct timer_list *timer);
+
+extern void add_timer(struct timer_list *timer);
+
+extern void del_timer(struct timer_list *timer);
+
+extern void __udelay(unsigned long usec);
+
+extern void __msdelay(unsigned long msec);
 
 #endif
 

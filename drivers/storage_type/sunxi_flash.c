@@ -105,32 +105,26 @@ static struct mmc *mmc_boot, *mmc_sprite;
 static int
 sunxi_flash_nand_read(uint start_block, uint nblock, void *buffer)
 {
-    int ret;
-
-	ret = NAND_LogicRead(start_block, nblock, buffer);
-	return (!ret)?nblock:0;
+	return nand_uboot_read(start_block, nblock, buffer);
 }
 
 static int
 sunxi_flash_nand_write(uint start_block, uint nblock, void *buffer)
 {
-    int ret;
-
 	debug("nand write : start %d, sector %d\n", start_block, nblock);
-	ret = NAND_LogicWrite(start_block, nblock, buffer);
-	return (!ret)?nblock:0;
+	return nand_uboot_write(start_block, nblock, buffer);
 }
 
 static uint
 sunxi_flash_nand_size(void)
 {
-	return NAND_GetDiskSize();
+	return nand_uboot_get_flash_size();
 }
 
 static int
 sunxi_flash_nand_exit(void)
 {
-	return NAND_Exit();
+	return nand_uboot_exit();
 }
 /*
 ************************************************************************************************************
@@ -371,8 +365,12 @@ int sunxi_flash_handle_init(void)
 		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
 			
 		    puts("NAND:   ");
-		    NAND_Init();
-			
+			//debug("we force to erase nand flash\n");
+			//nand_uboot_erase(1);
+			//debug("erase finish");
+		    nand_uboot_init(1);
+			debug("init ok\n");
+
 			sunxi_flash_read_pt  = sunxi_flash_nand_read;
 			sunxi_flash_write_pt = sunxi_flash_nand_write;
 			sunxi_flash_size_pt  = sunxi_flash_nand_size;
@@ -382,8 +380,8 @@ int sunxi_flash_handle_init(void)
 	}
 	else if(workmode & WORK_MODE_PRODUCT)		/* 量产模式 */
 	{
-	    if(!NAND_Init())                       /* burn nand */
-        {
+	    if(1)                  /* burn nand */
+        {			
             sunxi_sprite_read_pt  = sunxi_flash_nand_read;
 			sunxi_sprite_write_pt = sunxi_flash_nand_write;
 			sunxi_sprite_size_pt  = sunxi_flash_nand_size;

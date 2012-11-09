@@ -37,7 +37,7 @@
 #include <common.h>
 #include <command.h>
 #include <rtc.h>
-#include <asm/arch/timer.h>
+#include <asm/arch/rtc.h>
 
 /*
  * In the routines that deal directly with the x1205 hardware, we use
@@ -63,10 +63,13 @@ void rtc_reset(void)
 
 void rtc_disable(void)
 {
-    struct sunxi_alarm *alarm = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->alarm;
+    struct sunxi_rtc_regs *rtc = (struct sunxi_rtc_regs *)SUNXI_RTC_BASE;
 
-	alarm->irqen = 0;
-	alarm->irqsta = 3;
+	rtc->alarm0_irq_enable = 0;
+	rtc->alarm0_irq_status = 1;
+	
+	rtc->alarm1_irq_enable = 0;
+	rtc->alarm1_irq_status = 1;
 
 	return ;
 }

@@ -35,8 +35,9 @@
 
 #include "nand_drv_cfg.h" 
                                        
-extern __u32 nand_io_base;                    
-#define NAND_IO_BASE    (nand_io_base)
+extern __u32 NandIOBase[2];
+extern __u32 NandIndex;                  
+#define NAND_IO_BASE    (NandIOBase[NandIndex])
 #define __NFC_REG(x)    (*(volatile unsigned int   *)(NAND_IO_BASE + x))
 /*
 *********************************************************************************************************
@@ -56,16 +57,20 @@ extern __u32 nand_io_base;
 #define NFC_REG_o_CMD              0x0024
 #define NFC_REG_o_RCMD_SET         0x0028
 #define NFC_REG_o_WCMD_SET         0x002C
-#define NFC_REG_o_IO_DATA          0x0030
+#define NFC_REG_o_IO_DATA          0x0300
 #define NFC_REG_o_ECC_CTL          0x0034
 #define NFC_REG_o_ECC_ST           0x0038
 #define NFC_REG_o_DEBUG            0x003C
 #define NFC_REG_o_ECC_CNT0         0x0040
 #define NFC_REG_o_ECC_CNT1         0x0044
 #define NFC_REG_o_ECC_CNT2         0x0048
-#define NFC_REG_o_ECC_CNT3         0x004c
-#define NFC_REG_o_USER_DATA_BASE   0x0050    
+#define NFC_REG_o_ECC_CNT3         0x004C
+#define NFC_REG_o_USER_DATA_BASE   0x0050
+#define NFC_REG_o_EFNAND_STATUS    0x0090
 #define NFC_REG_o_SPARE_AREA       0x00A0
+#define NFC_REG_o_PATTERN_ID       0x00A4
+#define NFC_REG_o_MDMA_ADDR        0x00C0
+#define NFC_REG_o_DMA_CNT          0x00C4
 #define NFC_o_RAM0_BASE            0x0400
 #define NFC_o_RAM1_BASE            0x0800
   /* registers */
@@ -90,9 +95,13 @@ extern __u32 nand_io_base;
 #define NFC_REG_ECC_CNT3           __NFC_REG( NFC_REG_o_ECC_CNT3          )
 #define NFC_REG_DEBUG              __NFC_REG( NFC_REG_o_DEBUG           )
 #define NFC_REG_USER_DATA(sct_num) __NFC_REG( NFC_REG_o_USER_DATA_BASE + 4 * sct_num )
+#define NFC_REG_EFNAND_STATUS      __NFC_REG( NFC_REG_o_EFNAND_STATUS          )
 #define NFC_REG_SPARE_AREA         __NFC_REG( NFC_REG_o_SPARE_AREA        )
-#define NFC_RAM0_BASE                   ( NFC_o_RAM0_BASE           )
-#define NFC_RAM1_BASE                   ( NFC_o_RAM1_BASE           )
+#define NFC_REG_PATTERN_ID         __NFC_REG( NFC_REG_o_PATTERN_ID          )
+#define NFC_REG_MDMA_ADDR          __NFC_REG( NFC_REG_o_MDMA_ADDR          )
+#define NFC_REG_DMA_CNT            __NFC_REG( NFC_REG_o_DMA_CNT          )
+#define NFC_RAM0_BASE              ( NFC_o_RAM0_BASE           )
+#define NFC_RAM1_BASE              ( NFC_o_RAM1_BASE           )
 
 /*define bit use in NFC_CTL*/
 #define NFC_EN					(1 << 0)
@@ -239,7 +248,6 @@ __s32 NFC_CheckRbReady(__u32 rb);
 __s32 NFC_ChangMode(NFC_INIT_INFO * nand_info);
 __s32 NFC_SetEccMode(__u8 ecc_mode);
 __s32 NFC_ResetChip(NFC_CMD_LIST * reset_cmd);
-__s32 NFC_ReadRetry_off(__u32 chip); //sandisk readretry exit
 __u32 NFC_QueryINT(void);
 void NFC_EnableInt(__u8 minor_int);
 void NFC_DisableInt(__u8 minor_int);
@@ -252,8 +260,8 @@ void NFC_InitDDRParam(__u32 chip, __u32 param);
 #define ECC_LIMIT 	10
 #define ERR_TIMEOUT 14
 #define READ_RETRY_MAX_TYPE_NUM 5
-#define READ_RETRY_MAX_REG_NUM	16
-#define READ_RETRY_MAX_CYCLE	20
+#define READ_RETRY_MAX_REG_NUM	8
+#define READ_RETRY_MAX_CYCLE	15
 #define LSB_MODE_MAX_REG_NUM	8
 
 /* define various unit data input or output*/

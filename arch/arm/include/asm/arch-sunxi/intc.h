@@ -10,7 +10,7 @@
 
 #define AW_IRQ_GIC_START    (32)
 
-#ifndef FPGA_PLATFORM	//chip irq mapping
+#ifndef CONFIG_SUN6I_FPGA	//chip irq mapping
 
 #define AW_IRQ_UART0		(AW_IRQ_GIC_START + 0)		/*	UART0		*/
 #define AW_IRQ_UART1		(AW_IRQ_GIC_START + 1)		/*	UART1		*/
@@ -33,9 +33,9 @@
 #define AW_IRQ_TIMER0		(AW_IRQ_GIC_START + 18)		/*	Timer0		*/
 #define AW_IRQ_TIMER1		(AW_IRQ_GIC_START + 19)		/*	Timer1		*/
 #define AW_IRQ_TIMER2		(AW_IRQ_GIC_START + 20)		/*	Timer2		*/
-#define AW_IRQ_TIMER2       (AW_IRQ_GIC_START + 21)     /*  Timer3      */
-#define AW_IRQ_TIMER2       (AW_IRQ_GIC_START + 22)     /*  Timer4      */
-#define AW_IRQ_TIMER2       (AW_IRQ_GIC_START + 23)     /*  Timer5      */
+#define AW_IRQ_TIMER3       (AW_IRQ_GIC_START + 21)     /*  Timer3      */
+#define AW_IRQ_TIMER4       (AW_IRQ_GIC_START + 22)     /*  Timer4      */
+#define AW_IRQ_TIMER5       (AW_IRQ_GIC_START + 23)     /*  Timer5      */
 #define	AW_IRQ_WATCHDOG4	(AW_IRQ_GIC_START + 24)		/*	WATCHDOG4	*/
 #define	AW_IRQ_WATCHDOG1	(AW_IRQ_GIC_START + 25)		/*	WATCHDOG1	*/
 #define	AW_IRQ_WATCHDOG2	(AW_IRQ_GIC_START + 26)		/*	WATCHDOG2	*/
@@ -194,8 +194,8 @@
 #define AW_IRQ_DEBE0		(AW_IRQ_GIC_START + 28)/*	DEFB0		*/
 #define AW_IRQ_DRC01		(AW_IRQ_GIC_START + 29)/*	DRC01		*/
 #define AW_IRQ_DEU01		(AW_IRQ_GIC_START + 30)/*	DEU01		*/
-#define AW_IRQ_R_1WIRE		(AW_IRQ_GIC_START + 31)/*	R_1WIRE		*/
-#define GIC_IRQ_NUM			(GIC_SRC_1WIRE + 1)
+#define AW_IRQ_1WIRE		(AW_IRQ_GIC_START + 31)/*	R_1WIRE		*/
+#define GIC_IRQ_NUM			(AW_IRQ_1WIRE + 1)
 
 #elif defined (AW_FPGA_V7_PLATFORM)
 
@@ -251,9 +251,9 @@
 #define AW_IRQ_DEBE0		(AW_IRQ_GIC_START + 28)/*	DEFB0		*/
 #define AW_IRQ_DRC01		(AW_IRQ_GIC_START + 29)/*	DRC01		*/
 #define AW_IRQ_DEU01		(AW_IRQ_GIC_START + 30)/*	DEU01		*/
-#define AW_IRQ_R_1WIRE		(AW_IRQ_GIC_START + 31)/*	R_1WIRE		*/
+#define AW_IRQ_1WIRE		(AW_IRQ_GIC_START + 31)/*	R_1WIRE		*/
 
-#define GIC_IRQ_NUM			(GIC_SRC_1WIRE + 1)
+#define GIC_IRQ_NUM			(AW_IRQ_1WIRE + 1)
 
 #endif	//fpga irq mapping
 
