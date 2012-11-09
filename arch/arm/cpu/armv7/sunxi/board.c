@@ -84,8 +84,8 @@ int gpio_init(void)
 /* do some early init */
 void s_init(void)
 {
-#ifdef CONFIG_WATCHDOG
-	watchdog_init();
+#if defined(CONFIG_WATCHDOG) && defined(CONFIG_SUNXI_WATCHDOG)
+	watchdog_set(23);	/* max possible timeout */
 #endif
 	clock_init();
 	gpio_init();

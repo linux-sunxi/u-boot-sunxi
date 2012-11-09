@@ -42,8 +42,6 @@ COBJS	+= cpu_info.o
 COBJS   += cmd_watchdog.o
 endif
 
-COBJS   += watchdog.o
-
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
 
