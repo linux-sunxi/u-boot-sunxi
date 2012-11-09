@@ -25,6 +25,8 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
+$(shell mkdir -p $(obj)usb)
+
 SOBJS	:= lowlevel_init.o
 SOBJS	+= reset.o
 

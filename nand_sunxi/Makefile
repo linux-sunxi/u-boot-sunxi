@@ -25,6 +25,9 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)libsunxi-nand.o
 
+$(shell mkdir -p $(obj)nand_drv $(obj)src/format $(obj)src/logic \
+	$(obj)src/ndfc $(obj)src/physic $(obj)src/scan)
+
 COBJS	:= ./nand_drv/nand_for_uboot.o  		\
 		   ./nand_drv/nand_osal_uboot.o 		\
 		   ./nand_drv/nand_fspart.o 			\
