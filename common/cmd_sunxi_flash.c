@@ -98,7 +98,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 			readall_flag = 1;
 		}
 		start_block = sunxi_partition_get_offset_byname((const char *)part_name);
-		if(start_block == (uint)(-1))
+		if(!start_block)
 		{
 			printf("cant find part named %s\n", (char *)part_name);
 

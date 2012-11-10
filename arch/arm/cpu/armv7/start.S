@@ -583,7 +583,7 @@ irq:
 	mrs     r3, spsr                                        @; 读取SPSR
 	stmfd   sp!, {r3}	                                    @; 压栈
 
-    msr     cpsr_c, #(ARMV7_FIQ_MASK | ARMV7_IRQ_MASK | ARMV7_SYSTEM_MODE)     @; 切换到SYSTEM模式
+    msr     cpsr_c, #(ARMV7_FIQ_MASK | ARMV7_IRQ_MASK | ARMV7_SVC_MODE)     @; 切换到SVC模式
     stmfd   sp!, {r0-r12, lr}                                @; 保存lr_usr和其它用到的寄存器
 
 	bl      do_irq

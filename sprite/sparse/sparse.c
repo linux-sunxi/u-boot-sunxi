@@ -338,7 +338,6 @@ int  unsparse_direct_write(void *pbuf, void *next_buf, uint sectors)
 */
 uint unsparse_checksum(void)
 {
-	//return verify_sum(android_format_dram_base, android_format_size);
 	return android_format_checksum;
 }
 

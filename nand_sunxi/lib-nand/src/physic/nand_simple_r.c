@@ -535,12 +535,11 @@ __s32 PHY_Init(void)
 	//set default channel cnt;
 	CHANNEL_CNT = MAX_NFC_CH;
 
-	debug("PHY_Init 0\n");
     //init RetryCount
-    debug("%d\n", CHANNEL_CNT);
+    debug("MAX_NFC_CH: %d\n", MAX_NFC_CH);
 	for(NandIndex = 0; NandIndex<CHANNEL_CNT;NandIndex++)
 	{
-		debug("PHY_Init %d\n", NandIndex);
+		debug("PHY_Init ch %d\n", NandIndex);
 		for(i=0; i<MAX_CHIP_SELECT_CNT; i++)
 		    RetryCount[NandIndex][i] = 0;
 
@@ -551,7 +550,7 @@ __s32 PHY_Init(void)
 		NFC_RandomDisable();
 		debug("NFC_RandomDisable\n");
 	}
-	debug("PHY_Init 2\n");
+
 	NandIndex = 0;
 
 	return ret;

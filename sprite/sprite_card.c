@@ -506,7 +506,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		imgitemhd = NULL;
 		//校验数据
 		debug("part data download finish\n");
-#if 0
+#if 1
         debug("try to read verify file %s\n", dl_map->one_part_info[i].vf_filename);
         if(dl_map->one_part_info[i].vf_filename)
         {

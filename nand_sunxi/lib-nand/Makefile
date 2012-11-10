@@ -55,7 +55,7 @@ $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 	$(CROSS_COMPILE)ar cvr libnand $(OBJS)
 
-	cp libnand ./../libnand
+	cp libnand ./..
 
 #########################################################################
 

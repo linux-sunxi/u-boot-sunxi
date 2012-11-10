@@ -45,7 +45,7 @@
 #define  NAND_VERSION_1                 0x10
 #define  NAND_DRV_DATE                  0x20120610
 
-#define MAX_NFC_CH                          (1)
+#define MAX_NFC_CH                          (2)
 
 //define the max value of the count of chip select
 #define MAX_CHIP_SELECT_CNT                 (8)

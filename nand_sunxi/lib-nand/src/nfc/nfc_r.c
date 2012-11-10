@@ -171,7 +171,6 @@ __s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len)
 void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
 {
 	__u32 reg_val;
-	__u32 mem_addr;
 
 	NAND_CleanFlushDCacheRegion(buff_addr, len);
 
@@ -179,8 +178,9 @@ void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
 	reg_val = NFC_READ_REG(NFC_REG_CTL);
 	reg_val &= (~(0x1<<15));
 	NFC_WRITE_REG(NFC_REG_CTL, reg_val);
-	NFC_WRITE_REG(NFC_REG_MDMA_ADDR, mem_addr);
+	NFC_WRITE_REG(NFC_REG_MDMA_ADDR, buff_addr);
 	NFC_WRITE_REG(NFC_REG_DMA_CNT, len);
+	
 }
 
 __s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len)
@@ -839,26 +839,19 @@ __s32 NFC_Init(NFC_INIT_INFO *nand_info )
 	debug("NFC_Init %d\n", __LINE__);
     NandIOBase[0] = (__u32)NAND_IORemap(NAND_IO_BASE_ADDR0, 4096);
     NandIOBase[1] = (__u32)NAND_IORemap(NAND_IO_BASE_ADDR1, 4096);
-    debug("NFC_Init %d\n", __LINE__);
     //init clk
     NAND_ClkRequest();
-    debug("NFC_Init %d\n", __LINE__);
     NAND_AHBEnable();
-    debug("NFC_Init %d\n", __LINE__);
     NAND_SetClk(10);
-    debug("NFC_Init %d\n", __LINE__);
     NAND_ClkEnable();
-    debug("NFC_Init %d\n", __LINE__);
 
     //init pin
     NAND_PIORequest();
-    debug("NFC_Init %d\n", __LINE__);
     //init dma
 	NFC_SetEccMode(0);
-	debug("NFC_Init %d\n", __LINE__);
 	/*init nand control machine*/
 	ret = NFC_ChangMode( nand_info);
-	debug("NFC_Init %d\n", __LINE__);
+	debug("NFC_ChangMode, ch %d\n", NandIndex);
 	/*request special dma*/
 
 	return ret;

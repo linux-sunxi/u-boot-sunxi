@@ -30,11 +30,16 @@
 
 
 static char mbr_buf[SUNXI_MBR_SIZE];
+static int  mbr_status;
 
 
 int sunxi_partition_get_total_num(void)
 {
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
+	if(!mbr_status)
+	{
+		return 0;
+	}
 
 	return mbr->PartCount;
 }
@@ -43,7 +48,15 @@ int sunxi_partition_get_name(int index, char *buf)
 {
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 
-	strncpy(buf, (const char *)mbr->array[index].name, 16);
+	if(mbr_status)
+	{
+		strncpy(buf, (const char *)mbr->array[index].name, 16);
+	}
+	else
+	{
+		memset(buf, 0, 16);
+	}
+
 	return 0;
 }
 
@@ -51,9 +64,9 @@ uint sunxi_partition_get_offset(int part_index)
 {
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 
-	if(part_index >= mbr->PartCount)
+	if((!mbr_status) || (part_index >= mbr->PartCount))
 	{
-		return -1;
+		return 0;
 	}
 
 	return mbr->array[part_index].addrlo;
@@ -63,9 +76,9 @@ uint sunxi_partition_get_size(int part_index)
 {
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 
-	if(part_index >= mbr->PartCount)
+	if((!mbr_status) || (part_index >= mbr->PartCount))
 	{
-		return -1;
+		return 0;
 	}
 
 	return mbr->array[part_index].lenlo;
@@ -76,6 +89,10 @@ uint sunxi_partition_get_offset_byname(const char *part_name)
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 	int			i;
 
+	if(!mbr_status)
+	{
+		return 0;
+	}
 	for(i=0;i<mbr->PartCount;i++)
 	{
 		if(!strcmp(part_name, (const char *)mbr->array[i].name))
@@ -84,7 +101,7 @@ uint sunxi_partition_get_offset_byname(const char *part_name)
 		}
 	}
 
-	return -1;
+	return 0;
 }
 
 uint sunxi_partition_get_size_byname(const char *part_name)
@@ -92,6 +109,10 @@ uint sunxi_partition_get_size_byname(const char *part_name)
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 	int			i;
 
+	if(!mbr_status)
+	{
+		return 0;
+	}
 	for(i=0;i<mbr->PartCount;i++)
 	{
 		if(!strcmp(part_name, (const char *)mbr->array[i].name))
@@ -100,7 +121,7 @@ uint sunxi_partition_get_size_byname(const char *part_name)
 		}
 	}
 
-	return -1;
+	return 0;
 }
 
 /* get the partition info, offset and size
@@ -111,6 +132,11 @@ int sunxi_partition_get_info_byname(const char *part_name, uint *part_offset, ui
 {
 	sunxi_mbr_t        *mbr  = (sunxi_mbr_t*)mbr_buf;
 	int			i;
+
+	if(!mbr_status)
+	{
+		return -1;
+	}
 
 	for(i=0;i<mbr->PartCount;i++)
 	{
@@ -144,10 +170,13 @@ int sunxi_partition_init(void)
         if(crc == mbr->crc32)
         {
 			debug("mbr part count = %d\n", mbr->PartCount);
+			mbr_status = 1;
 			
             return mbr->PartCount;
         }
    	}
+	mbr_status = 0;
+	debug("mbr crc error\n");
 
 	return 0;
 }

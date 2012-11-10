@@ -278,7 +278,7 @@ void do_irq (struct pt_regs *pt_regs)
 {
 	u32 idnum;
 
-	debug("irq\n");
+	puts("irq\n");
 	idnum = readl(GIC_INT_ACK_REG);
 	if (idnum == 1023)
 	{

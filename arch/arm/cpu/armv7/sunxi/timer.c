@@ -278,14 +278,25 @@ void add_timer(struct timer_list *timer)
 	timer->timer_num = timer_num;
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[timer_num];	
+#ifndef CONFIG_SUN6I_FPGA	
 	reg_val =   (0 << 0)  |            // 不启动TIMER              
 				(1 << 1)  |            // 使用单次模式              
 				(1 << 2)  |            // 使用高频晶振24M              
 				(5 << 4)  |            // 除频系统32，保证当设置时间是1的时候，触发延时1ms    			  
 				(1 << 7);	
-	
+#else
+	reg_val =   (0 << 0)  |            // 不启动TIMER              
+				(1 << 1)  |            // 使用单次模式              
+				(0 << 2)  |            // 使用高频晶振24M              
+				(0 << 4)  |            //     			  
+				(1 << 7);	
+#endif
 	timer_tcontrol->ctl = reg_val;
+#ifndef CONFIG_SUN6I_FPGA	
 	timer_tcontrol->inter = timer->expires * (24000 / 32);	
+#else
+	timer_tcontrol->inter = timer->expires * 1000/32;	
+#endif
 	timer_callback[timer_num].func_back = timer->function;
 	timer_callback[timer_num].data      = timer->data;
 	if(!timer_num)

@@ -112,7 +112,7 @@ static void flash_env_relocate_spec(void)
 	u32 start;
 
 	start = sunxi_partition_get_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
-	if(start == (u32)(-1)){
+	if(!start){
 		printf("fail to find part named %s\n", CONFIG_SUNXI_ENV_PARTITION);
 		use_default();
 		return;

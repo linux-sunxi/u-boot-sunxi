@@ -49,6 +49,11 @@ sunxi_null_op(unsigned int start_block, unsigned int nblock, void *buffer){
 	return 0;
 }
 
+static int
+sunxi_null_erase(int erase){
+	return 0;
+}
+
 static uint
 sunxi_null_size(void){
 	return 0;
@@ -82,6 +87,7 @@ int (* sunxi_flash_exit_pt) (void) = sunxi_null_exit;
 
 int (* sunxi_sprite_read_pt) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int (* sunxi_sprite_write_pt)(uint start_block, uint nblock, void *buffer) = sunxi_null_op;
+int (* sunxi_sprite_erase_pt)(int erase) = sunxi_null_erase;
 uint (* sunxi_sprite_size_pt)(void) = sunxi_null_size;
 int (* sunxi_sprite_exit_pt) (void) = sunxi_null_exit;
 
@@ -113,6 +119,12 @@ sunxi_flash_nand_write(uint start_block, uint nblock, void *buffer)
 {
 	debug("nand write : start %d, sector %d\n", start_block, nblock);
 	return nand_uboot_write(start_block, nblock, buffer);
+}
+
+static int
+sunxi_flash_nand_erase(int erase)
+{
+	return nand_uboot_erase(erase);
 }
 
 static uint
@@ -223,6 +235,12 @@ sunxi_sprite_mmc_write(unsigned int start_block, unsigned int nblock, void *buff
 	return status;
 }
 
+static int
+sunxi_sprite_mmc_erase(int erase)
+{
+	return 0;
+}
+
 static uint
 sunxi_sprite_mmc_size(void){
 
@@ -283,6 +301,11 @@ int sunxi_sprite_write(uint start_block, uint nblock, void *buffer)
 	return sunxi_sprite_write_pt(start_block, nblock, buffer);
 }
 
+int sunxi_sprite_erase(int erase)
+{
+	return sunxi_sprite_erase_pt(erase);
+}
+
 uint sunxi_sprite_size(void)
 {
 	return sunxi_sprite_size_pt();
@@ -317,6 +340,7 @@ int sunxi_flash_handle_init(void)
 	int card_no;
 
     workmode = uboot_spare_head.boot_data.work_mode;
+	uboot_spare_head.boot_data.storage_type = 2;
 #ifdef DEBUG
     printf("workmode = %d\n", workmode);    
 #endif
@@ -384,6 +408,7 @@ int sunxi_flash_handle_init(void)
         {			
             sunxi_sprite_read_pt  = sunxi_flash_nand_read;
 			sunxi_sprite_write_pt = sunxi_flash_nand_write;
+			sunxi_sprite_erase_pt = sunxi_flash_nand_erase;
 			sunxi_sprite_size_pt  = sunxi_flash_nand_size;
 			sunxi_sprite_exit_pt  = sunxi_flash_nand_exit;	
 
@@ -405,6 +430,7 @@ int sunxi_flash_handle_init(void)
 			}
 			sunxi_sprite_read_pt  = sunxi_sprite_mmc_read;
 			sunxi_sprite_write_pt = sunxi_sprite_mmc_write;
+			sunxi_sprite_erase_pt = sunxi_sprite_mmc_erase;
 			sunxi_sprite_size_pt  = sunxi_sprite_mmc_size;
 			sunxi_sprite_exit_pt  = sunxi_sprite_mmc_exit;	
 
@@ -469,7 +495,16 @@ block_dev_desc_t *sunxi_flash_get_dev(int dev)
 
 unsigned long  sunxi_flash_part_read(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
 {
-	start += sunxi_partition_get_offset(dev_num);
+	uint offset;
+
+	offset = sunxi_partition_get_offset(dev_num);
+	if(!offset)
+	{
+		printf("sunxi flash error: cant get part %d offset\n", dev_num);
+
+		return 0;
+	}
+	start += offset;
 #ifdef DEBUG
     printf("nand try to read from %x, length %x block\n", (int )start, (int )blkcnt);
 #endif
@@ -487,7 +522,16 @@ unsigned long  sunxi_flash_part_read(int dev_num, unsigned long start, unsigned 
 
 unsigned long  sunxi_flash_part_write(int dev_num, unsigned long start, unsigned long blkcnt, void *dst)
 {
-	start += sunxi_partition_get_offset(dev_num);
+	uint offset;
+
+	offset = sunxi_partition_get_offset(dev_num);
+	if(!offset)
+	{
+		printf("sunxi flash error: cant get part %d offset\n", dev_num);
+
+		return 0;
+	}
+	start += offset;
 #ifdef DEBUG
     printf("nand try to write from %x, length %x block\n", (int )start, (int )blkcnt);
 #endif

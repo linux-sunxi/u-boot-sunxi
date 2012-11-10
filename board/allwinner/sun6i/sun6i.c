@@ -93,8 +93,8 @@ int android_misc_flash_check(void) {
 	u32   misc_offset = 0;
 	char  buffer[2048];
 
-	misc_offset = (u32)sunxi_partition_get_offset_byname("misc");
-	if(misc_offset == (u32)(-1))
+	misc_offset = sunxi_partition_get_offset_byname("misc");
+	if(!misc_offset)
 	{
 		puts("no misc partition is found\n");
 		return 0;
