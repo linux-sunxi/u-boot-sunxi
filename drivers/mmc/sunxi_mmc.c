@@ -33,7 +33,14 @@
 #include <malloc.h>
 #include <mmc.h>
 
-#define MMC_FPGA
+
+#define MMC0_SCLK_CFG	(0x01c20000 + 0x88)
+#define MMC1_SCLK_CFG	(MMC0_SCLK_CFG + 4)
+#define MMC2_SCLK_CFG	(MMC0_SCLK_CFG + 8)
+#define MMC3_SCLK_CFG	(MMC0_SCLK_CFG + 0xc)
+#define CCM_AHB1_GATING0	(0x1c20000 + 0X60)
+#define CCM_AHB1_RESET0	(0x1c20000 + 0X2C0)
+
 #undef SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
@@ -116,6 +123,7 @@ struct sunxi_mmc_host {
 	unsigned mmc_no;
 	unsigned hclkbase;
 	unsigned mclkbase;
+	unsigned rstbase;
 	unsigned database;
 	unsigned fatal_err;
 	unsigned mod_clk;
@@ -134,25 +142,26 @@ static int mmc_resource_init(int sdc_no)
 	switch (sdc_no) {
 		case 0:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC0_BASE;
-			mmchost->mclkbase = SUNXI_CCM_MMC0_SCLK_CFG;
+			mmchost->mclkbase = MMC0_SCLK_CFG;
 			break;
 		case 1:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC1_BASE;
-			mmchost->mclkbase = SUNXI_CCM_MMC1_SCLK_CFG;
+			mmchost->mclkbase = MMC1_SCLK_CFG;
 			break;
 		case 2:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC2_BASE;
-			mmchost->mclkbase = SUNXI_CCM_MMC2_SCLK_CFG;
+			mmchost->mclkbase = MMC2_SCLK_CFG;
 			break;
 		case 3:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC3_BASE;
-			mmchost->mclkbase = SUNXI_CCM_MMC3_SCLK_CFG;
+			mmchost->mclkbase = MMC3_SCLK_CFG;
 			break;
 		default:
 			printf("Wrong mmc number %d\n", sdc_no);
 			break;
 	}
-	mmchost->hclkbase = SUNXI_CCM_AHB_GATING0;
+	mmchost->hclkbase = CCM_AHB1_GATING0;
+	mmchost->hclkbase = CCM_AHB1_RESET0;
 	mmchost->database = (unsigned int)mmchost->reg + 0x200;
 	mmchost->mmc_no = sdc_no;
 
@@ -190,6 +199,10 @@ static int mmc_clk_io_on(int sdc_no)
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
+	
+	rval = readl(mmchost->rstbase);
+	rval |= (1 << (8 + sdc_no));
+	writel(rval, mmchost->rstbase);
 
 	/* config mod clock */
 	rval = readl(SUNXI_CCM_PLL5_CFG);
@@ -201,13 +214,15 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 4;
 	else
 		divider = 3;
-	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkbase);
+	writel((1U << 31) | (2U << 8) | (2U << 20) | (2U << 24) | divider, mmchost->mclkbase);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
 
+#ifdef CONFIG_SUN6I_FPGA
 	mmchost->mod_clk = 24000000;
+#endif
 
 	return 0;
 }

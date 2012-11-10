@@ -18,7 +18,7 @@
  *
  */
 #include <common.h>
-#include "axp229.h"
+#include "axp221.h"
 /*
 ************************************************************************************************************
 *
@@ -35,7 +35,7 @@
 *
 ************************************************************************************************************
 */
-int axp229_set_charge_control(void)
+int axp221_set_charge_control(void)
 {
 	u8 reg_value;
 	//disable ts adc, enable all other adc
@@ -77,7 +77,7 @@ int axp229_set_charge_control(void)
 *
 ************************************************************************************************************
 */
-int axp229_clear_data_buffer(void)
+int axp221_clear_data_buffer(void)
 {
 	int i;
 
@@ -107,7 +107,7 @@ int axp229_clear_data_buffer(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_dcin_exist(void)
+int axp221_probe_dcin_exist(void)
 {
 	u8 reg_value;
 
@@ -134,7 +134,46 @@ int axp229_probe_dcin_exist(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_battery_exist(void)
+int axp221_probe_battery_ratio(void)
+{
+	u8 reg_value;
+
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_COULOMB_CAL, &reg_value))
+    {
+        return -1;
+    }
+
+	if(reg_value & 0x80)
+	{
+    	return reg_value & 0x7f;
+	}
+	else
+	{
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_COULOMB_CAL, &reg_value))
+	    {
+	        return -1;
+	    }
+
+	    return reg_value & 0x7f;
+	}
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp221_probe_battery_exist(void)
 {
 	u8 reg_value;
 
@@ -161,7 +200,7 @@ int axp229_probe_battery_exist(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_battery_vol(void)
+int axp221_probe_battery_vol(void)
 {
 	u8  reg_value_h, reg_value_l;
 	int bat_vol;
@@ -194,7 +233,7 @@ int axp229_probe_battery_vol(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_buttery_resistance_record(void)
+int axp221_probe_buttery_resistance_record(void)
 {
 	u8  reg_value;
 
@@ -221,7 +260,7 @@ int axp229_probe_buttery_resistance_record(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_key(void)
+int axp221_probe_key(void)
 {
 	u8  reg_value;
 
@@ -256,7 +295,7 @@ int axp229_probe_key(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_last_poweron_status(void)
+int axp221_probe_last_poweron_status(void)
 {
 	u8  reg_value;
 
@@ -283,7 +322,7 @@ int axp229_probe_last_poweron_status(void)
 *
 ************************************************************************************************************
 */
-int axp229_set_next_poweron_status(int data)
+int axp221_set_next_poweron_status(int data)
 {
 	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DATA_BUFFER11, (u8)data))
     {
@@ -308,7 +347,7 @@ int axp229_set_next_poweron_status(int data)
 *
 ************************************************************************************************************
 */
-int axp229_write_data_buffer(int buffer, uchar value)
+int axp221_write_data_buffer(int buffer, uchar value)
 {
 	if(axp_i2c_write(AXP22_ADDR, (u8)buffer, value))
     {
@@ -335,7 +374,7 @@ int axp229_write_data_buffer(int buffer, uchar value)
 *
 ************************************************************************************************************
 */
-int axp229_probe_poweron_cause(void)
+int axp221_probe_poweron_cause(void)
 {
     __u8   reg_value;
 
@@ -363,7 +402,7 @@ int axp229_probe_poweron_cause(void)
 *
 ************************************************************************************************************
 */
-int axp229_set_dcdc1(int set_vol)
+int axp221_set_dcdc1(int set_vol)
 {
     uint tmp, i;
     int  vol;
@@ -371,52 +410,31 @@ int axp229_set_dcdc1(int set_vol)
 
 	if((set_vol < 1600) || (set_vol > 3400))
 	{
+		debug("%d\n", __LINE__);
 		return -1;
 	}
 	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, &reg_value))
     {
+		debug("%d\n", __LINE__);
         return -1;
     }
-    tmp = reg_value & 0x1f;
-    vol = tmp * 100 + 1600;
-    //如果电压过高，则调低
-    while(vol > set_vol)
-    {
-        tmp --;
-        reg_value &= ~0x1f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x1f;
-        vol     = tmp * 100 + 1600;
-    }
-    //如果电压过低，则调高，根据先调低再调高的过程，保证电压会大于等于用户设定电压
-    while(vol < set_vol)
-    {
-        tmp ++;
-        reg_value &= ~0x1f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x1f;
-        vol     = tmp * 100 + 1600;
-    }
+	reg_value = ((set_vol - 1600)/100);
+	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, reg_value))
+	{
+		printf("sunxi pmu error : unable to set dcdc1\n");
 
-    return 0;
+		return -1;
+	}
+
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC1OUT_VOL, &reg_value))
+    {
+    	debug("%d\n", __LINE__);
+
+        return -1;
+    }
+    printf("dcdc1 reg = %x\n", reg_value);
+
+	return 0;
 }
 
 /*
@@ -435,7 +453,7 @@ int axp229_set_dcdc1(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_dcdc2(int set_vol)
+int axp221_set_dcdc2(int set_vol)
 {
     uint tmp, i;
     int  vol;
@@ -506,7 +524,7 @@ int axp229_set_dcdc2(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_dcdc3(int set_vol)
+int axp221_set_dcdc3(int set_vol)
 {
     uint tmp, i;
     int  vol;
@@ -514,53 +532,33 @@ int axp229_set_dcdc3(int set_vol)
 
 	if((set_vol < 600) || (set_vol > 1860))
 	{
+		debug("%d\n", __LINE__);
+
 		return -1;
 	}
 	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, &reg_value))
     {
+    	debug("%d\n", __LINE__);
+
         return -1;
     }
-    tmp = reg_value & 0x3f;
-    vol = tmp * 20 + 600;
-    //如果电压过高，则调低
-    while(vol > set_vol)
-    {
-        tmp --;
-        reg_value &= ~0x3f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x3f;
-        vol     = tmp * 20 + 600;
-    }
-    //如果电压过低，则调高，根据先调低再调高的过程，保证电压会大于等于用户设定电压
-    while(vol < set_vol)
-    {
-        tmp ++;
-        reg_value &= ~0x3f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x3f;
-        vol     = tmp * 20 + 600;
-    }
+	reg_value = ((set_vol - 600)/20);
+	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, reg_value))
+	{
+		printf("sunxi pmu error : unable to set dcdc1\n");
 
-    return 0;
+		return -1;
+	}
 
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC3OUT_VOL, &reg_value))
+    {
+    	debug("%d\n", __LINE__);
+
+        return -1;
+    }
+    printf("dcdc3 reg = %x\n", reg_value);
+
+	return 0;
 }
 /*
 ************************************************************************************************************
@@ -578,7 +576,7 @@ int axp229_set_dcdc3(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_dcdc4(int set_vol)
+int axp221_set_dcdc4(int set_vol)
 {
     uint tmp, i;
     int  vol;
@@ -586,53 +584,33 @@ int axp229_set_dcdc4(int set_vol)
 
 	if((set_vol < 600) || (set_vol > 1540))
 	{
+		debug("%d\n", __LINE__);
+
 		return -1;
 	}
 	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, &reg_value))
     {
+    	debug("%d\n", __LINE__);
+
         return -1;
     }
-    tmp = reg_value & 0x3f;
-    vol = tmp * 20 + 600;
-    //如果电压过高，则调低
-    while(vol > set_vol)
-    {
-        tmp --;
-        reg_value &= ~0x3f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x3f;
-        vol     = tmp * 20 + 600;
-    }
-    //如果电压过低，则调高，根据先调低再调高的过程，保证电压会大于等于用户设定电压
-    while(vol < set_vol)
-    {
-        tmp ++;
-        reg_value &= ~0x3f;
-        reg_value |= tmp;
-        if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
-	    for(i=0;i<2000;i++);
-        if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-        tmp     = reg_value & 0x3f;
-        vol     = tmp * 20 + 600;
-    }
+	reg_value = ((set_vol - 600)/20);
+	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, reg_value))
+	{
+		printf("sunxi pmu error : unable to set dcdc1\n");
 
-    return 0;
+		return -1;
+	}
 
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC4OUT_VOL, &reg_value))
+    {
+    	debug("%d\n", __LINE__);
+
+        return -1;
+    }
+    printf("dcdc4 reg = %x\n", reg_value);
+
+	return 0;
 }
 /*
 ************************************************************************************************************
@@ -650,39 +628,39 @@ int axp229_set_dcdc4(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_dcdc5(int set_vol)
+int axp221_set_dcdc5(int set_vol)
 {
-	u8 reg_value;
+    uint tmp, i;
+    int  vol;
+    u8   reg_value;
 
-	if(!set_vol)
+	if((set_vol < 1000) || (set_vol > 2550))
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<5);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, reg_value))
-	    {
-	        return -1;
-	    }
+		debug("%d\n", __LINE__);
+
+		return -1;
 	}
-	else
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC5OUT_VOL, &reg_value))
+    {
+    	debug("%d\n", __LINE__);
+
+        return -1;
+    }
+	reg_value = ((set_vol - 1000)/50);
+	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC5OUT_VOL, reg_value))
 	{
-		if((set_vol < 1000) || (set_vol > 2550))
-		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC5OUT_VOL, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= 0x1f;
-		reg_value |= ((set_vol - 1000)/50);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC5OUT_VOL, reg_value))
-	    {
-	        return -1;
-	    }
+		printf("sunxi pmu error : unable to set dcdc1\n");
+
+		return -1;
 	}
+
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_DC5OUT_VOL, &reg_value))
+    {
+    	debug("%d\n", __LINE__);
+
+        return -1;
+    }
+    printf("dcdc5 reg = %x\n", reg_value);
 
 	return 0;
 }
@@ -703,7 +681,7 @@ int axp229_set_dcdc5(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo2(int set_vol)
+int axp221_set_ldo2(int set_vol)
 {
 	u8 reg_value;
 
@@ -755,42 +733,42 @@ int axp229_set_ldo2(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo3(int set_vol)
+int axp221_set_ldo3(int set_vol)
+{
+	u8 reg_value;
+
+	if(!set_vol)
 	{
-		u8 reg_value;
-
-		if(!set_vol)
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &reg_value))
 		{
-			if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &reg_value))
-			{
-				return -1;
-			}
-			reg_value &= ~(1<<7);
-			if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, reg_value))
-			{
-				return -1;
-			}
+			return -1;
 		}
-		else
+		reg_value &= ~(1<<7);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, reg_value))
 		{
-			if((set_vol < 700) || (set_vol > 3300))
-			{
-				return -1;
-			}
-			if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, &reg_value))
-			{
-				return -1;
-			}
-			reg_value &= 0x1f;
-			reg_value |= ((reg_value - 700)/100);
-			if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, reg_value))
-			{
-				return -1;
-			}
+			return -1;
 		}
-
-		return 0;
 	}
+	else
+	{
+		if((set_vol < 700) || (set_vol > 3300))
+		{
+			return -1;
+		}
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, &reg_value))
+		{
+			return -1;
+		}
+		reg_value &= 0x1f;
+		reg_value |= ((reg_value - 700)/100);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, reg_value))
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
 /*
 ************************************************************************************************************
 *
@@ -807,7 +785,7 @@ int axp229_set_ldo3(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo4(int set_vol)
+int axp221_set_ldo4(int set_vol)
 {
 	u8 reg_value;
 
@@ -858,7 +836,7 @@ int axp229_set_ldo4(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo5(int set_vol)
+int axp221_set_ldo5(int set_vol)
 {
 	u8 reg_value;
 
@@ -891,6 +869,7 @@ int axp229_set_ldo5(int set_vol)
 			return -1;
 		}
 	}
+
 	return 0;
 }
 /*
@@ -909,7 +888,7 @@ int axp229_set_ldo5(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo6(int set_vol)
+int axp221_set_ldo6(int set_vol)
 {
 	u8 reg_value;
 
@@ -942,6 +921,7 @@ int axp229_set_ldo6(int set_vol)
 			return -1;
 		}
 	}
+
 	return 0;
 }
 /*
@@ -960,7 +940,7 @@ int axp229_set_ldo6(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo7(int set_vol)
+int axp221_set_ldo7(int set_vol)
 {
 	u8 reg_value;
 
@@ -993,6 +973,7 @@ int axp229_set_ldo7(int set_vol)
 			return -1;
 		}
 	}
+
 	return 0;
 }
 /*
@@ -1011,7 +992,7 @@ int axp229_set_ldo7(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo8(int set_vol)
+int axp221_set_ldo8(int set_vol)
 {
 	u8 reg_value;
 
@@ -1062,7 +1043,7 @@ int axp229_set_ldo8(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo9(int set_vol)
+int axp221_set_ldo9(int set_vol)
 {
 	u8 reg_value;
 
@@ -1113,7 +1094,7 @@ int axp229_set_ldo9(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_ldo10(int set_vol)
+int axp221_set_ldo10(int set_vol)
 {
 	u8 reg_value;
 
@@ -1165,7 +1146,7 @@ int axp229_set_ldo10(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_power_off(void)
+int axp221_set_power_off(void)
 {
     u8 reg_value;
 
@@ -1197,7 +1178,7 @@ int axp229_set_power_off(void)
 *
 ************************************************************************************************************
 */
-int axp229_set_poweroff_vol(int set_vol)
+int axp221_set_poweroff_vol(int set_vol)
 {
 	u8 reg_value;
 
@@ -1241,7 +1222,7 @@ int axp229_set_poweroff_vol(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp229_set_charge_current(int current)
+int axp221_set_charge_current(int current)
 {
 	u8   reg_value;
 	int  step;
@@ -1285,7 +1266,7 @@ int axp229_set_charge_current(int current)
 *
 ************************************************************************************************************
 */
-int axp229_probe_charge_current(void)
+int axp221_probe_charge_current(void)
 {
 	__u8  reg_value;
 	int	  current;
@@ -1315,7 +1296,7 @@ int axp229_probe_charge_current(void)
 *
 ************************************************************************************************************
 */
-int axp229_probe_charge_status(void)
+int axp221_probe_charge_status(void)
 {
 	__u8  reg_value;
 
@@ -1341,7 +1322,7 @@ int axp229_probe_charge_status(void)
 *
 ************************************************************************************************************
 */
-int axp229_set_vbus_cur_limit(int current)
+int axp221_set_vbus_cur_limit(int current)
 {
 	__u8 reg_value;
 
@@ -1386,7 +1367,7 @@ int axp229_set_vbus_cur_limit(int current)
 *
 ************************************************************************************************************
 */
-int axp229_set_vbus_vol_limit(int vol)
+int axp221_set_vbus_vol_limit(int vol)
 {
 	__u8 reg_value;
 
@@ -1435,12 +1416,12 @@ int axp229_set_vbus_vol_limit(int vol)
 *
 ************************************************************************************************************
 */
-int axp229_probe_rest_battery_capacity(void)
+int axp221_probe_rest_battery_capacity(void)
 {
 	u8  reg_value;
 	int bat_rest;
 
-	if(axp229_probe_charge_status() == 1)
+	if(axp221_probe_charge_status() == 1)
 	{
 		return 100;
 	}

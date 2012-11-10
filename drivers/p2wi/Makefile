@@ -23,14 +23,10 @@
 
 include $(TOPDIR)/config.mk
 
-LIB 	:= $(obj)libpower.o
+LIB 	:= $(obj)libp2wi.o
 
-COBJS-$(CONFIG_FTPMU010_POWER)	+= ftpmu010.o
-COBJS-$(CONFIG_TWL4030_POWER)	+= twl4030.o
-COBJS-$(CONFIG_TWL6030_POWER)	+= twl6030.o
-COBJS-y							+= axp.o
-COBJS-y							+= axp209.o
-COBJS-y							+= axp221.o
+COBJS-y			+= p2wi.o
+
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)

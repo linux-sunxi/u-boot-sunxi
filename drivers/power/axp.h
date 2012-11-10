@@ -31,14 +31,24 @@
 
 
 
+//static inline int axp_i2c_read(unsigned char chip, unsigned int addr, unsigned char *buffer)
+//{
+//	return i2c_read(chip, addr, 1, buffer, 1);
+//}
+//
+//static inline int axp_i2c_write(unsigned char chip, unsigned int addr, unsigned char data)
+//{
+//	return i2c_write(chip, addr, 1, &data, 1);
+//}
+
 static inline int axp_i2c_read(unsigned char chip, unsigned int addr, unsigned char *buffer)
 {
-	return i2c_read(chip, addr, 1, buffer, 1);
+	return p2wi_read(&addr, buffer, 1);
 }
 
 static inline int axp_i2c_write(unsigned char chip, unsigned int addr, unsigned char data)
 {
-	return i2c_write(chip, addr, 1, &data, 1);
+	return p2wi_write(&addr, &data, 1);
 }
 
 static inline int abs(int x)
