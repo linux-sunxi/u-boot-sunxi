@@ -35,6 +35,7 @@ COBJS-$(CONFIG_MELE_A1000)	+= dram_mele_a1000.o
 COBJS-$(CONFIG_MINI_X)		+= dram_mini_x.o
 COBJS-$(CONFIG_A7HD)		+= dram_hyundai_a7hd.o
 COBJS-$(CONFIG_MK802)		+= dram_mk802.o
+COBJS-$(CONFIG_MK802II)		+= dram_mk802ii.o
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)
