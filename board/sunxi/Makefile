@@ -35,3 +35,4 @@ obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
 obj-$(CONFIG_MELE_A1000)	+= dram_mele_a1000.o
 obj-$(CONFIG_MINI_X)		+= dram_mini_x.o
 obj-$(CONFIG_MK802)		+= dram_mk802.o
+obj-$(CONFIG_MK802II)		+= dram_mk802ii.o
