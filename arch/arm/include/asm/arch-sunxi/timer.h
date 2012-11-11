@@ -93,6 +93,8 @@ struct sunxi_timer_reg {
 	struct sunxi_rtc rtc;
 	struct sunxi_alarm alarm;
 	struct sunxi_tgp tgp[4];
+	u32 res5[3];
+	u32 cpu_cfg;
 };
 
 #endif /* __ASSEMBLY__ */
