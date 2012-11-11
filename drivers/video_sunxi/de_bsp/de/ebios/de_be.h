@@ -109,7 +109,7 @@ extern __u32 image_reg_base[2];
 #define DE_BE_RUINT32IDX(sel,offset,index)       DE_RUINT32IDX(DE_BE_GET_REG_BASE(sel)+(offset),index)
 
 extern __u32  csc_tab[192];
-extern __u32  image_enhance_tab[224];
+extern __u32  image_enhance_tab[256];
 extern __u32  fir_tab[1792];
 extern __u32  fir_tab_video[1792];
 

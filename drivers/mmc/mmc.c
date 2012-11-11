@@ -1188,8 +1188,10 @@ int mmc_init(struct mmc *mmc)
 	err = mmc->init(mmc);
 
 	if (err)
+	{
+		printf("mmc->init error\n");
 		return err;
-
+	}
 	mmc_set_bus_width(mmc, 1);
 	mmc_set_clock(mmc, 1);
 
@@ -1197,8 +1199,10 @@ int mmc_init(struct mmc *mmc)
 	err = mmc_go_idle(mmc);
 
 	if (err)
+	{
+		printf("mmc go idle error\n");
 		return err;
-
+	}
 	/* The internal partition reset to user partition(0) at every CMD0*/
 	mmc->part_num = 0;
 
@@ -1220,7 +1224,10 @@ int mmc_init(struct mmc *mmc)
 
 	err = mmc_startup(mmc);
 	if (err)
+	{
+		printf("mmc startup error\n");
 		mmc->has_init = 0;
+	}
 	else
 		mmc->has_init = 1;
 	

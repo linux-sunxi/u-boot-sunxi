@@ -39,11 +39,11 @@ __s32 BSP_disp_vga_open(__u32 sel)
         BSP_disp_set_output_csc(sel, DISP_OUTPUT_TYPE_VGA);
         DE_BE_set_display_size(sel, vga_mode_to_width(vga_mode), vga_mode_to_height(vga_mode));
         DE_BE_Output_Select(sel, sel);
-    	TCON1_set_vga_mode(sel,vga_mode);
+    	tcon1_set_vga_mode(sel,vga_mode);
         TVE_set_vga_mode(sel);
 
     	Disp_TVEC_Open(sel);
-    	TCON1_open(sel);
+    	tcon1_open(sel);
 
         for(i=0; i<4; i++)
         {
@@ -73,7 +73,7 @@ __s32 BSP_disp_vga_close(__u32 sel)
 	if(gdisp.screen[sel].status & VGA_ON)
 	{    
         Image_close(sel);
-    	TCON1_close(sel);
+    	tcon1_close(sel);
     	Disp_TVEC_Close(sel);
     	
     	tve_clk_off(sel);
@@ -114,15 +114,15 @@ __s32 BSP_disp_vga_set_src(__u32 sel, __disp_lcdc_src_t src)
     switch (src)
     {
         case DISP_LCDC_SRC_DE_CH1:
-            TCON1_select_src(sel, LCDC_SRC_DE1);
+            tcon1_src_select(sel, LCD_SRC_BE0);
             break;
 
         case DISP_LCDC_SRC_DE_CH2:
-            TCON1_select_src(sel, LCDC_SRC_DE2);
+            tcon1_src_select(sel, LCD_SRC_BE1);
             break;
             
         case DISP_LCDC_SRC_BLUT:
-            TCON1_select_src(sel, LCDC_SRC_BLUE);
+            tcon1_src_select(sel, LCD_SRC_BLUE);
             break;
 
         default:

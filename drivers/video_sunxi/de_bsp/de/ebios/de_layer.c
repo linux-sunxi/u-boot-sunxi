@@ -89,7 +89,6 @@ __s32 DE_BE_Layer_Set_Work_Mode(__u32 sel, __u8 layidx,__u8 mode)
 static __s32 DE_BE_Layer_Set_Addr(__u32 sel, __u8 layidx,__u32 addr)   //bit
 {
 	__u32 tmp_l,tmp_h,tmp;
-
 	tmp_l = addr<<3;
 	tmp_h = (addr&0xe0000000)>>29;
     DE_BE_WUINT32IDX(sel, DE_BE_FRMBUF_LOW32ADDR_OFF,layidx,tmp_l);

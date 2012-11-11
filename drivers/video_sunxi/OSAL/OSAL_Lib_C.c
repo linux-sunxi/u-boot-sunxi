@@ -37,6 +37,22 @@ void OSAL_free(void *pAddr)
     /* to do */
 }
 
+/* 连续的物理内存分配 */
+void * OSAL_PhyAlloc(__u32 Size)
+{
+    void * addr;
+
+    addr = malloc(Size);
+	return addr;
+}
+
+void OSAL_PhyFree(void *pAddr, __u32 Size)
+{
+   free(pAddr);
+
+   return;
+}
+
 
 /* 虚拟内存和物理内存之间的转化 */
 unsigned int OSAL_VAtoPA(void *va)

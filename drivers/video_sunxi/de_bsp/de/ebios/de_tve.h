@@ -1,6 +1,6 @@
 
-#ifndef __DE_TVE_I_H__
-#define __DE_TVE_I_H__
+#ifndef __DE_TVE_H__
+#define __DE_TVE_H__
 
 
 /*tv encoder registers offset*/

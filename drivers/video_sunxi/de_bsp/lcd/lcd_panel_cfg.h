@@ -4,6 +4,7 @@
 
 #include "../bsp_display.h"
 
+
 static void LCD_power_on(__u32 sel);
 static void LCD_power_off(__u32 sel);
 static void LCD_bl_open(__u32 sel);
@@ -27,6 +28,9 @@ extern void LCD_CPU_WR(__u32 sel, __u32 index, __u32 data);
 extern void LCD_CPU_WR_INDEX(__u32 sel,__u32 index);
 extern void LCD_CPU_WR_DATA(__u32 sel, __u32 data);
 extern void LCD_CPU_AUTO_FLUSH(__u32 sel, __bool en);
+
+extern __s32 dsi_dcs_wr(__u32 sel,__u8 cmd,__u8* para_p,__u32 para_num);
+
 extern __s32 LCD_GPIO_request(__u32 sel, __u32 io_index);
 extern __s32 LCD_GPIO_release(__u32 sel,__u32 io_index);
 extern __s32 LCD_GPIO_set_attr(__u32 sel,__u32 io_index, __bool b_output);

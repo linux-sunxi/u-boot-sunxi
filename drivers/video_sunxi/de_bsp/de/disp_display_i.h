@@ -5,27 +5,28 @@
 #include "ebios/ebios_lcdc_tve.h"
 
 
-
 #ifdef __LINUX_OSAL__
 #define DE_INF __inf
 #define DE_MSG __msg
 #define DE_WRN __wrn
 #define OSAL_IRQ_RETURN IRQ_HANDLED
 #else
-#define DE_INF 
-#define DE_MSG 
-#define DE_WRN 
+#define DE_INF(msg...)
+#define DE_MSG __msg
+#define DE_WRN __wrn
+#ifndef OSAL_IRQ_RETURN
 #define OSAL_IRQ_RETURN DIS_SUCCESS
+#endif
 #endif
 
 #define HANDTOID(handle)  ((handle) - 100)
 #define IDTOHAND(ID)  ((ID) + 100)
 
-#define INTC_IRQNO_SCALER0  47
-#define INTC_IRQNO_SCALER1  48
-#define INTC_IRQNO_LCDC0    44
-#define INTC_IRQNO_LCDC1    45
-
+#define INTC_IRQNO_SCALER0  AW_IRQ_DEFE0
+#define INTC_IRQNO_LCDC0    AW_IRQ_LCD0
+#define INTC_IRQNO_DSI      AW_IRQ_MIPIDSI
+#define INTC_IRQNO_LCDC1    0//AW_IRQ_LCD1
+#define INTC_IRQNO_SCALER1  0//AW_IRQ_DEFE1
 #define MAX_SPRITE_BLOCKS	32
 
 

@@ -29,13 +29,16 @@ COBJS-y += dev_disp.o \
 							OSAL/OSAL_Clock.o OSAL/OSAL_Int.o OSAL/OSAL_IrqLock.o OSAL/OSAL_Cache.o\
 							OSAL/OSAL_Lib_C.o OSAL/OSAL_Pin.o OSAL/OSAL_Parser.o\
 							de_bsp/de/ebios/de_be.o de_bsp/de/ebios/de_fe.o de_bsp/de/ebios/de_hwc.o\
-							de_bsp/de/ebios/de_layer.o de_bsp/de/ebios/de_lcdc.o de_bsp/de/ebios/de_tvec.o\
+							de_bsp/de/ebios/de_layer.o de_bsp/de/ebios/de_lcd.o de_bsp/de/ebios/de_tve.o de_bsp/de/ebios/de_dsi.o\
 							de_bsp/de/disp_clk.o de_bsp/de/disp_combined.o de_bsp/de/disp_de.o de_bsp/de/disp_display.o\
 							de_bsp/de/disp_event.o de_bsp/de/disp_hdmi.o de_bsp/de/disp_hwc.o de_bsp/de/disp_layer.o\
-							de_bsp/de/disp_lcd.o de_bsp/de/disp_scaler.o de_bsp/de/disp_sprite.o de_bsp/de/disp_tv.o\
+							de_bsp/de/disp_lcd.o de_bsp/de/disp_scaler.o de_bsp/de/disp_tv.o\
 							de_bsp/de/disp_vga.o de_bsp/de/disp_video.o\
+							de_bsp/iep/cmu/iep_cmu.o de_bsp/de/disp_iep.o\
+							de_bsp/iep/drc/iep_drc.o de_bsp/iep/drc/iep_drc_ebios.o\
+							de_bsp/iep/deu/iep_deu.o de_bsp/iep/deu/iep_deu_ebios.o\
 							de_bsp/lcd/lcd0_panel_cfg.o de_bsp/lcd/lcd1_panel_cfg.o\
-							
+
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

@@ -202,11 +202,11 @@ __s32 BSP_disp_tv_open(__u32 sel)
         DE_BE_set_display_size(sel, tv_mode_to_width(tv_mod), tv_mode_to_height(tv_mod));
         DE_BE_Output_Select(sel, sel);
         
-        TCON1_set_tv_mode(sel,tv_mod);
+        tcon1_set_tv_mode(sel,tv_mod);
         TVE_set_tv_mode(sel, tv_mod);	
         Disp_TVEC_DacCfg(sel, tv_mod);
 		
-        TCON1_open(sel);
+        tcon1_open(sel);
         Disp_TVEC_Open(sel);
 
         Disp_Switch_Dram_Mode(DISP_OUTPUT_TYPE_TV, tv_mod);
@@ -255,7 +255,7 @@ __s32 BSP_disp_tv_close(__u32 sel)
     if(gdisp.screen[sel].status & TV_ON)
     {        
         Image_close(sel);
-        TCON1_close(sel);
+        tcon1_close(sel);
         Disp_TVEC_Close(sel);
 
         tve_clk_off(sel);
@@ -401,15 +401,15 @@ __s32 BSP_disp_tv_set_src(__u32 sel, __disp_lcdc_src_t src)
     switch (src)
     {
         case DISP_LCDC_SRC_DE_CH1:
-            TCON1_select_src(sel, LCDC_SRC_DE1);
+            tcon1_src_select(sel, LCD_SRC_BE0);
             break;
 
         case DISP_LCDC_SRC_DE_CH2:
-            TCON1_select_src(sel, LCDC_SRC_DE2);
+            tcon1_src_select(sel, LCD_SRC_BE1);
             break;
             
         case DISP_LCDC_SRC_BLUT:
-            TCON1_select_src(sel, LCDC_SRC_BLUE);
+            tcon1_src_select(sel, LCD_SRC_BLUE);
             break;
 
         default:
@@ -419,3 +419,10 @@ __s32 BSP_disp_tv_set_src(__u32 sel, __disp_lcdc_src_t src)
     return DIS_SUCCESS;
 }
 
+
+__s32 BSP_disp_restore_tvec_reg(__u32 sel)
+{
+    TVE_init(sel);
+
+    return 0;
+}

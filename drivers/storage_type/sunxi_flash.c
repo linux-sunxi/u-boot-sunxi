@@ -339,8 +339,10 @@ int sunxi_flash_handle_init(void)
 	int storage_type;
 	int card_no;
 
+	uboot_spare_head.boot_data.storage_type = 0;
+	uboot_spare_head.boot_data.work_mode = WORK_MODE_BOOT;//WORK_MODE_CARD_PRODUCT;
+	
     workmode = uboot_spare_head.boot_data.work_mode;
-	uboot_spare_head.boot_data.storage_type = 2;
 #ifdef DEBUG
     printf("workmode = %d\n", workmode);    
 #endif
@@ -389,9 +391,9 @@ int sunxi_flash_handle_init(void)
 		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
 			
 		    puts("NAND:   ");
-			//debug("we force to erase nand flash\n");
-			//nand_uboot_erase(1);
-			//debug("erase finish");
+			debug("we force to erase nand flash\n");
+			nand_uboot_erase(1);
+			debug("erase finish");
 		    nand_uboot_init(1);
 			debug("init ok\n");
 

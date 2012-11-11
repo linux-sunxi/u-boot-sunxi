@@ -15,8 +15,7 @@
 */
 #include "OSAL_Clock.h"
 
-
-
+#if 0
 __s32 OSAL_CCMU_SetSrcFreq(__u32 nSclkNo, __u32 nFreq)
 {
     //__inf("OSAL_CCMU_SetSrcFreq,%d,%d\n", nSclkNo, nFreq);
@@ -444,3 +443,55 @@ __s32 OSAL_CCMU_MclkReset(__hdle hMclk, __s32 bReset)
     return 0;
 }
 
+#else
+typedef __u32 CSP_CCM_sysClkNo_t;
+__s32 OSAL_CCMU_SetSrcFreq( CSP_CCM_sysClkNo_t nSclkNo, __u32 nFreq )
+{
+    return 0;
+}
+
+__u32 OSAL_CCMU_GetSrcFreq( CSP_CCM_sysClkNo_t nSclkNo )
+{
+    return 0;
+}
+
+__hdle OSAL_CCMU_OpenMclk( __s32 nMclkNo )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_CloseMclk( __hdle hMclk )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_SetMclkSrc( __hdle hMclk, CSP_CCM_sysClkNo_t nSclkNo )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_GetMclkSrc( __hdle hMclk )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_SetMclkDiv( __hdle hMclk, __s32 nDiv )
+{
+    return 0;
+}
+
+__u32 OSAL_CCMU_GetMclkDiv( __hdle hMclk )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_MclkOnOff( __hdle hMclk, __s32 bOnOff )
+{
+    return 0;
+}
+
+__s32 OSAL_CCMU_MclkReset(__hdle hMclk, __s32 bReset)
+{
+    return 0;
+}
+#endif

@@ -31,7 +31,7 @@ __u32  csc_tab[192] =
     0x0274,0x00bb,0x003f,0x0100,0x1ea5,0x1f98,0x01c1,0x0800,0x1e67,0x01c1,0x1fd7,0x0800 //rgb2yuv
 };
 
-__u32  image_enhance_tab[224] = 
+__u32  image_enhance_tab[256] = 
 {
 	//bt601(CONSTANT and COEFFICIENT in 12bit fraction)
 	0x0000041D,0x00000810,0x00000191,0x00010000,0xFFFFFDA2,0xFFFFFB58,0x00000706,0x00080000,
@@ -48,6 +48,11 @@ __u32  image_enhance_tab[224] =
 	0x00000800,0xFFFFF94F,0xFFFFFEB2,0x00080000,0x00000000,0x00000000,0x00000000,0x00001000,
 	0x00001000,0x00000000,0x0000166F,0xFFF4C84B,0x00001000,0xFFFFFA78,0xFFFFF491,0x00087B16,
 	0x00001000,0x00001C56,0x00000000,0xFFF1D4FE,0x00000000,0x00000000,0x00000000,0x00001000,
+	//Dedicated CSC for DRC(CONSTANT and COEFFICIENT in 12bit fraction)
+	0x0000030A,0x00000A66,0x0000028F,0x00000000,0xFFFFFE31,0xFFFFF9CF,0x00000800,0x00080000,
+	0x00000800,0xFFFFF995,0xFFFFFE6B,0x00080000,0x00000000,0x00000000,0x00000000,0x00001000,
+	0x00001000,0x00000000,0x000019EC,0xFFF30A3D,0x00001000,0xFFFFF962,0xFFFFF86D,0x000718BC,
+	0x00001000,0x00001AE1,0x00000000,0xFFF28F5C,0x00000000,0x00000000,0x00000000,0x00001000,
     //sin table
     0xffffffbd,0xffffffbf,0xffffffc1,0xffffffc2,0xffffffc4,0xffffffc6,0xffffffc8,0xffffffca,
     0xffffffcc,0xffffffce,0xffffffd1,0xffffffd3,0xffffffd5,0xffffffd7,0xffffffd9,0xffffffdb,
@@ -312,10 +317,10 @@ __u32  fir_tab_video[1792] = {
 						0x00202000,0x00211f00,0x00231d00,0x00251b00,0x00271900,0x00291700,0x002a1600,0x002c1400,
 						0x002e1200,0x00301000,0x00310f00,0x00330d00,0x00340c00,0x01350a00,0x02360800,0x03360700,
 
-						0x00004000,0x000140ff,0x00033ffe,0x00043ffd,0x00063efc,0xff083dfc,0x000a3bfb,0xff0d39fb,
-					    0xff0f37fb,0xff1136fa,0xfe1433fb,0xfe1631fb,0xfd192ffb,0xfd1c2cfb,0xfd1f29fb,0xfc2127fc,
-					    0xfc2424fc,0xfc2721fc,0xfb291ffd,0xfb2c1cfd,0xfb2f19fd,0xfb3116fe,0xfb3314fe,0xfa3611ff,
-					    0xfb370fff,0xfb390dff,0xfb3b0a00,0xfc3d08ff,0xfc3e0600,0xfd3f0400,0xfe3f0300,0xff400100,
+						0x00053704,0x00063703,0x00073702,0x00093601,0x000b3500,0x000c3400,0x000e3200,0x000f3100,
+						0x00112f00,0x00132d00,0x00152b00,0x00162a00,0x00182800,0x001a2600,0x001c2400,0x001e2200,
+						0x00202000,0x00211f00,0x00231d00,0x00251b00,0x00271900,0x00291700,0x002a1600,0x002c1400,
+						0x002e1200,0x00301000,0x00310f00,0x00330d00,0x00340c00,0x01350a00,0x02360800,0x03360700,
 
                         0x00053704,0x00063703,0x00073702,0x00093601,0x000b3500,0x000c3400,0x000e3200,0x000f3100,
                         0x00112f00,0x00132d00,0x00152b00,0x00162a00,0x00182800,0x001a2600,0x001c2400,0x001e2200,
@@ -383,14 +388,14 @@ __u32  fir_tab_video[1792] = {
                         0x12000000,0x0000002e,0x10000000,0x00000030,0x0e000000,0x00000032,0x0d000000,0x00000033,
                         0x0b000000,0x00000035,0x09000000,0x00000136,0x08000000,0x00000236,0x06000000,0x00000337,
 
-                        0x40000000,0x00000000,0x40fe0000,0x0000ff03,0x3ffd0000,0x0000ff05,0x3ffc0000,0x0000ff06,
-					    0x3efb0000,0x0000ff08,0x3dfb0000,0x0000ff09,0x3bfa0000,0x0000fe0d,0x39fa0000,0x0000fe0f,
-					    0x38fa0000,0x0000fe10,0x36fa0000,0x0000fe12,0x33fa0000,0x0000fd16,0x31fa0000,0x0000fd18,
-					    0x2ffa0000,0x0000fd1a,0x2cfa0000,0x0000fc1e,0x29fa0000,0x0000fc21,0x27fb0000,0x0000fb23,
-					    0x24fb0000,0x0000fb26,0x21fb0000,0x0000fb29,0x1ffc0000,0x0000fa2b,0x1cfc0000,0x0000fa2e,
-					    0x19fd0000,0x0000fa30,0x16fd0000,0x0000fa33,0x14fd0000,0x0000fa35,0x11fe0000,0x0000fa37,
-					    0x0ffe0000,0x0000fa39,0x0dfe0000,0x0000fa3b,0x0afe0000,0x0000fa3e,0x08ff0000,0x0000fb3e,
-					    0x06ff0000,0x0000fb40,0x05ff0000,0x0000fc40,0x03ff0000,0x0000fd41,0x01ff0000,0x0000fe42,
+                        0x36050000,0x00000005,0x36030000,0x00000007,0x36020000,0x00000008,0x36010000,0x00000009,
+                        0x35000000,0x0000000b,0x33000000,0x0000000d,0x32000000,0x0000000e,0x30000000,0x00000010,
+                        0x2e000000,0x00000012,0x2d000000,0x00000013,0x2b000000,0x00000015,0x29000000,0x00000017,
+                        0x27000000,0x00000019,0x26000000,0x0000001a,0x24000000,0x0000001c,0x22000000,0x0000001e,
+                        0x20000000,0x00000020,0x1e000000,0x00000022,0x1c000000,0x00000024,0x1a000000,0x00000026,
+                        0x19000000,0x00000027,0x17000000,0x00000029,0x15000000,0x0000002b,0x13000000,0x0000002d,
+                        0x12000000,0x0000002e,0x10000000,0x00000030,0x0e000000,0x00000032,0x0d000000,0x00000033,
+                        0x0b000000,0x00000035,0x09000000,0x00000136,0x08000000,0x00000236,0x06000000,0x00000337,
 
                         0x36050000,0x00000005,0x36030000,0x00000007,0x36020000,0x00000008,0x36010000,0x00000009,
                         0x35000000,0x0000000b,0x33000000,0x0000000d,0x32000000,0x0000000e,0x30000000,0x00000010,
@@ -772,7 +777,7 @@ __s32 DE_BE_Sprite_Set_Palette_Table(__u32 sel, __u32 address, __u32 offset, __u
     return 0;	
 }
 
-//out_csc: 0:rgb, 1:yuv for tv, 2:yuv for hdmi
+//out_csc: 0:rgb, 1:yuv for tv, 2:yuv for hdmi, 3: yuv for drc
 //out_color_range:  0:16~255, 1:0~255, 2:16~235
 __s32 DE_BE_Set_Enhance_ex(__u8 sel, __u32 out_csc, __u32 out_color_range, __u32 enhance_en, __u32 brightness, __u32 contrast, __u32 saturaion, __u32 hue)
 {
@@ -797,8 +802,8 @@ __s32 DE_BE_Set_Enhance_ex(__u8 sel, __u32 out_csc, __u32 out_color_range, __u32
 	i_contrast = (__s32)(contrast*64/100);
 	i_hue = (__s32)(hue*64/100);
 
-	sinv = image_enhance_tab[8*12 + (i_hue&0x3f)];
-	cosv = image_enhance_tab[8*12 + 8*8 + (i_hue&0x3f)];
+	sinv = image_enhance_tab[8*16 + (i_hue&0x3f)];
+	cosv = image_enhance_tab[8*16 + 8*8 + (i_hue&0x3f)];
 
 	//calculate enhance matrix
 	matrixEn.x00 = i_contrast << 5;
@@ -943,7 +948,7 @@ __s32 DE_BE_Set_Enhance_ex(__u8 sel, __u32 out_csc, __u32 out_color_range, __u32
             matrixresult.x22 = tmpcoeff.x22/4;  matrixresult.x23 = tmpcoeff.x23/256 + 8;
         }
     }
-	else //if(out_csc == 2)//YUV for HDMI(range 16-235)
+	else if(out_csc == 2)//YUV for HDMI(range 16-235)
 	{
 		for(i=0; i<16; i++)
 		{	
@@ -973,6 +978,38 @@ __s32 DE_BE_Set_Enhance_ex(__u8 sel, __u32 out_csc, __u32 out_color_range, __u32
 			matrixresult.x12 = tmpcoeff.x02/4;	matrixresult.x13 = tmpcoeff.x03/256 + 8;
 			matrixresult.x20 = tmpcoeff.x10/4;	matrixresult.x21 = tmpcoeff.x11/4;
 			matrixresult.x22 = tmpcoeff.x12/4;	matrixresult.x23 = tmpcoeff.x13/256 + 8;
+		}
+	}
+	else //if(out_csc == 3)//YUV for DRC
+	{
+		for(i=0; i<16; i++)
+		{	
+			*((__s64 *)(&tmpcoeff.x00) + i)  = ((__s64)*(image_enhance_tab + 0x60 + i) <<32)>>32;	//dedicated rgb2yuv coeff
+		}
+			
+		if(enhance_en == 1)
+		{
+			//convolution of enhance matrix and rgb2yuv matrix
+
+			ptmatrix = &tmpcoeff;
+		
+			iDE_SCAL_Matrix_Mul(matrixEn, *ptmatrix, &matrixconv);
+			
+			matrixresult.x00 = matrixconv.x00/4;	matrixresult.x01 = matrixconv.x01/4;
+			matrixresult.x02 = matrixconv.x02/4;	matrixresult.x03 = matrixconv.x03/256 + 8;
+			matrixresult.x10 = matrixconv.x10/4;	matrixresult.x11 = matrixconv.x11/4;
+			matrixresult.x12 = matrixconv.x12/4;	matrixresult.x13 = matrixconv.x13/256 + 8;
+			matrixresult.x20 = matrixconv.x20/4;	matrixresult.x21 = matrixconv.x21/4;
+			matrixresult.x22 = matrixconv.x22/4;	matrixresult.x23 = matrixconv.x23/256 + 8;
+		}
+		else
+		{
+			matrixresult.x00 = tmpcoeff.x00/4;	matrixresult.x01 = tmpcoeff.x01/4;
+			matrixresult.x02 = tmpcoeff.x02/4;	matrixresult.x03 = tmpcoeff.x03/256 + 8;
+			matrixresult.x10 = tmpcoeff.x10/4;	matrixresult.x11 = tmpcoeff.x11/4;
+			matrixresult.x12 = tmpcoeff.x12/4;	matrixresult.x13 = tmpcoeff.x13/256 + 8;
+			matrixresult.x20 = tmpcoeff.x20/4;	matrixresult.x21 = tmpcoeff.x21/4;
+			matrixresult.x22 = tmpcoeff.x22/4;	matrixresult.x23 = tmpcoeff.x23/256 + 8;
 		}
 	}
 

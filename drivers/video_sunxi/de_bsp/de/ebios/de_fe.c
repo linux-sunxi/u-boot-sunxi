@@ -1,23 +1,12 @@
 //*****************************************************************************
-//  All Winner Micro, All Right Reserved. 2006-2012 Copyright (c)
+//  All Winner Tech, All Right Reserved. 2006-2012 Copyright (c)
 //
 //  File name   :        de_scal_bsp.c
 //
-//  Description :  display engine scaler base functions implement for aw1623
+//  Description :  display engine scaler base functions implement for aw1633
 //     
-//  History       :
-//                 2011/05/03      zchmin       v1.0    Initial version
-//                 2011/05/13      vito         v1.1    added vpp function
-//                 2011/05/25      zchmin       v1.2    redefine 3d inmode
-//                 2011/07/01      zchmin       v1.3    modify set scal coef error
-//                 2011/07/14      zchmin       v1.4    added input/output rg swap
-//                 2011/08/04      zchmin       v1.5    added divisor no-zero limited
-//                 2011/09/28      zchmin       v1.6    added 3D interleaved input format support
-//                 2011/10/10      zchmin	    v1.7    clear 3d line_interleaved flag when config 2D src
-//                                                      correct 3D interleaved format address error
-//                 2011/10/19      zchmin       v1.8    correct out_type->fmt == DE_SCAL_INYUV420
-//                 2012/01/04      zchmin       v1.9    correct negative shifter 
-//		  2012/02/16     vito		 v1.95  add DE_SCAL_Set_Scaling_Coef_for_video() for video playback.
+//  History     :
+//                 2012/06/05      zchmin       v0.1    Initial version based aw1623
 //******************************************************************************
 
 
@@ -67,18 +56,19 @@ __u32 DE_SCAL_Get_Reg_Base(__u8 sel)
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
+// function       : DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
 //                                       __scal_src_type_t *type, __u8 field, __u8 dien)
-// description     : scaler source concerning parameter configure
-// parameters    :
+// description    : scaler source concerning parameter configure
+// parameters     :
 //                 sel <scaler select>
 //                 addr  <frame buffer address for 3 channel, 32 bit absolute address>
 //                 size <scale region define,  src size, offset, scal size>
 //                 type <src data type, include byte sequence, mode, format, pixel sequence>
 //                 field <frame/field data get>
 //                 dien <deinterlace enable>
-// return            : 
+// return         : 
 //               success
+// history        : 2012/06/05, added rgb565/rgb1555/rgb4444 support
 //***********************************************************************************************
 __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
                          __scal_src_type_t *type, __u8 field, __u8 dien)
@@ -87,6 +77,7 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
 	__u32 image_w0, image_w1;
 	__u32 x_off0, y_off0, x_off1, y_off1;
 	__u32 in_w0, in_h0, in_w1, in_h1;
+	__u8 rgb16mode = 0;
 
 	image_w0 = size->src_width;
 	in_w0 = size->scal_width;
@@ -102,7 +93,7 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
         	image_w1 = (image_w0 + 0x1)>>w_shift;
         	in_w1 = (in_w0 + 0x1)>>w_shift;
         	x_off1 = (x_off0)>>w_shift;
-        	if(type->mod == DE_SCAL_INTER_LEAVED)
+        	if(type->mod == DE_SCAL_INTERLEAVED)
         	{
         	    image_w0 = (image_w0 + 0x1) & 0xfffffffe;
                 image_w1 = image_w0>>1;
@@ -119,6 +110,14 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
         	in_w1 = (in_w0 + 0x3)>>w_shift;
         	x_off1 = (x_off0)>>w_shift;
         }
+		else if(type->fmt == DE_SCAL_INRGB565 || type->fmt == DE_SCAL_INRGB4444 || type->fmt == DE_SCAL_INRGB1555)
+		{
+			w_shift = 0;
+	        rgb16mode = 1;
+	        image_w1 = image_w0;
+	        in_w1 = in_w0;
+	        x_off1 = x_off0;
+		}
         else
         {
             w_shift = 0;
@@ -126,7 +125,7 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
         	in_w1 = in_w0;
         	x_off1 = x_off0;
         }
-        if(type->fmt == DE_SCAL_INYUV420 || type->fmt == DE_SCAL_INCSIRGB)
+        if(type->fmt == DE_SCAL_INYUV420)
         {
             h_shift = 1;
         	in_h1 = (in_h0 + 0x1)>>h_shift;
@@ -158,13 +157,13 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
 		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
 		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
 	}
-	else if(type->mod == DE_SCAL_INTER_LEAVED)
+	else if(type->mod == DE_SCAL_INTERLEAVED)
 	{
-	    scal_dev[sel]->linestrd0.dwval = image_w0<<(0x2 - w_shift);
+	    scal_dev[sel]->linestrd0.dwval = image_w0<<(0x2 - w_shift  - rgb16mode);
 		scal_dev[sel]->linestrd1.dwval = 0x0;
 		scal_dev[sel]->linestrd2.dwval = 0x0;
 
-        de_scal_ch0_offset = ((image_w0 * y_off0 + x_off0)<<(0x2 - w_shift));
+        de_scal_ch0_offset = ((image_w0 * y_off0 + x_off0)<<(0x2 - w_shift - rgb16mode));
         de_scal_ch1_offset = 0x0;
         de_scal_ch2_offset = 0x0;
 		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
@@ -190,15 +189,15 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
         image_w1 = (image_w1 + (0xf>>w_shift)) & (~(0xf>>w_shift));
 		
         //block offset
-        scal_dev[sel]->mb_off0.bits.x_offset0 = (x_off0 & 0x0f);
-        scal_dev[sel]->mb_off0.bits.y_offset0 = (y_off0 & 0x0f);
-        scal_dev[sel]->mb_off0.bits.x_offset1 = (((x_off0 & 0x0f) & (0x0f)) + in_w0 + 0x0f) & 0x0f;
-        scal_dev[sel]->mb_off1.bits.x_offset0 = ((x_off1)&(0x0f>>w_shift));
-        scal_dev[sel]->mb_off1.bits.y_offset0 = ((y_off1)&(0x0f>>h_shift));
-        scal_dev[sel]->mb_off1.bits.x_offset1 = ((((x_off1)&(0x0f>>w_shift)) & (0x0f>>w_shift)) + (in_w1) + (0x0f>>w_shift))&(0x0f>>w_shift);
-		scal_dev[sel]->mb_off2.bits.x_offset0 = scal_dev[sel]->mb_off1.bits.x_offset0;
-		scal_dev[sel]->mb_off2.bits.y_offset0 = scal_dev[sel]->mb_off1.bits.y_offset0;
-		scal_dev[sel]->mb_off2.bits.x_offset1 = scal_dev[sel]->mb_off1.bits.x_offset1;
+        scal_dev[sel]->tb_off0.bits.x_offset0 = (x_off0 & 0x0f);
+        scal_dev[sel]->tb_off0.bits.y_offset0 = (y_off0 & 0x0f);
+        scal_dev[sel]->tb_off0.bits.x_offset1 = (((x_off0 & 0x0f) & (0x0f)) + in_w0 + 0x0f) & 0x0f;
+        scal_dev[sel]->tb_off1.bits.x_offset0 = ((x_off1)&(0x0f>>w_shift));
+        scal_dev[sel]->tb_off1.bits.y_offset0 = ((y_off1)&(0x0f>>h_shift));
+        scal_dev[sel]->tb_off1.bits.x_offset1 = ((((x_off1)&(0x0f>>w_shift)) & (0x0f>>w_shift)) + (in_w1) + (0x0f>>w_shift))&(0x0f>>w_shift);
+		scal_dev[sel]->tb_off2.bits.x_offset0 = scal_dev[sel]->tb_off1.bits.x_offset0;
+		scal_dev[sel]->tb_off2.bits.y_offset0 = scal_dev[sel]->tb_off1.bits.y_offset0;
+		scal_dev[sel]->tb_off2.bits.x_offset1 = scal_dev[sel]->tb_off1.bits.x_offset1;
 
 		scal_dev[sel]->linestrd0.dwval = (image_w0 - 0xf)<<4;
 		scal_dev[sel]->linestrd1.dwval = ((image_w1) <<(0x04-h_shift)) - ((0xf>>h_shift)<<(0x04-w_shift));
@@ -217,12 +216,12 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
 	    image_w0 = (image_w0 + 0x1f)&0xffffffe0;
 		image_w1 = (image_w1 + 0x0f)&0xfffffff0;
 		//block offset
-		scal_dev[sel]->mb_off0.bits.x_offset0 = (x_off0 & 0x1f);
-        scal_dev[sel]->mb_off0.bits.y_offset0 = (y_off0 & 0x1f);
-		scal_dev[sel]->mb_off0.bits.x_offset1 = (((x_off0 & 0x1f) & 0x1f) + in_w0 + 0x1f) &0x1f;
-		scal_dev[sel]->mb_off1.bits.x_offset0 = (((x_off1)<<1)&0x1f);
-        scal_dev[sel]->mb_off1.bits.y_offset0 = ((y_off1)&0x1f);
-        scal_dev[sel]->mb_off1.bits.x_offset1 = (((((x_off1)<<1)&0x1f) & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
+		scal_dev[sel]->tb_off0.bits.x_offset0 = (x_off0 & 0x1f);
+        scal_dev[sel]->tb_off0.bits.y_offset0 = (y_off0 & 0x1f);
+		scal_dev[sel]->tb_off0.bits.x_offset1 = (((x_off0 & 0x1f) & 0x1f) + in_w0 + 0x1f) &0x1f;
+		scal_dev[sel]->tb_off1.bits.x_offset0 = (((x_off1)<<1)&0x1f);
+        scal_dev[sel]->tb_off1.bits.y_offset0 = ((y_off1)&0x1f);
+        scal_dev[sel]->tb_off1.bits.x_offset1 = (((((x_off1)<<1)&0x1f) & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
 
 		scal_dev[sel]->linestrd0.dwval = (((image_w0 + 0x1f)&0xffe0) - 0x1f)<<0x05;
         scal_dev[sel]->linestrd1.dwval = (((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
@@ -252,12 +251,12 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr)
-// description     : scaler change frame buffer address, only change start address parameters
-// parameters    :
+// function       : DE_SCAL_Set_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr)
+// description    : scaler change frame buffer address, only change start address parameters
+// parameters     :
 //                 sel <scaler select>
 //                 addr  <frame buffer address for 3 channel, 32 bit absolute address>
-// return            : 
+// return         : 
 //               success
 //***********************************************************************************************
 __s32 DE_SCAL_Set_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr)
@@ -271,11 +270,11 @@ __s32 DE_SCAL_Set_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr)
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Init_Phase(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+// function       : DE_SCAL_Set_Init_Phase(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
 //                                           __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan,
 //                                           __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 dien)
-// description     : set scaler init phase according to in/out information
-// parameters    :
+// description    : set scaler init phase according to in/out information
+// parameters     :
 //                 sel <scaler select>
 //                 in_scan <scale src data scan mode, if deinterlaceing open, the scan mode is progressive for scale>
 //                 in_size <scale region define,  src size, offset, scal size>
@@ -284,10 +283,10 @@ __s32 DE_SCAL_Set_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr)
 //                 out_size <scale out size>
 //                 out_type <output data format>
 //                 dien <deinterlace enable>
-// return           : 
+// return         : 
 //               success
-//note               : when 3D mode(when output mode is HDMI_FPI), the Function Set_3D_Ctrl msut carry out first. 
-//                         when 3D mode(HDMI_FPI), this function used once
+//note            : when 3D mode(when output mode is HDMI_FPI), the Function Set_3D_Ctrl msut carry out first. 
+//                  when 3D mode(HDMI_FPI), this function used once
 //***********************************************************************************************
 __s32 DE_SCAL_Set_Init_Phase(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
                              __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan,
@@ -314,36 +313,36 @@ __s32 DE_SCAL_Set_Init_Phase(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_si
 	 {
 	     if(in_type->sample_method == 0x0)  //
 	     {
-	         ch0_h_phase = 0x0;
-			 ch0_v_phase0 = 0x0;
-			 ch0_v_phase1 = 0x0;
-			 ch12_h_phase = 0xfc000;   //-0.25
-			 ch12_v_phase0 = 0xfc000;  //-0.25
-			 ch12_v_phase1 = 0xfc000;  //-0.25
+	         ch0_h_phase = 0x400;
+			 ch0_v_phase0 = 0x400;
+			 ch0_v_phase1 = 0x400;
+			 ch12_h_phase = 0xfc400;   //-0.25
+			 ch12_v_phase0 = 0xfc400;  //-0.25
+			 ch12_v_phase1 = 0xfc400;  //-0.25
 	     }
 		 else
 		 {
-		     ch0_h_phase = 0x0;
-			 ch0_v_phase0 = 0x0;
-			 ch0_v_phase1 = 0x0;
-			 ch12_h_phase = 0x0;       //0
-			 ch12_v_phase0 = 0xfc000;  //-0.25
-			 ch12_v_phase1 = 0xfc000;  //-0.25
+		     ch0_h_phase = 0x400;
+			 ch0_v_phase0 = 0x400;
+			 ch0_v_phase1 = 0x400;
+			 ch12_h_phase = 0x400;       //0
+			 ch12_v_phase0 = 0xfc400;  //-0.25
+			 ch12_v_phase1 = 0xfc400;  //-0.25
 		 }
 	 }
 	 else  //can added yuv411 or yuv420 init phase for sample method
 	 {
-	     ch0_h_phase = 0x0;
-		 ch0_v_phase0 = 0x0;
-		 ch0_v_phase1 = 0x0;
-		 ch12_h_phase = 0x0;
-		 ch12_v_phase0 = 0x0;
-		 ch12_v_phase1 = 0x0; 
+	     ch0_h_phase = 0x400;
+		 ch0_v_phase0 = 0x400;
+		 ch0_v_phase1 = 0x400;
+		 ch12_h_phase = 0x400;
+		 ch12_v_phase0 = 0x400;
+		 ch12_v_phase1 = 0x400; 
 	 }
 
      //location offset
      w_shift = (in_type->fmt == DE_SCAL_INYUV420 || in_type->fmt == DE_SCAL_INYUV422) ? 0x1 : ((in_type->fmt == DE_SCAL_INYUV411) ? 0x2 : 0x0);
-	 h_shift = (in_type->fmt == DE_SCAL_INYUV420 || in_type->fmt == DE_SCAL_INCSIRGB) ? 0x1 : 0x0;
+	 h_shift = (in_type->fmt == DE_SCAL_INYUV420) ? 0x1 : 0x0;
 
      //deinterlace and in scan mode enable, //dy
      if(((dien == 0x01) || (in_scan->field== 0x1)) && (in_size->y_off & 0x1)&& (in_scan->bottom == 0x0))  //
@@ -402,23 +401,115 @@ __s32 DE_SCAL_Set_Init_Phase(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_si
 	 return 0;
 }
 
+//*********************************************************************************************
+// function       : DE_SCAL_Agth_Config(__u8 sel, __scal_src_type_t *in_type,__scal_src_size_t *in_size,
+//                                      __scal_out_size_t *out_size, __u8 dien,__u8 trden,__scal_3d_outmode_t outmode)
+// description    : select sram mapping mothed and agorithm modify
+// parameters     :
+//                 sel <scaler select>
+//                 in_size <scale region define,  src size, offset, scal size>
+//                 in_type <src data type>
+//                 out_size <scale out size, when output interlace, the height is 2*outheight ,for example 480i, the value is 480>
+//                 dien <deinterlace enable>
+//                 trden <3D mode enable>
+//                 outmode <3D output mode>
+// return         : 
+//                 0 success
+//                 -1 failed
+//***********************************************************************************************                                   
+__s32 DE_SCAL_Agth_Config(__u8 sel, __scal_src_type_t *in_type,__scal_src_size_t *in_size,__scal_out_size_t *out_size, 
+                          __u8 dien,__u8 trden,__scal_3d_outmode_t outmode)
+{
+	__u32 inwidth,outwidth, linebuflen,cibuflen;
+	inwidth = in_size->scal_width;
+	outwidth = out_size->width;
+
+	if(trden)
+	{
+		switch(outmode)
+		{
+			case DE_SCAL_3DOUT_HDMI_FPP:break;
+			case DE_SCAL_3DOUT_HDMI_TB: break;
+			case DE_SCAL_3DOUT_HDMI_FPI:break;
+			case DE_SCAL_3DOUT_HDMI_FA: break;
+			default: inwidth *=2; outwidth *=2; break;
+		}
+	}
+	if((inwidth > 8192) || (outwidth > 8192))
+		return -1;
+	else if((inwidth > 4096) && (outwidth > 4096))
+		return -1;
+	else if((inwidth>2048) && (outwidth>2048))
+	{
+		if(dien)
+		{
+			return -1;
+		}
+		else if(in_type->fmt == DE_SCAL_INYUV420)
+		{
+			scal_dev[sel]->bypass.bits.sram_map_sel = 1; //4096 mode
+			linebuflen = 4096;
+			cibuflen = 2048;
+		}
+		else if((inwidth>2560)&&(outwidth>2560))
+		{
+			return -1;
+		}
+		else
+		{
+			scal_dev[sel]->bypass.bits.sram_map_sel = 2; //2560 mode
+			linebuflen = 2560;
+			cibuflen = 0;
+		}
+	}
+	else
+	{
+		scal_dev[sel]->bypass.bits.sram_map_sel = 0; //normal mode
+		linebuflen = 2048;
+		cibuflen = dien ? 1280:2048;
+	}
+
+	if(trden & (outmode<DE_SCAL_3DOUT_LIRGB))
+	{
+		if(outwidth>cibuflen)
+			return -1;
+	}
+
+	//modify agth
+	if(linebuflen == 4096)
+	{
+		scal_dev[sel]->agth_sel.bits.linebuf_agth = 1;
+	}
+	else if(outwidth>linebuflen)
+	{
+		scal_dev[sel]->agth_sel.bits.linebuf_agth = 1;
+	}
+	else if(inwidth > linebuflen)
+	{
+		scal_dev[sel]->agth_sel.bits.linebuf_agth = 0;
+	}
+
+	return 0;
+}
+                                 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+// function       : DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
 //                                               __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
 //                                               __scal_out_size_t *out_size, __scal_out_type_t *out_type)
-// description      : set scaler scaling factor, modify algorithm and tape offset
-// parameters       :
+// description    : set scaler scaling factor, modify algorithm and tape offset
+// parameters     :
 //                 sel <scaler select>
 //                 in_scan <scale src data scan mode, if deinterlaceing open, the scan mode is progressive for scale>
 //                 in_size <scale region define,  src size, offset, scal size>
 //                 in_type <src data type>
 //                 out_scan <scale output data scan mode>
-//                 out_size <scale out size, when output interlace, the height is 2xoutheight ,for example 480i, the value is 480>
+//                 out_size <scale out size, when output interlace, the height is 2*outheight ,for example 480i, the value is 480>
 //                 out_type <output data format>
-// return           : 
+// return         : 
 //               success
-//history           :  2011/03/31  modify channel 1/2 scaling factor
+// history        :  2011/03/31  modify channel 1/2 scaling factor
+//                   2012/06/05  move algorithm to DE_SCAL_Set_Agth funtion
 //***********************************************************************************************                                   
 __s32 DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
                                  __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
@@ -434,12 +525,11 @@ __s32 DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_sr
     out_w0 = out_size->width;
     out_h0 = out_size->height + (out_scan->field & 0x1);	//modify by zchmin 110317
 
-	//sc0 
-	if((in_type->mod == DE_SCAL_INTER_LEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
+	if((in_type->mod == DE_SCAL_INTERLEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
     {
         in_w0 &=0xfffffffe;
     }
-    //algorithm select
+    /*//algorithm select
     if(out_w0 > SCALLINEMAX)
     {
 	    scal_dev[sel]->agth_sel.bits.linebuf_agth = 0x1;
@@ -451,10 +541,10 @@ __s32 DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_sr
     else
     {
         scal_dev[sel]->agth_sel.bits.linebuf_agth= 0x0;
-    }
+    }*/
 
     w_shift = (in_type->fmt == DE_SCAL_INYUV411) ? 2 : ((in_type->fmt == DE_SCAL_INYUV420)||(in_type->fmt == DE_SCAL_INYUV422)) ? 1 : 0;
-	h_shift = ((in_type->fmt == DE_SCAL_INYUV420) || (in_type->fmt == DE_SCAL_INCSIRGB)) ? 1 : 0;
+	h_shift = ((in_type->fmt == DE_SCAL_INYUV420)) ? 1 : 0;
 		
     
     if((out_type->fmt == DE_SCAL_OUTPYUV420) || (out_type->fmt == DE_SCAL_OUTPYUV422))
@@ -497,11 +587,240 @@ __s32 DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_sr
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+// function       : DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
 //                                             __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
 //                                             __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 smth_mode)
-// description      : set scaler scaling filter coefficients
-// parameters       :
+// description    : set scaler scaling filter coefficients
+// parameters     :
+//                 sel <scaler select>
+//                 in_scan <scale src data scan mode, if deinterlaceing open, the scan mode is progressive for scale>
+//                 in_size <scale region define,  src size, offset, scal size>
+//                 in_type <src data type>
+//                 out_scan <scale output data scan mode>
+//                 out_size <scale out size>
+//                 out_type <output data format,alpha_en, alpha_coef type>
+//                 smth_mode <scaler filter effect select>
+// return         : 
+//               success
+// history        : 2012/06/05 added alpha coef select, modify alpha coef in future according to application
+//***********************************************************************************************                                        
+__s32 DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+                               __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
+                               __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 smth_mode)  
+{
+    __s32 in_w0, in_h0, in_w1, in_h1, out_w0, out_h0, out_w1, out_h1;
+    __s32 ch0h_smth_level, ch0v_smth_level, ch1h_smth_level, ch1v_smth_level;
+    __u32 int_part, float_part;
+    __u32 zoom0_size, zoom1_size, zoom2_size, zoom3_size, zoom4_size, zoom5_size, al1_size;
+    __u32 ch0h_sc, ch0v_sc, ch1h_sc, ch1v_sc;
+    __u32 ch0v_fir_coef_addr, ch0h_fir_coef_addr, ch1v_fir_coef_addr, ch1h_fir_coef_addr, ch3h_fir_coef_addr;
+    __u32 ch0v_fir_coef_ofst, ch0h_fir_coef_ofst, ch1v_fir_coef_ofst, ch1h_fir_coef_ofst, ch3v_fir_coef_addr;
+    __s32 fir_ofst_tmp;
+    __u32 i;
+
+    in_w0 = in_size->scal_width;
+    in_h0 = in_size->scal_height;
+
+    out_w0 = out_size->width;
+    out_h0 = out_size->height;
+
+    zoom0_size = 1;
+    zoom1_size = 8;
+    zoom2_size = 4;
+    zoom3_size = 1;
+    zoom4_size = 1;
+    zoom5_size = 1;
+    al1_size = zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size + zoom5_size;
+    
+    if((in_type->mod == DE_SCAL_INTERLEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
+    {
+        in_w0 &=0xfffffffe;
+    }
+    
+    //channel 1,2 size 
+    if((in_type->fmt == DE_SCAL_INYUV420) || (in_type->fmt == DE_SCAL_INYUV422))
+    {
+        in_w1 = (in_w0 + 0x1)>>0x1;
+    }
+    else if(in_type->fmt == DE_SCAL_INYUV411)
+    {
+        in_w1 = (in_w0 + 0x3)>>0x2;
+    }
+    else
+    {
+        in_w1 = in_w0;
+    }
+    if((in_type->fmt == DE_SCAL_INYUV420))
+    {
+        in_h1 = (in_h0 + 0x1)>>0x1;
+    }
+    else
+    {
+        in_h1 = in_h0;
+    }
+    if((out_type->fmt == DE_SCAL_OUTPYUV420) || (out_type->fmt == DE_SCAL_OUTPYUV422))
+    {
+        out_w1 = (out_w0 + 0x1)>>0x1;
+    }
+    else if(out_type->fmt == DE_SCAL_OUTPYUV411)
+    {
+        out_w1 = (out_w0 + 0x3)>>0x2;
+    }
+    else
+    {
+        out_w1 = out_w0;
+    }
+    if(out_type->fmt == DE_SCAL_OUTPYUV420)
+    {
+        out_h1 = (out_h0+ 0x1)>>0x1;
+    }
+    else
+    {
+        out_h1 = out_h0;
+    }
+    
+    //added no-zero limited
+    in_h0 = (in_h0!=0) ? in_h0 : 1;
+	in_h1 = (in_h1!=0) ? in_h1 : 1;
+	in_w0 = (in_w0!=0) ? in_w0 : 1;
+	in_w1 = (in_w1!=0) ? in_w1 : 1;
+	out_h0 = (out_h0!=0) ? out_h0 : 1;
+	out_h1 = (out_h1!=0) ? out_h1 : 1;
+	out_w0 = (out_w0!=0) ? out_w0 : 1;
+	out_w1 = (out_w1!=0) ? out_w1 : 1;
+	    
+    //smooth level for channel 0,1 in vertical and horizontal direction
+    ch0h_smth_level = (smth_mode&0x40)  ?  0 - (smth_mode&0x3f) : smth_mode&0x3f;
+    ch0v_smth_level = ch0h_smth_level;
+    if((smth_mode>>7) &0x01)  
+    {
+      ch0v_smth_level = (smth_mode&0x4000) ? 0 - ((smth_mode&0x3f00)>>8) : ((smth_mode&0x3f00)>>8);
+    }
+    if((smth_mode>>31)&0x01)
+    {
+      ch1h_smth_level = (smth_mode&0x400000) ? 0 - ((smth_mode&0x3f0000)>>16) : ((smth_mode&0x3f0000)>>16);
+      ch1v_smth_level = ch1h_smth_level;
+      if((smth_mode >> 23)&0x1)
+      {
+        ch1v_smth_level = (smth_mode&0x40000000) ? 0 - ((smth_mode&0x3f000000)>>24) : ((smth_mode&0x3f000000)>>24);
+      }
+    }
+    //
+    ch0h_sc = (in_w0<<3)/out_w0;
+    ch0v_sc = (in_h0<<(3-in_scan->field))/(out_h0);
+    ch1h_sc = (in_w1<<3)/out_w1;
+    ch1v_sc = (in_h1<<(3-in_scan->field))/(out_h1);
+
+    //modify ch1 smooth level according to ratio to ch0
+    if(((smth_mode>>31)&0x01)==0x0)
+    {
+      if(!ch1h_sc)
+      {
+        ch1h_smth_level = 0;
+      }
+      else
+      {
+        ch1h_smth_level = ch0h_smth_level>>(ch0h_sc/ch1h_sc);
+      }
+
+      if(!ch1v_sc)
+      {
+        ch1v_smth_level = 0;
+      }
+      else
+      {
+        ch1v_smth_level = ch0v_smth_level>>(ch0v_sc/ch1v_sc);
+      }
+    }
+      
+      //comput the fir coefficient offset in coefficient table
+      int_part = ch0v_sc>>3;
+      float_part = ch0v_sc & 0x7;
+      ch0v_fir_coef_ofst = (int_part==0)  ? zoom0_size : 
+                           (int_part==1)  ? zoom0_size + float_part :
+                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
+                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
+                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
+                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
+      int_part = ch0h_sc>>3;
+      float_part = ch0h_sc & 0x7;
+      ch0h_fir_coef_ofst = (int_part==0)  ? zoom0_size : 
+                           (int_part==1)  ? zoom0_size + float_part :
+                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
+                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
+                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
+                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
+      int_part = ch1v_sc>>3;
+      float_part = ch1v_sc & 0x7;
+      ch1v_fir_coef_ofst = (int_part==0)  ? zoom0_size : 
+                           (int_part==1)  ? zoom0_size + float_part :
+                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
+                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
+                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
+                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
+      int_part = ch1h_sc>>3;
+      float_part = ch1h_sc & 0x7;
+      ch1h_fir_coef_ofst =  (int_part==0)  ? zoom0_size : 
+                            (int_part==1)  ? zoom0_size + float_part :
+                            (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
+                            (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
+                            (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
+                            zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
+    //added smooth level for each channel in horizontal and vertical direction
+    fir_ofst_tmp = ch0v_fir_coef_ofst + ch0v_smth_level;
+    ch0v_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
+    fir_ofst_tmp = ch0h_fir_coef_ofst + ch0h_smth_level;
+    ch0h_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
+    fir_ofst_tmp = ch1v_fir_coef_ofst + ch1v_smth_level;
+    ch1v_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
+    fir_ofst_tmp = ch1h_fir_coef_ofst + ch1h_smth_level;
+    ch1h_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
+    //modify coefficient offset
+    ch0v_fir_coef_ofst = (ch0v_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch0v_fir_coef_ofst;
+    ch1v_fir_coef_ofst = (ch1v_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch1v_fir_coef_ofst;
+    ch0h_fir_coef_ofst = (ch0h_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch0h_fir_coef_ofst; 
+    ch1h_fir_coef_ofst = (ch1h_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch1h_fir_coef_ofst;                                           
+    
+    //compute the fir coeficient address for each channel in horizontal and vertical direction
+    ch0v_fir_coef_addr = (ch0v_fir_coef_ofst<<7);
+    ch0h_fir_coef_addr = ((al1_size)<<7) + (ch0h_fir_coef_ofst<<8);
+    ch1v_fir_coef_addr = (ch1v_fir_coef_ofst<<7);
+    ch1h_fir_coef_addr = ((al1_size)<<7) + (ch1h_fir_coef_ofst<<8);
+	ch3h_fir_coef_addr = out_type->alpha_coef_type==0 ? ch0h_fir_coef_addr : ((al1_size)<<7);
+	ch3v_fir_coef_addr = out_type->alpha_coef_type==0 ? ch0v_fir_coef_addr : (0)<<7;
+
+    for(i=0; i<32; i++)
+    {
+	    scal_dev[sel]->ch0_horzcoef0[i].dwval = fir_tab[(ch0h_fir_coef_addr>>2) + 2*i];
+		scal_dev[sel]->ch0_horzcoef1[i].dwval = fir_tab[(ch0h_fir_coef_addr>>2) + 2*i + 1];
+        scal_dev[sel]->ch0_vertcoef[i].dwval  = fir_tab[(ch0v_fir_coef_addr>>2) + i];
+		scal_dev[sel]->ch1_horzcoef0[i].dwval = fir_tab[(ch1h_fir_coef_addr>>2) + 2*i];
+		scal_dev[sel]->ch1_horzcoef1[i].dwval = fir_tab[(ch1h_fir_coef_addr>>2) + 2*i + 1];
+        scal_dev[sel]->ch1_vertcoef[i].dwval  = fir_tab[(ch1v_fir_coef_addr>>2) + i];
+		
+    }
+	//zchmin 2012/6/5, alpha ceof can be modify according to application
+	if(out_type->alpha_en && (in_type->mod == DE_SCAL_INTERLEAVED))
+	{
+		for(i=0;i<32;i++)
+		{
+			scal_dev[sel]->ch3_horzcoef0[i].dwval = fir_tab[(ch3h_fir_coef_addr>>2) + 2*i];
+			scal_dev[sel]->ch3_horzcoef1[i].dwval = fir_tab[(ch3h_fir_coef_addr>>2) + 2*i + 1];
+	        scal_dev[sel]->ch3_vertcoef[i].dwval  = fir_tab[(ch3v_fir_coef_addr>>2) + i];
+		}
+	}
+	
+    scal_dev[sel]->frm_ctrl.bits.coef_rdy_en = 0x1;
+      
+    return 0;
+}
+
+//*********************************************************************************************
+// function       : DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+//                                             __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
+//                                             __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 smth_mode)
+// description    : set scaler scaling filter coefficients for video playback
+// parameters     :
 //                 sel <scaler select>
 //                 in_scan <scale src data scan mode, if deinterlaceing open, the scan mode is progressive for scale>
 //                 in_size <scale region define,  src size, offset, scal size>
@@ -510,15 +829,15 @@ __s32 DE_SCAL_Set_Scaling_Factor(__u8 sel, __scal_scan_mod_t *in_scan, __scal_sr
 //                 out_size <scale out size>
 //                 out_type <output data format>
 //                 smth_mode <scaler filter effect select>
-// return           : 
+// return         : 
 //               success
 //***********************************************************************************************                                        
-__s32 DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
+__s32 DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
                                __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
-                               __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 smth_mode)  
+                               __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u32 smth_mode)  
 {
     __s32 in_w0, in_h0, in_w1, in_h1, out_w0, out_h0, out_w1, out_h1;
-    __s32 ch0h_smth_level, ch0v_smth_level, ch1h_smth_level, ch1v_smth_level;
+    __s32 ch0h_smth_level=0, ch0v_smth_level=0, ch1h_smth_level=0, ch1v_smth_level=0;
     __u32 int_part, float_part;
     __u32 zoom0_size, zoom1_size, zoom2_size, zoom3_size, zoom4_size, zoom5_size, al1_size;
     __u32 ch0h_sc, ch0v_sc, ch1h_sc, ch1v_sc;
@@ -541,7 +860,7 @@ __s32 DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_
     zoom5_size = 1;
     al1_size = zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size + zoom5_size;
     
-    if((in_type->mod == DE_SCAL_INTER_LEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
+    if((in_type->mod == DE_SCAL_INTERLEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
     {
         in_w0 &=0xfffffffe;
     }
@@ -559,7 +878,7 @@ __s32 DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_
     {
         in_w1 = in_w0;
     }
-    if((in_type->fmt == DE_SCAL_INYUV420) || (in_type->fmt == DE_SCAL_INCSIRGB))
+    if((in_type->fmt == DE_SCAL_INYUV420))
     {
         in_h1 = (in_h0 + 0x1)>>0x1;
     }
@@ -698,221 +1017,6 @@ __s32 DE_SCAL_Set_Scaling_Coef(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_
 
     for(i=0; i<32; i++)
     {
-	    scal_dev[sel]->ch0_horzcoef0[i].dwval = fir_tab[(ch0h_fir_coef_addr>>2) + 2*i];
-		scal_dev[sel]->ch0_horzcoef1[i].dwval = fir_tab[(ch0h_fir_coef_addr>>2) + 2*i + 1];
-        scal_dev[sel]->ch0_vertcoef[i].dwval  = fir_tab[(ch0v_fir_coef_addr>>2) + i];
-		scal_dev[sel]->ch1_horzcoef0[i].dwval = fir_tab[(ch1h_fir_coef_addr>>2) + 2*i];
-		scal_dev[sel]->ch1_horzcoef1[i].dwval = fir_tab[(ch1h_fir_coef_addr>>2) + 2*i + 1];
-        scal_dev[sel]->ch1_vertcoef[i].dwval  = fir_tab[(ch1v_fir_coef_addr>>2) + i];
-    }
-
-    scal_dev[sel]->frm_ctrl.bits.coef_rdy_en = 0x1;
-      
-    return 0;
-}
-
-//*********************************************************************************************
-// function         : DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
-//                                             __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
-//                                             __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u8 smth_mode)
-// description      : set scaler scaling filter coefficients for video playback
-// parameters       :
-//                 sel <scaler select>
-//                 in_scan <scale src data scan mode, if deinterlaceing open, the scan mode is progressive for scale>
-//                 in_size <scale region define,  src size, offset, scal size>
-//                 in_type <src data type>
-//                 out_scan <scale output data scan mode>
-//                 out_size <scale out size>
-//                 out_type <output data format>
-//                 smth_mode <scaler filter effect select>
-// return           : 
-//               success
-//***********************************************************************************************                                        
-__s32 DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, __scal_src_size_t *in_size,
-                               __scal_src_type_t *in_type, __scal_scan_mod_t *out_scan, 
-                               __scal_out_size_t *out_size, __scal_out_type_t *out_type, __u32 smth_mode)  
-{
-    __s32 in_w0, in_h0, in_w1, in_h1, out_w0, out_h0, out_w1, out_h1;
-    __s32 ch0h_smth_level=0, ch0v_smth_level=0, ch1h_smth_level=0, ch1v_smth_level=0;
-    __u32 int_part, float_part;
-    __u32 zoom0_size, zoom1_size, zoom2_size, zoom3_size, zoom4_size, zoom5_size, al1_size;
-    __u32 ch0h_sc, ch0v_sc, ch1h_sc, ch1v_sc;
-    __u32 ch0v_fir_coef_addr, ch0h_fir_coef_addr, ch1v_fir_coef_addr, ch1h_fir_coef_addr;
-    __u32 ch0v_fir_coef_ofst, ch0h_fir_coef_ofst, ch1v_fir_coef_ofst, ch1h_fir_coef_ofst;
-    __s32 fir_ofst_tmp;
-    __u32 i;
-    
-    in_w0 = in_size->scal_width;
-    in_h0 = in_size->scal_height;
-
-    out_w0 = out_size->width;
-    out_h0 = out_size->height;
-
-    zoom0_size = 1;
-    zoom1_size = 8;
-    zoom2_size = 4;
-    zoom3_size = 1;
-    zoom4_size = 1;
-    zoom5_size = 1;
-    al1_size = zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size + zoom5_size;
-    
-    if((in_type->mod == DE_SCAL_INTER_LEAVED) && (in_type->fmt == DE_SCAL_INYUV422))
-    {
-        in_w0 &=0xfffffffe;
-    }
-    
-    //channel 1,2 size 
-    if((in_type->fmt == DE_SCAL_INYUV420) || (in_type->fmt == DE_SCAL_INYUV422))
-    {
-        in_w1 = (in_w0 + 0x1)>>0x1;
-    }
-    else if(in_type->fmt == DE_SCAL_INYUV411)
-    {
-        in_w1 = (in_w0 + 0x3)>>0x2;
-    }
-    else
-    {
-        in_w1 = in_w0;
-    }
-    if((in_type->fmt == DE_SCAL_INYUV420) || (in_type->fmt == DE_SCAL_INCSIRGB))
-    {
-        in_h1 = (in_h0 + 0x1)>>0x1;
-    }
-    else
-    {
-        in_h1 = in_h0;
-    }
-    if((out_type->fmt == DE_SCAL_OUTPYUV420) || (out_type->fmt == DE_SCAL_OUTPYUV422))
-    {
-        out_w1 = (out_w0 + 0x1)>>0x1;
-    }
-    else if(out_type->fmt == DE_SCAL_OUTPYUV411)
-    {
-        out_w1 = (out_w0 + 0x3)>>0x2;
-    }
-    else
-    {
-        out_w1 = out_w0;
-    }
-    if(out_type->fmt == DE_SCAL_OUTPYUV420)
-    {
-        out_h1 = (out_h0+ 0x1)>>0x1;
-    }
-    else
-    {
-        out_h1 = out_h0;
-    }
-    
-    //added no-zero limited
-    in_h0 = (in_h0!=0) ? in_h0 : 1;
-	in_h1 = (in_h1!=0) ? in_h1 : 1;
-	in_w0 = (in_w0!=0) ? in_w0 : 1;
-	in_w1 = (in_w1!=0) ? in_w1 : 1;
-	out_h0 = (out_h0!=0) ? out_h0 : 1;
-	out_h1 = (out_h1!=0) ? out_h1 : 1;
-	out_w0 = (out_w0!=0) ? out_w0 : 1;
-	out_w1 = (out_w1!=0) ? out_w1 : 1;
-	    
-    //smooth level for channel 0,1 in vertical and horizontal direction
-    ch0h_smth_level = (smth_mode&0x40)  ?  0 - (smth_mode&0x3f) : smth_mode&0x3f;
-    ch0v_smth_level = ch0h_smth_level;
-    if((smth_mode>>7) &0x01)  
-    {
-      ch0v_smth_level = (smth_mode&0x4000) ? 0 - ((smth_mode&0x3f00)>>8) : ((smth_mode&0x3f00)>>8);
-    }
-    if((smth_mode>>31)&0x01)
-    {
-      ch1h_smth_level = (smth_mode&0x400000) ? 0 - ((smth_mode&0x3f0000)>>16) : ((smth_mode&0x3f0000)>>16);
-      ch1v_smth_level = ch1h_smth_level;
-      if((smth_mode >> 23)&0x1)
-      {
-        ch1v_smth_level = (smth_mode&0x40000000) ? 0 - ((smth_mode&0x3f000000)>>24) : ((smth_mode&0x3f000000)>>24);
-      }
-    }
-    //
-    ch0h_sc = (in_w0<<3)/out_w0;
-    ch0v_sc = (in_h0<<(3-in_scan->field))/(out_h0);
-    ch1h_sc = (in_w1<<3)/out_w1;
-    ch1v_sc = (in_h1<<(3-in_scan->field))/(out_h1);
-
-    //modify ch1 smooth level according to ratio to ch0
-    if(((smth_mode>>31)&0x01)==0x0)
-    {
-      if(!ch1h_sc)
-      {
-        ch1h_smth_level = 0;
-      }
-      else
-      {
-        ch1h_smth_level = ch0h_smth_level>>(ch0h_sc/ch1h_sc);
-      }
-
-      if(!ch1v_sc)
-      {
-        ch1v_smth_level = 0;
-      }
-      else
-      {
-        ch1v_smth_level = ch0v_smth_level>>(ch0v_sc/ch1v_sc);
-      }
-    }
-      
-      //comput the fir coefficient offset in coefficient table
-      int_part = ch0v_sc>>3;
-      float_part = ch0v_sc & 0x7;
-      ch0v_fir_coef_ofst = (int_part==0)  ? 0 : 					//modify by vito 12-04-16
-                           (int_part==1)  ? zoom0_size + float_part :
-                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
-                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
-                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
-                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
-      int_part = ch0h_sc>>3;
-      float_part = ch0h_sc & 0x7;
-      ch0h_fir_coef_ofst = (int_part==0)  ? 0 : 					//modify by vito 12-04-16
-                           (int_part==1)  ? zoom0_size + float_part :
-                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
-                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
-                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
-                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
-      int_part = ch1v_sc>>3;
-      float_part = ch1v_sc & 0x7;
-      ch1v_fir_coef_ofst = (int_part==0)  ? 0 : 					//modify by vito 12-04-16
-                           (int_part==1)  ? zoom0_size + float_part :
-                           (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
-                           (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
-                           (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
-                           zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
-      int_part = ch1h_sc>>3;
-      float_part = ch1h_sc & 0x7;
-      ch1h_fir_coef_ofst =  (int_part==0)  ? 0 : 					//modify by vito 12-04-16
-                            (int_part==1)  ? zoom0_size + float_part :
-                            (int_part==2)  ? zoom0_size + zoom1_size + (float_part>>1) : 
-                            (int_part==3)  ? zoom0_size + zoom1_size + zoom2_size : 
-                            (int_part==4)  ? zoom0_size + zoom1_size + zoom2_size +zoom3_size : 
-                            zoom0_size + zoom1_size + zoom2_size + zoom3_size + zoom4_size;
-    //added smooth level for each channel in horizontal and vertical direction
-    fir_ofst_tmp = ch0v_fir_coef_ofst + ch0v_smth_level;
-    ch0v_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
-    fir_ofst_tmp = ch0h_fir_coef_ofst + ch0h_smth_level;
-    ch0h_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
-    fir_ofst_tmp = ch1v_fir_coef_ofst + ch1v_smth_level;
-    ch1v_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
-    fir_ofst_tmp = ch1h_fir_coef_ofst + ch1h_smth_level;
-    ch1h_fir_coef_ofst = (fir_ofst_tmp<0) ? 0 : fir_ofst_tmp;
-    //modify coefficient offset
-    ch0v_fir_coef_ofst = (ch0v_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch0v_fir_coef_ofst;
-    ch1v_fir_coef_ofst = (ch1v_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch1v_fir_coef_ofst;
-    ch0h_fir_coef_ofst = (ch0h_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch0h_fir_coef_ofst; 
-    ch1h_fir_coef_ofst = (ch1h_fir_coef_ofst > (al1_size - 1)) ? (al1_size - 1) : ch1h_fir_coef_ofst;                                           
-    
-    //compute the fir coeficient address for each channel in horizontal and vertical direction
-    ch0v_fir_coef_addr = (ch0v_fir_coef_ofst<<7);
-    ch0h_fir_coef_addr = ((al1_size)<<7) + (ch0h_fir_coef_ofst<<8);
-    ch1v_fir_coef_addr = (ch1v_fir_coef_ofst<<7);
-    ch1h_fir_coef_addr = ((al1_size)<<7) + (ch1h_fir_coef_ofst<<8);
-
-    for(i=0; i<32; i++)
-    {
 	    scal_dev[sel]->ch0_horzcoef0[i].dwval = fir_tab_video[(ch0h_fir_coef_addr>>2) + 2*i];
 		scal_dev[sel]->ch0_horzcoef1[i].dwval = fir_tab_video[(ch0h_fir_coef_addr>>2) + 2*i + 1];
         scal_dev[sel]->ch0_vertcoef[i].dwval  = fir_tab_video[(ch0v_fir_coef_addr>>2) + i];
@@ -922,15 +1026,15 @@ __s32 DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, _
     }
 
     scal_dev[sel]->frm_ctrl.bits.coef_rdy_en = 0x1;
-      
+
     return 0;
 }
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs, __u32  in_br_swap, __u32 out_br_swap)
-// description      : set scaler input/output color space convert coefficients
-// parameters       :
+// function       : DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs, __u32  in_br_swap, __u32 out_br_swap)
+// description    : set scaler input/output color space convert coefficients
+// parameters     :
 //                 sel <scaler select>
 //                 in_csc_mode <color space select, bt601, bt709, ycc, xycc>
 //                 out_csc_mode <color space select, bt601, bt709, ycc, xycc>
@@ -946,7 +1050,7 @@ __s32 DE_SCAL_Set_Scaling_Coef_for_video(__u8 sel, __scal_scan_mod_t *in_scan, _
 //                 out_br_swap <swap output b r component>
 //                 |    0  normal
 //                 |    1  swap enable, note: when output yuv, then u v swap
-// return           : 
+// return         : 
 //               success
 //*********************************************************************************************** 
 __s32 DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs, __u32  in_br_swap, __u32 out_br_swap)                                                                
@@ -954,7 +1058,8 @@ __s32 DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 i
     __u8  csc_pass;
     __u32 csc_coef_addr;
     __u32 i;
-    
+
+
     //compute csc bypass enable
     if(incs == 0x0)  //rgb 
     {
@@ -965,15 +1070,13 @@ __s32 DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 i
         }
         else
         {
-        	//out_br_swap = 0;
-            csc_pass = 0x0;
+        	csc_pass = 0x0;
             csc_coef_addr = (((in_csc_mode&0x3)<<7) + ((in_csc_mode&0x3)<<6)) + 0x60 + 0x30;
         }
     }
     else
     {
-    	//in_br_swap = 0;
-        if(outcs == 0x0)
+    	if(outcs == 0x0)
         {
             csc_pass = 0x00;
             csc_coef_addr = (((in_csc_mode&0x3)<<7) + ((in_csc_mode&0x3)<<6));
@@ -1013,12 +1116,24 @@ __s32 DE_SCAL_Set_CSC_Coef(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 i
 //                 sel <scaler select>
 //                 out_type <output data format>
 // return           : 
-//               success
+//                 success
+// history          : 2012/06/05, added ouput alpha enable, 
+// note             : alpha can only be enable when input fmt interleaved and ouput fmt argb
 //*********************************************************************************************** 
 __s32 DE_SCAL_Set_Out_Format(__u8 sel, __scal_out_type_t *out_type)
 {
 	scal_dev[sel]->output_fmt.bits.byte_seq = out_type->byte_seq;
-    scal_dev[sel]->output_fmt.bits.data_fmt = out_type->fmt;
+	scal_dev[sel]->output_fmt.bits.data_fmt = out_type->fmt;
+	if(out_type->fmt == DE_SCAL_OUTI0RGB888 || out_type->fmt == DE_SCAL_OUTI1RGB888)
+	{
+		scal_dev[sel]->output_fmt.bits.alpha_en = out_type->alpha_en;
+	}
+	else
+	{
+		scal_dev[sel]->output_fmt.bits.alpha_en = 0x0;
+	}
+	//scal_dev[sel]->output_fmt.bits.alpha_en = out_type->alpha_en;
+    
     return 0;
 }
 
@@ -1033,7 +1148,7 @@ __s32 DE_SCAL_Set_Out_Format(__u8 sel, __scal_out_type_t *out_type)
 //                 out_type <output data format>
 //                 out_size <scale out size>
 // return           : 
-//               success
+//                 success
 //*********************************************************************************************** 
 __s32 DE_SCAL_Set_Out_Size(__u8 sel, __scal_scan_mod_t *out_scan, __scal_out_type_t *out_type, 
                            __scal_out_size_t *out_size)
@@ -1124,9 +1239,9 @@ __s32 DE_SCAL_Set_Int_En(__u8 sel, __u32 int_num)
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Di_Ctrl(__u8 sel, __u8 en, __u8 mode, __u8 diagintp_en, __u8 tempdiff_en)
-// description      : set scaler deinterlace control parameter 
-// parameters       :
+// function       : DE_SCAL_Set_Di_Ctrl(__u8 sel, __u8 en, __u8 mode, __u8 diagintp_en, __u8 tempdiff_en)
+// description    : set scaler deinterlace control parameter 
+// parameters     :
 //                 sel <scaler select>,
 //                 en <0,1>
 //                 |    0  deinterlace disable
@@ -1134,16 +1249,18 @@ __s32 DE_SCAL_Set_Int_En(__u8 sel, __u32 int_num)
 //                 mode <0,1,2,3>
 //                 |    0   weave
 //                 |    1   bob
-//                 |    2   maf
-//                 |    3   maf-bob
+//                 |    2   reserved
+//                 |    3   pixel_motion_adptive
 //                 diagintp_en <0, 1>
 //                 tempdiff_en <0,1>
-// return           : 
-//               success
+// return         : 
+//                 success
+// note           : flag out is enabled in default, so current flag address must be set before
 //*********************************************************************************************** 
 __s32 DE_SCAL_Set_Di_Ctrl(__u8 sel, __u8 en, __u8 mode, __u8 diagintp_en, __u8 tempdiff_en)
 {
 	scal_dev[sel]->di_ctrl.bits.en = en;
+	scal_dev[sel]->di_ctrl.bits.flag_out_en = 0x0;  //for flag out, default enable
     scal_dev[sel]->di_ctrl.bits.mod = mode;
     scal_dev[sel]->di_ctrl.bits.diagintp_en = diagintp_en;
     scal_dev[sel]->di_ctrl.bits.tempdiff_en = tempdiff_en;
@@ -1152,44 +1269,48 @@ __s32 DE_SCAL_Set_Di_Ctrl(__u8 sel, __u8 en, __u8 mode, __u8 diagintp_en, __u8 t
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_Di_PreFrame_Addr(__u8 sel, __u32 addr)
-// description      : set scaler deinterlace pre frame luma address
-// parameters       :
+// function       : DE_SCAL_Set_Di_PreFrame_Addr(__u8 sel, __u32 luma_addr, __u32 chroma_addr)
+// description    : set scaler deinterlace pre frame luma/chroma address
+// parameters     :
 //                 sel <scaler select>, 
-//                 addr <pre frame address>
-// return           : 
-//               success
+//                 luma_addr/chroma_addr <pre frame luma/chroma address>
+// return         : 
+//                 success
 //*********************************************************************************************** 
-__s32 DE_SCAL_Set_Di_PreFrame_Addr(__u8 sel, __u32 addr)
+__s32 DE_SCAL_Set_Di_PreFrame_Addr(__u8 sel, __u32 luma_addr, __u32 chroma_addr)
 {
-    scal_dev[sel]->di_preluma.dwval = addr;
-    return 0;
+    scal_dev[sel]->di_preluma.dwval = luma_addr + de_scal_ch0_offset;
+	scal_dev[sel]->di_prechroma.dwval = chroma_addr + de_scal_ch1_offset;
+
+	return 0;
 }
 
 //*********************************************************************************************
-// function         :  DE_SCAL_Set_Di_MafFlag_Src(__u8 sel, __u32 addr, __u32 stride)
-// description      : set scaler deinterlace maf flag address and linestride
-// parameters       :
+// function       : DE_SCAL_Set_Di_MafFlag_Src(__u8 sel, __u32 cur_addr, __u32 pre_addr, __u32 stride)
+// description    : set scaler deinterlace maf flag address and linestride
+// parameters     :
 //                 sel <scaler select>, 
-//                 addr <maf flag address>
-//		 stride <maf line stride>
-// return           : 
-//               success
+//                 cur_addr/pre_addr <maf flag address>
+//		           stride <maf line stride>
+// return         : 
+//                 success
 //*********************************************************************************************** 
-__s32 DE_SCAL_Set_Di_MafFlag_Src(__u8 sel, __u32 addr, __u32 stride)
+__s32 DE_SCAL_Set_Di_MafFlag_Src(__u8 sel, __u32 cur_addr, __u32 pre_addr, __u32 stride)
 {
-    scal_dev[sel]->di_blkflag.dwval = addr;
+    scal_dev[sel]->di_tileflag0.dwval = pre_addr;
+	scal_dev[sel]->di_tileflag1.dwval = cur_addr;
     scal_dev[sel]->di_flaglinestrd.dwval = stride;
     return 0;
 }
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Start(__u8 sel)
-// description      : scaler module  start set
-// parameters       :
+// function       : DE_SCAL_Start(__u8 sel)
+// description    : scaler module  start set
+// parameters     :
 //                 sel <scaler select>
-// return           : success
+// return         : 
+//                  success
 //***********************************************************************************
 __s32 DE_SCAL_Start(__u8 sel)
 {
@@ -1199,11 +1320,12 @@ __s32 DE_SCAL_Start(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Set_Filtercoef_Ready(__u8 sel)
-// description      : scaler filter coefficient set ready
-// parameters       :
+// function       : DE_SCAL_Set_Filtercoef_Ready(__u8 sel)
+// description    : scaler filter coefficient set ready
+// parameters     :
 //                 sel <scaler select>   
-// return           : success
+// return         : 
+//                 success
 //***********************************************************************************
 __s32 DE_SCAL_Set_Filtercoef_Ready(__u8 sel)
 {
@@ -1213,11 +1335,12 @@ __s32 DE_SCAL_Set_Filtercoef_Ready(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Set_Reg_Rdy(__u8 sel)
-// description      : scaler configure registers set ready
-// parameters       :
+// function       : DE_SCAL_Set_Reg_Rdy(__u8 sel)
+// description    : scaler configure registers set ready
+// parameters     :
 //                 sel <scaler select>             
-// return           : success
+// return         : 
+//                 success
 //***********************************************************************************
 __s32 DE_SCAL_Set_Reg_Rdy(__u8 sel)
 {
@@ -1228,11 +1351,12 @@ __s32 DE_SCAL_Set_Reg_Rdy(__u8 sel)
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Reset(__u8 sel)
-// description      : scaler module reset(reset module status machine)
-// parameters       :
+// function       : DE_SCAL_Reset(__u8 sel)
+// description    : scaler module reset(reset module status machine)
+// parameters     :
 //                 sel <scaler select>
-// return            : success
+// return         : 
+//                 success
 //***********************************************************************************
 __s32 DE_SCAL_Reset(__u8 sel)
 {
@@ -1247,9 +1371,9 @@ __s32 DE_SCAL_Reset(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Input_Port_Select(__u8 sel, __u8 port)
-// description      : scaler input source select
-// parameters       :
+// function       : DE_SCAL_Input_Port_Select(__u8 sel, __u8 port)
+// description    : scaler input source select
+// parameters     :
 //                 sel <scaler select>
 //                 port <scaler input port>
 //                 |    0   dram
@@ -1257,7 +1381,8 @@ __s32 DE_SCAL_Reset(__u8 sel)
 //                 |    5   interface of image1 to lcd
 //                 |    6   image0
 //                 |    7   image1
-// return            : success
+// return         : 
+//                 success
 //***********************************************************************************
 __s32 DE_SCAL_Input_Select(__u8 sel, __u32 source)
 {
@@ -1267,35 +1392,37 @@ __s32 DE_SCAL_Input_Select(__u8 sel, __u32 source)
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Output_Select(__u8 sel)
-// description      : scaler output select
-// parameters       :
+// function       : DE_SCAL_Output_Select(__u8 sel)
+// description    : scaler output select
+// parameters     :
 //                 sel <scaler select>
-//                 out<0:be0; 1:be1; 2:me; 3:writeback>
-// return            : success
+//                 out<0:be0; 1:be1; 3:writeback>
+// return         : 
+//                 success
 //***********************************************************************************
 __s32 DE_SCAL_Output_Select(__u8 sel, __u8 out)
 {
     if(out == 3)//write back
     {
-        scal_dev[sel]->frm_ctrl.bits.out_ctrl = 1;//disable scaler output to be/me
+        scal_dev[sel]->frm_ctrl.bits.out_ctrl = 1;//disable scaler output to be
         scal_dev[sel]->frm_ctrl.bits.out_port_sel = 0;
     }
     else if(out < 3)
     {
-        scal_dev[sel]->frm_ctrl.bits.out_ctrl = 0;//enable scaler output to be/me
-        scal_dev[sel]->frm_ctrl.bits.out_port_sel = out;
+        scal_dev[sel]->frm_ctrl.bits.out_ctrl = 0;//enable scaler output to be
+        scal_dev[sel]->frm_ctrl.bits.out_port_sel = 0x0;  //only to be0
     }
     
     return 0;
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Writeback_Enable(__u8 sel)
-// description      : scaler write back enable 
-// parameters       :
+// function       : DE_SCAL_Writeback_Enable(__u8 sel)
+// description    : scaler write back enable 
+// parameters     :
 //                 sel <scaler select>
-// return            : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Writeback_Enable(__u8 sel)
 {
@@ -1305,13 +1432,14 @@ __s32 DE_SCAL_Writeback_Enable(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Writeback_Disable(__u8 sel)
-// description      : scaler write back enable 
-// parameters       :
+// function       : DE_SCAL_Writeback_Disable(__u8 sel)
+// description    : scaler write back enable 
+// parameters     :
 //                sel <0,1>
 //                |    0  scaler0
 //                |    1  scaler1
-// return            : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Writeback_Disable(__u8 sel)
 {
@@ -1321,13 +1449,14 @@ __s32 DE_SCAL_Writeback_Disable(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Writeback_Linestride_Enable(__u8 sel)
-// description      : scaler write back linestride enable 
-// parameters       :
+// function       : DE_SCAL_Writeback_Linestride_Enable(__u8 sel)
+// description    : scaler write back linestride enable 
+// parameters     :
 //                sel <0,1>
 //                |    0  scaler0
 //                |    1  scaler1
-// return            : success
+// return         :
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Writeback_Linestride_Enable(__u8 sel)
 {
@@ -1337,13 +1466,14 @@ __s32 DE_SCAL_Writeback_Linestride_Enable(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Writeback_Linestride_Disable(__u8 sel)
-// description      : scaler write back linestride disable 
-// parameters       :
+// function       : DE_SCAL_Writeback_Linestride_Disable(__u8 sel)
+// description    : scaler write back linestride disable 
+// parameters     :
 //                sel <0,1>
 //                |    0  scaler0
 //                |    1  scaler1
-// return            : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Writeback_Linestride_Disable(__u8 sel)
 {
@@ -1354,11 +1484,12 @@ __s32 DE_SCAL_Writeback_Linestride_Disable(__u8 sel)
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Enable(__u8 sel)
-// description      : scaler module enable
-// parameters       :
+// function       : DE_SCAL_Enable(__u8 sel)
+// description    : scaler module enable
+// parameters     :
 //                 sel <scaler select>
-// return           : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Enable(__u8 sel)
 {
@@ -1371,11 +1502,12 @@ __s32 DE_SCAL_Enable(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Disable(__u8 sel)
-// description      : scaler module disable
-// parameters       :
+// function       : DE_SCAL_Disable(__u8 sel)
+// description    : scaler module disable
+// parameters     :
 //                 sel <scaler select>
-// return           : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Disable(__u8 sel)
 {
@@ -1386,12 +1518,13 @@ __s32 DE_SCAL_Disable(__u8 sel)
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Set_Writeback_Addr(__u8 sel, __scal_buf_addr_t *addr)
-// description      : scaler write back address set
-// parameters       :
+// function       : DE_SCAL_Set_Writeback_Addr(__u8 sel, __scal_buf_addr_t *addr)
+// description    : scaler write back address set
+// parameters     :
 //                 sel <scaler select>
 //                 addr <address for wb>
-// return            : success
+// return         : 
+//                success
 //***********************************************************************************
 __s32 DE_SCAL_Set_Writeback_Addr(__u8 sel, __scal_buf_addr_t *addr)
 {
@@ -1405,18 +1538,20 @@ __s32 DE_SCAL_Set_Writeback_Addr(__u8 sel, __scal_buf_addr_t *addr)
 
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Input_Format(__u8 sel)
-// description      : scaler input format get
-// parameters       :
+// function       : DE_SCAL_Get_Input_Format(__u8 sel)
+// description    : scaler input format get
+// parameters     :
 //                sel <scaler select>
-// return             : 
+// return         : 
 //                format<0,1,2,3,4,5>
 //                |    0  yuv444
 //                |    1  yuv422
 //                |    2  yuv420
 //                |    3  yuv411
-//                |    4  csirgb
-//                |    5  rgb888
+//                |    4  rgb565
+//                |    5  argb8888
+//                |    6  argb4444
+//                |    7  argb1555
 //*********************************************************************************
 __u8 DE_SCAL_Get_Input_Format(__u8 sel)
 {
@@ -1427,17 +1562,17 @@ __u8 DE_SCAL_Get_Input_Format(__u8 sel)
 }
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Input_Mode(__u8 sel)
-// description      : scaler input mode get
-// parameters       :
+// function       : DE_SCAL_Get_Input_Mode(__u8 sel)
+// description    : scaler input mode get
+// parameters     :
 //                sel <scaler select>
-// return             : 
-//                 mode<0,1,2,3,4>
+// return         : 
+//                 mode<0,1,2,4,6>
 //                 |    0  non-macro block plannar data
 //                 |    1  interleaved data
 //                 |    2  non-macro block uv combined data
-//                 |    3  macro block plannar data
-//                 |    4  macro block uv combined data
+//                 |    4  macro block plannar data
+//                 |    6  macro block uv combined data
 //*********************************************************************************
 __u8 DE_SCAL_Get_Input_Mode(__u8 sel)
 {
@@ -1450,14 +1585,15 @@ __u8 DE_SCAL_Get_Input_Mode(__u8 sel)
 
 
 //**********************************************************************************
-// function         : DE_SCAL_Get_Output_Format(__u8 sel)
-// description      : display engine front-end output data format get
-// parameters       :
+// function       : DE_SCAL_Get_Output_Format(__u8 sel)
+// description    : display engine front-end output data format get
+// parameters     :
 //                sel <scaler select>
-//return              :
-//                format  <0, 1, 4, 5, 6, 7>
+//return          :
+//                format  <0, 1, 2, 4, 5, 6, 7>
 //                |    0  plannar rgb output
-//                |    1  interleaved argb ouptut
+//                |    1  interleaved argb ouptut only for writeback
+//                |    2  interleaved bgra output only for writeback
 //                |    4  plannar yuv444
 //                |    5  plannar yuv420
 //                |    6  plannar yuv422
@@ -1473,11 +1609,11 @@ __u8 DE_SCAL_Get_Output_Format(__u8 sel)
 
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Input_Width(__u8 sel)
-// description      : scaler input width get
-// parameters       :
+// function       : DE_SCAL_Get_Input_Width(__u8 sel)
+// description    : scaler input width get
+// parameters     :
 //                sel <scaler select>
-//return              :
+//return          :
 //                width  <8~8192>
 //*********************************************************************************
 __u16 DE_SCAL_Get_Input_Width(__u8 sel)
@@ -1489,11 +1625,11 @@ __u16 DE_SCAL_Get_Input_Width(__u8 sel)
 }
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Input_Height(__u8 sel)
-// description      : scaler input height get
-// parameters       :
+// function       : DE_SCAL_Get_Input_Height(__u8 sel)
+// description    : scaler input height get
+// parameters     :
 //                sel <scaler select>
-//return               :
+//return          :
 //                 height  <8~8192>
 //*********************************************************************************
 __u16 DE_SCAL_Get_Input_Height(__u8 sel)
@@ -1505,11 +1641,11 @@ __u16 DE_SCAL_Get_Input_Height(__u8 sel)
 }
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Output_Width(__u8 sel)
-// description      : scaler output width get
-// parameters       :
+// function       : DE_SCAL_Get_Output_Width(__u8 sel)
+// description    : scaler output width get
+// parameters     :
 //                sel <scaler select>
-//return              :
+//return          :
 //                width  <8~8192>
 //*********************************************************************************
 __u16 DE_SCAL_Get_Output_Width(__u8 sel)
@@ -1521,11 +1657,11 @@ __u16 DE_SCAL_Get_Output_Width(__u8 sel)
 }
 
 //*********************************************************************************
-// function         : DE_SCAL_Get_Output_Height(__u8 sel)
-// description      : scaler output height get
-// parameters       :
+// function       : DE_SCAL_Get_Output_Height(__u8 sel)
+// description    : scaler output height get
+// parameters     :
 //                sel <scaler select>
-//return              :
+//return          :
 //                height  <8~8192>
 //*********************************************************************************
 __u16 DE_SCAL_Get_Output_Height(__u8 sel)
@@ -1537,13 +1673,13 @@ __u16 DE_SCAL_Get_Output_Height(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Get_Start_Status(__u8 sel)
-// description      : scaler start status get
-// parameters       :
+// function       : DE_SCAL_Get_Start_Status(__u8 sel)
+// description    : scaler start status get
+// parameters     :
 //                sel <0,1>
 //                |    0  scaler0
 //                |    1  scaler1
-// return           : 
+// return         : 
 //                 0  scaler enable
 //                 -1 scaler disable
 //***********************************************************************************
@@ -1560,17 +1696,16 @@ __s32 DE_SCAL_Get_Start_Status(__u8 sel)
 }
 
 //**********************************************************************************
-// function         : DE_SCAL_Get_Field_Status(__u8 sel)
-// description      : lcd field status
-// parameters       :
+// function       : DE_SCAL_Get_Field_Status(__u8 sel)
+// description    : lcd field status
+// parameters     :
 //                sel <0,1>
 //                |    0  scaler0
 //                |    1  scaler1
-// return           : 
+// return         : 
 //                 0  top field
 //                 1  bottom field
 //***********************************************************************************
-
 __s32 DE_SCAL_Get_Field_Status(__u8 sel)
 {
 	return scal_dev[sel]->status.bits.lcd_field;
@@ -1578,13 +1713,13 @@ __s32 DE_SCAL_Get_Field_Status(__u8 sel)
 
 
 //*********************************************************************************************
-// function         : iDE_SCAL_Matrix_Mul(__scal_matrix4x4 in1, __scal_matrix4x4 in2, __scal_matrix4x4 *result)
-// description      : matrix multiple of 4x4, m1 * m2
-// parameters       :
+// function       : iDE_SCAL_Matrix_Mul(__scal_matrix4x4 in1, __scal_matrix4x4 in2, __scal_matrix4x4 *result)
+// description    : matrix multiple of 4x4, m1 * m2
+// parameters     :
 //                 in1/in2 <4x4 matrix>
 //                 result <>
-// return           : 
-//               success
+// return         : 
+//                 success
 //*********************************************************************************************** 
 __s32 iDE_SCAL_Matrix_Mul(__scal_matrix4x4 in1, __scal_matrix4x4 in2, __scal_matrix4x4 *result)
 {
@@ -1615,13 +1750,13 @@ __s32 iDE_SCAL_Matrix_Mul(__scal_matrix4x4 in1, __scal_matrix4x4 in2, __scal_mat
 
 
 //*********************************************************************************************
-// function         : iDE_SCAL_Csc_Lmt(__s64 *value, __s32 min, __s32 max, __s32 shift, __s32 validbit)
-// description      : csc coefficient and constant limited
-// parameters       :
+// function       : iDE_SCAL_Csc_Lmt(__s64 *value, __s32 min, __s32 max, __s32 shift, __s32 validbit)
+// description    : csc coefficient and constant limited
+// parameters     :
 //                value<coefficient or constant>
 //                min/max <limited range>
-// return           : 
-//               success
+// return         : 
+//                success
 //*********************************************************************************************** 
 __s32 iDE_SCAL_Csc_Lmt(__s64 *value, __s32 min, __s32 max, __s32 shift, __s32 validbit)
 {
@@ -1638,11 +1773,11 @@ __s32 iDE_SCAL_Csc_Lmt(__s64 *value, __s32 min, __s32 max, __s32 shift, __s32 va
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_CSC_Coef_Enhance(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs,
+// function       : DE_SCAL_Set_CSC_Coef_Enhance(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs,
 //                                                   __s32  bright, __s32 contrast, __s32 saturaion, __s32 hue,
 //                                                   __u32  in_br_swap, __u32 out_br_swap)
-// description      : set scaler input/output color space convert coefficients
-// parameters       :
+// description    : set scaler input/output color space convert coefficients
+// parameters     :
 //                 sel <scaler select>
 //                 in_csc_mode <color space select, bt601, bt709, ycc, xycc>
 //                 out_csc_mode <color space select, bt601, bt709, ycc, xycc>
@@ -1662,8 +1797,8 @@ __s32 iDE_SCAL_Csc_Lmt(__s64 *value, __s32 min, __s32 max, __s32 shift, __s32 va
 //                 out_br_swap <swap output b r component>
 //                 |    0  normal
 //                 |    1  swap enable, note: when output yuv, then u v swap
-// return           : 
-//               success
+// return         : 
+//                 success
 //*********************************************************************************************** 
 __s32 DE_SCAL_Set_CSC_Coef_Enhance(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode, __u8 incs, __u8 outcs,
                                                    __s32  bright, __s32 contrast, __s32 saturaion, __s32 hue,
@@ -1681,8 +1816,8 @@ __s32 DE_SCAL_Set_CSC_Coef_Enhance(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode
 	bright = contrast*64/100;
 	bright = hue*64/100;
 
-	sinv = image_enhance_tab[8*12 + (hue&0x3f)];
-	cosv = image_enhance_tab[8*12 + 8*8 + (hue&0x3f)];
+	sinv = image_enhance_tab[8*16 + (hue&0x3f)];
+	cosv = image_enhance_tab[8*16 + 8*8 + (hue&0x3f)];
 	
 	matrixEn.x00 = contrast << 5;
 	matrixEn.x01 = 0;
@@ -1809,15 +1944,15 @@ __s32 DE_SCAL_Set_CSC_Coef_Enhance(__u8 sel, __u8 in_csc_mode, __u8 out_csc_mode
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Get_3D_In_Single_Size( __scal_3d_inmode_t inmode, __scal_src_size_t *fullsize,__scal_src_size_t *singlesize)
-// description     : get single image size according to 3D inmode and full size
-// parameters    :
+// function       : DE_SCAL_Get_3D_In_Single_Size( __scal_3d_inmode_t inmode, __scal_src_size_t *fullsize,__scal_src_size_t *singlesize)
+// description    : get single image size according to 3D inmode and full size
+// parameters     :
 //                 sel <scaler select>
 //                 inmode <3D input mode>
 //                 fullsize <3D source size, maybe double width of left image or double heigth of left height>
 //                 singlesize <3D left image size>
-// return            : 
-//               success
+// return         : 
+//                 success
 //***********************************************************************************************
 __s32 DE_SCAL_Get_3D_In_Single_Size(__scal_3d_inmode_t inmode, __scal_src_size_t *fullsize,__scal_src_size_t *singlesize)
 {
@@ -1865,15 +2000,15 @@ __s32 DE_SCAL_Get_3D_In_Single_Size(__scal_3d_inmode_t inmode, __scal_src_size_t
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Get_3D_Out_Single_Size( __scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
-// description     : get 3D output single size according to 3D outmode and full image size
-// parameters    :
+// function       : DE_SCAL_Get_3D_Out_Single_Size( __scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
+// description    : get 3D output single size according to 3D outmode and full image size
+// parameters     :
 //                 sel <scaler select>
 //                 inmode <3D output mode>
 //                 fullsize <3D source size, maybe double width of left image or double heigth of left height>
 //                 singlesize <3D left image size>
-// return            : 
-//               success
+// return         : 
+//                 success
 //***********************************************************************************************
 __s32 DE_SCAL_Get_3D_Out_Single_Size(__scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
 {
@@ -1891,9 +2026,12 @@ __s32 DE_SCAL_Get_3D_Out_Single_Size(__scal_3d_outmode_t outmode, __scal_out_siz
 		case DE_SCAL_3DOUT_LIRGB:
 		case DE_SCAL_3DOUT_HDMI_TB:
 		case DE_SCAL_3DOUT_HDMI_FPP:
-		case DE_SCAL_3DOUT_HDMI_FPI:
 		case DE_SCAL_3DOUT_HDMI_LI:
 			singlesize->height = fullsize->height>>1;
+			singlesize->width  = fullsize->width;
+			break;
+		case DE_SCAL_3DOUT_HDMI_FPI:
+			singlesize->height = fullsize->height>>2;
 			singlesize->width  = fullsize->width;
 			break;
 		case DE_SCAL_3DOUT_HDMI_FA:  //
@@ -1908,15 +2046,15 @@ __s32 DE_SCAL_Get_3D_Out_Single_Size(__scal_3d_outmode_t outmode, __scal_out_siz
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Get_3D_Out_Full_Size(__scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
-// description     : get 3D output full size according to 3D outmode and left/right image size
-// parameters    :
+// function       : DE_SCAL_Get_3D_Out_Full_Size(__scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
+// description    : get 3D output full size according to 3D outmode and left/right image size
+// parameters     :
 //                 sel <scaler select>
 //                 inmode <3D output mode>
 //                 fullsize <3D source size, maybe double width of left image or double heigth of left height>
 //                 singlesize <3D left image size>
-// return            : 
-//               success
+// return         : 
+//                 success
 //***********************************************************************************************
 __s32 DE_SCAL_Get_3D_Out_Full_Size(__scal_3d_outmode_t outmode, __scal_out_size_t *singlesize,__scal_out_size_t *fullsize)
 {
@@ -1934,9 +2072,12 @@ __s32 DE_SCAL_Get_3D_Out_Full_Size(__scal_3d_outmode_t outmode, __scal_out_size_
 		case DE_SCAL_3DOUT_LIRGB:
 		case DE_SCAL_3DOUT_HDMI_TB:
 		case DE_SCAL_3DOUT_HDMI_FPP:
-		case DE_SCAL_3DOUT_HDMI_FPI:
 		case DE_SCAL_3DOUT_HDMI_LI:
 			fullsize->height = singlesize->height<<1;
+			fullsize->width  = singlesize->width;
+			break;
+		case DE_SCAL_3DOUT_HDMI_FPI:
+			fullsize->height = singlesize->height<<2;
 			fullsize->width  = singlesize->width;
 			break;
 		case DE_SCAL_3DOUT_HDMI_FA:  //
@@ -1950,15 +2091,16 @@ __s32 DE_SCAL_Get_3D_Out_Full_Size(__scal_3d_outmode_t outmode, __scal_out_size_
 	return 0;
 }
 
+
 //*********************************************************************************************
-// function         : DE_SCAL_Set_3D_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_t *addrtrd)
-// description     : scaler change frame buffer address, only change start address parameters
-// parameters    :
+// function       : DE_SCAL_Set_3D_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_t *addrtrd)
+// description    : scaler change frame buffer address, only change start address parameters
+// parameters     :
 //                 sel <scaler select>
 //                 addr  <frame buffer address for 3 channel, 32 bit absolute address>
 //                 addrtrd <3D source right image buffer address, only needed when 3dinmode is FP>
-// return            : 
-//               success
+// return         : 
+//                 success
 //***********************************************************************************************
 __s32 DE_SCAL_Set_3D_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_t *addrtrd)
 {
@@ -1981,18 +2123,45 @@ __s32 DE_SCAL_Set_3D_Fb_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_
     return 0;
 }
 
+//*********************************************************************************************
+// function       : DE_SCAL_Set_3D_Di_PreFrame_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_t *addrtrd)
+// description    : set scaler deinterlace pre frame luma/chroma address
+// parameters     :
+//                 sel <scaler select>, 
+//                 addr  <pre frame buffer address for 3 channel, 32 bit absolute address>
+//                 addrtrd <pre 3D source right image buffer address, only needed when 3dinmode is FP>
+// return         : 
+//                 success
+//*********************************************************************************************** 
+__s32 DE_SCAL_Set_3D_Di_PreFrame_Addr(__u8 sel, __scal_buf_addr_t *addr, __scal_buf_addr_t *addrtrd)
+{
+    scal_dev[sel]->di_preluma.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+	scal_dev[sel]->di_prechroma.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+	if(de_scal_trd_fp_en)
+	{
+		scal_dev[sel]->trd_preluma.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
+		scal_dev[sel]->trd_prechroma.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
+	}
+	else
+	{
+		scal_dev[sel]->trd_preluma.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+		scal_dev[sel]->trd_prechroma.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+	}
+    return 0;
+}
+
 
 //*********************************************************************************************
-// function         : DE_SCAL_Set_3D_Ctrl(__u8 sel, __u8 trden, __scal_3d_inmode_t inmode, 
+// function       : DE_SCAL_Set_3D_Ctrl(__u8 sel, __u8 trden, __scal_3d_inmode_t inmode, 
 //								__scal_3d_outmode_t outmode)
-// description     : scaler 3D control setting
-// parameters    :
+// description    : scaler 3D control setting
+// parameters     :
 //                 sel <scaler select>
 //                 trden  <3D enable, when 3D mode close, left picture >
 //                 inmode <3D input mode>
 //                 outmode <3D output mode>
-// return            : 
-//               success
+// return         : 
+//                 success
 //***********************************************************************************************
 __s32 DE_SCAL_Set_3D_Ctrl(__u8 sel, __u8 trden, __scal_3d_inmode_t inmode, 
 								__scal_3d_outmode_t outmode)
@@ -2059,10 +2228,10 @@ __s32 DE_SCAL_Set_3D_Ctrl(__u8 sel, __u8 trden, __scal_3d_inmode_t inmode,
 }
 
 //*********************************************************************************************
-// function         : DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
+// function       : DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
 //                           __scal_src_type_t *type, __scal_3d_inmode_t trdinmode, __scal_buf_addr_t *addrtrd)
-// description     : scaler 3D source concerning parameter configure
-// parameters    :
+// description    : scaler 3D source concerning parameter configure
+// parameters     :
 //                 sel <scaler select>
 //                 addr  <3D left image frame buffer address for 3 channel, 32 bit absolute address>
 //                 size <scale region define,  src size, offset, scal size>
@@ -2070,8 +2239,9 @@ __s32 DE_SCAL_Set_3D_Ctrl(__u8 sel, __u8 trden, __scal_3d_inmode_t inmode,
 //                 trdinmode <3D input mode>
 //                 addrtrd <3D right image frame buffer address for 3 channel, this address must be set when 3d inmode
 //                              is FP_P/FP_M, for other mode, the right image buffer address can be get through left image address>
-// return            : 
-//               success
+// return         : 
+//                 success
+// history        : 2012/06/05, added uv combined 3D support
 //***********************************************************************************************
 __s32 DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
                            __scal_src_type_t *type, __scal_3d_inmode_t trdinmode, __scal_buf_addr_t *addrtrd)
@@ -2118,7 +2288,7 @@ __s32 DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t
     	in_w1 = in_w0;
     	x_off1 = x_off0;
     }
-    if(type->fmt == DE_SCAL_INYUV420 || type->fmt == DE_SCAL_INCSIRGB)
+    if(type->fmt == DE_SCAL_INYUV420)
     {
         h_shift = 1;
 		image_h0 &= 0xfffffffe;
@@ -2141,378 +2311,486 @@ __s32 DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t
 	in_h1 = (in_h1!=0) ? in_h1 : 1;
 	in_w0 = (in_w0!=0) ? in_w0 : 1;
 	in_w1 = (in_w1!=0) ? in_w1 : 1;
-	
-	if((trdinmode == DE_SCAL_3DIN_TB) && (type->mod == DE_SCAL_PLANNAR))
+
+	if(type->mod == DE_SCAL_PLANNAR)
 	{
-	    scal_dev[sel]->linestrd0.dwval = image_w0;
-		scal_dev[sel]->linestrd1.dwval = image_w1;
-		scal_dev[sel]->linestrd2.dwval = image_w1;
+		if((trdinmode == DE_SCAL_3DIN_TB))
+		{
+		    scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1;
+			scal_dev[sel]->linestrd2.dwval = image_w1;
 
-        de_scal_ch0_offset = image_w0 * y_off0 + x_off0;
-        de_scal_ch1_offset = image_w1 * y_off1 + x_off1;
-        de_scal_ch2_offset = image_w1 * y_off1 + x_off1;
+	        de_scal_ch0_offset = image_w0 * y_off0 + x_off0;
+	        de_scal_ch1_offset = image_w1 * y_off1 + x_off1;
+	        de_scal_ch2_offset = image_w1 * y_off1 + x_off1;
 
-		de_scal_ch0r_offset = image_w0 * image_h0 + de_scal_ch0_offset;
-		de_scal_ch1r_offset = image_w1 * image_h1 + de_scal_ch1_offset;
-		de_scal_ch2r_offset = image_w1 * image_h1 + de_scal_ch2_offset;
+			de_scal_ch0r_offset = image_w0 * image_h0 + de_scal_ch0_offset;
+			de_scal_ch1r_offset = image_w1 * image_h1 + de_scal_ch1_offset;
+			de_scal_ch2r_offset = image_w1 * image_h1 + de_scal_ch2_offset;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
 			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_FP))
+		{
+		    scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1;
+			scal_dev[sel]->linestrd2.dwval = image_w1;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-		
+	        de_scal_ch0_offset = image_w0 * y_off0 + x_off0;
+	        de_scal_ch1_offset = image_w1 * y_off1 + x_off1;
+	        de_scal_ch2_offset = image_w1 * y_off1 + x_off1;
+
+			de_scal_ch0r_offset = de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 1;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_SSF) || (trdinmode == DE_SCAL_3DIN_SSH))
+		{
+		    scal_dev[sel]->linestrd0.dwval = image_w0<<1;
+			scal_dev[sel]->linestrd1.dwval = image_w1<<1;
+			scal_dev[sel]->linestrd2.dwval = image_w1<<1;
+
+	        de_scal_ch0_offset = (image_w0<<1) * y_off0 + x_off0;
+	        de_scal_ch1_offset = (image_w1<<1) * y_off1 + x_off1;
+	        de_scal_ch2_offset = (image_w1<<1) * y_off1 + x_off1;
+
+			de_scal_ch0r_offset = image_w0 + de_scal_ch0_offset;
+			de_scal_ch1r_offset = image_w1 + de_scal_ch1_offset;
+			de_scal_ch2r_offset = image_w1 + de_scal_ch2_offset;
+
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_LI))
+		{
+		    scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1;
+			scal_dev[sel]->linestrd2.dwval = image_w1;
+
+	        de_scal_ch0_offset = (image_w0) * (y_off0<<1) + x_off0;
+	        de_scal_ch1_offset = (image_w1) * (y_off1<<1) + x_off1;
+	        de_scal_ch2_offset = (image_w1) * (y_off1<<1) + x_off1;
+
+			de_scal_ch0r_offset = image_w0 + de_scal_ch0_offset;
+			de_scal_ch1r_offset = image_w1 + de_scal_ch1_offset;
+			de_scal_ch2r_offset = image_w1 + de_scal_ch2_offset;
+
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
 	}
-	else if((trdinmode == DE_SCAL_3DIN_FP) && (type->mod == DE_SCAL_PLANNAR))
+	else if(type->mod == DE_SCAL_INTERLEAVED)
 	{
-	    scal_dev[sel]->linestrd0.dwval = image_w0;
-		scal_dev[sel]->linestrd1.dwval = image_w1;
-		scal_dev[sel]->linestrd2.dwval = image_w1;
+		if((trdinmode == DE_SCAL_3DIN_FP))
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
+			scal_dev[sel]->linestrd1.dwval = 0;
+			scal_dev[sel]->linestrd2.dwval = 0;
 
-        de_scal_ch0_offset = image_w0 * y_off0 + x_off0;
-        de_scal_ch1_offset = image_w1 * y_off1 + x_off1;
-        de_scal_ch2_offset = image_w1 * y_off1 + x_off1;
+	        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * y_off0 + x_off0;
+	        de_scal_ch1_offset = 0;
+	        de_scal_ch2_offset = 0;
 
-		de_scal_ch0r_offset = de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = de_scal_ch2_offset;
+			de_scal_ch0r_offset = de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
 
-		de_scal_trd_fp_en = 1;
+			de_scal_trd_fp_en = 1;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_TB))
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
+			scal_dev[sel]->linestrd1.dwval = 0;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * y_off0 + x_off0;
+	        de_scal_ch1_offset = 0;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = (image_w0<<(2-w_shift)) * image_h0 + de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_SSF)||(trdinmode == DE_SCAL_3DIN_SSH))
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0<<(3-w_shift);
+			scal_dev[sel]->linestrd1.dwval = 0;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0<<(3-w_shift)) * y_off0 + x_off0;
+	        de_scal_ch1_offset = 0;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = (image_w0<<(2-w_shift)) + de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_LI))
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
+			scal_dev[sel]->linestrd1.dwval = 0;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * (y_off0<<1) + x_off0;
+	        de_scal_ch1_offset = 0;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = (image_w0<<(2-w_shift)) + de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+	}
+	else if(type->mod == DE_SCAL_UVCOMBINED) //
+	{
+		if((trdinmode == DE_SCAL_3DIN_SSF) || (trdinmode == DE_SCAL_3DIN_SSH))
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0 * 2;
+			scal_dev[sel]->linestrd1.dwval = image_w1 * 2 * 2;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (2 * image_w0) * y_off0 + x_off0;
+	        de_scal_ch1_offset = 2 * (2 * image_w1) * y_off1 + 2 * x_off1;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = image_w0;
+			de_scal_ch1r_offset = image_w1 * 2;
+			de_scal_ch2r_offset = 0;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if(trdinmode == DE_SCAL_3DIN_TB)
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1 * 2;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0) * y_off0 + x_off0;
+	        de_scal_ch1_offset = (image_w1 * 2) * y_off1 + 2 * x_off1;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = (image_w0) * image_h0 + de_scal_ch0_offset;
+			de_scal_ch1r_offset = (image_w1 * 2) * image_h1 + de_scal_ch1_offset;
+			de_scal_ch2r_offset = 0;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if(trdinmode == DE_SCAL_3DIN_FP)
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1 * 2;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0) * y_off0 + x_off0;
+	        de_scal_ch1_offset = (image_w1 * 2) * y_off1 + 2 * x_off1;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 1;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if(trdinmode == DE_SCAL_3DIN_LI)
+		{
+			scal_dev[sel]->linestrd0.dwval = image_w0;
+			scal_dev[sel]->linestrd1.dwval = image_w1 * 2;
+			scal_dev[sel]->linestrd2.dwval = 0;
+
+	        de_scal_ch0_offset = (image_w0 * 2) * y_off0 + x_off0;
+	        de_scal_ch1_offset = 2 * (image_w1 * 2) * y_off1 + 2 * x_off1;
+	        de_scal_ch2_offset = 0;
+
+			de_scal_ch0r_offset = de_scal_ch0_offset + image_w0;
+			de_scal_ch1r_offset = de_scal_ch1_offset + image_w1 * 2;
+			de_scal_ch2r_offset = de_scal_ch2_offset;
+
+			de_scal_trd_fp_en = 0;
+				
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+	}
+	else if(type->mod == DE_SCAL_UVCOMBINEDMB)
+	{
+		if((trdinmode == DE_SCAL_3DIN_TB))
+		{
+		    scal_dev[sel]->linestrd0.dwval = (((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
+			scal_dev[sel]->linestrd1.dwval = (((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
+			scal_dev[sel]->linestrd2.dwval = 0x00;
+
+			//block offset
+			de_scal_ch0_dx0 = (x_off0 & 0x1f);
+			de_scal_ch0_dy0 = (y_off0 & 0x1f);
+			de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
+			de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
+			de_scal_ch1_dy0 = ((y_off1)&0x1f);
+			de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
 			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+			scal_dev[sel]->tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->tb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
+			scal_dev[sel]->trd_tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->trd_tb_off0.bits.y_offset0 = (image_h0 + y_off0) & 0x1f;
+			scal_dev[sel]->trd_tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->trd_tb_off1.bits.y_offset0 = (image_h1 + y_off1) & 0x1f;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset1 = de_scal_ch1_dx1;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if(((trdinmode == DE_SCAL_3DIN_SSF) || (trdinmode == DE_SCAL_3DIN_SSH)) && (type->mod == DE_SCAL_PLANNAR))
-	{
-	    scal_dev[sel]->linestrd0.dwval = image_w0<<1;
-		scal_dev[sel]->linestrd1.dwval = image_w1<<1;
-		scal_dev[sel]->linestrd2.dwval = image_w1<<1;
+			de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
+	                              ((x_off0& 0xffe0)<<5);
+	        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
+	                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
+	        de_scal_ch2_offset = 0x0;
 
-        de_scal_ch0_offset = (image_w0<<1) * y_off0 + x_off0;
-        de_scal_ch1_offset = (image_w1<<1) * y_off1 + x_off1;
-        de_scal_ch2_offset = (image_w1<<1) * y_off1 + x_off1;
+			de_scal_ch0r_offset = ((image_w0 + 0x1f) &0xffe0) * ((y_off0+ image_h0) & 0xffe0) + 
+							(((y_off0+ image_h0)& 0x01f)<<5) + ((x_off0& 0xffe0)<<5);
+			de_scal_ch1r_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1+ image_h1) & 0xffe0) + 
+	                       (((y_off1+ image_h1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
+			de_scal_ch2r_offset = 0x0;
 
-		de_scal_ch0r_offset = image_w0 + de_scal_ch0_offset;
-		de_scal_ch1r_offset = image_w1 + de_scal_ch1_offset;
-		de_scal_ch2r_offset = image_w1 + de_scal_ch2_offset;
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
 
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_FP))
+		{
+			de_scal_trd_fp_en = 1;
+		    scal_dev[sel]->linestrd0.dwval = (((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
+			scal_dev[sel]->linestrd1.dwval = (((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
+			scal_dev[sel]->linestrd2.dwval = 0x00;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_LI) && (type->mod == DE_SCAL_PLANNAR))
-	{
-	    scal_dev[sel]->linestrd0.dwval = image_w0;
-		scal_dev[sel]->linestrd1.dwval = image_w1;
-		scal_dev[sel]->linestrd2.dwval = image_w1;
-
-        de_scal_ch0_offset = (image_w0) * (y_off0<<1) + x_off0;
-        de_scal_ch1_offset = (image_w1) * (y_off1<<1) + x_off1;
-        de_scal_ch2_offset = (image_w1) * (y_off1<<1) + x_off1;
-
-		de_scal_ch0r_offset = image_w0 + de_scal_ch0_offset;
-		de_scal_ch1r_offset = image_w1 + de_scal_ch1_offset;
-		de_scal_ch2r_offset = image_w1 + de_scal_ch2_offset;
-
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_FP) && (type->mod == DE_SCAL_INTER_LEAVED))
-	{
-		scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
-		scal_dev[sel]->linestrd1.dwval = 0;
-		scal_dev[sel]->linestrd2.dwval = 0;
-
-        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * y_off0 + x_off0;
-        de_scal_ch1_offset = 0;
-        de_scal_ch2_offset = 0;
-
-		de_scal_ch0r_offset = de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = de_scal_ch2_offset;
-
-		de_scal_trd_fp_en = 1;
+			//block offset
+			de_scal_ch0_dx0 = (x_off0 & 0x1f);
+			de_scal_ch0_dy0 = (y_off0 & 0x1f);
+			de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
+			de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
+			de_scal_ch1_dy0 = ((y_off1)&0x1f);
+			de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
 			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+			scal_dev[sel]->tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->tb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
+			scal_dev[sel]->trd_tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->trd_tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->trd_tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->trd_tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset1 = de_scal_ch1_dx1;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_TB) && (type->mod == DE_SCAL_INTER_LEAVED))
-	{
-		scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
-		scal_dev[sel]->linestrd1.dwval = 0;
-		scal_dev[sel]->linestrd2.dwval = 0;
+			de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
+	                              ((x_off0& 0xffe0)<<5);
+	        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
+	                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
+	        de_scal_ch2_offset = 0x0;
 
-        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * y_off0 + x_off0;
-        de_scal_ch1_offset = 0;
-        de_scal_ch2_offset = 0;
+			de_scal_ch0r_offset = de_scal_ch0_offset;
+			de_scal_ch1r_offset = de_scal_ch1_offset;
+			de_scal_ch2r_offset = 0x0;
 
-		de_scal_ch0r_offset = (image_w0<<(2-w_shift)) * image_h0 + de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = de_scal_ch2_offset;
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
 
-		de_scal_trd_fp_en = 0;
+			scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if(((trdinmode == DE_SCAL_3DIN_SSF) ||(trdinmode == DE_SCAL_3DIN_SSH)))
+		{
+		    scal_dev[sel]->linestrd0.dwval = (((2*image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
+			scal_dev[sel]->linestrd1.dwval = (((((2*image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
+			scal_dev[sel]->linestrd2.dwval = 0x00;
+
+			//block offset
+			de_scal_ch0_dx0 = (x_off0 & 0x1f);
+			de_scal_ch0_dy0 = (y_off0 & 0x1f);
+			de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
+			de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
+			de_scal_ch1_dy0 = ((y_off1)&0x1f);
+			de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
 			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+			scal_dev[sel]->tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->tb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
+			scal_dev[sel]->trd_tb_off0.bits.x_offset0 = (image_w0 + x_off0) & 0x1f;
+			scal_dev[sel]->trd_tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->trd_tb_off0.bits.x_offset1 = (((image_w0 + x_off0) & 0x1f) + in_w0 + 0x1f)&0x1f;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset0 = ((2 * (image_w1 + x_off1)) & 0x1f);
+			scal_dev[sel]->trd_tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset1 = (((2 * (image_w1 + x_off1)) & 0x1f) + (in_w1<<1) + 0x1f)&0x1f;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if(((trdinmode == DE_SCAL_3DIN_SSF)||(trdinmode == DE_SCAL_3DIN_SSH)) && (type->mod == DE_SCAL_INTER_LEAVED))
-	{
-		scal_dev[sel]->linestrd0.dwval = image_w0<<(3-w_shift);
-		scal_dev[sel]->linestrd1.dwval = 0;
-		scal_dev[sel]->linestrd2.dwval = 0;
+			de_scal_ch0_offset = ((2 *image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
+	                              ((x_off0& 0xffe0)<<5);
+	        de_scal_ch1_offset = ((((2 * image_w1)<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
+	                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
+	        de_scal_ch2_offset = 0x0;
 
-        de_scal_ch0_offset = (image_w0<<(3-w_shift)) * y_off0 + x_off0;
-        de_scal_ch1_offset = 0;
-        de_scal_ch2_offset = 0;
+			de_scal_ch0r_offset = ((2 *image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
+	                              (((image_w0 + x_off0) & 0xffe0)<<5);
+			de_scal_ch1r_offset = ((((2 * image_w1)<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
+	                              (((y_off1) & 0x01f)<<5) + ((((image_w1 + x_off1)<<0x01) & 0xffe0)<<5);
+			de_scal_ch2r_offset = 0x0;
 
-		de_scal_ch0r_offset = (image_w0<<(2-w_shift)) + de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = de_scal_ch2_offset;
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
 
-		de_scal_trd_fp_en = 0;
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
+		else if((trdinmode == DE_SCAL_3DIN_LI))
+		{
+		    scal_dev[sel]->linestrd0.dwval = ((((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05);
+			scal_dev[sel]->linestrd1.dwval = ((((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05);
+			scal_dev[sel]->linestrd2.dwval = 0x00;
+
+			//block offset
+			de_scal_ch0_dx0 = (x_off0 & 0x1f);
+			de_scal_ch0_dy0 = ((2*y_off0) & 0x1f);
+			de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
+			de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
+			de_scal_ch1_dy0 = ((2*y_off1)&0x1f);
+			de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
 			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
+			scal_dev[sel]->tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->tb_off0.bits.y_offset0 = de_scal_ch0_dy0;
+			scal_dev[sel]->tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->tb_off1.bits.y_offset0 = de_scal_ch1_dy0;
+			scal_dev[sel]->tb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
+			scal_dev[sel]->trd_tb_off0.bits.x_offset0 = de_scal_ch0_dx0;
+			scal_dev[sel]->trd_tb_off0.bits.y_offset0 = (2*y_off0 + 1) & 0x1f;
+			scal_dev[sel]->trd_tb_off0.bits.x_offset1 = de_scal_ch0_dx1;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset0 = de_scal_ch1_dx0;
+			scal_dev[sel]->trd_tb_off1.bits.y_offset0 = (2*y_off1 + 1) & 0x1f;
+			scal_dev[sel]->trd_tb_off1.bits.x_offset1 = de_scal_ch1_dx1;
 
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_LI) && (type->mod == DE_SCAL_INTER_LEAVED))
-	{
-		scal_dev[sel]->linestrd0.dwval = image_w0<<(2-w_shift);
-		scal_dev[sel]->linestrd1.dwval = 0;
-		scal_dev[sel]->linestrd2.dwval = 0;
+			de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * ((2*y_off0) & 0xffe0) + (((2*y_off0) & 0x01f)<<5) + 
+	                              ((x_off0& 0xffe0)<<5);
+	        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((2*y_off1) & 0xffe0) + 
+	                              (((2*y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
+	        de_scal_ch2_offset = 0x0;
 
-        de_scal_ch0_offset = (image_w0<<(2-w_shift)) * (y_off0<<1) + x_off0;
-        de_scal_ch1_offset = 0;
-        de_scal_ch2_offset = 0;
+			de_scal_ch0r_offset = de_scal_ch0_offset + 32;
+			de_scal_ch1r_offset = de_scal_ch1_offset + 32;
+			de_scal_ch2r_offset = 0x0;
 
-		de_scal_ch0r_offset = (image_w0<<(2-w_shift)) + de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = de_scal_ch2_offset;
+			scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
+			scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
+			scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
 
-		de_scal_trd_fp_en = 0;
-			
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_TB) && (type->mod == DE_SCAL_UVCOMBINEDMB))
-	{
-	    scal_dev[sel]->linestrd0.dwval = (((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
-		scal_dev[sel]->linestrd1.dwval = (((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
-		scal_dev[sel]->linestrd2.dwval = 0x00;
-
-		//block offset
-		de_scal_ch0_dx0 = (x_off0 & 0x1f);
-		de_scal_ch0_dy0 = (y_off0 & 0x1f);
-		de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
-		de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
-		de_scal_ch1_dy0 = ((y_off1)&0x1f);
-		de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
-		
-		scal_dev[sel]->mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->mb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
-		scal_dev[sel]->trd_mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->trd_mb_off0.bits.y_offset0 = (image_h0 + y_off0) & 0x1f;
-		scal_dev[sel]->trd_mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->trd_mb_off1.bits.y_offset0 = (image_h1 + y_off1) & 0x1f;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset1 = de_scal_ch1_dx1;
-
-		de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
-                              ((x_off0& 0xffe0)<<5);
-        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
-                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
-        de_scal_ch2_offset = 0x0;
-
-		de_scal_ch0r_offset = ((image_w0 + 0x1f) &0xffe0) * ((y_off0+ image_h0) & 0xffe0) + 
-						(((y_off0+ image_h0)& 0x01f)<<5) + ((x_off0& 0xffe0)<<5);
-		de_scal_ch1r_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1+ image_h1) & 0xffe0) + 
-                       (((y_off1+ image_h1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
-		de_scal_ch2r_offset = 0x0;
-
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_FP) && (type->mod == DE_SCAL_UVCOMBINEDMB))
-	{
-		de_scal_trd_fp_en = 1;
-	    scal_dev[sel]->linestrd0.dwval = (((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
-		scal_dev[sel]->linestrd1.dwval = (((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
-		scal_dev[sel]->linestrd2.dwval = 0x00;
-
-		//block offset
-		de_scal_ch0_dx0 = (x_off0 & 0x1f);
-		de_scal_ch0_dy0 = (y_off0 & 0x1f);
-		de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
-		de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
-		de_scal_ch1_dy0 = ((y_off1)&0x1f);
-		de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
-		
-		scal_dev[sel]->mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->mb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
-		scal_dev[sel]->trd_mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->trd_mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->trd_mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->trd_mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset1 = de_scal_ch1_dx1;
-
-		de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
-                              ((x_off0& 0xffe0)<<5);
-        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
-                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
-        de_scal_ch2_offset = 0x0;
-
-		de_scal_ch0r_offset = de_scal_ch0_offset;
-		de_scal_ch1r_offset = de_scal_ch1_offset;
-		de_scal_ch2r_offset = 0x0;
-
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addrtrd->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addrtrd->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addrtrd->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if(((trdinmode == DE_SCAL_3DIN_SSF) ||(trdinmode == DE_SCAL_3DIN_SSH)) && (type->mod == DE_SCAL_UVCOMBINEDMB))
-	{
-	    scal_dev[sel]->linestrd0.dwval = (((2*image_w0+0x1f)&0xffe0) - 0x1f)<<0x05;;
-		scal_dev[sel]->linestrd1.dwval = (((((2*image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05;
-		scal_dev[sel]->linestrd2.dwval = 0x00;
-
-		//block offset
-		de_scal_ch0_dx0 = (x_off0 & 0x1f);
-		de_scal_ch0_dy0 = (y_off0 & 0x1f);
-		de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
-		de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
-		de_scal_ch1_dy0 = ((y_off1)&0x1f);
-		de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
-		
-		scal_dev[sel]->mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->mb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
-		scal_dev[sel]->trd_mb_off0.bits.x_offset0 = (image_w0 + x_off0) & 0x1f;
-		scal_dev[sel]->trd_mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->trd_mb_off0.bits.x_offset1 = (((image_w0 + x_off0) & 0x1f) + in_w0 + 0x1f)&0x1f;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset0 = ((2 * (image_w1 + x_off1)) & 0x1f);
-		scal_dev[sel]->trd_mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset1 = (((2 * (image_w1 + x_off1)) & 0x1f) + (in_w1<<1) + 0x1f)&0x1f;
-
-		de_scal_ch0_offset = ((2 *image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
-                              ((x_off0& 0xffe0)<<5);
-        de_scal_ch1_offset = ((((2 * image_w1)<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
-                              (((y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
-        de_scal_ch2_offset = 0x0;
-
-		de_scal_ch0r_offset = ((2 *image_w0 + 0x1f) &0xffe0) * (y_off0& 0xffe0) + ((y_off0& 0x01f)<<5) + 
-                              (((image_w0 + x_off0) & 0xffe0)<<5);
-		de_scal_ch1r_offset = ((((2 * image_w1)<< 0x01)+0x1f)&0xffe0) * ((y_off1) & 0xffe0) + 
-                              (((y_off1) & 0x01f)<<5) + ((((image_w1 + x_off1)<<0x01) & 0xffe0)<<5);
-		de_scal_ch2r_offset = 0x0;
-
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
-	}
-	else if((trdinmode == DE_SCAL_3DIN_LI) && (type->mod == DE_SCAL_UVCOMBINEDMB))
-	{
-	    scal_dev[sel]->linestrd0.dwval = ((((image_w0+0x1f)&0xffe0) - 0x1f)<<0x05);
-		scal_dev[sel]->linestrd1.dwval = ((((((image_w1)<<1)+0x1f)&0xffe0) - 0x1f) << 0x05);
-		scal_dev[sel]->linestrd2.dwval = 0x00;
-
-		//block offset
-		de_scal_ch0_dx0 = (x_off0 & 0x1f);
-		de_scal_ch0_dy0 = ((2*y_off0) & 0x1f);
-		de_scal_ch0_dx1 = ((de_scal_ch0_dx0 & 0x1f) + in_w0 + 0x1f) &0x1f;
-		de_scal_ch1_dx0 = (((x_off1)<<1)&0x1f);
-		de_scal_ch1_dy0 = ((2*y_off1)&0x1f);
-		de_scal_ch1_dx1 = ((de_scal_ch1_dx0 & 0x1e) + ((in_w1)<<1) + 0x1f) & 0x1f; 
-		
-		scal_dev[sel]->mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->mb_off0.bits.y_offset0 = de_scal_ch0_dy0;
-		scal_dev[sel]->mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->mb_off1.bits.y_offset0 = de_scal_ch1_dy0;
-		scal_dev[sel]->mb_off1.bits.x_offset1 = de_scal_ch1_dx1; 
-		scal_dev[sel]->trd_mb_off0.bits.x_offset0 = de_scal_ch0_dx0;
-		scal_dev[sel]->trd_mb_off0.bits.y_offset0 = (2*y_off0 + 1) & 0x1f;
-		scal_dev[sel]->trd_mb_off0.bits.x_offset1 = de_scal_ch0_dx1;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset0 = de_scal_ch1_dx0;
-		scal_dev[sel]->trd_mb_off1.bits.y_offset0 = (2*y_off1 + 1) & 0x1f;
-		scal_dev[sel]->trd_mb_off1.bits.x_offset1 = de_scal_ch1_dx1;
-
-		de_scal_ch0_offset = ((image_w0 + 0x1f) &0xffe0) * ((2*y_off0) & 0xffe0) + (((2*y_off0) & 0x01f)<<5) + 
-                              ((x_off0& 0xffe0)<<5);
-        de_scal_ch1_offset = (((image_w1<< 0x01)+0x1f)&0xffe0) * ((2*y_off1) & 0xffe0) + 
-                              (((2*y_off1) & 0x01f)<<5) + (((x_off1<<0x01) & 0xffe0)<<5);
-        de_scal_ch2_offset = 0x0;
-
-		de_scal_ch0r_offset = de_scal_ch0_offset + 32;
-		de_scal_ch1r_offset = de_scal_ch1_offset + 32;
-		de_scal_ch2r_offset = 0x0;
-
-		scal_dev[sel]->buf_addr0.dwval = addr->ch0_addr+ de_scal_ch0_offset;
-		scal_dev[sel]->buf_addr1.dwval = addr->ch1_addr+ de_scal_ch1_offset;
-		scal_dev[sel]->buf_addr2.dwval = addr->ch2_addr+ de_scal_ch2_offset;
-
-		scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
-		scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
-		scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+			scal_dev[sel]->trd_buf_addr0.dwval = addr->ch0_addr + de_scal_ch0r_offset;
+			scal_dev[sel]->trd_buf_addr1.dwval = addr->ch1_addr + de_scal_ch1r_offset;
+			scal_dev[sel]->trd_buf_addr2.dwval = addr->ch2_addr + de_scal_ch2r_offset;
+		}
 	}
 	
 	
@@ -2528,283 +2806,6 @@ __s32 DE_SCAL_Config_3D_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t
 
 	
     return 0;
-}
-
-
-//vpp--by vito
-//*********************************************************************************************
-// function           : DE_SCAL_Vpp_Enable(__u8 sel, __u32 enable)
-// description     : Enable/Disable Video Post Processing 
-// parameters     :
-//                 		sel <scaler select>
-//                 		enable  <vpp module enable/disable>	0:disable/	1:enable
-// return              : 
-//               success
-//***********************************************************************************************
-__s32 DE_SCAL_Vpp_Enable(__u8 sel, __u32 enable)
-{
-	if(enable)
-	{
-		scal_dev[sel]->vpp_en.bits.en 	= 	0x1;
-	}
-	else
-	{
-		scal_dev[sel]->vpp_en.bits.en 	= 	0x0;
-		scal_dev[sel]->vpp_lp1.bits.lp_en 	= 	0x0;
-		scal_dev[sel]->vpp_dcti.bits.dcti_en = 	0x0;
-		scal_dev[sel]->vpp_ble.bits.ble_en 	= 	0x0;
-		scal_dev[sel]->vpp_wle.bits.wle_en 	= 	0x0;
-	}
-	return 0;
-}
-
-//*********************************************************************************************
-// function           : DE_SCAL_Vpp_Set_Luma_Sharpness_Level(__u8 sel, __u32 level)
-// description     : Set Luminance Sharpen Level
-// parameters     :
-//               		 	sel <scaler select>
-//                 		level  <sharpness level>	0: sharpen off/1~4: higher level, more sharper
-// return              : 
-//               success
-//***********************************************************************************************
-__s32 DE_SCAL_Vpp_Set_Luma_Sharpness_Level(__u8 sel, __u32 level)
-{
-
-	scal_dev[sel]->vpp_lp2.bits.lpf_gain = 31;
-	scal_dev[sel]->vpp_lp2.bits.neggain = 3;
-	scal_dev[sel]->vpp_lp2.bits.delta = 3;
-	scal_dev[sel]->vpp_lp2.bits.limit_thr = 3;
-
-	switch(level)
-	{
-		case	0x0:
-			scal_dev[sel]->vpp_lp1.bits.tau = 0;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 0;
-			scal_dev[sel]->vpp_lp1.bits.beta = 0;
-			scal_dev[sel]->vpp_lp2.bits.corthr = 255;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x0;
-		break;
-		
-		case	0x1:	
-			scal_dev[sel]->vpp_lp1.bits.tau = 4;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 0;
-			scal_dev[sel]->vpp_lp1.bits.beta = 8;	//12-06-08
-			scal_dev[sel]->vpp_lp2.bits.corthr = 2;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x1;
-		break;
-
-		case	0x2:	
-			scal_dev[sel]->vpp_lp1.bits.tau = 11;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 0;
-			scal_dev[sel]->vpp_lp1.bits.beta = 8;  //12-06-08
-			scal_dev[sel]->vpp_lp2.bits.corthr = 5;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x1;
-
-		break;
-
-		case	0x3:	
-			scal_dev[sel]->vpp_lp1.bits.tau = 15;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 4;
-			scal_dev[sel]->vpp_lp1.bits.beta = 8;
-			scal_dev[sel]->vpp_lp2.bits.corthr = 5;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x1;
-		break;
-
-		case	0x4:	
-			scal_dev[sel]->vpp_lp1.bits.tau = 8;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 16;
-			scal_dev[sel]->vpp_lp1.bits.beta = 8;
-			scal_dev[sel]->vpp_lp2.bits.corthr = 5;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x1;
-
-		break;
-
-		default:
-			scal_dev[sel]->vpp_lp1.bits.tau = 0;
-			scal_dev[sel]->vpp_lp1.bits.alpha = 0;
-			scal_dev[sel]->vpp_lp1.bits.beta = 0;
-			scal_dev[sel]->vpp_lp2.bits.corthr = 255;
-			scal_dev[sel]->vpp_lp1.bits.lp_en = 0x0;
-		break;
-	}
-
-	return 0;
-}
-
-//*********************************************************************************************
-// function           : DE_SCAL_Vpp_Set_Chroma_Sharpness_Level(__u8 sel, __u32 level)
-// description     : Set Chrominance Sharpen Level
-// parameters     :
-//                 		sel <scaler select>
-//                 		level  <sharpness level>	0: sharpen off/1~4: higher level, more sharper
-// return              : 
-//               success
-//***********************************************************************************************
-__s32 DE_SCAL_Vpp_Set_Chroma_Sharpness_Level(__u8 sel, __u32 level)
-{
-	scal_dev[sel]->vpp_dcti.bits.dcti_filter1_sel = 2;
-	scal_dev[sel]->vpp_dcti.bits.dcti_filter2_sel = 2;
-	scal_dev[sel]->vpp_dcti.bits.dcti_hill_en = 1;
-	scal_dev[sel]->vpp_dcti.bits.dcti_suphill_en = 1;
-	scal_dev[sel]->vpp_dcti.bits.uv_separate_en = 0;
-	scal_dev[sel]->vpp_dcti.bits.uv_same_sign_mode_sel = 3;
-	scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_mode_sel = 3;
-	
-	switch(level)
-	{
-		case	0x0:
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x0;
-		break;
-		
-		case	0x1:	
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 12;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 4;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x1;
-
-		break;
-
-		case	0x2:	
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 23;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 4;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x1;
-
-		break;
-
-		case	0x3:	
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 23;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 4;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 1;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x1;
-
-		break;
-
-		case	0x4:	
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 32;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 5;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 1;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 1;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x1;
-
-		break;
-
-		default:
-			scal_dev[sel]->vpp_dcti.bits.dcti_gain = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_path_limit = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_same_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.uv_diff_sign_maxmin_mode_sel = 0;
-			scal_dev[sel]->vpp_dcti.bits.dcti_en = 0x0;
-		break;
-	}
-
-	return 0;
-}
-
-//*********************************************************************************************
-// function           : DE_SCAL_Vpp_Set_White_Level_Extension(__u8 sel, __u32 level)
-// description     : Set White Level Extension Level
-// parameters     :
-//                 		 sel <scaler select>
-//                		 level  <sharpness level>	 0: function off/1~4: higher level, more obvious
-// return              : 
-//               success
-//***********************************************************************************************
-__s32 DE_SCAL_Vpp_Set_White_Level_Extension(__u8 sel, __u32 level)
-{
-	scal_dev[sel]->vpp_wle.bits.wle_thr = 128;
-
-	switch(level)
-	{
-		case	0x0:
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 64;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x0;
-		break;
-		
-		case	0x1:	
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 73;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x1;
-		break;
-
-		case	0x2:	
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 79;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x1;
-		break;
-
-		case	0x3:	
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 92;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x1;
-		break;
-
-		case	0x4:	
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 127;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x1;
-		break;
-
-		default:
-			scal_dev[sel]->vpp_wle.bits.wle_gain = 64;
-			scal_dev[sel]->vpp_wle.bits.wle_en = 0x0;
-		break;
-	}
-
-	return 0;
-}
-
-//*********************************************************************************************
-// function           : DE_SCAL_Vpp_Set_Black_Level_Extension(__u8 sel, __u32 level)
-// description     : Set Black Level Extension Level
-// parameters     :
-//                 		 sel <scaler select>
-//                		 level  <sharpness level>	 0: function off/1~4: higher level, more obvious
-// return              : 
-//               success
-//***********************************************************************************************
-__s32 DE_SCAL_Vpp_Set_Black_Level_Extension(__u8 sel, __u32 level)
-{
-	scal_dev[sel]->vpp_ble.bits.ble_thr = 127;
-
-	switch(level)
-	{		
-		case	0x0:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 0;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x0;
-		break;
-
-		case	0x1:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 9;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x1;
-		break;
-
-		case	0x2:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 16;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x1;
-		break;
-
-		case	0x3:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 32;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x1;
-		break;
-
-		case	0x4:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 64;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x0;
-		break;
-
-		default:	
-			scal_dev[sel]->vpp_ble.bits.ble_gain = 0;
-			scal_dev[sel]->vpp_ble.bits.ble_en = 0x0;
-		break;
-		
-	}
-
-	return 0;
 }
 
 __s32 DE_SCAL_EnableINT(__u8 sel,__u32 irqsrc)
@@ -2829,23 +2830,22 @@ __u32 DE_SCAL_QueryINT(__u8 sel)
 //write 1 to clear
 __u32 DE_SCAL_ClearINT(__u8 sel,__u32 irqsrc)
 {
-		scal_dev[sel]->int_status.dwval |= DE_WB_END_IE;
+	scal_dev[sel]->int_status.dwval |= irqsrc; //DE_WB_END_IE;
 	return 0;
 }
 
 
 //*********************************************************************************************
-// function         : DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *size,
-//                                       __scal_src_type_t *type, __u8 field, __u8 dien)
-// description     : scaler source concerning parameter configure
-// parameters    :
+// function       : DE_SCAL_Set_Writeback_Addr_ex(__u32 sel, __scal_buf_addr_t *addr, __scal_out_size_t *size,
+//                         __scal_out_type_t *type)
+// description    : write back address set(region writeback)
+// parameters     :
 //                 sel <scaler select>
-//                 addr  <frame buffer address for 3 channel, 32 bit absolute address>
-//                 size <scale region define,  src size, offset, scal size>
-//                 type <src data type, include byte sequence, mode, format, pixel sequence>
-//                 field <frame/field data get>
+//                 addr  <frame buffer address for write back, 32 bit absolute address>
+//                 size <scale region define,  framebuffer size, offset, result size>
+//                 type <output data type>
 //                 dien <deinterlace enable>
-// return            : 
+// return         : 
 //               success
 //***********************************************************************************************
 __s32 DE_SCAL_Set_Writeback_Addr_ex(__u32 sel, __scal_buf_addr_t *addr, __scal_out_size_t *size,
@@ -2870,16 +2870,6 @@ __s32 DE_SCAL_Set_Writeback_Addr_ex(__u32 sel, __scal_buf_addr_t *addr, __scal_o
         	image_w1 = (image_w0 + 0x1)>>w_shift;
         	in_w1 = (in_w0 + 0x1)>>w_shift;
         	x_off1 = (x_off0)>>w_shift;
-        	/*
-        	if(type->mod == DE_SCAL_INTER_LEAVED)
-        	{
-        	    image_w0 = (image_w0 + 0x1) & 0xfffffffe;
-                image_w1 = image_w0>>1;
-                in_w0 &= 0xfffffffe;
-                in_w1 = in_w0>>0x1;
-        	    x_off0 &= 0xfffffffe;
-        		x_off1 = x_off0>>w_shift;
-        	}*/
         }
         else if(type->fmt == DE_SCAL_OUTPYUV411)
         {
@@ -2941,8 +2931,8 @@ __s32 DE_SCAL_Set_Writeback_Addr_ex(__u32 sel, __scal_buf_addr_t *addr, __scal_o
         de_scal_ch2_offset = 0x0;
 
         addr->ch0_addr = addr->ch0_addr+ de_scal_ch0_offset;
-        addr->ch1_addr = addr->ch1_addr;
-        addr->ch2_addr = addr->ch2_addr;
+        //addr->ch1_addr = addr->ch1_addr;
+        //addr->ch2_addr = addr->ch2_addr;
         
         DE_SCAL_Set_Writeback_Addr(sel,addr);
 	}

@@ -3,6 +3,9 @@
 
 #include "disp_display_i.h"
 
+#define  AW_MOD_CLK_AHB_TVE0  AW_SYS_CLK_NONE
+#define  AW_MOD_CLK_AHB_TVE1  AW_SYS_CLK_NONE
+
 typedef struct
 {
 	__u32 tve_clk;	//required clock frequency for LCDx_ch1_clk2, for tv output used ,Hz
@@ -19,6 +22,7 @@ typedef struct
 	__disp_tv_vga_clk_t vga_clk_tab[12];//number related to number of vga mode supported
 	
 }__disp_clk_tab;
+
 
 __s32 image_clk_init(__u32 sel);
 __s32 image_clk_exit(__u32 sel);
@@ -56,4 +60,3 @@ __s32 disp_clk_cfg(__u32 sel, __u32 type, __u8 mode);
 extern __disp_clk_tab clk_tab;
 
 #endif
-

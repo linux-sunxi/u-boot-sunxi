@@ -117,14 +117,14 @@ int sunxi_sprite_erase_flash(int production_media)
 	//当初始化失败的时候，直接擦除，不处理私有数据
 	if(!production_media)  //量产nand
 	{
-		if(nand_uboot_init(1))
-		{
-			nand_uboot_exit();
-			nand_uboot_erase(need_erase_flag);
-			nand_uboot_init(0);
-
-			return 0;
-		}
+//		if(nand_uboot_init(1))
+//		{
+//			nand_uboot_exit();
+//			nand_uboot_erase(need_erase_flag);
+//			nand_uboot_init(0);
+//
+//			return 0;
+//		}
 	}
 	else                   //量产sdcard
 	{
@@ -154,9 +154,11 @@ int sunxi_sprite_erase_flash(int production_media)
 //        }
 //    }
 //
+#if 0
     nand_uboot_exit();
     nand_uboot_erase(need_erase_flag);
 	nand_uboot_init(0);
+#endif
 //
 //    if(i < SUNXI_MBR_MAX_PART_COUNT)
 //    {
@@ -241,7 +243,7 @@ int sunxi_sprite_mode(int workmode)
 	    	return -1;
 	    }
 
-	    sunxi_sprite_exit();
+	    //sunxi_sprite_exit();
 
 	    if(sunxi_sprite_deal_uboot(production_media))
 	    {

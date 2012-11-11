@@ -200,6 +200,7 @@ int sunxi_sprite_verify_checksum(void *buffer, uint length, uint src_sum)
 
 	sum = sum - src_sum + STAMP_VALUE;
 
+	debug("src sum=%x, check sum=%x\n", src_sum, sum);
 	if( sum == src_sum )
 		return 0;               // 校验成功
 	else

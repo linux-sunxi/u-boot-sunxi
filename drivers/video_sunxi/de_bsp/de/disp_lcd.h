@@ -15,6 +15,10 @@ __s32 Disp_lcdc_event_proc(void *parg);
 #endif
 __s32 Disp_lcdc_pin_cfg(__u32 sel, __disp_output_type_t out_type, __u32 bon);
 __u32 Disp_get_screen_scan_mode(__disp_tv_mode_t tv_mode);
+__s32 TCON_get_cur_line(__u32 sel, __u32 tcon_index);
+__s32 TCON_get_start_delay(__u32 sel, __u32 tcon_index);
+
+
 
 __u32 tv_mode_to_width(__disp_tv_mode_t mode);
 __u32 tv_mode_to_height(__disp_tv_mode_t mode);

@@ -66,18 +66,18 @@ int sunxi_sprite_download_raw_init(uint flash_part_start)
 int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors)
 {
 	debug("write start %d, sector %d\n", flash_start, sectors);
-	if(sunxi_sprite_write(flash_start, sectors, buffer))
-	{
-		flash_start += sectors;
-		debug("raw write ok\n");
-
-		return 0;
-	}
-	else
-	{
-		debug("raw write fail\n");
-		return -1;
-	}
+//	if(sunxi_sprite_write(flash_start, sectors, buffer))
+//	{
+//		flash_start += sectors;
+//		debug("raw write ok\n");
+//
+//		return 0;
+//	}
+//	else
+//	{
+//		debug("raw write fail\n");
+//		return -1;
+//	}
 
 	return 0;
 }
@@ -102,7 +102,8 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media)
     struct spare_boot_head_t    *uboot  = (struct spare_boot_head_t *)buffer;
 
 	//校验特征字符是否正确
-	if(memcmp(uboot->boot_head.magic, UBOOT_MAGIC, MAGIC_SIZE))
+	debug("%s\n", uboot->boot_head.magic);
+	if(strncmp(uboot->boot_head.magic, UBOOT_MAGIC, MAGIC_SIZE))
 	{
 		printf("sunxi sprite: uboot magic is error\n");
 
@@ -123,7 +124,7 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media)
 		nand_uboot_get_flash_info((void *)uboot->boot_data.nand_spare_data, STORAGE_BUFFER_SIZE);
 	}
 	/* regenerate check sum */
-	sunxi_sprite_generate_checksum(buffer, uboot->boot_head.length, uboot->boot_head.check_sum);
+	uboot->boot_head.check_sum = sunxi_sprite_generate_checksum(buffer, uboot->boot_head.length, uboot->boot_head.check_sum);
 	//校验数据是否正确
 	if(sunxi_sprite_verify_checksum(buffer, uboot->boot_head.length, uboot->boot_head.check_sum))
 	{
@@ -134,7 +135,8 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media)
 
 	if(!production_media)
 	{
-		return nand_download_uboot(uboot->boot_head.length, buffer);
+		//return nand_download_uboot(uboot->boot_head.length, buffer);
+		return 0;
 	}
 	else
 	{
@@ -163,7 +165,8 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
     boot0_file_head_t    *boot0  = (boot0_file_head_t *)buffer;
 
 	//校验特征字符是否正确
-	if(memcmp(boot0->boot_head.magic, UBOOT_MAGIC, MAGIC_SIZE))
+	debug("%s\n", boot0->boot_head.magic);
+	if(strncmp(boot0->boot_head.magic, BOOT0_MAGIC, MAGIC_SIZE))
 	{
 		printf("sunxi sprite: boot0 magic is error\n");
 
@@ -185,7 +188,7 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 	}
 	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
 	/* regenerate check sum */
-	sunxi_sprite_generate_checksum(buffer, boot0->boot_head.length, boot0->boot_head.check_sum);
+	boot0->boot_head.check_sum = sunxi_sprite_generate_checksum(buffer, boot0->boot_head.length, boot0->boot_head.check_sum);
 	//校验数据是否正确
 	if(sunxi_sprite_verify_checksum(buffer, boot0->boot_head.length, boot0->boot_head.check_sum))
 	{
@@ -196,7 +199,8 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 
 	if(!production_media)
 	{
-		return nand_download_boot0(boot0->boot_head.length, buffer);
+		//return nand_download_boot0(boot0->boot_head.length, buffer);
+		return 0;
 	}
 	else
 	{

@@ -23,7 +23,7 @@
 
 void OSAL_IrqLock(__u32 *cpu_sr);
 void OSAL_IrqUnLock(__u32 cpu_sr);
-#define OSAL_IRQ_RETURN IRQ_HANDLED
+#define OSAL_IRQ_RETURN 0
 
 #endif   //__OSAL_IRQLOCK_H__
 

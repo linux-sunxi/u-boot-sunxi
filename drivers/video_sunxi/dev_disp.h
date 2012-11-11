@@ -33,6 +33,14 @@ typedef struct
 	__u32                   base_sdram;
     __u32                   base_pioc;
 	__u32                   base_pwm;
+    __u32                   base_deu0;
+    __u32                   base_deu1;
+    __u32                   base_drc0;
+    __u32                   base_drc1;
+    __u32                   base_cmu0;
+    __u32                   base_cmu1;
+    __u32                   base_dsi0;
+    __u32                   base_dsi1;
 	
     __disp_init_t           disp_init;
     
@@ -88,7 +96,7 @@ extern __disp_drv_t    g_disp_drv;
 
 extern __s32 DRV_lcd_open(__u32 sel);
 extern __s32 DRV_lcd_close(__u32 sel);
-extern __s32 Fb_Init(__u32 from);
+extern __s32 Fb_Init(void);
 extern __s32 Fb_Exit(void);
 
 #endif

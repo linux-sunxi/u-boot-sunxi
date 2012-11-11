@@ -376,6 +376,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 
 		return -1;
 	}
+	debug("%x\n", (uint)base_buffer);
 	half_buffer = base_buffer + SPRITE_CARD_ONCE_DATA_DEAL;
 	//qdata = next_qdata = NULL;
 	debug("total download part %d\n", dl_map->download_count);
@@ -506,7 +507,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		imgitemhd = NULL;
 		//校验数据
 		debug("part data download finish\n");
-#if 1
+#if 0
         debug("try to read verify file %s\n", dl_map->one_part_info[i].vf_filename);
         if(dl_map->one_part_info[i].vf_filename)
         {
@@ -559,15 +560,21 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 	ret = 0;
 
 _card_download_error:
+	debug("%x\n", (uint)base_buffer);
 	if(base_buffer)
 	{
-		free(base_buffer);
+		debug("%s %d\n", __FILE__, __LINE__);
+	//	free(base_buffer);
 	}
+	debug("%s %d\n", __FILE__, __LINE__);
+	debug("%x\n", (uint)imgitemhd);
 	if(imgitemhd)
 	{
+		debug("%s %d\n", __FILE__, __LINE__);
 		Img_CloseItem(imghd, imgitemhd);
 		imgitemhd = NULL;
 	}
+	debug("%s %d\n", __FILE__, __LINE__);
 
 	return ret;
 }
@@ -593,7 +600,7 @@ int sunxi_sprite_deal_uboot(int production_media)
 	char buffer[1024 * 1024];
 	uint item_original_size;
 
-    imgitemhd = Img_OpenItem(imghd, "BOOT    ", "UBOOT_0000000000");
+    imgitemhd = Img_OpenItem(imghd, "12345678", "UBOOT_0000000000");
     if(!imgitemhd)
     {
         printf("sprite update error: fail to open uboot item\n");
@@ -601,12 +608,13 @@ int sunxi_sprite_deal_uboot(int production_media)
     }
     //uboot长度
     item_original_size = Img_GetItemSize(imghd, imgitemhd);
+    if(!item_original_size)
     {
         printf("sprite update error: fail to get uboot item size\n");
         return -1;
     }
     /*获取uboot的数据*/
-    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, item_original_size))
+    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, 1024 * 1024))
     {
         printf("update error: fail to read data from for uboot\n");
         return -1;
@@ -645,11 +653,11 @@ int sunxi_sprite_deal_boot0(int production_media)
 
 	if(production_media == 0)
 	{
-		imgitemhd = Img_OpenItem(imghd, "BOOT    ", "NANDBOOT0_000000");
+		imgitemhd = Img_OpenItem(imghd, "BOOT    ", "BOOT0_0000000000");
 	}
 	else
 	{
-		imgitemhd = Img_OpenItem(imghd, "BOOT    ", "CARDBOOT0_000000");
+		imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890boot_0");
 	}
     if(!imgitemhd)
     {
@@ -664,7 +672,7 @@ int sunxi_sprite_deal_boot0(int production_media)
         return -1;
     }
     /*获取boot0的数据*/
-    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, item_original_size))
+    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, 1024 * 1024))
     {
         printf("update error: fail to read data from for boot0\n");
         return -1;

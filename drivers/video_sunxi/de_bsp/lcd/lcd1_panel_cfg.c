@@ -47,28 +47,19 @@ static void LCD_cfg_panel_info(__panel_para_t * info)
 
     info->lcd_hbp           = 215;      //hsync back porch
     info->lcd_ht            = 1055;     //hsync total cycle
-    info->lcd_hv_hspw       = 0;        //hsync plus width
+    info->lcd_hspw          = 0;        //hsync plus width
     info->lcd_vbp           = 34;       //vsync back porch
     info->lcd_vt            = 2 * 525;  //vysnc total cycle *2
-    info->lcd_hv_vspw       = 0;        //vysnc plus width
+    info->lcd_vspw          = 0;        //vysnc plus width
 
     info->lcd_hv_if         = 0;        //0:hv parallel 1:hv serial 
-    info->lcd_hv_smode      = 0;        //0:RGB888 1:CCIR656
-    info->lcd_hv_s888_if    = 0;        //serial RGB format
-    info->lcd_hv_syuv_if    = 0;        //serial YUV format
 
-    info->lcd_cpu_if        = 0;        //0:18bit 4:16bit
     info->lcd_frm           = 0;        //0: disable; 1: enable rgb666 dither; 2:enable rgb656 dither
-
-    info->lcd_lvds_ch       = 0;        //0:single channel; 1:dual channel
-    info->lcd_lvds_mode     = 0;        //0:NS mode; 1:JEIDA mode
-    info->lcd_lvds_bitwidth = 0;        //0:24bit; 1:18bit
-    info->lcd_lvds_io_cross = 0;        //0:normal; 1:pn cross
 
     info->lcd_io_cfg0       = 0x10000000;
 
-    info->lcd_gamma_correction_en = 0;
-    if(info->lcd_gamma_correction_en)
+    info->lcd_gamma_en = 0;
+    if(info->lcd_gamma_en)
     {
         __u32 items = sizeof(g_gamma_tbl)/2;
         
@@ -147,4 +138,5 @@ void LCD_get_panel_funs_1(__lcd_panel_fun_t * fun)
     fun->cfg_close_flow = LCD_close_flow;
     fun->lcd_user_defined_func = LCD_user_defined_func;
 }
+EXPORT_SYMBOL(LCD_get_panel_funs_1);
 

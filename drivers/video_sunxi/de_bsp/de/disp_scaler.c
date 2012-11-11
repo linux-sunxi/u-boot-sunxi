@@ -34,7 +34,7 @@ __s32  Scaler_sw_para_to_reg(__u8 type, __u8 value)
 	    }
 	    else if(value == DISP_FORMAT_CSIRGB)
 	    {
-	        return DE_SCAL_INCSIRGB;
+	        return DE_SCAL_INRGB565;
 	    }
 	    else if(value == DISP_FORMAT_ARGB8888)
 	    {
@@ -43,6 +43,18 @@ __s32  Scaler_sw_para_to_reg(__u8 type, __u8 value)
 	    else if(value == DISP_FORMAT_RGB888)
 	    {
 	        return DE_SCAL_INRGB888;
+	    }
+        else if(value == DISP_FORMAT_RGB565)
+	    {
+	        return DE_SCAL_INRGB565;
+	    }
+        else if(value == DISP_FORMAT_ARGB4444)
+	    {
+	        return DE_SCAL_INRGB4444;
+	    }
+        else if(value == DISP_FORMAT_ARGB1555)
+	    {
+	        return DE_SCAL_INRGB1555;
 	    }
 	    else
 	    {
@@ -53,7 +65,7 @@ __s32  Scaler_sw_para_to_reg(__u8 type, __u8 value)
     {
 	    if(value == DISP_MOD_INTERLEAVED)
 	    { 
-	        return DE_SCAL_INTER_LEAVED;
+	        return DE_SCAL_INTERLEAVED;
 	    }
 	    else if(value == DISP_MOD_MB_PLANAR)
 	    {
@@ -144,7 +156,7 @@ __s32  Scaler_sw_para_to_reg(__u8 type, __u8 value)
 		}
 		else if(value == DISP_FORMAT_ARGB8888)
 	    {
-	        return DE_SCAL_OUTI0RGB888;
+	        return DE_SCAL_OUTI1RGB888;
 	    }
 		else if(value == DISP_FORMAT_RGB888)
 	    {
@@ -290,6 +302,9 @@ __s32 Scaler_Init(__u32 sel)
     if(sel == 0)
     {
         OSAL_RegISR(INTC_IRQNO_SCALER0,0,Scaler_event_proc, (void *)sel,0,0);
+#ifdef __FPGA_DEBUG__
+        OSAL_RegISR(INTC_IRQNO_SCALER0+1,0,Scaler_event_proc, (void *)sel,0,0);//BE INT
+#endif
 #ifndef __LINUX_OSAL__
         OSAL_InterruptEnable(INTC_IRQNO_SCALER0);
 #endif
@@ -456,6 +471,8 @@ __s32 Scaler_Set_Framebuffer(__u32 sel, __disp_fb_t *pfb)//keep the source windo
 
 	out_type.byte_seq = scaler->out_fb.seq;
 	out_type.fmt = scaler->out_fb.format;
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
 	out_size.width = scaler->out_size.width;
 	out_size.height = scaler->out_size.height;
@@ -565,6 +582,8 @@ __s32 Scaler_Set_Output_Size(__u32 sel, __disp_rectsz_t *size)
 
 	out_type.byte_seq = scaler->out_fb.seq;
 	out_type.fmt = scaler->out_fb.format;
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
 	out_size.width = scaler->out_size.width;
 	out_size.height = scaler->out_size.height;
@@ -628,6 +647,8 @@ __s32 Scaler_Set_SclRegn(__u32 sel, __disp_rect_t *scl_rect)
 
 	out_type.byte_seq = scaler->out_fb.seq;
 	out_type.fmt = scaler->out_fb.format;
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
 	out_size.width = scaler->out_size.width;
 	out_size.height = scaler->out_size.height;
@@ -722,7 +743,7 @@ __s32 Scaler_Set_Para(__u32 sel, __disp_scaler_t *scl)
 
 	in_type.mod = Scaler_sw_para_to_reg(1,scaler->in_fb.mode);
 	in_type.fmt = Scaler_sw_para_to_reg(0,scaler->in_fb.format);
-	in_type.ps = Scaler_sw_para_to_reg(2,(__u8)scaler->in_fb.seq);
+	in_type.ps = Scaler_sw_para_to_reg(2,scaler->in_fb.seq);
 	in_type.byte_seq = 0;
 	in_type.sample_method = 0;
 	
@@ -737,8 +758,44 @@ __s32 Scaler_Set_Para(__u32 sel, __disp_scaler_t *scl)
 	in_size.scal_height= scaler->src_win.height;
 	in_size.scal_width= scaler->src_win.width;
 
-	out_type.byte_seq = scaler->out_fb.seq;
-	out_type.fmt = scaler->out_fb.format;
+//	out_type.byte_seq = Scaler_sw_para_to_reg(2,scaler->out_fb.seq);
+//	out_type.fmt = Scaler_sw_para_to_reg(3, scaler->out_fb.format);
+
+    if(get_fb_type(scaler->out_fb.format) == DISP_FB_TYPE_YUV)
+	{      
+		if(scaler->out_fb.mode == DISP_MOD_NON_MB_PLANAR)
+		{
+			out_type.fmt = Scaler_sw_para_to_reg(3, scaler->out_fb.format);
+		}
+		else
+		{	
+			DE_WRN("output mode:%d invalid in Display_Scaler_Start\n",scaler->out_fb.mode);
+			return DIS_FAIL;
+		}
+	}
+	else
+	{
+		if(scaler->out_fb.mode == DISP_MOD_NON_MB_PLANAR && (scaler->out_fb.format == DISP_FORMAT_RGB888 || scaler->out_fb.format == DISP_FORMAT_ARGB8888))
+		{
+			out_type.fmt = DE_SCAL_OUTPRGB888;
+		}
+		else if(scaler->out_fb.mode == DISP_MOD_INTERLEAVED && scaler->out_fb.format == DISP_FORMAT_ARGB8888 && scaler->out_fb.seq == DISP_SEQ_ARGB)
+		{
+			out_type.fmt = DE_SCAL_OUTI1RGB888;
+		}else if(scaler->out_fb.mode == DISP_MOD_INTERLEAVED && scaler->out_fb.format == DISP_FORMAT_ARGB8888 && scaler->out_fb.seq == DISP_SEQ_BGRA)
+		{
+			out_type.fmt = DE_SCAL_OUTI0RGB888;
+		}
+		else
+		{
+			DE_WRN("output para invalid in Display_Scaler_Start,mode:%d,format:%d\n",scaler->out_fb.mode, scaler->out_fb.format);
+			return DIS_FAIL;
+		}
+	}  
+    out_type.byte_seq = Scaler_sw_para_to_reg(2,scaler->out_fb.seq);
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
+    
 
 	out_size.width = scaler->out_size.width;
 	out_size.height = scaler->out_size.height;
@@ -787,10 +844,10 @@ __s32 Scaler_Set_Para(__u32 sel, __disp_scaler_t *scl)
     }
     else
     {
-	    DE_SCAL_Set_CSC_Coef(sel, scaler->in_fb.cs_mode, DISP_BT601, get_fb_type(scaler->in_fb.format), DISP_FB_TYPE_RGB, scaler->in_fb.br_swap, 0);
+	    DE_SCAL_Set_CSC_Coef(sel, scaler->in_fb.cs_mode, DISP_BT601, get_fb_type(scaler->in_fb.format), get_fb_type(scaler->out_fb.format), scaler->in_fb.br_swap, 0);
 	}	
 	DE_SCAL_Set_Scaling_Coef(sel, &in_scan, &in_size, &in_type, &out_scan, &out_size, &out_type, scaler->smooth_mode);
-	DE_SCAL_Set_Out_Format(sel, &out_type);
+    DE_SCAL_Set_Out_Format(sel, &out_type);
 	DE_SCAL_Set_Out_Size(sel, &out_scan,&out_type, &out_size);
     
 	return DIS_NULL;
@@ -967,6 +1024,8 @@ __s32 BSP_disp_scaler_start_ex(__u32 handle,__disp_scaler_para_t *para)
 		}
 	}  
     out_type.byte_seq = Scaler_sw_para_to_reg(2,para->output_fb.seq);
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
     out_size.width  = para->out_regn.width;
     out_size.height = para->out_regn.height;
@@ -1037,12 +1096,12 @@ __s32 BSP_disp_scaler_start_ex(__u32 handle,__disp_scaler_para_t *para)
     DE_SCAL_Set_Writeback_Addr_ex(sel,&out_addr,&out_size,&out_type);
     DE_SCAL_Writeback_Linestride_Enable(sel);
     DE_SCAL_Output_Select(sel, 3);
-
-    //BSP_disp_print_reg(1, sel);
     
     DE_SCAL_EnableINT(sel,DE_WB_END_IE);
     DE_SCAL_Start(sel);   
     DE_SCAL_Set_Reg_Rdy(sel);
+
+    DE_INF("scaler write back begin\n");
 
 #ifndef __LINUX_OSAL__
     DE_SCAL_Writeback_Enable(sel);
@@ -1132,6 +1191,8 @@ __s32 BSP_disp_scaler_start(__u32 handle,__disp_scaler_para_t *para)
 		}
 	}  
     out_type.byte_seq = Scaler_sw_para_to_reg(2,para->output_fb.seq);
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
     out_size.width     = para->output_fb.size.width;
     out_size.height = para->output_fb.size.height;
@@ -1196,12 +1257,13 @@ __s32 BSP_disp_scaler_start(__u32 handle,__disp_scaler_para_t *para)
     DE_SCAL_Set_Out_Size(sel, &out_scan,&out_type, &out_size);
     DE_SCAL_Set_Writeback_Addr(sel,&out_addr);
     DE_SCAL_Output_Select(sel, 3);
-
-    //BSP_disp_print_reg(1, sel);
+    DE_SCAL_Input_Select(sel, 0);
     
     DE_SCAL_EnableINT(sel,DE_WB_END_IE);
     DE_SCAL_Start(sel);   
     DE_SCAL_Set_Reg_Rdy(sel);
+
+    DE_INF("scaler write back begin\n");
 
 #ifndef __LINUX_OSAL__
     DE_SCAL_Writeback_Enable(sel);
@@ -1299,6 +1361,8 @@ __s32 BSP_disp_capture_screen(__u32 sel, __disp_capture_screen_para_t * para)
         para->output_fb.br_swap= FALSE;
     }  
     out_type.byte_seq = Scaler_sw_para_to_reg(2,para->output_fb.seq);
+    out_type.alpha_en = 1;
+    out_type.alpha_coef_type = 0;
 
     out_size.width     = para->output_fb.size.width;
     out_size.height = para->output_fb.size.height;
@@ -1418,3 +1482,57 @@ __s32 Scaler_Set_Enhance(__u32 sel, __u32 bright, __u32 contrast, __u32 saturati
     return DIS_SUCCESS;
 }
 
+
+__s32 BSP_disp_store_scaler_reg(__u32 sel, __u32 addr)
+{
+    __u32 i = 0;
+    __u32 value = 0;
+    __u32 reg_base = 0;
+
+    if(sel == 0)
+    {
+        reg_base = gdisp.init_para.base_scaler0;
+    }
+    else
+    {
+        reg_base = gdisp.init_para.base_scaler1;
+    }
+
+    for(i=0; i<0xa18; i+=4)
+    {
+        value = sys_get_wvalue(reg_base + i);
+        sys_put_wvalue(addr + i, value);
+    }
+
+    return 0;
+}
+
+__s32 BSP_disp_restore_scaler_reg(__u32 sel, __u32 addr)
+{
+    __u32 i = 0;
+    __u32 value = 0;
+    __u32 reg_base = 0;
+
+    if(sel == 0)
+    {
+        reg_base = gdisp.init_para.base_scaler0;
+    }
+    else
+    {
+        reg_base = gdisp.init_para.base_scaler1;
+    }
+
+    for(i=8; i<0xa18; i+=4)
+    {
+        value = sys_get_wvalue(addr + i);
+        sys_put_wvalue(reg_base + i,value);
+    }
+
+    value = sys_get_wvalue(addr);
+    sys_put_wvalue(reg_base,value);
+
+    value = sys_get_wvalue(addr + 4);
+    sys_put_wvalue(reg_base + 4,value);
+
+    return 0;
+}

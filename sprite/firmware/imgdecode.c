@@ -351,7 +351,7 @@ uint Img_GetItemStart	(HIMAGE hImage, HIMAGEITEM hItem)
 //    无
 //
 //------------------------------------------------------------------------------------------------------------
-
+#if 0
 uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_size)
 {
 	IMAGE_HANDLE* pImage = (IMAGE_HANDLE *)hImage;
@@ -393,6 +393,7 @@ uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_siz
 	offset |= pImage->ItemTable[pItem->index].offsetLo;
 	start = offset/512;
 
+	debug("malloc size = %d\n", file_size);
 	tmp = malloc(file_size);
 	if(!tmp)
 	{
@@ -403,6 +404,7 @@ uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_siz
 	if(!sunxi_flash_read((uint)start + img_file_start, file_size/512, tmp))
 	{
 		printf("sunxi sprite error : read item data failed\n");
+		free(tmp);
 
 		return 0;
 	}
@@ -411,6 +413,51 @@ uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_siz
 
 	return buffer_size;
 }
+#else
+uint Img_ReadItem(HIMAGE hImage, HIMAGEITEM hItem, void *buffer, uint buffer_size)
+{
+	IMAGE_HANDLE* pImage = (IMAGE_HANDLE *)hImage;
+	ITEM_HANDLE * pItem  = (ITEM_HANDLE  *)hItem;
+	long long     start;
+	long long	  offset;
+	uint	      file_size;
+
+	if (NULL == pItem)
+	{
+		printf("sunxi sprite error : item is NULL\n");
+
+		return 0;
+	}
+	if(pImage->ItemTable[pItem->index].filelenHi)
+	{
+		printf("sunxi sprite error : the item too big\n");
+
+		return 0;
+	}
+	file_size = pImage->ItemTable[pItem->index].filelenLo;
+	file_size = (file_size + 1023) & (~(1024 - 1));
+	debug("file size=%d, buffer size=%d\n", file_size, buffer_size);
+	if(file_size > buffer_size)
+	{
+		printf("sunxi sprite error : buffer is smaller than data size\n");
+
+		return 0;
+	}
+	offset = pImage->ItemTable[pItem->index].offsetHi;
+	offset <<= 32;
+	offset |= pImage->ItemTable[pItem->index].offsetLo;
+	start = offset/512;
+
+	if(!sunxi_flash_read((uint)start + img_file_start, file_size/512, buffer))
+	{
+		printf("sunxi sprite error : read item data failed\n");
+
+		return 0;
+	}
+
+	return file_size;
+}
+#endif
 //------------------------------------------------------------------------------------------------------------
 //
 // 函数说明

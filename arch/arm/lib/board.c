@@ -464,6 +464,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	ulong flash_size;
 #endif
 	int workmode;
+	int ret;
 
 	gd = id;
 	bd = gd->bd;
@@ -532,8 +533,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 	//DRV_DISP_Init();
 	//board_display_layer_open();
-	sunxi_flash_handle_init();
-	sunxi_partition_init();
+	ret = sunxi_flash_handle_init();
+	if(!ret)
+		sunxi_partition_init();
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){
@@ -667,7 +669,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 			main_loop();
 		}
     }
-	if(workmode & WORK_MODE_PRODUCT)
+	else if((!ret) && (workmode & WORK_MODE_PRODUCT))
 	{
     	sunxi_sprite_mode(workmode);
     }

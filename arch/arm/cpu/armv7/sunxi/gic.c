@@ -278,14 +278,12 @@ void do_irq (struct pt_regs *pt_regs)
 {
 	u32 idnum;
 
-	puts("irq\n");
 	idnum = readl(GIC_INT_ACK_REG);
 	if (idnum == 1023)
 	{
 		printf("spurious irq !!\n");
 		return;
 	}
-	debug("irq = %d\n", idnum);
 	if (idnum >= GIC_IRQ_NUM) {
 		printf("irq NO.(%d) > GIC_IRQ_NUM(%d) !!\n", idnum, GIC_IRQ_NUM-32);
 		return;

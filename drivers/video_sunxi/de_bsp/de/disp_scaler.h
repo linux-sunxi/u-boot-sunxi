@@ -20,6 +20,15 @@ typedef enum
 
 typedef struct
 {
+    __bool                  enable;
+    __u32                   luma_sharpe_level;
+    __u32                   chroma_sharpe_level;
+    __u32                   while_exten_level;
+    __u32                   black_exten_level;
+    __disp_rect_t           rect;
+}__iep_deu_t;
+typedef struct
+{
     __u32                   status;
     __bool                  b_reg_change;
     __bool                  b_close;
@@ -40,14 +49,10 @@ typedef struct
     __u32                   saturation;
     __u32                   hue;
 
-    __bool                  vpp_en;
-    __u32                   luma_sharpe_level;
-    __u32                   chroma_sharpe_level;
-    __u32                   while_exten_level;
-    __u32                   black_exten_level;
-
     __bool                  b_trd_out;
     __disp_3d_out_mode_t    out_trd_mode;
+
+    __iep_deu_t             deu;
 #ifdef __LINUX_OSAL__
     wait_queue_head_t       scaler_queue;
     __bool                  b_scaler_finished;

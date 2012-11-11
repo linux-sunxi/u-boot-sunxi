@@ -33,7 +33,7 @@ static __s32 Layer_Get_Idle_Prio(__u32 sel)
             {
                break;
             }
-            else if(j == gdisp.screen[sel].max_layers-1)//not layer use this prio
+            else if(j == gdisp.screen[sel].max_layers-1)//no layer use this prio
             {
                 return i;
             }
@@ -419,6 +419,14 @@ __s32 BSP_disp_layer_release(__u32 sel, __u32 hid)
                 image_clk_off(1-sel);
                 gdisp.screen[1-sel].image_output_type = 0;
             }
+          
+            BSP_disp_cmu_layer_enable(sel, IDTOHAND(hid),FALSE);
+            disp_cmu_layer_clear(sel);
+                
+          
+            BSP_disp_deu_enable(sel, IDTOHAND(hid), FALSE);
+            disp_deu_clear(sel, IDTOHAND(hid));
+
             Scaler_Release(layer_man->scaler_index, FALSE);      /*release a scaler object */
         }
         else
@@ -522,6 +530,7 @@ __s32 BSP_disp_layer_set_framebuffer(__u32 sel, __u32 hid, __disp_fb_t * pfb)//k
     {
         return DIS_PARA_FAILED;
     }
+
     layer_man = &gdisp.screen[sel].layer_manage[hid];
     if(layer_man->status & LAYER_USED)
     {
@@ -762,6 +771,10 @@ __s32 BSP_disp_layer_set_screen_window(__u32 sel, __u32 hid,__disp_rect_t * regn
             outsize.width = regn->width;
 
             ret = Scaler_Set_Output_Size(layer_man->scaler_index, &outsize);
+            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
+            {
+                IEP_CMU_Set_Imgsize(sel, regn->width, regn->height);
+            }
             if(ret != DIS_SUCCESS)
             {
                 DE_WRN("Scaler_Set_Output_Size fail!\n");
@@ -860,7 +873,17 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
         {
             if(layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER)
             {
-                Scaler_Release(layer_man->scaler_index, TRUE);
+                if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
+                {
+                    BSP_disp_cmu_layer_enable(sel, IDTOHAND(hid), FALSE);
+                    disp_cmu_layer_clear(sel);
+                }
+                if(BSP_disp_deu_get_enable(sel,IDTOHAND(hid)))
+                {
+                    BSP_disp_deu_enable(sel,IDTOHAND(hid),FALSE);
+                    disp_deu_clear(sel, IDTOHAND(hid));
+                }
+                Scaler_Release(layer_man->scaler_index, FALSE);
                 DE_BE_Layer_Video_Enable(sel, hid, FALSE);
                 DE_BE_Layer_Video_Ch_Sel(sel, hid, 0);
                 layer_man->para.mode = DISP_LAYER_WORK_MODE_NORMAL;
@@ -895,12 +918,26 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
         	    layer_man->scaler_index = ret;
         	    layer_man->para.mode = DISP_LAYER_WORK_MODE_SCALER;
         	    gdisp.scaler[ret].screen_index = sel;
+                gdisp.scaler[ret].layer_id = hid;
         	}
         	scaler = &(gdisp.scaler[layer_man->scaler_index]) ;
 
         	player->scn_win.y &= ((gdisp.screen[sel].b_out_interlace== 1)?0xfffffffe:0xffffffff);
+            
+            if(scaler->deu.enable)
+            {
+                scaler->out_fb.seq= DISP_SEQ_P3210;
+                scaler->out_fb.format= DISP_FORMAT_YUV444;
+            }else
+            {
+                scaler->out_fb.seq= DISP_SEQ_ARGB;
+                scaler->out_fb.format= DISP_FORMAT_ARGB8888;//DISP_FORMAT_RGB888;//
+                scaler->out_fb.mode = DISP_MOD_INTERLEAVED;
+            }
+/*            
             scaler->out_fb.seq= DISP_SEQ_ARGB;
             scaler->out_fb.format= DISP_FORMAT_RGB888;
+ */
             scaler->out_size.height  = player->scn_win.height;
             scaler->out_size.width   = player->scn_win.width;
         	if(player->b_from_screen)
@@ -935,7 +972,13 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
             scaler->b_trd_out = player->b_trd_out;
             scaler->out_trd_mode = player->out_trd_mode;
             DE_SCAL_Output_Select(layer_man->scaler_index, sel);
+            disp_deu_output_select(sel, IDTOHAND(hid), sel);
             Scaler_Set_Para(layer_man->scaler_index, scaler);
+            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
+            {
+                IEP_CMU_Set_Imgsize(sel, player->scn_win.width, player->scn_win.height);
+            }
+
         }
         else
         {
@@ -1276,166 +1319,6 @@ __s32 BSP_disp_layer_get_enhance_enable(__u32 sel, __u32 hid)
     if((layer_man->status & LAYER_USED) && layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER)
     {
         return gdisp.scaler[layer_man->scaler_index].enhance_en;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_vpp_enable(__u32 sel, __u32 hid, __bool enable)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        DE_SCAL_Vpp_Enable(layer_man->scaler_index, enable);
-        gdisp.scaler[layer_man->scaler_index].vpp_en = enable;
-        return DIS_SUCCESS;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_get_vpp_enable(__u32 sel, __u32 hid)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        return gdisp.scaler[layer_man->scaler_index].vpp_en;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_set_luma_sharp_level(__u32 sel, __u32 hid, __u32 level)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        DE_SCAL_Vpp_Set_Luma_Sharpness_Level(layer_man->scaler_index,level);
-        gdisp.scaler[layer_man->scaler_index].luma_sharpe_level = level;
-        return DIS_SUCCESS;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_get_luma_sharp_level(__u32 sel, __u32 hid)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        return gdisp.scaler[layer_man->scaler_index].luma_sharpe_level;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_set_chroma_sharp_level(__u32 sel, __u32 hid, __u32 level)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        DE_SCAL_Vpp_Set_Chroma_Sharpness_Level(layer_man->scaler_index,level);
-        gdisp.scaler[layer_man->scaler_index].chroma_sharpe_level = level;
-        return DIS_SUCCESS;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_get_chroma_sharp_level(__u32 sel, __u32 hid)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        return gdisp.scaler[layer_man->scaler_index].chroma_sharpe_level;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_set_white_exten_level(__u32 sel, __u32 hid, __u32 level)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        DE_SCAL_Vpp_Set_White_Level_Extension(layer_man->scaler_index,level);
-        gdisp.scaler[layer_man->scaler_index].while_exten_level = level;
-        return DIS_SUCCESS;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_get_white_exten_level(__u32 sel, __u32 hid)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        return gdisp.scaler[layer_man->scaler_index].while_exten_level;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_set_black_exten_level(__u32 sel, __u32 hid, __u32 level)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        DE_SCAL_Vpp_Set_Black_Level_Extension(layer_man->scaler_index,level);
-        gdisp.scaler[layer_man->scaler_index].black_exten_level = level;
-        return DIS_SUCCESS;
-    }
-    return DIS_NOT_SUPPORT;
-}
-
-__s32 BSP_disp_layer_get_black_exten_level(__u32 sel, __u32 hid)
-{
-    __layer_man_t * layer_man;
-    
-    hid= HANDTOID(hid);
-    HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
-
-    layer_man = &gdisp.screen[sel].layer_manage[hid];
-    if((layer_man->status & LAYER_USED) && (layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER) && (get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV))
-    {
-        return gdisp.scaler[layer_man->scaler_index].black_exten_level;
     }
     return DIS_NOT_SUPPORT;
 }

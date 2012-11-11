@@ -1,65 +1,55 @@
-#ifndef _LCDC_TVE_H_
-#define _LCDC_TVE_H_
+#ifndef __EBIOS_LCDC_TVE_H_
+#define __EBIOS_LCDC_TVE_H_
 
 #include "../../bsp_display.h"
 
-#define LCDC_VBI_LCD_EN 0x80000000
-#define LCDC_VBI_HD_EN 0x40000000
-#define LCDC_LTI_LCD_EN 0x20000000
-#define LCDC_LTI_HD_EN 0x10000000
-#define LCDC_VBI_LCD 0x00008000
-#define LCDC_VBI_HD 0x00004000
-#define LCDC_LTI_LCD_FLAG 0x00002000
-#define LCDC_LTI_HD_FLAG 0x00001000
-                    
 typedef enum
 {
-    LCDC_SRC_DE1 		= 	0, 
-    LCDC_SRC_DE2 		= 	1,
-    LCDC_SRC_DMA 		= 	2,
-    LCDC_SRC_BLACK 		= 	3,
-    LCDC_SRC_WHITE 		= 	4,
-    LCDC_SRC_BLUE 		= 	5,
-}__lcdc_src_t;  
+    LCD_IRQ_TCON0_VBLK	= 15,
+    LCD_IRQ_TCON1_VBLK = 14,
+    LCD_IRQ_TCON0_LINE = 13,
+    LCD_IRQ_TCON1_LINE = 12,
+    LCD_IRQ_TCON0_TRIF = 11,
+    LCD_IRQ_TCON0_CNTR = 10,
+}__lcd_irq_id_t;
 
 typedef enum
 {
-    LCDC_LCDIF_HV 			= 0, 
-    LCDC_LCDIF_CPU 			= 1,
-    LCDC_LCDIF_TTL 			= 2,
-    LCDC_LCDIF_LVDS			= 3,
-}__lcdc_lcdif_t; 
-  
+    DSI_IRQ_VIDEO_LINE	= 3,
+    DSI_IRQ_VIDEO_VBLK  = 2,
+    DSI_IRQ_INSTR_STEP  = 1,
+    DSI_IRQ_INSTR_END   = 0,
+}__dsi_irq_id_t;
+
 
 typedef enum
 {
-    LCDC_FRM_RGB888 	= 	0, 
-    LCDC_FRM_RGB666 	= 	1,
-    LCDC_FRM_RGB656 	= 	2,
-}__lcdc_frm_t;
+    LCD_SRC_BE0 	= 0,
+    LCD_SRC_BE1 	= 1,
+    LCD_SRC_DMA888 	= 2,
+    LCD_SRC_DMA565 	= 3,
+    LCD_SRC_BLACK	= 4,
+    LCD_SRC_WHITE	= 5,
+    LCD_SRC_BLUE	= 6,
+}__lcd_src_t;
 
 typedef struct
 {
-    __bool  b_interlace;        //1=b_interlace, 0=progressive
-    __bool  b_rgb_internal_hd;  //used when TV and VGA output, 0:YUV, 1:RGB
-    __bool  b_rgb_remap_io;     //used when LCD and HDMI output, 0:YUV, 1:RGB
-    __bool  b_remap_if;         //used when LCD and HDMI output, 0:LCD, 1:HDMI
-    __u16   src_x;              //tcon1 source width in pixels
-    __u16   src_y;              //tcon1 source height in pixels
-    __u16   scl_x;              //tcon1 scale output width size
-    __u16   scl_y;              //tcon1 scale output height size
-    __u16   out_x;              //tcon1 output width in pixels
-    __u16   out_y;              //tcon1 output height in pixels
-    __u16   ht;                 //tcon1 horizontal total time 
-    __u16   hbp;                //tcon1 back porch
-    __u16   vt;                 //tcon1 vertical total time 
-    __u16   vbp;                //tcon1 vertical back porch
-    __u16   vspw;               //tcon1 vertical sync pulse width in pixels
-    __u16   hspw;               //tcon1 horizontal sync pulse width
-    __u32   io_pol;             //tcon1 io polarity, 0=normal, 1=inverse
-    __u32   io_out;             //tcon1 io output enable, 0=enable output, 1=disable output, be careful!
-    __u8    start_delay;
-}__tcon1_cfg_t;
+	__u32	pixel_clk;
+	__u16	hor_pixels;
+	__u16	ver_pixels;
+	__u16	hor_total_time;
+	__u16	hor_front_porch;
+	__u16	hor_sync_time;
+	__u16	hor_back_time;
+	__u16	ver_total_time;
+	__u16	ver_front_porch;
+	__u16	ver_sync_time;
+	__u16	ver_back_porch;
+	__bool	hor_sync_polarity;
+	__bool	ver_sync_polarity;
+	__bool  interlace;
+}__disp_timing_t;
 
 
 #define TVE_D0ActFlags  (0x01)
@@ -104,63 +94,65 @@ typedef enum tag_TVE_SRC
     VGA_B = 6  
 }__tve_src_t;
 
-
-__s32   LCDC_set_reg_base(__u32 sel, __u32 address);
-__u32   LCDC_get_reg_base(__u32 sel);
-__s32   LCDC_init(__u32 sel);
-__s32   LCDC_exit(__u32 sel);
-void    LCDC_open(__u32 sel);
-void    LCDC_close(__u32 sel);
-__s32   LCDC_set_int_line(__u32 sel, __u32 tcon_index,__u32 num);
-__s32   LCDC_clear_int(__u32 sel, __u32 irqsrc);
-__s32   LCDC_get_timing(__u32 sel,__u32 index,__disp_tcon_timing_t* tt);
-__s32   LCDC_enable_int(__u32 sel, __u32 irqsrc);
-__s32   LCDC_disable_int(__u32 sel, __u32 irqsrc);
-__u32    LCDC_query_int(__u32 sel);
-__s32   LCDC_set_start_delay(__u32 sel, __u32 tcon_index, __u8 delay);
-__s32   LCDC_get_start_delay(__u32 sel, __u32 tcon_index);
-__u32   LCDC_get_cur_line(__u32 sel, __u32 tcon_index);
-__s32 	LCDC_enable_output(__u32 sel);
-__s32 	LCDC_disable_output(__u32 sel);
-__s32 	LCDC_set_output(__u32 sel, __bool value);
-
-void    LCD_CPU_WR(__u32 sel, __u32 index, __u32 data);
-void    LCD_CPU_WR_INDEX(__u32 sel, __u32 index);
-void    LCD_CPU_WR_DATA(__u32 sel, __u32 data);
-void    LCD_CPU_RD(__u32 sel, __u32 index, __u32 *data);
-void    LCD_CPU_AUTO_FLUSH(__u32 sel, __u8 en);
-void    LCD_CPU_DMA_FLUSH(__u32 sel, __u8 en);
-void    LCD_XY_SWAP(__u32 sel);
-__s32	LCD_LVDS_open(__u32 sel);
-__s32	LCD_LVDS_close(__u32 sel);
-
-__s32   TCON0_open(__u32 sel);
-__s32   TCON0_close(__u32 sel);
-void    TCON0_cfg(__u32 sel, __panel_para_t * info);
-__s32   TCON0_get_width(__u32 sel);
-__s32   TCON0_get_height(__u32 sel);
-__s32   TCON0_set_dclk_div(__u32 sel, __u8 div);
-__s32   TCON0_select_src(__u32 sel, __u8 src);
-__u32   TCON0_get_dclk_div(__u32 sel);
+__s32 	hmid_src_sel(__u32 sel);
+__s32 	dsi_src_sel(__u32 sel);
+__s32   lvds_open(__u32 sel, __panel_para_t * panel);
+__s32   lvds_close(__u32 sel);
 
 
-__u32 	TCON1_open(__u32 sel);
-__u32 	TCON1_close	(__u32 sel);
-__u32   TCON1_cfg(__u32 sel, __tcon1_cfg_t *cfg);
-__u32   TCON1_cfg_ex(__u32 sel, __panel_para_t * info);
-__u32 	TCON1_set_hdmi_mode(__u32 sel, __u8 mode);
-__u32 	TCON1_set_tv_mode(__u32 sel,__u8 mode);
-__s32   TCON1_set_vga_mode(__u32 sel, __u8 mode);
-__s32   TCON1_select_src(__u32 sel, __u8 src);
-__bool  TCON1_in_valid_regn(__u32 sel, __u32 juststd);
-__s32   TCON1_get_width(__u32 sel);
-__s32   TCON1_get_height(__u32 sel);
-__s32   TCON1_set_gamma_table(__u32 sel, __u32 address,__u32 size);
-__s32   TCON1_set_gamma_Enable(__u32 sel, __bool enable);
+__s32 	tcon_set_reg_base(__u32 sel, __u32 address);
+__u32   tcon_get_reg_base(__u32 sel);
+__s32   tcon_init(__u32 sel);
+__s32   tcon_exit(__u32 sel);
+__s32   tcon_get_timing(__u32 sel,__u32 index,__disp_tcon_timing_t* tt);
+__u32 	tcon_irq_query(__u32 sel,__lcd_irq_id_t id);
+__u32   tcon_get_start_delay(__u32 sel,__u32 tcon_index);
+__u32   tcon_get_cur_line(__u32 sel, __u32 tcon_index);
+__s32   tcon_gamma(__u32 sel, __u32 en,__u32 *gamma_tbl);
 
-__u8 	TCON_mux_init(void);
-__u8    TCON_set_hdmi_src(__u8 src);
-__u8    TCON_set_tv_src(__u32 tv_index, __u8 src);
+
+__s32 	tcon0_cfg(__u32 sel, __panel_para_t * panel);
+__s32   tcon0_src_select(__u32 sel, __lcd_src_t src);
+__s32 	tcon0_open(__u32 sel, __panel_para_t * panel);
+__s32 	tcon0_close(__u32 sel);
+__s32   tcon0_set_dclk_div(__u32 sel, __u8 div);
+__u32   tcon0_get_dclk_div(__u32 sel);
+__s32   tcon0_tri_start(__u32 sel);
+__s32	tcon0_cpu_wr_24b(__u32 sel, __u32 index, __u32 data);
+__s32	tcon0_cpu_wr_24b_index(__u32 sel, __u32 index);
+__s32	tcon0_cpu_wr_24b_data(__u32 sel, __u32 data);
+__s32	tcon0_cpu_rd_24b(__u32 sel, __u32 index, __u32 *data);
+__s32	tcon0_cpu_wr_16b(__u32 sel, __u32 index, __u32 data);
+__s32	tcon0_cpu_wr_16b_index(__u32 sel, __u32 index);
+__s32	tcon0_cpu_wr_16b_data(__u32 sel, __u32 data);
+__s32	tcon0_cpu_rd_16b(__u32 sel, __u32 index, __u32 *data);
+
+__s32 	tcon1_open(__u32 sel);
+__s32 	tcon1_close(__u32 sel);
+__s32 	tcon1_set_hdmi_mode(__u32 sel,  __disp_tv_mode_t mode);
+__s32 	tcon1_set_tv_mode(__u32 sel, __disp_tv_mode_t mode);
+__s32   tcon1_set_vga_mode(__u32 sel,  __disp_vga_mode_t mode);
+__s32   tcon1_src_select(__u32 sel, __lcd_src_t src);
+
+
+__s32   dsi_set_reg_base(__u32 sel, __u32 base);
+__u32   dsi_get_reg_base(__u32 sel);
+__u32 	dsi_irq_query(__u32 sel,__dsi_irq_id_t id);
+__s32   dsi_cfg(__u32 sel,__panel_para_t * panel);
+__s32   dsi_exit(__u32 sel);
+__s32   dsi_open(__u32 sel,__panel_para_t * panel);
+__s32   dsi_close(__u32 sel);
+__s32   dsi_tri_start(__u32 sel);
+__s32   dsi_dcs_wr(__u32 sel,__u8 cmd,__u8* para_p,__u32 para_num);
+__s32   dsi_dcs_wr_index(__u32 sel,__u8 index);
+__s32   dsi_dcs_wr_data(__u32 sel,__u8 data);
+__u32 	dsi_get_start_delay(__u32 sel);
+__u32 	dsi_get_cur_line(__u32 sel);
+__u32   dsi_io_open(__u32 sel,__panel_para_t * panel);
+__u32   dsi_io_close(__u32 sel);
+
+
+
 
 __s32   TVE_set_reg_base(__u32 sel,__u32 address);
 __u32   TVE_get_reg_base(__u32 sel);

@@ -6,13 +6,15 @@
 #include "disp_de.h"
 
 frame_para_t g_video[2][4];
-
-#if 1
+static __u32 maf_flag_mem_len = 2048*2/8*544*2;
+static void *maf_flag_mem[2][2];//2048*2/8 *544   * 2
+static dit_mode_t dit_mode_default[2];
+#if 0
 static __s32 video_enhancement_start(__u32 sel, __u32 id)
 {
     __u32 scaleuprate;
     __u32 scaler_index;
-    /*__u32 gamma_tab[256] = 
+    __u32 gamma_tab[256] = 
     { 
         0x00000000,0x00010101,0x00020202,0x00030303,0x00040404,0x00050505,0x00060606,0x00070707,
         0x00080808,0x00090909,0x000A0A0A,0x000B0B0B,0x000C0C0C,0x000D0D0D,0x000D0D0D,0x000E0E0E,
@@ -46,47 +48,39 @@ static __s32 video_enhancement_start(__u32 sel, __u32 id)
         0x00F0F0F0,0x00F0F0F0,0x00F1F1F1,0x00F2F2F2,0x00F3F3F3,0x00F3F3F3,0x00F4F4F4,0x00F5F5F5,
         0x00F6F6F6,0x00F6F6F6,0x00F7F7F7,0x00F8F8F8,0x00F8F8F8,0x00F9F9F9,0x00FAFAFA,0x00FAFAFA,
         0x00FBFBFB,0x00FCFCFC,0x00FCFCFC,0x00FDFDFD,0x00FDFDFD,0x00FEFEFE,0x00FEFEFE,0x00FFFFFF
-    };*/
+    };
 
-    if(gdisp.screen[sel].output_type == DISP_OUTPUT_TYPE_LCD)
+    if(gdisp.screen[sel].output_type == DISP_OUTPUT_TYPE_HDMI)//!!! assume open HDMI before video start
     {
         scaler_index = gdisp.screen[sel].layer_manage[id].scaler_index;
-        if((gdisp.screen[sel].layer_manage[id].para.scn_win.width == gdisp.screen[sel].layer_manage[id].para.src_win.width) 
-                || ( gdisp.screen[sel].layer_manage[id].para.src_win.width  < 1280))
-		{
-			scaleuprate = 0;
-        }
-        else
-        {
-        	scaleuprate = gdisp.screen[sel].layer_manage[id].para.scn_win.width*2 / gdisp.screen[sel].layer_manage[id].para.src_win.width;
-		}
-		
+        scaleuprate = gdisp.screen[sel].layer_manage[id].para.scn_win.width*2 / gdisp.screen[sel].layer_manage[id].para.src_win.width;
+
         switch(scaleuprate)
         {
-	        case 0:	//scale down, do noting
-	            DE_SCAL_Vpp_Enable(scaler_index, 0);
-	            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 0);
-	            break;
-	        case 1:
-	            DE_SCAL_Vpp_Enable(scaler_index, 1);
-	            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 1);
-	            break;
-	        case 2:
-	            DE_SCAL_Vpp_Enable(scaler_index, 1);
-	            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 2);
-	            break;
-	        case 3:
-	            DE_SCAL_Vpp_Enable(scaler_index, 1);
-	            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 3);
-	            break;
-	        default:
-	            DE_SCAL_Vpp_Enable(scaler_index, 1);
-	            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 4);
-            	break;
+        case 0:	//scale down, do noting
+            DE_SCAL_Vpp_Enable(scaler_index, 0);
+            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 0);
+            break;
+        case 1:
+            DE_SCAL_Vpp_Enable(scaler_index, 1);
+            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 1);
+            break;
+        case 2:
+            DE_SCAL_Vpp_Enable(scaler_index, 1);
+            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 2);
+            break;
+        case 3:
+            DE_SCAL_Vpp_Enable(scaler_index, 1);
+            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 3);
+            break;
+        default:
+            DE_SCAL_Vpp_Enable(scaler_index, 1);
+            DE_SCAL_Vpp_Set_Luma_Sharpness_Level(scaler_index, 4);
+            break;
         }
 
-        //TCON1_set_gamma_Enable(sel, 1);
-        //TCON1_set_gamma_table(sel,(__u32)gamma_tab, 1024);
+        TCON1_set_gamma_Enable(sel, 1);
+        TCON1_set_gamma_table(sel,(__u32)gamma_tab, 1024);
 
         gdisp.screen[sel].layer_manage[id].video_enhancement_en = 1;
     }
@@ -121,8 +115,8 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
 {	
     __u32 cur_line = 0, start_delay = 0;
 
-    cur_line = LCDC_get_cur_line(sel, tcon_index);
-    start_delay = LCDC_get_start_delay(sel, tcon_index);
+    cur_line = tcon_get_cur_line(sel, tcon_index);
+    start_delay = tcon_get_start_delay(sel, tcon_index);
 	if(cur_line > start_delay-5)
 	{
 	    //DE_INF("cur_line(%d) >= start_delay(%d)-3 in Hal_Set_Frame\n", cur_line, start_delay);
@@ -131,8 +125,12 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
 
     if(g_video[sel][id].display_cnt == 0)
     {
-	    g_video[sel][id].pre_frame_addr0 = g_video[sel][id].video_cur.addr[0];
+	    g_video[sel][id].pre_frame_addr_luma = g_video[sel][id].video_cur.addr[0];
+        g_video[sel][id].pre_frame_addr_chroma= g_video[sel][id].video_cur.addr[1];
         memcpy(&g_video[sel][id].video_cur, &g_video[sel][id].video_new, sizeof(__disp_video_fb_t));
+        g_video[sel][id].cur_maf_flag_addr ^=  g_video[sel][id].pre_maf_flag_addr;
+        g_video[sel][id].pre_maf_flag_addr ^=  g_video[sel][id].cur_maf_flag_addr;
+        g_video[sel][id].cur_maf_flag_addr ^=  g_video[sel][id].pre_maf_flag_addr;
     }
 
     if(gdisp.screen[sel].layer_manage[id].para.mode == DISP_LAYER_WORK_MODE_SCALER)
@@ -146,9 +144,9 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
         __scal_scan_mod_t in_scan;
         __scal_scan_mod_t out_scan;
         __disp_scaler_t * scaler;
-        __u32 pre_frame_addr = 0;
-        __u32 maf_flag_addr = 0;
+        __u32 pre_frame_addr_luma = 0, pre_frame_addr_chroma = 0;
         __u32 maf_linestride = 0;
+        __u32 size;
 
         scaler_index = gdisp.screen[sel].layer_manage[id].scaler_index;
         
@@ -156,11 +154,15 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
 
     	if(g_video[sel][id].video_cur.interlace == TRUE)
     	{
-    	    if((!(gdisp.screen[scaler_index].de_flicker_status & DE_FLICKER_USED)) && 
-    	        (scaler->in_fb.format == DISP_FORMAT_YUV420 && scaler->in_fb.mode == DISP_MOD_MB_UV_COMBINED))
+    	    if((!(gdisp.screen[sel].de_flicker_status & DE_FLICKER_USED)) && 
+    	        (scaler->in_fb.format == DISP_FORMAT_YUV420 && scaler->in_fb.mode == DISP_MOD_MB_UV_COMBINED)
+    	        && (dit_mode_default[scaler_index] != 0xff) && (scaler->in_fb.size.width < 1920))//todo , full size of 3d mode < 1920
     	    {
     		    g_video[sel][id].dit_enable = TRUE;
-    		}
+    		}else
+            {
+                g_video[sel][id].dit_enable = FALSE;
+            }
 
             g_video[sel][id].fetch_field = FALSE;
         	if(g_video[sel][id].display_cnt == 0)
@@ -174,28 +176,21 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
 
     		if(g_video[sel][id].dit_enable == TRUE)
     		{
-    			if(g_video[sel][id].video_cur.maf_valid == TRUE)
-    			{
-    				g_video[sel][id].dit_mode = DIT_MODE_MAF;
-                	maf_flag_addr = (__u32)OSAL_VAtoPA((void*)g_video[sel][id].video_cur.flag_addr);
-            		maf_linestride =  g_video[sel][id].video_cur.flag_stride;
-    			}
-    			else
-    			{
-    				g_video[sel][id].dit_mode = DIT_MODE_MAF_BOB;
-    			}
+				g_video[sel][id].dit_mode = dit_mode_default[scaler_index];
+        		maf_linestride = (((scaler->src_win.width + 31) & 	0xffffffe0)*2/8 + 31) & 0xffffffe0; 
+        		// //g_video[sel][id].video_cur.flag_stride;//todo? ( (£¨720 + 31£©&0xffffffe0 ) * 2/8  + 31) & 0xffffffe0
 
     			if(g_video[sel][id].video_cur.pre_frame_valid == TRUE)
     			{
-    				g_video[sel][id].tempdiff_en = TRUE;
-    				pre_frame_addr = (__u32)OSAL_VAtoPA((void*)g_video[sel][id].pre_frame_addr0);
+                    g_video[sel][id].tempdiff_en = TRUE;
+                    pre_frame_addr_luma= (__u32)OSAL_VAtoPA((void*)g_video[sel][id].pre_frame_addr_luma);
+                    pre_frame_addr_chroma= (__u32)OSAL_VAtoPA((void*)g_video[sel][id].pre_frame_addr_chroma);
     			}
     			else
     			{
     				g_video[sel][id].tempdiff_en = FALSE;
     			}
     			g_video[sel][id].diagintp_en = TRUE;
-                g_video[sel][id].tempdiff_en = FALSE;//todo
     		}
     		else
     		{
@@ -245,7 +240,7 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
     	if(scaler->out_fb.cs_mode > DISP_VXYCC)
     	{
     		scaler->out_fb.cs_mode = DISP_BT601;
-    	}	
+    	}
 
         if(scaler->in_fb.b_trd_src)
         {
@@ -276,12 +271,18 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
 
     	DE_SCAL_Set_Init_Phase(scaler_index, &in_scan, &in_size, &in_type, &out_scan, &out_size, &out_type, g_video[sel][id].dit_enable);
     	DE_SCAL_Set_Scaling_Factor(scaler_index, &in_scan, &in_size, &in_type, &out_scan, &out_size, &out_type);
-    	DE_SCAL_Set_Scaling_Coef_for_video(scaler_index, &in_scan, &in_size, &in_type, &out_scan, &out_size, &out_type, 0x0);
+    	DE_SCAL_Set_Scaling_Coef_for_video(scaler_index, &in_scan, &in_size, &in_type, &out_scan, &out_size, &out_type, 0x00000101);
     	DE_SCAL_Set_Out_Size(scaler_index, &out_scan,&out_type, &out_size);
     	DE_SCAL_Set_Di_Ctrl(scaler_index,g_video[sel][id].dit_enable,g_video[sel][id].dit_mode,g_video[sel][id].diagintp_en,g_video[sel][id].tempdiff_en);
-    	DE_SCAL_Set_Di_PreFrame_Addr(scaler_index, pre_frame_addr);
-    	DE_SCAL_Set_Di_MafFlag_Src(scaler_index, maf_flag_addr, maf_linestride);
+    	DE_SCAL_Set_Di_PreFrame_Addr(scaler_index, pre_frame_addr_luma, pre_frame_addr_chroma);
+    	DE_SCAL_Set_Di_MafFlag_Src(scaler_index, g_video[sel][id].cur_maf_flag_addr, g_video[sel][id].pre_maf_flag_addr, maf_linestride);
 
+        if(g_video[sel][id].display_cnt == 0)
+        {
+            size = (scaler->in_fb.size.width * scaler->src_win.height * de_format_to_bpp(scaler->in_fb.format) + 7)/8;
+            //OSAL_CacheRangeFlush((void *)scal_addr.ch0_addr,size ,CACHE_CLEAN_FLUSH_D_CACHE_REGION);
+        }
+        
         DE_SCAL_Set_Reg_Rdy(scaler_index);
     }
     else
@@ -322,6 +323,7 @@ static __inline __s32 Hal_Set_Frame(__u32 sel, __u32 tcon_index, __u32 id)
     gdisp.screen[sel].layer_manage[id].para.fb.trd_right_addr[0] = g_video[sel][id].video_cur.addr_right[0];
     gdisp.screen[sel].layer_manage[id].para.fb.trd_right_addr[1] = g_video[sel][id].video_cur.addr_right[1];
     gdisp.screen[sel].layer_manage[id].para.fb.trd_right_addr[2] = g_video[sel][id].video_cur.addr_right[2];
+    
 	return DIS_SUCCESS;
 }
 
@@ -414,16 +416,25 @@ __s32 BSP_disp_video_get_dit_info(__u32 sel, __u32 hid, __disp_dit_info_t * dit_
 
 __s32 BSP_disp_video_start(__u32 sel, __u32 hid)
 {
+    __layer_man_t *layer_man;
+    
     hid = HANDTOID(hid);
     HLID_ASSERT(hid, gdisp.screen[sel].max_layers);
 
-    if(gdisp.screen[sel].layer_manage[hid].status & LAYER_USED)
+    layer_man = &gdisp.screen[sel].layer_manage[hid];
+    if(layer_man->status & LAYER_USED)
     {
         memset(&g_video[sel][hid], 0, sizeof(frame_para_t));
         g_video[sel][hid].video_cur.id = -1;
         g_video[sel][hid].enable = TRUE;
 
-        video_enhancement_start(sel,hid);
+        if(layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER)
+        {
+            g_video[sel][hid].cur_maf_flag_addr = (__u32)maf_flag_mem[layer_man->scaler_index][0];
+            g_video[sel][hid].pre_maf_flag_addr = (__u32)maf_flag_mem[layer_man->scaler_index][1];
+        }
+        Disp_drc_start_video_mode(sel);
+        //video_enhancement_start(sel,hid);
     	return DIS_SUCCESS;
     }
     else
@@ -441,7 +452,8 @@ __s32 BSP_disp_video_stop(__u32 sel, __u32 hid)
     {
         memset(&g_video[sel][hid], 0, sizeof(frame_para_t));
         
-        video_enhancement_stop(sel,hid);
+        Disp_drc_start_ui_mode(sel);
+        //video_enhancement_stop(sel,hid);
     	return DIS_SUCCESS;
     }
     else
@@ -449,4 +461,40 @@ __s32 BSP_disp_video_stop(__u32 sel, __u32 hid)
         return DIS_FAIL;
     }
 }
+
+__s32 disp_video_init()
+{
+    memset(g_video,0,sizeof(g_video));
+    maf_flag_mem[0][0] = OSAL_PhyAlloc(maf_flag_mem_len);
+    maf_flag_mem[0][1] = OSAL_PhyAlloc(maf_flag_mem_len);
+    maf_flag_mem[1][0] = OSAL_PhyAlloc(maf_flag_mem_len);
+    maf_flag_mem[1][1] = OSAL_PhyAlloc(maf_flag_mem_len);
+
+    dit_mode_default[0] = DIT_MODE_MAF;
+    dit_mode_default[1] = DIT_MODE_MAF;
+	return DIS_SUCCESS;
+}
+
+__s32 disp_video_exit()
+{
+    OSAL_PhyFree(maf_flag_mem[0][0], maf_flag_mem_len);
+    OSAL_PhyFree(maf_flag_mem[0][1], maf_flag_mem_len);
+    OSAL_PhyFree(maf_flag_mem[1][0], maf_flag_mem_len);
+    OSAL_PhyFree(maf_flag_mem[1][1], maf_flag_mem_len);
+    memset(g_video,0,sizeof(g_video));
+    
+	return DIS_SUCCESS;
+}
+
+__s32 disp_video_set_dit_mode(__u32 scaler_index, __u32 mode)
+{
+    dit_mode_default[scaler_index] = mode;
+    return DIS_SUCCESS;
+}
+
+__s32 disp_video_get_dit_mode(__u32 scaler_index)
+{
+     return dit_mode_default[scaler_index];
+}
+
 

@@ -86,7 +86,8 @@ void watchdog_enable(void)
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	/* enable watchdog */
 	debug("write to %x value 1\n", (uint)&(wdog->mode));
-	writel(3, &(wdog->mode));
+	wdog->cfg = 1;
+	wdog->mode = 1;
 
 	return ;	
 	

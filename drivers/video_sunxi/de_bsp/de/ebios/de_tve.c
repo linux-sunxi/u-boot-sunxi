@@ -1,6 +1,6 @@
 
 #include "ebios_lcdc_tve.h"
-#include "de_tvec_i.h"
+#include "de_tve.h"
 
 __u32 tve_reg_base0;
 __u32 tve_reg_base1;

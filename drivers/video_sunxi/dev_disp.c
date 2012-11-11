@@ -5,7 +5,7 @@
 fb_info_t g_fbi;
 __disp_drv_t g_disp_drv;
 
-#define __user
+#define __user 
 #define HZ 100
 #define EFAULT 1
 
@@ -35,7 +35,7 @@ __s32 disp_delay_ms(__u32 ms)
 {
     /* todo */
     udelay(ms*1000);
-    return 0;
+    return 0;   
 }
 // [before][step_0][delay_0][step_1][delay_1]......[step_n-2][delay_n-2][step_n-1][delay_n-1][after]
 void DRV_lcd_open_callback(void *parg)
@@ -68,23 +68,26 @@ void DRV_lcd_open_callback(void *parg)
         lcd_op_finished[sel] = 1;
     }
 }
-
+/*
 __s32 DRV_lcd_open(__u32 sel)
 {
-    lcd_flow_cnt[sel] = 0;
-    lcd_op_finished[sel] = 0;
-	lcd_open_start[sel] = 1;
-
-	init_timer(&lcd_timer[sel]);
-
-    BSP_disp_lcd_open_before(sel);
-    DRV_lcd_open_callback((void*)sel);
-
+    if(BSP_disp_lcd_used(sel))
+    {
+        lcd_flow_cnt[sel] = 0;
+        lcd_op_finished[sel] = 0;
+        lcd_open_start[sel] = 1;
+        
+        init_timer(&lcd_timer[sel]);
+        
+        BSP_disp_lcd_open_before(sel);
+        DRV_lcd_open_callback((void*)sel);
+    }
     return 0;
 }
+*/
 __bool DRV_lcd_check_open_finished(__u32 sel)
 {
-	if(lcd_open_start[sel] == 1)
+	if(BSP_disp_lcd_used(sel) && (lcd_open_start[sel] == 1))
 	{
 	    if(lcd_op_finished[sel])
 	    {
@@ -97,14 +100,14 @@ __bool DRV_lcd_check_open_finished(__u32 sel)
 }
 
 
-/*
+
 __s32 DRV_lcd_open(__u32 sel)
 {
     __u32 i = 0;
     __lcd_flow_t *flow;
 
-	if(g_disp_drv.b_lcd_open[sel] == 0)
-	{
+	if((BSP_disp_lcd_used(sel)) && (g_disp_drv.b_lcd_open[sel] == 0))
+    {   
 	    BSP_disp_lcd_open_before(sel);
 
 	    flow = BSP_disp_lcd_get_open_flow(sel);
@@ -113,7 +116,6 @@ __s32 DRV_lcd_open(__u32 sel)
 	        __u32 timeout = flow->func[i].delay;
 
 	        flow->func[i].func(sel);
-
 	    	disp_delay_ms(timeout);
 	    }
 
@@ -124,14 +126,14 @@ __s32 DRV_lcd_open(__u32 sel)
 
     return 0;
 }
-*/
+
 
 __s32 DRV_lcd_close(__u32 sel)
 {
     __u32 i = 0;
     __lcd_flow_t *flow;
 
-	if(g_disp_drv.b_lcd_open[sel] == 1)
+	if(BSP_disp_lcd_used(sel) && (g_disp_drv.b_lcd_open[sel] == 1))
 	{
 	    BSP_disp_lcd_close_befor(sel);
 
@@ -163,31 +165,36 @@ __s32 disp_int_process(__u32 sel)
 __s32 DRV_DISP_Init(void)
 {
     __disp_bsp_init_para para;
-
+    
     printf("====display init =====\n");
 
     memset(&para, 0, sizeof(__disp_bsp_init_para));
-    para.base_image0    = 0x01e60000;
-    para.base_image1    = 0x01e40000;
-    para.base_scaler0   = 0x01e00000;
-    para.base_scaler1   = 0x01e20000;
-    para.base_lcdc0     = 0x01c0c000;
-    para.base_lcdc1     = 0x01c17000;
-    para.base_tvec0     = 0x01c0a000;
-    para.base_tvec1     = 0x01c1b000;
-    para.base_ccmu      = 0x01c20000;
-    para.base_sdram     = 0x01c01000;
-    para.base_pioc      = 0x01c20800;
-    para.base_pwm       = 0x01c20c00;
-	para.disp_int_process    = disp_int_process;
+    
+    para.base_image0   = 0x1e60000;
+    para.base_image1   = 0x1e40000;
+    para.base_scaler0  = 0x1e00000;
+    para.base_scaler1  = 0x1e20000;
+    para.base_lcdc0    = 0x1c0c000;
+    para.base_lcdc1    = 0x1c0d000;
+    para.base_deu0     = 0x1eb0000;
+    para.base_deu1     = 0x1ea0000;
+    para.base_drc0     = 0x1e70000;
+    para.base_drc1     = 0x1e50000;
+    para.base_cmu0     = 0x1e60000;
+    para.base_cmu1     = 0x1e40000;
+    para.base_dsi0     = 0x1ca0000;
+    para.base_ccmu     = 0x1c20000;
+    para.base_sdram    = 0x1c01000;
+    para.base_pioc     = 0x1c20800;
+    para.base_pwm      = 0x1c21400;
+    para.disp_int_process    = disp_int_process;
+    //para.hdmi_get_disp_func     = disp_get_hdmi_func;
 
-	memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
-
+    memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
+    
     BSP_disp_init(&para);
     BSP_disp_open();
-
-    DRV_lcd_open(0);
-    //board_display_device_open();
+    printf("====display init end ====\n");
 
     return 0;
 }
@@ -195,11 +202,8 @@ __s32 DRV_DISP_Init(void)
 __s32 DRV_DISP_Exit(void)
 {
     //BSP_disp_close();
-	del_timer(&lcd_timer[0]);
-	del_timer(&lcd_timer[1]);
-
 	BSP_disp_exit(g_disp_drv.exit_mode);
-
+	
     return 0;
 }
 
@@ -235,9 +239,9 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         __wrn("ioctl:%x fail when in suspend!\n", cmd);
         return -1;
     }
-
+    
 #if 0
-    if(cmd!=DISP_CMD_TV_GET_INTERFACE && cmd!=DISP_CMD_HDMI_GET_HPD_STATUS && cmd!=DISP_CMD_GET_OUTPUT_TYPE
+    if(cmd!=DISP_CMD_TV_GET_INTERFACE && cmd!=DISP_CMD_HDMI_GET_HPD_STATUS && cmd!=DISP_CMD_GET_OUTPUT_TYPE 
     	&& cmd!=DISP_CMD_SCN_GET_WIDTH && cmd!=DISP_CMD_SCN_GET_HEIGHT
     	&& cmd!=DISP_CMD_VIDEO_SET_FB && cmd!=DISP_CMD_VIDEO_GET_FRAME_ID)
     {
@@ -345,48 +349,82 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     		break;
 
         case DISP_CMD_SET_BRIGHT:
-            ret = BSP_disp_set_bright(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_set_bright(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_GET_BRIGHT:
-            ret = BSP_disp_get_bright(ubuffer[0]);
+            ret = BSP_disp_cmu_get_bright(ubuffer[0]);
     		break;
 
         case DISP_CMD_SET_CONTRAST:
-            ret = BSP_disp_set_contrast(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_set_contrast(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_GET_CONTRAST:
-            ret = BSP_disp_get_contrast(ubuffer[0]);
+            ret = BSP_disp_cmu_get_contrast(ubuffer[0]);
     		break;
 
         case DISP_CMD_SET_SATURATION:
-            ret = BSP_disp_set_saturation(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_set_saturation(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_GET_SATURATION:
-            ret = BSP_disp_get_saturation(ubuffer[0]);
+            ret = BSP_disp_cmu_get_saturation(ubuffer[0]);
     		break;
 
         case DISP_CMD_SET_HUE:
-            ret = BSP_disp_set_hue(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_set_hue(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_GET_HUE:
-            ret = BSP_disp_get_hue(ubuffer[0]);
+            ret = BSP_disp_cmu_get_hue(ubuffer[0]);
     		break;
 
         case DISP_CMD_ENHANCE_ON:
-            ret = BSP_disp_enhance_enable(ubuffer[0], 1);
+            ret = BSP_disp_cmu_enable(ubuffer[0], 1);
     		break;
 
         case DISP_CMD_ENHANCE_OFF:
-            ret = BSP_disp_enhance_enable(ubuffer[0], 0);
+            ret = BSP_disp_cmu_enable(ubuffer[0], 0);
     		break;
 
         case DISP_CMD_GET_ENHANCE_EN:
-            ret = BSP_disp_get_enhance_enable(ubuffer[0]);
+            ret = BSP_disp_cmu_get_enable(ubuffer[0]);
     		break;
+
+        case DISP_CMD_SET_ENHANCE_MODE:
+            ret = BSP_disp_cmu_set_mode(ubuffer[0], ubuffer[1]);
+    		break;
+
+        case DISP_CMD_GET_ENHANCE_MODE:
+            ret = BSP_disp_cmu_get_mode(ubuffer[0]);
+    		break;
+
+        case DISP_CMD_SET_ENHANCE_WINDOW:
+        {
+            __disp_rect_t para;
+            
+            if(copy_from_user(&para, (void __user *)ubuffer[1],sizeof(__disp_rect_t)))
+    		{
+    		    __wrn("copy_from_user fail\n");
+    			return  -EFAULT;
+    		}
+            ret = BSP_disp_cmu_set_window(ubuffer[0], &para);
+    		break;
+        }
+
+        case DISP_CMD_GET_ENHANCE_WINDOW:
+        {
+            __disp_rect_t para;
+            
+            ret = BSP_disp_cmu_get_window(ubuffer[0], &para);
+            if(copy_to_user((void __user *)ubuffer[1],&para, sizeof(__disp_layer_info_t)))
+    		{
+    		    __wrn("copy_to_user fail\n");
+    			return  -EFAULT;
+    		}
+    		break;
+        }
 
     	case DISP_CMD_CAPTURE_SCREEN:
     	    ret = BSP_disp_capture_screen(ubuffer[0], (__disp_capture_screen_para_t *)ubuffer[1]);
@@ -403,7 +441,47 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_DE_FLICKER_OFF:
             ret = BSP_disp_de_flicker_enable(ubuffer[0], 0);
             break;
+            
+        case DISP_CMD_DRC_ON:
+            ret = BSP_disp_drc_enable(ubuffer[0], 1);
+            break;
 
+        case DISP_CMD_DRC_OFF:
+            ret = BSP_disp_drc_enable(ubuffer[0], 0);
+            break;
+
+        case DISP_CMD_GET_DRC_EN:
+            ret = BSP_disp_drc_get_enable(ubuffer[0]);
+            break;
+                
+        case DISP_CMD_DRC_SET_WINDOW:
+        {
+            __disp_rect_t para;
+            
+            if(copy_from_user(&para, (void __user *)ubuffer[1],sizeof(__disp_rect_t)))
+            {
+                __wrn("copy_from_user fail\n");
+                return  -EFAULT;
+            }
+        
+            ret = BSP_disp_drc_set_window(ubuffer[0], &para);
+            break;
+       }
+
+       case DISP_CMD_DRC_GET_WINDOW:
+        {
+            __disp_rect_t para;
+
+            ret = BSP_disp_drc_get_window(ubuffer[0], &para);
+            if(copy_to_user((void __user *)ubuffer[1], &para,sizeof(__disp_rect_t)))
+            {
+                __wrn("copy_to_user fail\n");
+                return  -EFAULT;
+            }
+
+            return ret;
+            break;
+       }
     //----layer----
     	case DISP_CMD_LAYER_REQUEST:
     		ret = BSP_disp_layer_request(ubuffer[0], (__disp_layer_work_mode_t)ubuffer[1]);
@@ -591,92 +669,151 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     		break;
 
         case DISP_CMD_LAYER_SET_BRIGHT:
-            ret = BSP_disp_layer_set_bright(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_cmu_layer_set_bright(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_BRIGHT:
-            ret = BSP_disp_layer_get_bright(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_layer_get_bright(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_CONTRAST:
-            ret = BSP_disp_layer_set_contrast(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_cmu_layer_set_contrast(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_CONTRAST:
-            ret = BSP_disp_layer_get_contrast(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_layer_get_contrast(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_SATURATION:
-            ret = BSP_disp_layer_set_saturation(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_cmu_layer_set_saturation(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_SATURATION:
-            ret = BSP_disp_layer_get_saturation(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_layer_get_saturation(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_HUE:
-            ret = BSP_disp_layer_set_hue(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_cmu_layer_set_hue(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_HUE:
-            ret = BSP_disp_layer_get_hue(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_layer_get_hue(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_ENHANCE_ON:
-            ret = BSP_disp_layer_enhance_enable(ubuffer[0], ubuffer[1], 1);
+            ret = BSP_disp_cmu_layer_enable(ubuffer[0], ubuffer[1], 1);
     		break;
 
         case DISP_CMD_LAYER_ENHANCE_OFF:
-            ret = BSP_disp_layer_enhance_enable(ubuffer[0], ubuffer[1], 0);
+            ret = BSP_disp_cmu_layer_enable(ubuffer[0], ubuffer[1], 0);
     		break;
 
         case DISP_CMD_LAYER_GET_ENHANCE_EN:
-            ret = BSP_disp_layer_get_enhance_enable(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_cmu_layer_get_enable(ubuffer[0], ubuffer[1]);
     		break;
 
+        case DISP_CMD_LAYER_SET_ENHANCE_MODE:
+            ret = BSP_disp_cmu_layer_set_mode(ubuffer[0], ubuffer[1], ubuffer[2]);
+    		break;
+
+        case DISP_CMD_LAYER_GET_ENHANCE_MODE:
+            ret = BSP_disp_cmu_layer_get_mode(ubuffer[0], ubuffer[1]);
+    		break;
+
+        case DISP_CMD_LAYER_SET_ENHANCE_WINDOW:
+        {
+            __disp_rect_t para;
+            if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_rect_t)))
+    		{
+    		    __wrn("copy_from_user fail\n");
+    			return  -EFAULT;
+    		}
+            ret = BSP_disp_cmu_layer_set_window(ubuffer[0], ubuffer[1], &para);
+    		break;
+       }
+
+        case DISP_CMD_LAYER_GET_ENHANCE_WINDOW:
+        {
+            __disp_rect_t para;
+            ret = BSP_disp_cmu_layer_get_window(ubuffer[0], ubuffer[1], &para);
+            if(copy_to_user((void __user *)ubuffer[2],&para, sizeof(__disp_layer_info_t)))
+    		{
+    		    __wrn("copy_to_user fail\n");
+    			return  -EFAULT;
+    		}
+    		break;
+       }
         case DISP_CMD_LAYER_VPP_ON:
-            ret = BSP_disp_layer_vpp_enable(ubuffer[0], ubuffer[1], 1);
+            ret = BSP_disp_deu_enable(ubuffer[0], ubuffer[1], 1);
     		break;
 
         case DISP_CMD_LAYER_VPP_OFF:
-            ret = BSP_disp_layer_vpp_enable(ubuffer[0], ubuffer[1], 0);
+            ret = BSP_disp_deu_enable(ubuffer[0], ubuffer[1], 0);
     		break;
 
         case DISP_CMD_LAYER_GET_VPP_EN:
-            ret = BSP_disp_layer_get_vpp_enable(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_deu_get_enable(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_LUMA_SHARP_LEVEL:
-            ret = BSP_disp_layer_set_luma_sharp_level(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_deu_set_luma_sharp_level(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_LUMA_SHARP_LEVEL:
-            ret = BSP_disp_layer_get_luma_sharp_level(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_deu_get_luma_sharp_level(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_CHROMA_SHARP_LEVEL:
-            ret = BSP_disp_layer_set_chroma_sharp_level(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_deu_set_chroma_sharp_level(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_CHROMA_SHARP_LEVEL:
-            ret = BSP_disp_layer_get_chroma_sharp_level(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_deu_get_chroma_sharp_level(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_WHITE_EXTEN_LEVEL:
-            ret = BSP_disp_layer_set_white_exten_level(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_deu_set_white_exten_level(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_WHITE_EXTEN_LEVEL:
-            ret = BSP_disp_layer_get_white_exten_level(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_deu_get_white_exten_level(ubuffer[0], ubuffer[1]);
     		break;
 
         case DISP_CMD_LAYER_SET_BLACK_EXTEN_LEVEL:
-            ret = BSP_disp_layer_set_black_exten_level(ubuffer[0], ubuffer[1], ubuffer[2]);
+            ret = BSP_disp_deu_set_black_exten_level(ubuffer[0], ubuffer[1], ubuffer[2]);
     		break;
 
         case DISP_CMD_LAYER_GET_BLACK_EXTEN_LEVEL:
-            ret = BSP_disp_layer_get_black_exten_level(ubuffer[0], ubuffer[1]);
+            ret = BSP_disp_deu_get_black_exten_level(ubuffer[0], ubuffer[1]);
     		break;
+        case DISP_CMD_LAYER_VPP_SET_WINDOW:
+        {
+            __disp_rect_t para;
+            
+            if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_rect_t)))
+            {
+                __wrn("copy_from_user fail\n");
+                return  -EFAULT;
+            }
+        
+            ret = BSP_disp_deu_set_window(ubuffer[0], ubuffer[1], &para);
+            break;
+       }
+
+       case DISP_CMD_LAYER_VPP_GET_WINDOW:
+        {
+            __disp_rect_t para;
+
+            ret = BSP_disp_deu_get_window(ubuffer[0], ubuffer[1], &para);
+            if(copy_to_user((void __user *)ubuffer[2], &para,sizeof(__disp_rect_t)))
+            {
+                __wrn("copy_to_user fail\n");
+                return  -EFAULT;
+            }
+
+            return ret;
+            break;
+       }
 
     //----scaler----
     	case DISP_CMD_SCALER_REQUEST:
@@ -833,16 +970,16 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     		break;
 
     	case DISP_CMD_LCD_SET_BRIGHTNESS:
-    		ret = BSP_disp_lcd_set_bright(ubuffer[0], ubuffer[1]);
+    		ret = BSP_disp_lcd_set_bright(ubuffer[0], ubuffer[1], 0);
     		break;
 
     	case DISP_CMD_LCD_GET_BRIGHTNESS:
     		ret = BSP_disp_lcd_get_bright(ubuffer[0]);
     		break;
 
-    	case DISP_CMD_LCD_CPUIF_XY_SWITCH:
-    		ret = BSP_disp_lcd_xy_switch(ubuffer[0], ubuffer[1]);
-    		break;
+//    	case DISP_CMD_LCD_CPUIF_XY_SWITCH:
+// 		ret = BSP_disp_lcd_xy_switch(ubuffer[0], ubuffer[1]);
+  //  		break;
 
     	case DISP_CMD_LCD_SET_SRC:
     		ret = BSP_disp_lcd_set_src(ubuffer[0], (__disp_lcdc_src_t)ubuffer[1]);
@@ -1003,6 +1140,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     		break;
 
     //----sprite----
+    /*
     	case DISP_CMD_SPRITE_OPEN:
     		ret = BSP_disp_sprite_open(ubuffer[0]);
     		break;
@@ -1055,7 +1193,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             }
     		if(copy_from_user(gbuffer, (void __user *)ubuffer[1],ubuffer[3]))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret =  BSP_disp_sprite_set_palette_table(ubuffer[0], (__u32 * )gbuffer,ubuffer[2],ubuffer[3]);
@@ -1071,7 +1209,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     		if(copy_from_user(&para, (void __user *)ubuffer[1],sizeof(__disp_sprite_block_para_t)))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret = BSP_disp_sprite_block_request(ubuffer[0], &para);
@@ -1088,7 +1226,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     		if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_rect_t)))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret = BSP_disp_sprite_block_set_screen_win(ubuffer[0], ubuffer[1],&para);
@@ -1114,7 +1252,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     		if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_rect_t)))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret = BSP_disp_sprite_block_set_src_win(ubuffer[0], ubuffer[1],&para);
@@ -1140,7 +1278,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     		if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_fb_t)))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret = BSP_disp_sprite_block_set_framebuffer(ubuffer[0], ubuffer[1],&para);
@@ -1194,7 +1332,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     		if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_sprite_block_para_t)))
     		{
-    		    __wrn("copy_from_user fail %d \n",__LINE__);
+    		    __wrn("copy_from_user fail\n");
     			return  -EFAULT;
     		}
     		ret = BSP_disp_sprite_block_set_para(ubuffer[0], ubuffer[1],&para);
@@ -1213,6 +1351,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     		}
     		break;
         }
+        */
 #ifdef __LINUX_OSAL__
 	//----framebuffer----
     	case DISP_CMD_FB_REQUEST:
@@ -1259,10 +1398,10 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         }
 //----for test----
 		case DISP_CMD_MEM_REQUEST:
-			ret =  disp_mem_request(ubuffer[0],ubuffer[1]);
+			ret =  disp_mem_request(ubuffer[0]);
 			break;
 
-
+	
 		case DISP_CMD_MEM_RELASE:
 			ret =  disp_mem_release(ubuffer[0]);
 			break;
@@ -1275,16 +1414,28 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			ret = g_disp_mm[ubuffer[0]].mem_start;
 			break;
 
+		case DISP_CMD_MEM_GET_INFO:
+		{
+    	    __disp_mm_t para;
+
+			ret = disp_mem_get_info(ubuffer[0], &para);
+    		if(copy_to_user((void __user *)ubuffer[1],&para, sizeof(__disp_mm_t)))
+    		{
+    		    __wrn("copy_to_user fail\n");
+    			return  -EFAULT;
+    		}
+			break;
+        }
 		case DISP_CMD_SUSPEND:
 		{
-		    //pm_message_t state;
+		    pm_message_t state;
 
-			//ret = disp_suspend(0, state);
+			ret = disp_suspend(0, state);
 			break;
         }
 
 		case DISP_CMD_RESUME:
-			//ret = disp_resume(0);
+			ret = disp_resume(0);
 			break;
 #endif
 		case DISP_CMD_SET_EXIT_MODE:
@@ -1294,7 +1445,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		case DISP_CMD_LCD_CHECK_OPEN_FINISH:
 			ret = DRV_lcd_check_open_finished(ubuffer[0]);
 			break;
-
+		
         case DISP_CMD_PRINT_REG:
             ret = BSP_disp_print_reg(1, ubuffer[0]);
             break;

@@ -62,13 +62,45 @@ typedef struct
     __bool                  lcd_io_used[28];
     user_gpio_set_t         lcd_io[28];
 
-    __u32                   init_bright;//back light brightness
+//    __u32                   init_bright;//back light brightness
+//	__u32                   lcd_bright;
+//    __u32                   lcd_bright_dimming;//IEP-drc backlight dimming rate: 0 -256 (256: no dimming; 0: the most dimming)
 
+    __u32                   backlight_bright;
+    __u32                   backlight_dimming;//IEP-drc backlight dimming rate: 0 -256 (256: no dimming; 0: the most dimming)
+    
     __u32                   lcd_bright;
     __u32                   lcd_contrast;
     __u32                   lcd_saturation;
     __u32                   lcd_hue;
 }__disp_lcd_cfg_t;
+
+typedef struct 
+{
+    __u32                  enable;
+    __disp_rect_t          rect;
+    __u32                  mode; //0: ui, 1:video
+}__iep_drc_t;
+
+typedef struct 
+{
+    __u32                  status;//
+    
+    __disp_rect_t          screen_rect;
+    __disp_enhance_mode_t  screen_mode;     //
+    __u32                  screen_bright;   //0~100, default(50)
+    __u32                  screen_saturation;//0~100,default(50)
+    __u32                  screen_contrast;//0~100,default(50)
+    __u32                  screen_hue;       //0~100,default(50)
+    
+    __disp_rect_t          layer_rect;
+    __disp_enhance_mode_t  layer_mode;     //
+    __u32                  layer_bright;   //0~100, default(50)
+    __u32                  layer_saturation;//0~100,default(50)
+    __u32                  layer_contrast;//0~100,default(50)
+    __u32                  layer_hue;       //0~100,default(50)
+}__iep_cmu_t;
+
 
 typedef struct
 {    
@@ -90,6 +122,8 @@ typedef struct
     __u32                   max_layers;
     __layer_man_t           layer_manage[4];
     __u32                   de_flicker_status;
+    __iep_drc_t             drc;
+    __iep_cmu_t             cmu;
 
     __u32                   image_output_type;//see macro definition IMAGE_OUTPUT_XXX above, it can be lcd only /lcd+scaler/ scaler only
     __u32                   out_scaler_index;
@@ -101,12 +135,13 @@ typedef struct
 	__disp_tv_mode_t        tv_mode;
 	__disp_tv_mode_t        hdmi_mode;
 	__disp_tv_dac_source    dac_source[4];
+    __bool                  hdmi_used;
 
     __s32                   (*LCD_CPUIF_XY_Swap)(__s32 mode);
     void                    (*LCD_CPUIF_ISR)(void);
 	__u32	                pll_use_status;	//lcdc0/lcdc1 using which video pll(0 or 1)
 
-	__u32                   lcd_bright;
+    
 	__disp_color_range_t    out_color_range;
 	__u32                   out_csc;
 
@@ -124,6 +159,7 @@ typedef struct
     __u32 period_ns;
     __u32 entire_cycle;
     __u32 active_cycle;
+    __u32 mode;//0:single, 1:pair
 }__disp_pwm_t;
 
 typedef struct
@@ -131,7 +167,7 @@ typedef struct
     __disp_bsp_init_para    init_para;//para from driver
     __disp_screen_t         screen[2];
     __disp_scaler_t         scaler[2];
-    __disp_pwm_t            pwm[2];
+    __disp_pwm_t            pwm[4];
 }__disp_dev_t;
 
 extern __disp_dev_t gdisp;

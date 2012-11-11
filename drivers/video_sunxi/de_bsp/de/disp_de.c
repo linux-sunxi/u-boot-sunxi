@@ -12,7 +12,7 @@ __s32 Image_init(__u32 sel)
 	image_clk_on(sel);	//when access image registers, must open MODULE CLOCK of image
 	DE_BE_Reg_Init(sel);
 	
-    BSP_disp_sprite_init(sel);
+    //BSP_disp_sprite_init(sel);
     
     Image_open(sel);
 
@@ -25,7 +25,7 @@ __s32 Image_init(__u32 sel)
 __s32 Image_exit(__u32 sel)
 {    
     DE_BE_DisableINT(sel, DE_IMG_REG_LOAD_FINISH);
-    BSP_disp_sprite_exit(sel);
+    //BSP_disp_sprite_exit(sel);
     image_clk_exit(sel);
         
     return DIS_SUCCESS;
@@ -171,11 +171,17 @@ __s32 BSP_disp_set_output_csc(__u32 sel, __disp_output_type_t type)
         if(enhance_en == 0)
         {
             enhance_en = 1;
-            
+#ifndef __FPGA_DEBUG__
             bright = gdisp.screen[sel].lcd_cfg.lcd_bright;
             contrast = gdisp.screen[sel].lcd_cfg.lcd_contrast;
             saturation = gdisp.screen[sel].lcd_cfg.lcd_saturation;
             hue = gdisp.screen[sel].lcd_cfg.lcd_hue;
+#else
+            bright = 50;//gdisp.screen[sel].lcd_cfg.lcd_bright;
+            contrast = 50;//gdisp.screen[sel].lcd_cfg.lcd_contrast;
+            saturation = 57;//gdisp.screen[sel].lcd_cfg.lcd_saturation;
+            hue = 50;//gdisp.screen[sel].lcd_cfg.lcd_hue;
+#endif
         }
     }
 
@@ -250,3 +256,55 @@ __s32 Disp_set_out_interlace(__u32 sel)
 	return DIS_SUCCESS;
 }
 
+
+__s32 BSP_disp_store_image_reg(__u32 sel, __u32 addr)
+{
+    __u32 i = 0;
+    __u32 value = 0;
+    __u32 reg_base = 0;
+
+    if(sel == 0)
+    {
+        reg_base = gdisp.init_para.base_image0;
+    }
+    else
+    {
+        reg_base = gdisp.init_para.base_image1;
+    }
+
+    for(i=0; i<0xe00 - 0x800; i+=4)
+    {
+        value = sys_get_wvalue(reg_base + 0x800 + i);
+        sys_put_wvalue(addr + i, value);
+    }
+
+    return 0;
+}
+
+__s32 BSP_disp_restore_image_reg(__u32 sel, __u32 addr)
+{
+    __u32 i = 0;
+    __u32 value = 0;
+    __u32 reg_base = 0;
+
+    if(sel == 0)
+    {
+        reg_base = gdisp.init_para.base_image0;
+    }
+    else
+    {
+        reg_base = gdisp.init_para.base_image1;
+    }
+
+    DE_BE_Reg_Init(sel);
+    for(i=4; i<0xe00 - 0x800; i+=4)
+    {
+        value = sys_get_wvalue(addr + i);
+        sys_put_wvalue(reg_base + 0x800 + i,value);
+    }
+
+    value = sys_get_wvalue(addr);
+    sys_put_wvalue(reg_base + 0x800,value);
+
+    return 0;
+}

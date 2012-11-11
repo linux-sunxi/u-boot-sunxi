@@ -11,6 +11,7 @@
 #include "disp_hdmi.h"
 
 __disp_dev_t gdisp;
+extern __panel_para_t              gpanel_info[2];
 
 
 __s32 BSP_disp_init(__disp_bsp_init_para * para)
@@ -38,35 +39,42 @@ __s32 BSP_disp_init(__disp_bsp_init_para * para)
         gdisp.scaler[screen_id].saturation = 50;
         gdisp.scaler[screen_id].hue = 50;
 
-        gdisp.screen[screen_id].lcd_bright = 192;
+        gdisp.screen[screen_id].lcd_cfg.backlight_bright = 197;
+        gdisp.screen[screen_id].lcd_cfg.backlight_dimming = 256;
     }
     memcpy(&gdisp.init_para,para,sizeof(__disp_bsp_init_para));
-    memset(g_video,0,sizeof(g_video));
 
     DE_Set_Reg_Base(0, para->base_image0);
     DE_Set_Reg_Base(1, para->base_image1);
     DE_SCAL_Set_Reg_Base(0, para->base_scaler0);
     DE_SCAL_Set_Reg_Base(1, para->base_scaler1);
-    LCDC_set_reg_base(0,para->base_lcdc0);
-    LCDC_set_reg_base(1,para->base_lcdc1);
-    TVE_set_reg_base(0, para->base_tvec0);
-    TVE_set_reg_base(1, para->base_tvec1);
-
+    tcon_set_reg_base(0,para->base_lcdc0);
+    tcon_set_reg_base(1,para->base_lcdc1);
+    IEP_Deu_Set_Reg_base(0, para->base_deu0);
+    IEP_Deu_Set_Reg_base(1, para->base_deu1);
+    IEP_Drc_Set_Reg_Base(0, para->base_drc0);
+    IEP_Drc_Set_Reg_Base(1, para->base_drc1);
+    IEP_CMU_Set_Reg_Base(0, para->base_cmu0);
+    IEP_CMU_Set_Reg_Base(1, para->base_cmu1);
+    dsi_set_reg_base(0, para->base_dsi0);
     BSP_disp_close_lcd_backlight(0);
     BSP_disp_close_lcd_backlight(1);
 
 	disp_pll_init();
 
     Scaler_Init(0);
-    Scaler_Init(1);
+    //Scaler_Init(1);
     Image_init(0);
-    Image_init(1);
+    //Image_init(1);
     Disp_lcdc_init(0);
-    Disp_lcdc_init(1);
-    Disp_TVEC_Init(0);
-    Disp_TVEC_Init(1);
+    //Disp_lcdc_init(1);
     Display_Hdmi_Init();
 
+    iep_init(0);   
+    //iep_init(1);
+
+    disp_video_init();
+    
     return DIS_SUCCESS;
 }
 
@@ -85,6 +93,10 @@ __s32 BSP_disp_exit(__u32 mode)
         Disp_TVEC_Exit(0);
         Disp_TVEC_Exit(1);
         Display_Hdmi_Exit();
+        iep_exit(0);
+        iep_exit(1);
+
+        disp_video_exit();
     }
     else if(mode == DISP_EXIT_MODE_CLEAN_PARTLY)
     {
@@ -122,23 +134,23 @@ __s32 BSP_disp_close(void)
         }
         if(gdisp.screen[sel].lcdc_status & LCDC_TCON0_USED)
         {
-            TCON0_close(sel);
-            LCDC_close(sel);
+            tcon0_close(sel);
+            tcon_exit(sel);
         }
         else if(gdisp.screen[sel].lcdc_status & LCDC_TCON1_USED)
         {
-    	    TCON1_close(sel);
-    	    LCDC_close(sel);
+    	    tcon1_close(sel);
+    	    tcon_exit(sel);
         }
         else if(gdisp.screen[sel].status & (TV_ON | VGA_ON))
         {
         	TVE_close(sel);
         }
+
+        gdisp.screen[sel].status &= (IMAGE_USED_MASK & LCD_OFF & TV_OFF & VGA_OFF & HDMI_OFF);
+        gdisp.screen[sel].lcdc_status &= (LCDC_TCON0_USED_MASK & LCDC_TCON1_USED_MASK);
     }
     
-
-    gdisp.screen[sel].status &= (IMAGE_USED_MASK & LCD_OFF & TV_OFF & VGA_OFF & HDMI_OFF);
-    gdisp.screen[sel].lcdc_status &= (LCDC_TCON0_USED_MASK & LCDC_TCON1_USED_MASK);
     return DIS_SUCCESS;
 }
 
@@ -211,9 +223,39 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
             break;
             
         case DISP_REG_PWM:
-            base = gdisp.init_para.base_pwm + 0x200;
-            size = 0x0c;
+            base = gdisp.init_para.base_pwm;
+            size = 0x40;
             sprintf(str, "pwm:\n");
+            break;
+        case DISP_REG_DEU0:
+            base = gdisp.init_para.base_deu0;
+            size = 0x60;
+            sprintf(str, "deu0:\n");
+            break;
+        case DISP_REG_DEU1:
+            base = gdisp.init_para.base_deu1;
+            size = 0x460;
+            sprintf(str, "deu1:\n");
+            break;
+        case DISP_REG_CMU0:
+            base = gdisp.init_para.base_cmu0;
+            size = 0x100;
+            sprintf(str, "cmu0:\n");
+            break;
+        case DISP_REG_CMU1:
+            base = gdisp.init_para.base_cmu1;
+            size = 0x100;
+            sprintf(str, "cmu1:\n");
+            break;
+        case DISP_REG_DRC0:
+            base = gdisp.init_para.base_drc0;
+            size = 0x300;
+            sprintf(str, "drc0:\n");
+            break;
+        case DISP_REG_DRC1:
+            base = gdisp.init_para.base_drc1;
+            size = 0x300;
+            sprintf(str, "drc1:\n");
             break;
             
         default:
@@ -245,7 +287,8 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
         {
             DE_INF("0x%08x:%08x,%08x:%08x,%08x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
         }
-#else
+#endif
+#ifdef __BOOT_OSAL__
         if(b_force_on)
         {
             OSAL_PRINTF("0x%x:%x,%x,%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
@@ -255,6 +298,17 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
             DE_INF("0x%x:%x,%x:%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
         }
 #endif
+#ifdef __UBOOT_OSAL__
+            if(b_force_on)
+            {
+                OSAL_PRINTF("0x%x:%x,%x,%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
+            }
+            else
+            {
+                DE_INF("0x%x:%x,%x:%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
+            }
+#endif
+
     }
     
     return DIS_SUCCESS;
