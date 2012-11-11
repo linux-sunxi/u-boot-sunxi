@@ -404,8 +404,6 @@ int axp221_probe_poweron_cause(void)
 */
 int axp221_set_dcdc1(int set_vol)
 {
-    uint tmp, i;
-    int  vol;
     u8   reg_value;
 
 	if((set_vol < 1600) || (set_vol > 3400))
@@ -526,8 +524,6 @@ int axp221_set_dcdc2(int set_vol)
 */
 int axp221_set_dcdc3(int set_vol)
 {
-    uint tmp, i;
-    int  vol;
     u8   reg_value;
 
 	if((set_vol < 600) || (set_vol > 1860))
@@ -578,8 +574,6 @@ int axp221_set_dcdc3(int set_vol)
 */
 int axp221_set_dcdc4(int set_vol)
 {
-    uint tmp, i;
-    int  vol;
     u8   reg_value;
 
 	if((set_vol < 600) || (set_vol > 1540))
@@ -630,8 +624,6 @@ int axp221_set_dcdc4(int set_vol)
 */
 int axp221_set_dcdc5(int set_vol)
 {
-    uint tmp, i;
-    int  vol;
     u8   reg_value;
 
 	if((set_vol < 1000) || (set_vol > 2550))

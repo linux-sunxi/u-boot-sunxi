@@ -14,8 +14,8 @@
 extern __u32 pagesize;
 extern __s32 _wait_cmdfifo_free(void);
 extern __s32 _wait_cmd_finish(void);
-extern void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len);
-extern __s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len);
+extern void _dma_config_start(__u32 rw, __u32 buff_addr, __u32 len);
+extern __s32 _wait_dma_end(__u32 rw, __u32 buff_addr, __u32 len);
 extern __s32 _check_ecc(__u32 eblock_cnt);
 extern void _disable_ecc(void);
 extern void _enable_ecc(__u32 pipline);
@@ -592,6 +592,8 @@ __s32 _read_in_page_mode_1K(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u
 	__u32 read_data_cmd,random_read_cmd0,random_read_cmd1;
 	__u32 page_size_temp, ecc_mode_temp;
 
+    //printf("%s %d  mainbuf: 0x%x\n", __FILE__, __LINE__,(__u32)mainbuf);
+
 	ret = 0;
 	read_addr_cmd = rcmd;
 	cur_cmd = rcmd;
@@ -794,6 +796,8 @@ __s32 NFC_Read_1K(NFC_CMD_LIST  *rcmd, void *mainbuf, void *sparebuf, __u8 dma_w
 
 	_enter_nand_critical();
 
+    //printf("%s %d  mainbuf: 0x%x\n", __FILE__, __LINE__,  (__u32)mainbuf);
+    
 	ret = _read_in_page_mode_1K(rcmd, mainbuf,sparebuf, dma_wait_mode);
 
 	/*switch to ahb*/

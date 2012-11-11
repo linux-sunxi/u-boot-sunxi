@@ -456,6 +456,7 @@ int board_display_framebuffer_change(void *buffer)
 
 int board_display_device_open(void)
 {
+#ifndef CONFIG_SUN6I_FPGA
 	int  value = 1;
 	int  ret;
 	__u32 output_type = 0;
@@ -676,6 +677,10 @@ int board_display_device_open(void)
 	}
 
 	return ret;
+#else 
+	DRV_lcd_open(0);
+#endif
+	return 0;
 }
 
 

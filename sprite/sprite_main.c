@@ -101,13 +101,13 @@ int sunxi_sprite_download_init(int workmode)
 */
 int sunxi_sprite_erase_flash(int production_media)
 {
-	int need_erase_flag;
+	int need_erase_flag = 0;
     char buf[1024 * 1024];
     char *tmp_buf;
     sunxi_mbr_t  *local_mbr;
     int i, ret;
 	//获取擦除信息，查看是否需要擦除flash
-    ret = script_parser_fetch("nand_para", "erase_flash", &need_erase_flag, 1);
+    ret = script_parser_fetch("platform", "eraseflag", &need_erase_flag, 1);
     if((!ret) && (need_erase_flag))
     {
     	//check if need to protect part data
@@ -117,14 +117,16 @@ int sunxi_sprite_erase_flash(int production_media)
 	//当初始化失败的时候，直接擦除，不处理私有数据
 	if(!production_media)  //量产nand
 	{
-//		if(nand_uboot_init(1))
-//		{
-//			nand_uboot_exit();
-//			nand_uboot_erase(need_erase_flag);
-//			nand_uboot_init(0);
-//
-//			return 0;
-//		}
+		if(nand_uboot_init(1))
+		{
+			debug("nand pre init fail, we have to erase it\n");
+			nand_uboot_exit();
+			nand_uboot_erase(need_erase_flag);
+			nand_uboot_init(0);
+
+			return 0;
+		}
+		debug("nand pre init ok\n");
 	}
 	else                   //量产sdcard
 	{
@@ -154,11 +156,13 @@ int sunxi_sprite_erase_flash(int production_media)
 //        }
 //    }
 //
-#if 0
-    nand_uboot_exit();
-    nand_uboot_erase(need_erase_flag);
-	nand_uboot_init(0);
-#endif
+	if(!production_media)
+	{
+    	nand_uboot_exit();
+  		debug("need_erase_flag = %d\n", need_erase_flag);
+    	nand_uboot_erase(need_erase_flag);
+		nand_uboot_init(0);
+	}
 //
 //    if(i < SUNXI_MBR_MAX_PART_COUNT)
 //    {

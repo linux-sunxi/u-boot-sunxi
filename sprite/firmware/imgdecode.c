@@ -130,7 +130,7 @@ HIMAGE 	Img_Open	(char * ImageFile)
 	//------------------------------------------------
 	//¶ÁimgÍ·
 	//------------------------------------------------
-	debug("try to read mmc start %d\n", img_file_start);
+	//debug("try to read mmc start %d\n", img_file_start);
 	if(!sunxi_flash_read(img_file_start, IMAGE_HEAD_SIZE/512, &pImage->ImageHead))
 	{
 		printf("sunxi sprite error: read iamge head fail\n");
@@ -250,7 +250,7 @@ HIMAGEITEM 	Img_OpenItem	(HIMAGE hImage, char * MainType, char * subType)
 		if(!memcmp(subType,  pImage->ItemTable[i].subType,  SUBTYPE_LEN))
 		{
 			pItem->index = i;
-			debug("try to malloc %x\n", (uint)pItem);
+			//debug("try to malloc %x\n", (uint)pItem);
 
 			return pItem;
 		}
@@ -827,7 +827,7 @@ int Img_CloseItem	(HIMAGE hImage, HIMAGEITEM hItem)
 
 		return -1;
 	}
-	debug("try to free %x\n", (uint)pItem);
+	//debug("try to free %x\n", (uint)pItem);
 	free(pItem);
 	pItem = NULL;
 

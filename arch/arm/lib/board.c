@@ -532,6 +532,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
     puts("ready to config storage\n");
 #endif
 	//DRV_DISP_Init();
+	//board_display_device_open();
 	//board_display_layer_open();
 	ret = sunxi_flash_handle_init();
 	if(!ret)

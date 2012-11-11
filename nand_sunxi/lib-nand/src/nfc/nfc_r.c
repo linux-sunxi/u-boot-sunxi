@@ -113,12 +113,12 @@ __s32 _wait_cmd_finish(void)
 {
 	__s32 timeout = 0xffff;
 	__u32 status;
-	
+
 	//while( (timeout--) && !(NFC_READ_REG(NFC_REG_ST) & NFC_CMD_INT_FLAG) );
 	do
 	{
 		status = NFC_READ_REG(NFC_REG_ST);
-		printf("ch:0x%x, status: 0x%x\n", NandIndex, status);
+		//printf("ch:0x%x, status: 0x%x\n", NandIndex, status);
 		if(status & NFC_CMD_INT_FLAG)
 		{
 			break;
@@ -129,7 +129,7 @@ __s32 _wait_cmd_finish(void)
 	{
 		status = NFC_READ_REG(NFC_REG_ST);
 	    //PRINT("nand _wait_cmd_finish time out, status:0x%x\n", NFC_READ_REG(NFC_REG_ST));
-	    printf("ch:0x%x, status: 0x%x\n", NandIndex, status);
+	    //printf("ch:0x%x, status: 0x%x\n", NandIndex, status);
 	    printf("nand _wait_cmd_finish time out, status:0x%x, pos: 0x%x, timeout: 0x%x\n", status, NFC_CMD_INT_FLAG, timeout);
 	    while(1)
 	    {
@@ -188,9 +188,11 @@ __s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len)
 
 #endif
 
-void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
+void _dma_config_start(__u32 rw, __u32 buff_addr, __u32 len)
 {
 	__u32 reg_val;
+
+	//printf("_dma_config_start, buff_addr: 0x%x, rw: 0x%x\n", buff_addr, rw);
 
 	NAND_CleanFlushDCacheRegion(buff_addr, len);
 
@@ -201,7 +203,6 @@ void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
 	NFC_WRITE_REG(NFC_REG_MDMA_ADDR, buff_addr);
 	NFC_WRITE_REG(NFC_REG_DMA_CNT, len);
 
-	debug("_dma_config_start, buff_addr: 0x%x, rw: 0x%x\n", buff_addr, rw);
 	if(buff_addr != NFC_READ_REG(NFC_REG_MDMA_ADDR))
 	{
 		debug("buff_addr: 0x%x, real value: 0x%x\n", buff_addr, NFC_READ_REG(NFC_REG_MDMA_ADDR));
@@ -210,7 +211,7 @@ void _dma_config_start(__u8 rw, __u32 buff_addr, __u32 len)
 
 }
 
-__s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len)
+__s32 _wait_dma_end(__u32 rw, __u32 buff_addr, __u32 len)
 {
 	__s32 timeout = 0xffffff;
 
@@ -226,7 +227,7 @@ __s32 _wait_dma_end(__u8 rw, __u32 buff_addr, __u32 len)
 
 	NAND_CleanFlushDCacheRegion(buff_addr, len);
 
-	debug("_wait_dma_end\n");
+	//debug("_wait_dma_end\n");
 
 
 	return 0;
@@ -783,7 +784,7 @@ __s32 NFC_ChangMode(NFC_INIT_INFO *nand_info )
 	__u32 cfg;
 
 	pagesize = nand_info->pagesize * 512;
-	debug("NFC_ChangMode, pagesize: 0x%x", pagesize);
+	debug("NFC_ChangMode, pagesize: 0x%x\n", pagesize);
 
 	/*reset nfc*/
 	_reset();

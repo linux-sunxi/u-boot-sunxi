@@ -6,9 +6,9 @@
 
 //for simple
 struct boot_physical_param{
-	__u8   chip; //chip no
-	__u16  block; // block no within chip
-	__u16  page; // apge no within block
+	__u32   chip; //chip no
+	__u32  block; // block no within chip
+	__u32  page; // apge no within block
 	__u64  sectorbitmap; //done't care
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf

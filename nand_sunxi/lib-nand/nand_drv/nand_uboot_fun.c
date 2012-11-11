@@ -45,7 +45,7 @@ int NAND_PhyInit(void)
 
 int NAND_PhyExit(void)
 {
-	debug("PHY_Init\n");
+	debug("PHY_Exit\n");
 
 	PHY_Exit();
 
@@ -257,15 +257,17 @@ int NAND_VersionCheck(void)
     NAND_GetVersion(nand_version);
 
 
-    msg("check nand version start.\n");
-	msg("Current nand driver version is %x %x %x %x \n", nand_version[0], nand_version[1], nand_version[2], nand_version[3]);
+    printf("check nand version start.\n");
+	printf("Current nand driver version is 0x%x \n", *((__u32 *)(nand_version)));
 
     boot0_readop = &boot0_readop_temp;
+    //printf("boot0_readop addr: 0x%x\n", (__u32)boot0_readop);
 
 	//init boot0_readop
 	boot0_readop->block = 0x0;
 	boot0_readop->chip = 0;
 	boot0_readop->mainbuf = (void*)malloc(32 * 1024);
+    //printf("%s %d boot0_readop addr: 0x%x, mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)boot0_readop, (__u32)boot0_readop->mainbuf);
     if(!boot0_readop->mainbuf)
     {
         msg("malloc memory for boot0 read operation fail\n");
@@ -276,12 +278,7 @@ int NAND_VersionCheck(void)
 	boot0_readop->page = 0;
 	boot0_readop->sectorbitmap = 0;
 
-    main_data = (uint*)malloc(32 * 1024);
-    if(!main_data)
-    {
-        msg("malloc memory for main data fail\n");
-        return -1;
-    }
+    main_data = boot0_readop->mainbuf;
 
     //scan boot0 area blocks
 	for(block_index=0;block_index<1 + 1;block_index++)
@@ -291,6 +288,7 @@ int NAND_VersionCheck(void)
 		boot0_readop->page = 0;
 		cnt1 = 0;
 
+        //printf("%s %d mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)boot0_readop->mainbuf);
         PHY_SimpleRead_1K(boot0_readop);
 
         //check the current block is a bad block
@@ -316,7 +314,7 @@ int NAND_VersionCheck(void)
 
 	    if((oob_buf[1] == 0x00) || (oob_buf[1] == 0xFF))
 	    {
-	       msg("Media version is valid in block %u, version info is %x %x %x %x \n", block_index, oob_buf[0], oob_buf[1], oob_buf[2], oob_buf[3]);
+	       printf("Media version is valid in block %u, version info is 0x%x \n", block_index, *((__u32 *)(oob_buf)));
 	       if(oob_buf[2] == nand_version[2])
 	       {
 	            msg("nand driver version match ok in block %u.\n",block_index);
@@ -333,7 +331,7 @@ int NAND_VersionCheck(void)
 	    }
 	    else
 	    {
-	        msg("Media version is invalid in block %uversion info is %x %x %x %x \n", block_index, oob_buf[0], oob_buf[1], oob_buf[2], oob_buf[3]);
+	        msg("Media version is invalid in block %u version info is %x \n", block_index, *((__u32 *)(oob_buf)));
 	    }
 
 	}
@@ -778,14 +776,24 @@ uint NAND_UbootWrite(uint start, uint sectors, void *buffer)
 
 int NAND_Uboot_Erase(int erase_flag)
 {
-	int version;
+	int version_match_flag;
 
+	debug("erase_flag = %d\n", erase_flag);
 	NAND_PhyInit();
 	NAND_EraseBootBlocks();
-	version = NAND_VersionCheck();
-	if((erase_flag) || (version > 0))
+	if(erase_flag)
 	{
+		debug("erase by flag %d\n", erase_flag);
 		NAND_EraseChip();
+	}
+	else
+	{
+		version_match_flag = NAND_VersionCheck();
+		debug("nand version = %x\n", version_match_flag);
+		if (version_match_flag > 0)
+		{
+			NAND_EraseChip();
+		}
 	}
 	NAND_PhyExit();
 
@@ -1005,6 +1013,7 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
     struct boot_physical_param  para;
 
      debug("burn uboot normal mode!\n");
+     //debug("uboot_buf: 0x%x \n", UBOOT_buf);
 
     for(i=0;i<32;i++)
         oob_buf[i] = 0xff;
@@ -1036,6 +1045,8 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 		goto error;
 	}
 
+	debug("pages_per_block: 0x%x\n", pages_per_block);
+
 	/* 计算每个备份所需page */
 	if(length%page_size)
 	{
@@ -1049,8 +1060,10 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 		goto error;
 	}
 
+	debug("pages_per_copy: 0x%x\n", pages_per_copy);
 
-	/* burn boot0 */
+
+	/* burn uboot */
     for( i = NAND_UBOOT_BLK_START;  i < (NAND_UBOOT_BLK_START + NAND_UBOOT_BLK_CNT);  i++ )
     {
         debug("uboot %x \n", i);
@@ -1072,6 +1085,7 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 			para.page  = k;
 			para.mainbuf = (void *) (UBOOT_buf + k * page_size);
 			para.oobbuf = oob_buf;
+			//debug("burn uboot: block: 0x%x, page: 0x%x, mainbuf: 0x%x, maindata: 0x%x \n", para.block, para.page, (__u32)para.mainbuf, *((__u32 *)para.mainbuf));
 			if( PHY_SimpleWrite( &para ) <0 )
 			{
 				debug("Warning. Fail in writing page %d in block %d.\n", k, i );
@@ -1221,10 +1235,12 @@ int NAND_BurnUboot(uint length, void *buffer)
 	if(length<=block_size)
 	{
 		ret = burn_uboot_in_one_blk((__u32)buffer, length);
+		debug("%d %d\n", __LINE__, ret);
 	}
 	else
 	{
 		ret = burn_uboot_in_many_blks((__u32)buffer, length);
+		debug("%d %d\n", __LINE__, ret);
 	}
 
 	return ret;

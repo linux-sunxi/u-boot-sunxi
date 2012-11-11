@@ -749,19 +749,28 @@ __s32 PHY_ChangeMode(__u8 serial_mode)
 	if (!PageCachePool.PageCache0){
 		PageCachePool.PageCache0 = (__u8 *)MALLOC(SECTOR_CNT_OF_SUPER_PAGE * 512);
 		if (!PageCachePool.PageCache0)
+		{
+			debug("%s %d\n", __FILE__, __LINE__);
 			return -1;
+		}
 	}
 
 	if (!PageCachePool.SpareCache){
 		PageCachePool.SpareCache = (__u8 *)MALLOC(SECTOR_CNT_OF_SUPER_PAGE * 4);
 		if (!PageCachePool.SpareCache)
+		{
+			debug("%s %d\n", __FILE__, __LINE__);
 			return -1;
+		}
 	}
 
 	if (!PageCachePool.TmpPageCache){
 		PageCachePool.TmpPageCache = (__u8 *)MALLOC(SECTOR_CNT_OF_SUPER_PAGE * 512);
 		if (!PageCachePool.TmpPageCache)
+		{
+			debug("%s %d\n", __FILE__, __LINE__);
 			return -1;
+		}
 	}
 
     NFC_SetEccMode(ECC_MODE);
@@ -783,6 +792,9 @@ __s32 PHY_ChangeMode(__u8 serial_mode)
 	}
 
 	NandIndex = 0;
+
+
+	debug("%s %d ret = %d\n", __FILE__, __LINE__, ret);
 
 	return ret;
 }

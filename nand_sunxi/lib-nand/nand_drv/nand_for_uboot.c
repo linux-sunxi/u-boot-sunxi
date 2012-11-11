@@ -67,7 +67,7 @@ int nand_download_boot0(uint length, void *buffer)
 {
 	int ret;
 
-	if(NAND_PhyInit())
+	if(!NAND_PhyInit())
 	{
     	ret = NAND_BurnBoot0(length, buffer);
     }
@@ -85,12 +85,15 @@ int nand_download_uboot(uint length, void *buffer)
 {
 	int ret;
 
-	if(NAND_PhyInit())
+	debug("nand_download_uboot\n");
+	if(!NAND_PhyInit())
 	{
     	ret = NAND_BurnUboot(length, buffer);
+    	debug("nand burn uboot error ret = %d\n", ret);
     }
     else
     {
+    	debug("nand phyinit error\n");
     	ret = -1;
     }
 

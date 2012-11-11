@@ -24,7 +24,7 @@
 #include <common.h>
 
 
-uint sunxi_sprite_part_rawdata_verify(uint base_start, long long base_length);
+uint sunxi_sprite_part_rawdata_verify(uint base_start, uint base_sectors);
 
 uint sunxi_sprite_part_sparsedata_verify(void);
 

@@ -368,6 +368,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
     char  *base_buffer = NULL, *half_buffer;
     char  *decode_buffer;
     int  ret = -1;
+    char  verify_data[1024];
 
 	base_buffer = (char *)malloc(SPRITE_CARD_ONCE_DATA_DEAL * 2);
 	if(!base_buffer)
@@ -401,8 +402,8 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 			goto _card_download_error;
 		}
 		part_datasectors = Img_GetItemSize(imghd, imgitemhd)>>9;
-    	debug("part size=%d\n", (uint)part_flash_size);
-		debug("part data=%d\n", (uint)part_datasectors);
+    	debug("part size=%d\n", part_flash_size);
+		debug("part data=%d\n", part_datasectors);
         if(part_datasectors > part_flash_size)      //检查分区大小是否合法
         {
         	//data is larger than part size
@@ -507,7 +508,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		imgitemhd = NULL;
 		//校验数据
 		debug("part data download finish\n");
-#if 0
+#if 1
         debug("try to read verify file %s\n", dl_map->one_part_info[i].vf_filename);
         if(dl_map->one_part_info[i].vf_filename)
         {
@@ -521,7 +522,8 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 				continue;
 			}
 			debug("img open ok\n");
-        	if(!Img_ReadItem(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
+			//if(!Img_ReadItem(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
+        	if(!Img_ReadItem(imghd, imgitemhd, (void *)verify_data, 1024))   //读出数据
 	        {
 	            printf("sprite update warning: fail to read data from %s\n", dl_map->one_part_info[i].vf_filename);
 				Img_CloseItem(imghd, imgitemhd);
@@ -538,6 +540,8 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
             {
             	active_verify = sunxi_sprite_part_sparsedata_verify();
             }
+            origin_verify = *(uint *)verify_data;
+            debug("origin_verify value = %x, active_verify value = %x\n", origin_verify, active_verify);
             if(origin_verify != active_verify)
             {
             	printf("origin checksum=%x, active checksum=%x\n", origin_verify, active_verify);
@@ -560,21 +564,21 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 	ret = 0;
 
 _card_download_error:
-	debug("%x\n", (uint)base_buffer);
+	//debug("%x\n", (uint)base_buffer);
 	if(base_buffer)
 	{
 		debug("%s %d\n", __FILE__, __LINE__);
 	//	free(base_buffer);
 	}
-	debug("%s %d\n", __FILE__, __LINE__);
-	debug("%x\n", (uint)imgitemhd);
+	//debug("%s %d\n", __FILE__, __LINE__);
+	//debug("%x\n", (uint)imgitemhd);
 	if(imgitemhd)
 	{
-		debug("%s %d\n", __FILE__, __LINE__);
+		//debug("%s %d\n", __FILE__, __LINE__);
 		Img_CloseItem(imghd, imgitemhd);
 		imgitemhd = NULL;
 	}
-	debug("%s %d\n", __FILE__, __LINE__);
+	//debug("%s %d\n", __FILE__, __LINE__);
 
 	return ret;
 }
@@ -648,7 +652,7 @@ int sunxi_sprite_deal_uboot(int production_media)
 */
 int sunxi_sprite_deal_boot0(int production_media)
 {
-	char buffer[1024 * 1024];
+	char buffer[64 * 1024];
 	uint item_original_size;
 
 	if(production_media == 0)
@@ -672,7 +676,7 @@ int sunxi_sprite_deal_boot0(int production_media)
         return -1;
     }
     /*获取boot0的数据*/
-    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, 1024 * 1024))
+    if(!Img_ReadItem(imghd, imgitemhd, (void *)buffer, 32 * 1024))
     {
         printf("update error: fail to read data from for boot0\n");
         return -1;
@@ -680,7 +684,10 @@ int sunxi_sprite_deal_boot0(int production_media)
     Img_CloseItem(imghd, imgitemhd);
     imgitemhd = NULL;
 
-    if(sunxi_sprite_download_boot0(buffer, production_media))
+	init_code();
+	decode(buffer, buffer + 32 * 1024, item_original_size);
+	exit_code();
+    if(sunxi_sprite_download_boot0(buffer + 32 * 1024, production_media))
     {
     	printf("update error: fail to write boot0\n");
         return -1;

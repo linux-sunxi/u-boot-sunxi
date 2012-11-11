@@ -66,18 +66,18 @@ int sunxi_sprite_download_raw_init(uint flash_part_start)
 int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors)
 {
 	debug("write start %d, sector %d\n", flash_start, sectors);
-//	if(sunxi_sprite_write(flash_start, sectors, buffer))
-//	{
-//		flash_start += sectors;
-//		debug("raw write ok\n");
-//
-//		return 0;
-//	}
-//	else
-//	{
-//		debug("raw write fail\n");
-//		return -1;
-//	}
+	if(sunxi_sprite_write(flash_start, sectors, buffer))
+	{
+		flash_start += sectors;
+		debug("raw write ok\n");
+
+		return 0;
+	}
+	else
+	{
+		debug("raw write fail\n");
+		return -1;
+	}
 
 	return 0;
 }
@@ -135,8 +135,8 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media)
 
 	if(!production_media)
 	{
-		//return nand_download_uboot(uboot->boot_head.length, buffer);
-		return 0;
+		debug("nand down uboot\n");
+		return nand_download_uboot(uboot->boot_head.length, buffer);
 	}
 	else
 	{
@@ -199,8 +199,7 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 
 	if(!production_media)
 	{
-		//return nand_download_boot0(boot0->boot_head.length, buffer);
-		return 0;
+		return nand_download_boot0(boot0->boot_head.length, buffer);
 	}
 	else
 	{

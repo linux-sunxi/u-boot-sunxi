@@ -166,6 +166,8 @@ __s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode
 	NFC_CMD_LIST cmd_list[4];
 	__u32 list_len,i;
 	
+	//printf("%s %d readop_addr: 0x%x, mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)(readop), (__u32)readop->mainbuf);
+	
 	//sparebuf = (__u8 *)MALLOC(SECTOR_CNT_OF_SINGLE_PAGE * 4);	
 	/*create cmd list*/
 	/*samll block*/
@@ -206,6 +208,7 @@ __s32 _read_single_page_1K(struct boot_physical_param *readop,__u8 dma_wait_mode
 		NFC_RandomEnable();
 		ret = NFC_Read_1K(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
 		NFC_RandomDisable();
+		//printf("%s %d readop_addr: 0x%x, mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)(readop), (__u32)readop->mainbuf);
 		if(ret)
 			ret = NFC_Read_1K(cmd_list, readop->mainbuf, sparebuf, dma_wait_mode , NFC_PAGE_MODE);
 		
@@ -455,6 +458,8 @@ __s32 PHY_SimpleRead_Seq (struct boot_physical_param *readop)
 __s32 PHY_SimpleRead_1K (struct boot_physical_param *readop)
 {
 	NandIndex = 0;
+	
+	//printf("%s %d mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)readop->mainbuf);
 	
 	return(_read_single_page_1K(readop,0));
 }
