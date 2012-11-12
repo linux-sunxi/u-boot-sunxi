@@ -102,6 +102,10 @@
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
 
+/* Flat Device Tree (FDT/DT) support */
+#define CONFIG_OF_LIBFDT
+#define CONFIG_SYS_BOOTMAPSZ		(16 << 20)
+
 /*
  * Miscellaneous configurable options
  */
