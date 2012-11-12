@@ -531,12 +531,14 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
-	//DRV_DISP_Init();
-	//board_display_device_open();
-	//board_display_layer_open();
+	DRV_DISP_Init();
+	board_display_device_open();
+	board_display_layer_open();
 	ret = sunxi_flash_handle_init();
 	if(!ret)
+	{
 		sunxi_partition_init();
+	}
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){
@@ -657,6 +659,12 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 		sprintf((char *)memsz, "%ldk", (gd->ram_size / 1024) - pram);
 		setenv("mem", (char *)memsz);
+	}
+#endif
+#ifdef CONFIG_ALLWINNER
+	if(!ret)
+	{
+		sunxi_logo_display();
 	}
 #endif
 	workmode = uboot_spare_head.boot_data.work_mode;

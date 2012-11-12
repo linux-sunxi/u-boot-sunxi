@@ -817,18 +817,18 @@ __s32 PHY_Exit(void)
 {
     __u32 i = 0;
 
-	if (PageCachePool.PageCache0){
-		FREE(PageCachePool.PageCache0,SECTOR_CNT_OF_SUPER_PAGE * 512);
-		PageCachePool.PageCache0 = NULL;
-	}
-	if (PageCachePool.SpareCache){
-		FREE(PageCachePool.SpareCache,SECTOR_CNT_OF_SUPER_PAGE * 4);
-		PageCachePool.SpareCache = NULL;
-	}
-	if (PageCachePool.TmpPageCache){
-		FREE(PageCachePool.TmpPageCache,SECTOR_CNT_OF_SUPER_PAGE * 512);
-		PageCachePool.TmpPageCache = NULL;
-	}
+//	if (PageCachePool.PageCache0){
+//		FREE(PageCachePool.PageCache0,SECTOR_CNT_OF_SUPER_PAGE * 512);
+//		PageCachePool.PageCache0 = NULL;
+//	}
+//	if (PageCachePool.SpareCache){
+//		FREE(PageCachePool.SpareCache,SECTOR_CNT_OF_SUPER_PAGE * 4);
+//		PageCachePool.SpareCache = NULL;
+//	}
+//	if (PageCachePool.TmpPageCache){
+//		FREE(PageCachePool.TmpPageCache,SECTOR_CNT_OF_SUPER_PAGE * 512);
+//		PageCachePool.TmpPageCache = NULL;
+//	}
 
 	if(SUPPORT_READ_RETRY)
 	{

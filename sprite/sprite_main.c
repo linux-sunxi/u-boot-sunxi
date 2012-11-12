@@ -247,7 +247,7 @@ int sunxi_sprite_mode(int workmode)
 	    	return -1;
 	    }
 
-	    //sunxi_sprite_exit();
+	    sunxi_sprite_exit();
 
 	    if(sunxi_sprite_deal_uboot(production_media))
 	    {

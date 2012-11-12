@@ -174,7 +174,7 @@ void * NAND_Malloc(unsigned int Size)
 
 void NAND_Free(void *pAddr, unsigned int Size)
 {
-	free(pAddr);
+//	free(pAddr);
 }
 
 void  OSAL_IrqUnLock(unsigned int  p)

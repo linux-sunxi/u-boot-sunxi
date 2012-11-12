@@ -31,11 +31,13 @@ extern int NAND_Uboot_Erase(int erase_flag);
 
 int nand_uboot_init(int boot_mode)
 {
+	debug("NAND_UbootInit\n");
     return NAND_UbootInit(boot_mode);
 }
 
 int nand_uboot_exit(void)
 {
+	debug("NAND_UbootExit\n");
     return NAND_UbootExit();
 }
 

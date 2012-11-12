@@ -194,7 +194,7 @@ static int mmc_clk_io_on(int sdc_no)
 	{
 		return -1;
 	}
-	sunxi_set_gpio_all((void *)&uboot_spare_head.boot_data.sdcard_gpio[index], 6);
+	//sunxi_set_gpio_all((void *)&uboot_spare_head.boot_data.sdcard_gpio[index], 6);
 	/* config ahb clock */
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));

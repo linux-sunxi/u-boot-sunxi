@@ -366,7 +366,9 @@ int sunxi_flash_handle_init(void)
 			card_no = (storage_type == 1)?0:2;
 			printf("MMC:	 %d\n", card_no);
 			board_mmc_set_num(card_no);
+			debug("set card number\n");
 			board_mmc_pre_init(card_no);
+			debug("begin to find mmc\n");
 			mmc_boot = find_mmc_device(card_no);
 			if(!mmc_boot){
 				printf("fail to find one useful mmc card\n");

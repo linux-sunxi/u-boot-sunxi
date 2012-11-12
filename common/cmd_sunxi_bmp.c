@@ -175,6 +175,26 @@ U_BOOT_CMD(
 	"parameters 2 : option para, the address where the bmp display\n"
 );
 
+int sunxi_logo_display(void)
+{
+	sunxi_bmp_store_t bmp_info;
+
+	char *const bmp_argv[6] = { "fatload", "sunxi_flash", "0", "40000000", "bootlogo.bmp", NULL };
+    if(do_fat_fsload(0, 0, 5, bmp_argv))
+	{
+	   printf("sunxi bmp info error : unable to open logo file %s\n");
+
+	   return -1;
+    }
+	if(!sunxi_bmp_decode(0x40000000, SUNXI_DISPLAY_FRAME_BUFFER_ADDR, &bmp_info))
+	{
+		debug("decode bmp ok\n");
+
+		return sunxi_bmp_display(bmp_info);
+	}
+
+	return -1;
+}
 /*
  * Subroutine:  bmp_info
  *
