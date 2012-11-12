@@ -256,7 +256,7 @@ HIMAGEITEM 	Img_OpenItem	(HIMAGE hImage, char * MainType, char * subType)
 		}
 	}
 
-	printf("sunxi sprite error : cannot find item %s %s", MainType, subType);
+	printf("sunxi sprite error : cannot find item %s %s\n", MainType, subType);
 
 	free(pItem);
 	pItem = NULL;

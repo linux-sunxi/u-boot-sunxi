@@ -99,7 +99,7 @@ int sprite_card_firmware_probe(void)
 */
 int sprite_card_fetch_download_map(sunxi_download_info  *dl_map)
 {
-	imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890dlinfo");
+	imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890DLINFO");
 	if(!imgitemhd)
 	{
 		return -1;
@@ -661,7 +661,7 @@ int sunxi_sprite_deal_boot0(int production_media)
 	}
 	else
 	{
-		imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890boot_0");
+		imgitemhd = Img_OpenItem(imghd, "12345678", "1234567890BOOT_0");
 	}
     if(!imgitemhd)
     {

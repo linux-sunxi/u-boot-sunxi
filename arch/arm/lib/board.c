@@ -661,17 +661,17 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
-#ifdef CONFIG_ALLWINNER
-	if(!ret)
-	{
-		sunxi_logo_display();
-	}
-#endif
 	workmode = uboot_spare_head.boot_data.work_mode;
 	debug("work mode %d\n", workmode);
 	
 	if(workmode == WORK_MODE_BOOT)
     {
+#ifdef CONFIG_ALLWINNER
+		if(!ret)
+		{
+			sunxi_logo_display();
+		}
+#endif
     	/* main_loop() can return to retry autoboot, if so just run it again. */
     	for (;;) 
 		{
