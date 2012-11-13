@@ -121,7 +121,7 @@ void clock_set_pll1(int hz)
 
 	/* Calculate system clock divisors */
 	axi = RDIV(hz, 432000000);		/* Max 450MHz */
-	ahb = RDIV(hz/axi, 204000000/axi);	/* Max 250MHz */
+	ahb = RDIV(hz/axi, 204000000);		/* Max 250MHz */
 	apb0 = 2;				/* Max 150MHz */
 
 	/* Map divisors to register values */
