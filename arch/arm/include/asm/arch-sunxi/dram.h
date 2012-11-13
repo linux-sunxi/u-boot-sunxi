@@ -28,18 +28,6 @@
 #ifndef _SUNXI_DRAM_H
 #define _SUNXI_DRAM_H
 
-#define DRAMC_IO_BASE			SUNXI_DRAMC_BASE
-#define DRAM_CCM_BASE			SUNXI_CCM_BASE
-#define DRAM_TIMER_BASE			SUNXI_TIMER_BASE
-
-#define DRAM_CCM_SDRAM_PLL_REG		(DRAM_CCM_BASE + 0x20)
-#define DRAM_CCM_SDRAM_PLL_TUN_REG	(DRAM_CCM_BASE + 0x24)
-#define DRAM_CCM_AHB_GATE_REG		(DRAM_CCM_BASE + 0x60)
-#define DRAM_CCM_SDRAM_CLK_REG		(DRAM_CCM_BASE + 0x100)
-#define DRAM_CCM_GPS_CLK_REG		(DRAM_CCM_BASE + 0xd0)
-#define DRAM_CCM_MUS_CLK_REG		(DRAM_CCM_BASE + 0x15c)
-#define TIMER_CPU_CFG_REG		(DRAM_TIMER_BASE + 0x13c)
-
 struct sunxi_dram_reg {
 	u32 ccr;		/* 0x00 controller configuration register */
 	u32 dcr;		/* 0x04 dram configuration register */
@@ -115,7 +103,9 @@ struct dram_para {
 	u32 emr3;
 };
 
-#define DCLK_OUT_OFFSET		15
+#define SUN5I_DRAM_MCR_DCLK_OUT_OFFSET	16
+#define SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET  15
+
 #define DRAM_CTRL_SELECT_MAGIC	0x16237495
 
 int sunxi_dram_init(void);

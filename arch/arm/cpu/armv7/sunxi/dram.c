@@ -32,18 +32,20 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/dram.h>
+#include <asm/arch/timer.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
 static void mctl_ddr3_reset(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 #ifdef CONFIG_SUN4I
+	struct sunxi_timer_reg *timer = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	u32 reg_val;
 
-	writel(0, TIMER_CPU_CFG_REG);
-	reg_val = readl(TIMER_CPU_CFG_REG);
+	writel(0, &timer->cpu_cfg);
+	reg_val = readl(&timer->cpu_cfg);
 	reg_val >>= 6;
 	reg_val &= 0x3;
 
@@ -62,28 +64,28 @@ static void mctl_ddr3_reset(void)
 
 static void mctl_set_drive(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 	clrsetbits_le32(&dram->mcr, 0x3, (0x6 << 12) | 0xFFC);
 }
 
 static void mctl_itm_disable(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 	setbits_le32(&dram->ccr, 0x1 << 28);
 }
 
 static void mctl_itm_enable(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 	clrbits_le32(&dram->ccr, 0x1 << 28);
 }
 
 static void mctl_enable_dll0(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 	clrsetbits_le32(&dram->dllcr[0], 0x40000000, 0x80000000);
 	sdelay(0x100);
@@ -100,7 +102,7 @@ static void mctl_enable_dll0(void)
  */
 static void mctl_enable_dllx(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 i, n, bus_width;
 
 	bus_width = readl(&dram->dcr);
@@ -151,7 +153,7 @@ static u32 hpcr_value[32] = {
 
 static void mctl_configure_hostport(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 i;
 
 	for (i = 0; i < 32; i++)
@@ -161,9 +163,10 @@ static void mctl_configure_hostport(void)
 static void mctl_setup_dram_clock(u32 clk)
 {
 	u32 reg_val;
+	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* setup DRAM PLL */
-	reg_val = readl(DRAM_CCM_SDRAM_PLL_REG);
+	reg_val = readl(&ccm->pll5_cfg);
 	reg_val &= ~0x3;
 	reg_val |= 0x1;			/* m factor */
 	reg_val &= ~(0x3 << 4);
@@ -174,46 +177,46 @@ static void mctl_setup_dram_clock(u32 clk)
 	reg_val |= 0x1 << 16;		/* p factor */
 	reg_val &= ~(0x1 << 29);	/* PLL on */
 	reg_val |= (u32) 0x1 << 31;	/* PLL En */
-	writel(reg_val, DRAM_CCM_SDRAM_PLL_REG);
+	writel(reg_val, &ccm->pll5_cfg);
 	sdelay(0x100000);
 
-	setbits_le32(DRAM_CCM_SDRAM_PLL_REG, 0x1 << 29);
+	setbits_le32(&ccm->pll5_cfg, 0x1 << 29);
 
 #ifdef CONFIG_SUN4I
 	/* reset GPS */
-	clrbits_le32(DRAM_CCM_GPS_CLK_REG, 0x3);
-	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 26);
+	clrbits_le32(&ccm->gps_clk_cfg, 0x3);
+	setbits_le32(&ccm->ahb_gate0, 0x1 << 26);
 	sdelay(0x20);
-	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 26);
+	clrbits_le32(&ccm->ahb_gate0, 0x1 << 26);
 #endif
 
 	/* setup MBUS clock */
 	reg_val = (0x1 << 31) | (0x2 << 24) | (0x1);
-	writel(reg_val, DRAM_CCM_MUS_CLK_REG);
+	writel(reg_val, &ccm->mbus_clk_cfg);
 
 	/*
 	 * open DRAMC AHB & DLL register clock
 	 * close it first
 	 */
 #ifdef CONFIG_SUN5I
-	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x3 << 14);
+	clrbits_le32(&ccm->ahb_gate0, 0x3 << 14);
 #else
-	clrbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 14);
+	clrbits_le32(&ccm->ahb_gate0, 0x1 << 14);
 #endif
 	sdelay(0x1000);
 
 	/* then open it */
 #ifdef CONFIG_SUN5I
-	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x3 << 14);
+	setbits_le32(&ccm->ahb_gate0, 0x3 << 14);
 #else
-	setbits_le32(DRAM_CCM_AHB_GATE_REG, 0x1 << 14);
+	setbits_le32(&ccm->ahb_gate0, 0x1 << 14);
 #endif
 	sdelay(0x1000);
 }
 
 static int dramc_scan_readpipe(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
 
 	/* data training trigger */
@@ -234,25 +237,26 @@ static int dramc_scan_readpipe(void)
 static void dramc_clock_output_en(u32 on)
 {
 #ifdef CONFIG_SUN5I
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 	if (on)
-		setbits_le32(&dram->mcr, 0x1 << DCLK_OUT_OFFSET);
+		setbits_le32(&dram->mcr, 0x1 << SUN5I_DRAM_MCR_DCLK_OUT_OFFSET);
 	else
-		clrbits_le32(&dram->mcr, 0x1 << DCLK_OUT_OFFSET);
+		clrbits_le32(&dram->mcr, 0x1 << SUN5I_DRAM_MCR_DCLK_OUT_OFFSET);
 #endif
 #ifdef CONFIG_SUN4I
+	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	if (on)
-		setbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << DCLK_OUT_OFFSET);
+		setbits_le32(&ccm->dram_clk_cfg, 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 	else
-		clrbits_le32(DRAM_CCM_SDRAM_CLK_REG, 0x1 << DCLK_OUT_OFFSET);
+		clrbits_le32(&ccm->dram_clk_cfg, 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 #endif
 }
 
 #ifdef CONFIG_SUN4I
 static void dramc_set_autorefresh_cycle(u32 clk)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
 	u32 tmp_val;
 	u32 dram_size;
@@ -280,7 +284,7 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 #ifdef CONFIG_SUN5I
 static void dramc_set_autorefresh_cycle(u32 clk)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
 	u32 tmp_val;
 	reg_val = 131;
@@ -295,7 +299,7 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 
 int dramc_init(struct dram_para *para)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)DRAMC_IO_BASE;
+	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
 	int ret_val;
 

@@ -73,6 +73,20 @@ int clock_init(void)
 	return 0;
 }
 
+/* Return PLL5 frequency in Hz
+ * Note: Assumes PLL5 reference is 24MHz clock
+ */
+unsigned int clock_get_pll5(void)
+{
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	uint32_t rval = readl(&ccm->pll5_cfg);
+	int n = (rval >> 8) & 0x1f;
+	int k = ((rval >> 4) & 3) + 1;
+	int p = 1 << ((rval >> 16) & 3);
+	return 24000000 * n * k / p;
+}
+
 int clock_twi_onoff(int port, int state)
 {
 	struct sunxi_ccm_reg *const ccm =

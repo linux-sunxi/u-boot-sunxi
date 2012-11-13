@@ -112,8 +112,7 @@ struct sunxi_mmc_des {
 
 struct sunxi_mmc_host {
 	unsigned mmc_no;
-	unsigned hclkbase;
-	unsigned mclkbase;
+	uint32_t *mclkreg;
 	unsigned database;
 	unsigned fatal_err;
 	unsigned mod_clk;
@@ -128,31 +127,31 @@ struct sunxi_mmc_host mmc_host[4];
 static int mmc_resource_init(int sdc_no)
 {
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
+	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	MMCDBG("init mmc %d resource\n", sdc_no);
 
 	switch (sdc_no) {
 	case 0:
 		mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC0_BASE;
-		mmchost->mclkbase = SUNXI_CCM_MMC0_SCLK_CFG;
+		mmchost->mclkreg = &ccm->sd0_clk_cfg;
 		break;
 	case 1:
 		mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC1_BASE;
-		mmchost->mclkbase = SUNXI_CCM_MMC1_SCLK_CFG;
+		mmchost->mclkreg = &ccm->sd1_clk_cfg;
 		break;
 	case 2:
 		mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC2_BASE;
-		mmchost->mclkbase = SUNXI_CCM_MMC2_SCLK_CFG;
+		mmchost->mclkreg = &ccm->sd2_clk_cfg;
 		break;
 	case 3:
 		mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC3_BASE;
-		mmchost->mclkbase = SUNXI_CCM_MMC3_SCLK_CFG;
+		mmchost->mclkreg = &ccm->sd3_clk_cfg;
 		break;
 	default:
 		printf("Wrong mmc number %d\n", sdc_no);
-		break;
+		return -1;
 	}
-	mmchost->hclkbase = SUNXI_CCM_AHB_GATING0;
 	mmchost->database = (unsigned int)mmchost->reg + 0x100;
 	mmchost->mmc_no = sdc_no;
 
@@ -164,7 +163,6 @@ static int mmc_clk_io_on(int sdc_no)
 	unsigned int rval;
 	unsigned int pll5_clk;
 	unsigned int divider;
-	unsigned int n, k, p;
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
 	static struct sunxi_gpio *gpio_c =
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
@@ -178,6 +176,7 @@ static int mmc_clk_io_on(int sdc_no)
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_H];
 	static struct sunxi_gpio *gpio_i =
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
+	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	MMCDBG("init mmc %d clock and io\n", sdc_no);
 
@@ -226,21 +225,17 @@ static int mmc_clk_io_on(int sdc_no)
 	}
 
 	/* config ahb clock */
-	rval = readl(mmchost->hclkbase);
+	rval = readl(ccm->ahb_gate0);
 	rval |= (1 << (8 + sdc_no));
-	writel(rval, mmchost->hclkbase);
+	writel(rval, ccm->ahb_gate0);
 
 	/* config mod clock */
-	rval = readl(SUNXI_CCM_PLL5_CFG);
-	n = (rval >> 8) & 0x1f;
-	k = ((rval >> 4) & 3) + 1;
-	p = 1 << ((rval >> 16) & 3);
-	pll5_clk = 24000000 * n * k / p;
+	pll5_clk = clock_get_pll5();
 	if (pll5_clk > 400000000)
 		divider = 4;
 	else
 		divider = 3;
-	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkbase);
+	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkreg);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
 
 	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);
