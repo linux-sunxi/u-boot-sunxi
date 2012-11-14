@@ -225,9 +225,9 @@ static int mmc_clk_io_on(int sdc_no)
 	}
 
 	/* config ahb clock */
-	rval = readl(ccm->ahb_gate0);
+	rval = readl(&ccm->ahb_gate0);
 	rval |= (1 << (8 + sdc_no));
-	writel(rval, ccm->ahb_gate0);
+	writel(rval, &ccm->ahb_gate0);
 
 	/* config mod clock */
 	pll5_clk = clock_get_pll5();
