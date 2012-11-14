@@ -95,16 +95,15 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-#if 1
 /* mmc config */
+#ifndef CONFIG_SD_UART	/* SD_UART Conflicts with MMC0 */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT			0		/* which mmc slot to use, could be 0,1,2,3 */
-
-#endif
 #define CONFIG_DOS_PARTITION
+#endif
 
 /*
  * Size of malloc() pool
