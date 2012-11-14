@@ -194,4 +194,6 @@
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
 
+#define CONFIG_CMD_LOADB
+
 #endif /* __CONFIG_H */
