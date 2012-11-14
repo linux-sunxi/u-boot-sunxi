@@ -143,7 +143,7 @@
  */
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KB */
+#define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology "
 
 #define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
