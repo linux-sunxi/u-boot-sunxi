@@ -173,6 +173,7 @@ int serial_init (void)
 	initialise_ns87308();
 #endif
 
+#if 0
 #ifdef CONFIG_SYS_NS16550_COM1
 	clock_divisor = calc_divisor(serial_ports[0]);
 	NS16550_init(serial_ports[0], clock_divisor);
@@ -188,6 +189,15 @@ int serial_init (void)
 #ifdef CONFIG_SYS_NS16550_COM4
 	clock_divisor = calc_divisor(serial_ports[3]);
 	NS16550_init(serial_ports[3], clock_divisor);
+#endif
+#else
+	if(script_parser_fetch("uart_para", "uart_debug_port", &uart_console, sizeof(int)))
+		uart_console = 0;
+	if((uart_console < 0) || (uart_console > 4)){
+		uart_console = 0;
+	}
+	clock_divisor = calc_divisor(serial_ports[uart_console]);
+	NS16550_init(serial_ports[uart_console], clock_divisor);
 #endif
 
 	return (0);

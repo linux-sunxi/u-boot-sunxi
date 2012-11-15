@@ -1,7 +1,9 @@
 /*
- * (C) Copyright 2007-2011
+ * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
+ *
+ * Early uart print for debugging.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,45 +24,36 @@
  * MA 02111-1307 USA
  */
 
-
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
+#include <asm/arch/early_print.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/sys_proto.h>
 
-int print_boot_type(void) {
+int uart0_init(void) {
 
-	sunxi_boot_type_t type;
-
-	puts("BOOT:  "); 
-
-	type = storage_type;
-	switch (type) {
-	case SUNXI_BOOT_TYPE_MMC0:
-		puts("MMC0\n");
-		break;
-	case SUNXI_BOOT_TYPE_NAND:
-		puts("NAND\n");
-		break;
-	case SUNXI_BOOT_TYPE_MMC2:
-		puts("MMC2\n");
-		break;
-	case SUNXI_BOOT_TYPE_SPI:
-		puts("SPI\n");
-		break;
-	case SUNXI_BOOT_TYPE_NULL:
-		/* fall through */
-	default:
-		puts("ERROR\n");
-		break;
-	}
+	/* select dll dlh */
+	writel(0x80, UART0_LCR);
+	/* set baudrate */
+	writel(0, UART0_DLH);
+	writel(BAUD_115200, UART0_DLL);
+	/* set line control */
+	writel(LC_8_N_1, UART0_LCR);
 
 	return 0;
 }
 
-#ifdef CONFIG_DISPLAY_CPUINFO
-int print_cpuinfo(void)
-{
-	puts("CPU:   SUNXI Family\n");
-	return 0;
+#define TX_READY (readl(UART0_LSR) & (1 << 6))
+void uart0_putc(char c) {
+
+	while(!TX_READY)
+		;
+	writel(c, UART0_THR);
 }
-#endif
+
+void uart0_puts(const char *s) {
+
+	while(*s)
+		uart0_putc(*s++);
+}

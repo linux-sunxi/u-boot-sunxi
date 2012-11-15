@@ -64,9 +64,6 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("second size: 0x%x \n", fb_hdr->second_size);
 	printf("second addr: 0x%x \n", fb_hdr->second_addr);
 
-	printf("second size: 0x%x \n", fb_hdr->second_size);
-	printf("second addr: 0x%x \n", fb_hdr->second_addr);
-
 	printf("name: %s\n", fb_hdr->name);
 	printf("cmdline: %s\n", fb_hdr->cmdline);
 #endif

@@ -169,7 +169,7 @@ struct mmc *find_mmc_device(int dev_num)
 		if (m->block_dev.dev == dev_num)
 			return m;
 	}
-	printf("MMC NO. %d\n",dev_num);
+
 	printf("MMC Device %d not found\n", dev_num);
 
 	return NULL;
@@ -1207,7 +1207,8 @@ int mmc_init(struct mmc *mmc)
 	err = sd_send_op_cond(mmc);
 
 	/* If the command timed out, we check for an MMC card */
-	if (err == TIMEOUT) {
+	//if (err == TIMEOUT) {
+	if (err) {
 		err = mmc_send_op_cond(mmc);
 
 		if (err) {
@@ -1221,6 +1222,7 @@ int mmc_init(struct mmc *mmc)
 		mmc->has_init = 0;
 	else
 		mmc->has_init = 1;
+	
 	return err;
 }
 
@@ -1261,7 +1263,7 @@ int get_mmc_num(void)
 int mmc_initialize(bd_t *bis)
 {
 	INIT_LIST_HEAD (&mmc_devices);
-	cur_dev_num = 0;
+	cur_dev_num = mmc_card_no;
 
 	if (board_mmc_init(bis) < 0)
 		cpu_mmc_init(bis);

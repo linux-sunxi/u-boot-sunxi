@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Configuration settings for the Allwinner A12-evb board.
+ * Configuration settings for the Allwinner A1X-evb board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -32,8 +32,8 @@
  */
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
-#define CONFIG_SUN5I				/* which is sun5i */
-#define CONFIG_A13_EVB				/* working with A13-EVB board */
+#define CONFIG_SUN5I				/* which is sun4i */
+#define CONFIG_A1X_EVB				/* working with A1X-EVB board */
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
@@ -62,7 +62,7 @@
 #define CONFIG_SYS_NS16550_COM3		SUNXI_UART2_BASE
 #define CONFIG_SYS_NS16550_COM4		SUNXI_UART3_BASE
 
-#define CONFIG_CONS_INDEX			2			/* which serial channel for console */
+#define CONFIG_CONS_INDEX			1			/* which serial channel for console */
 
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
@@ -103,9 +103,10 @@
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT		/* env in which mmc */
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
 #define CONFIG_STORAGE_EMMC
-#define CONFIG_FASTBOOT_MMC_NO		CONFIG_MMC_SUNXI_SLOT
+#define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
+#define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)
 
 #define CONFIG_DOS_PARTITION
 /*
@@ -117,8 +118,10 @@
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND
 #define FASTBOOT_TRANSFER_BUFFER		0x41000000
-#define FASTBOOT_TRANSFER_BUFFER_SIZE	256 << 20 /* 256M */
+#define FASTBOOT_TRANSFER_BUFFER_SIZE	(256 << 20)
 
+#define FASTBOOT_ERASE_BUFFER			0x40000000
+#define FASTBOOT_ERASE_BUFFER_SIZE      (16 << 20)
 /*
  * Miscellaneous configurable options
  */
@@ -164,23 +167,26 @@
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
-#define CONFIG_ENV_ADDR				(53 << 20)  /* 52M */
+#define CONFIG_ENV_ADDR				(53 << 20)  /* 16M */
 #define CONFIG_ENV_SIZE				(128 << 10)	/* 128KB */
 #define CONFIG_CMD_SAVEENV
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=3\0" \
-	"bootcmd=run setargs boot_normal\0" \
+	"bootcmd=run setargs_nand boot_normal\0" \
 	"console=ttyS0,115200\0" \
 	"nand_root=/dev/nandd\0" \
-	"mmc_root=/dev/mmcblk0p4\0" \
+	"mmc_root=/dev/mmcblk0p7\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
-	"init=${init} loglevel=${loglevel}\0" \
-	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
-	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
+	"setargs_nand=setenv bootargs console=${console} root=${nand_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"setargs_mmc=setenv bootargs console=${console} root=${mmc_root}" \
+	"init=${init} loglevel=${loglevel} partitions=${partitions}\0" \
+	"boot_normal=sunxi_flash read 40007800 boot;boota 40007800\0" \
+	"boot_recovery=sunxi_flash read 40007800 recovery;boota 40007800\0" \
 	"boot_fastboot=fastboot\0"
+
 
 #define CONFIG_BOOTDELAY	1
 #define CONFIG_BOOTCOMMAND	"nand read 50000000 boot;boota 50000000"
