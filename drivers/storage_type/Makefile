@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2000-2003
+# (C) Copyright 2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,34 +23,17 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	=  $(obj)lib$(SOC).o
+LIB	:= $(obj)libstorage_type.o
 
-SOBJS	:= lowlevel_init.o
-SOBJS	+= reset.o
+COBJS	+= sunxi_flash.o
 
-COBJS	+= timer.o
-COBJS	+= cpu_info.o
-COBJS	+= board.o
-COBJS	+= gpio.o
-COBJS	+= key.o
-COBJS	+= fastboot.o
-COBJS	+= sparse.o
-COBJS	+= partition.o
-COBJS	+= sys_config.o
-COBJS	+= usb/usbc.o \
-           usb/usbc_dev.o \
-           usb/usbc_host.o \
-           usb/usbc_phy.o
+#COBJS	:= $(COBJS-y)
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
+all:	$(LIB)
 
-#COBJS-$(CONFIG_XXXX)	+= xxxx.o
-
-SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
-
-all:	 $(obj).depend $(LIB)
-
-$(LIB):	$(OBJS)
+$(LIB): $(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################

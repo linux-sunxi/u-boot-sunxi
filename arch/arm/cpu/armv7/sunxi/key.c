@@ -26,13 +26,14 @@
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/key.h>
+#include <asm/arch/sys_proto.h>
 
 #undef SUNXI_KEY_DEBUG
 
 static struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
 
-int sunxi_key_init(void)
-{
+int sunxi_key_init(void) {
+
 	sr32(&sunxi_key_base->ctrl, 0, 1, LRADC_EN);
 	sr32(&sunxi_key_base->ctrl, 2, 2, LRADC_SAMPLE_RATE);
 	sr32(&sunxi_key_base->ctrl, 4, 2, LEVELB_VOL);
@@ -65,19 +66,6 @@ u32 sunxi_read_key(void) {
 	/* clear the pending data */
 	writel(ints, &sunxi_key_base->ints);
 	return key;
-#if 0
-	/* wait and read again */
-	sdelay(500);
-	ints = readl(&sunxi_key_base->ints);
-	printf("ints: 0x%x\n", ints);
-
-	/* if data is still pending, we can make sure key pressed */
-	if( ints & ADC0_DATA_PENDING) {
-		writel(ints, &sunxi_key_base->ints);
-		printf("key pressed, value=0x%x\n", readl(&sunxi_key_base->data0));
-		return readl(&sunxi_key_base->data0);
-	}
-#endif
 }
 
 /* check if one key is recovery key*/

@@ -1,7 +1,7 @@
 /*
- * (C) Copyright 2007-2011
+ * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
- * Tom Cubie <tangliang@allwinnertech.com>
+ * panlong <panlong@allwinnertech.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,45 +22,16 @@
  * MA 02111-1307 USA
  */
 
+#ifndef _BOOT_TYPE_H_
+#define _BOOT_TYPE_H_
 
-#include <common.h>
-#include <asm/io.h>
-#include <asm/arch/cpu.h>
+extern int storage_type;
+extern int uart_console;
+extern int mmc_card_no;
 
-int print_boot_type(void) {
+extern int (* sunxi_flash_read) (unsigned int start_block, unsigned int nblock, void *buffer);
+extern int (* sunxi_flash_write)(unsigned int start_block, unsigned int nblock, void *buffer);
+extern long long (* sunxi_flash_get_size)(void);
+extern int (* sunxi_flash_exit) (void);
 
-	sunxi_boot_type_t type;
-
-	puts("BOOT:  "); 
-
-	type = storage_type;
-	switch (type) {
-	case SUNXI_BOOT_TYPE_MMC0:
-		puts("MMC0\n");
-		break;
-	case SUNXI_BOOT_TYPE_NAND:
-		puts("NAND\n");
-		break;
-	case SUNXI_BOOT_TYPE_MMC2:
-		puts("MMC2\n");
-		break;
-	case SUNXI_BOOT_TYPE_SPI:
-		puts("SPI\n");
-		break;
-	case SUNXI_BOOT_TYPE_NULL:
-		/* fall through */
-	default:
-		puts("ERROR\n");
-		break;
-	}
-
-	return 0;
-}
-
-#ifdef CONFIG_DISPLAY_CPUINFO
-int print_cpuinfo(void)
-{
-	puts("CPU:   SUNXI Family\n");
-	return 0;
-}
 #endif

@@ -1705,9 +1705,9 @@ u32 close_usb_clock(u32 ccmu_base)
 int fastboot_init(struct cmd_fastboot_interface *interface)
 {
 	bsp_usbc_t usbc;
-
-    DMSG_INFO("fastboot_init\n");
-
+#if DEBUG
+    printf("fastboot_init\n");
+#endif
     device_strings[DEVICE_STRING_MANUFACTURER_INDEX]    = DEVICE_MANUFACTURER;
     device_strings[DEVICE_STRING_PRODUCT_INDEX]         = DEVICE_PRODUCT;
     device_strings[DEVICE_STRING_SERIAL_NUMBER_INDEX]   = DEVICE_SERIAL_NUMBER;
@@ -1740,7 +1740,7 @@ int fastboot_init(struct cmd_fastboot_interface *interface)
 
 	udc.bsp = USBC_open_otg(0);
 	if(udc.bsp == 0){
-		DMSG_PANIC("ERR: USBC_open_otg failed\n");
+		printf("ERR: USBC_open_otg failed\n");
 		return -1;
 	}
 

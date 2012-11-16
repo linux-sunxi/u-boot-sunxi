@@ -44,7 +44,8 @@ int main(int argc, char * argv[])
 	char tmp[ENV_SIZE];
 	
 	env_t env;
-
+	memset(env.data,0,ENV_SIZE);
+	memset(tmp,0,ENV_SIZE);
 	size_t len = 0;
 
 	if(argc != 3) {
@@ -69,7 +70,6 @@ int main(int argc, char * argv[])
 	}
 	/* take the file size */
 	len = lseek(fin, 0, SEEK_END);
-	
 	lseek(fin, 0, SEEK_SET);
 	if( read(fin, env.data, len) < 0 ) {
 		printf("read failed");
