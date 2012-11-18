@@ -305,10 +305,9 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 			printf("mmc fail to send stop cmd\n");
 			return 0;
 		}
-
-		/* Waiting for the ready status */
-		mmc_send_status(mmc, timeout);
-	}
+    }
+    /* Waiting for the ready status */
+    mmc_send_status(mmc, timeout);
 
 	return blkcnt;
 }

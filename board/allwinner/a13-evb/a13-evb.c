@@ -3,7 +3,7 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Some board init for the Allwinner A10-evb board.
+ * Some board init for the Allwinner A12-evb board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -53,9 +53,9 @@ sunxi_boot_type_t get_boot_type(void) {
 void fastboot_partition_init(void)
 {
 	fastboot_ptentry fb_part;
-	int index,part_total;
+	int index, part_total;
 
-	puts("--------fastboot partitions--------\n");
+	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_nand_getpart_num();
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
@@ -68,7 +68,7 @@ void fastboot_partition_init(void)
 		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
 		fastboot_flash_add_ptn(&fb_part);
 	}
-	puts("-----------------------------------\n");
+	printf("-----------------------------------\n");
 }
 
 static struct bootloader_message misc_message;
@@ -119,9 +119,8 @@ int check_android_misc() {
 /* TODO add board specific code here */
 int board_init(void)
 {
-	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
-
-	save_boot_type();
+	gd->bd->bi_arch_number = 3495;
+	gd->bd->bi_boot_params = PHYS_SDRAM_1 + 0x100;
 	return 0;
 }
 
@@ -130,29 +129,28 @@ int board_init(void)
  */
 int board_late_init(void)
 {
-
 	fastboot_partition_init();
 	check_android_misc();
-
 	return 0;
 }
-
 void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = dramc_get_dram_size() * 1024 * 1024;
+	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, dramc_get_dram_size() * 1024 * 1024);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 	return 0;
 }
 
-#ifdef CONFIG_MMC_SUNXI
+#ifdef CONFIG_GENERIC_MMC
 int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+	check_android_misc();
+
 	return 0;
 }
 #endif
@@ -160,7 +158,7 @@ int board_mmc_init(bd_t *bis)
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	puts("Board: A10-EVB\n");
+	puts("Board: A13-EVB\n");
 	return 0;
 }
 #endif

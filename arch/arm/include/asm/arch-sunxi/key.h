@@ -45,4 +45,7 @@ struct sunxi_lradc {
 #define ADC0_ALRDY_HOLD_PENDING   (1 << 3)    /* key already hold */
 #define ADC0_KEYUP_PENDING        (1 << 4)    /* key up */
 
+int sunxi_key_init(void);
+u32 sunxi_read_key(void);
+
 #endif
