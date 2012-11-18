@@ -34,6 +34,7 @@
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN4I				/* which is sun4i */
 #define CONFIG_A12_EVB				/* working with A12-EVB board */
+#define CONFIG_MACH_TYPE                4138
 
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
@@ -62,6 +63,14 @@
 #define CONFIG_SYS_NS16550_COM3		SUNXI_UART2_BASE
 #define CONFIG_SYS_NS16550_COM4		SUNXI_UART3_BASE
 
+#ifndef CONFIG_CONS_INDEX
+#ifdef CONFIG_UART0_PORT_F
+#define CONFIG_CONS_INDEX               1       /* UART0 on PORT_F (sdcard) */
+#else
+#define CONFIG_CONS_INDEX               2       /* UART1 */
+#endif
+#endif
+
 #define CONFIG_CONS_INDEX			2			/* which serial channel for console */
 
 /* DRAM Base */
@@ -77,7 +86,6 @@
 /* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1				CONFIG_SYS_SDRAM_BASE	/* SDRAM Bank #1 */
-#define PHYS_SDRAM_1_SIZE			(512 << 20)				/* 0x20000000, 512 MB Bank #1 */
 
 //#define CONFIG_SYS_MONITOR_BASE	0x00000000
 
@@ -95,8 +103,8 @@
 #define CONFIG_INITRD_TAG
 #define CONFIG_CMDLINE_EDITING
 
-#if 0
 /* mmc config */
+#ifndef CONFIG_SD_UART /* SD_UART Conflicts with MMC0 */
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
@@ -194,5 +202,7 @@
 #define CONFIG_CMD_BOOTA		/* boot android image */
 #define CONFIG_CMD_RUN			/* run a command */
 #define CONFIG_CMD_BOOTD		/* boot the default command */
+
+#define CONFIG_CMD_LOADB
 
 #endif /* __CONFIG_H */
