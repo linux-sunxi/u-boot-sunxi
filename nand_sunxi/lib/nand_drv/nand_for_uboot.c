@@ -4,10 +4,11 @@
 
 #define  OOB_BUF_SIZE                   32
 
-
-extern int NAND_DmaInit(void);
-extern int NAND_DmaExit(void);
-extern int OSAL_printf(const char * str, ...);
+extern int NAND_Print(const char * str, ...);
+static int OSAL_printf(const char * str, ...)
+{
+    NAND_Print(str);
+}
 
 static block_dev_desc_t 	nand_blk_dev;
 
@@ -237,6 +238,7 @@ int NAND_PhyInit(void)
 	//modify ValidBlkRatio
     //NAND_SetValidBlkRatio(nand_good_blk_ratio);
 
+	OSAL_printf("NB1 : nand phy init ok\n");
 	return(PHY_ChangeMode(1));
 }
 
@@ -336,7 +338,7 @@ int NAND_Init(void)
     	OSAL_printf("NB1 : format init fail\n");
 		return -5;
     }
-	
+
     result = FMT_FormatNand();
     if(result < 0)
     {

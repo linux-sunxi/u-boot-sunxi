@@ -8,7 +8,7 @@
 *    v0.1  2008-04-09 Richard
 *            support all kinds of access way of block map and page map.
 **********************************************************************************/
-#include "../include/nand_oal.h"
+
 #include "../include/nand_drv_cfg.h"
 #include "../include/nand_type.h"
 #include "../include/nand_physic.h"
@@ -16,16 +16,16 @@
 
 extern struct __NandDriverGlobal_t     NandDriverInfo;
 
-struct __BlkMapTblCachePool_t BlkMapTblCachePool;
-struct __PageMapTblCachePool_t PageMapTblCachePool;
+struct __BlkMapTblCachePool_t BlkMapTblCachePool = {0};
+struct __PageMapTblCachePool_t PageMapTblCachePool = {0};
 
 void dump(void *buf, __u32 len , __u8 nbyte,__u8 linelen)
 {
 	__u32 i;
 	__u32 tmplen = len/nbyte;
-
+		
 	PRINT("/********************************************/\n");
-
+	
 	for (i = 0; i < tmplen; i++)
 	{
 		if (nbyte == 1)
@@ -36,13 +36,13 @@ void dump(void *buf, __u32 len , __u8 nbyte,__u8 linelen)
 			PRINT("%x  ",((__u32 *)buf)[i]);
 		else
 			break;
-
+			
 		if(i%linelen == (linelen - 1))
 			PRINT("\n");
 	}
 
 	return;
-
+	
 }
 
 /*
@@ -256,18 +256,18 @@ rewrite:
 		((__u32 *)LML_PROCESS_TBL_BUF)[511] = \
         	_GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*2/(sizeof (__u32)));
 	}
-
+	
 	else
-	{
+	{   
 		MEMCPY(LML_PROCESS_TBL_BUF, PAGE_MAP_TBL,PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t));
     	((__u32 *)LML_PROCESS_TBL_BUF)[511] = \
         	_GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/(sizeof (__u32)));
 	}
-
+	
     param.MDataPtr = LML_PROCESS_TBL_BUF;
     param.SDataPtr = (void *)&UserData;
     param.SectBitmap = FULL_BITMAP_OF_SUPER_PAGE;
-
+		 
 //rewrite:
     LML_CalculatePhyOpPar(&param, CUR_MAP_ZONE, TableBlk, TablePage);
     LML_VirtualPageWrite(&param);
@@ -308,7 +308,7 @@ static __s32 _rebuild_page_map_tbl(__u32 nLogBlkPst)
     param.SectBitmap = 0x3;
 
 	//PRINT("-----------------------rebuild page table for blk %x\n",TableBlk);
-
+	
     for(TablePage = 0; TablePage < PAGE_CNT_OF_SUPER_BLK; TablePage++){
         LML_CalculatePhyOpPar(&param, CUR_MAP_ZONE, TableBlk, TablePage);
         ret = LML_VirtualPageRead(&param);
@@ -363,7 +363,7 @@ static __s32 _read_page_map_tbl(__u32 nLogBlkPst)
     ret = LML_VirtualPageRead(&param);
 
 	if(PAGE_CNT_OF_SUPER_BLK >= 512)
-	{
+	{	
 		checksum = _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF,  \
                 	PAGE_CNT_OF_SUPER_BLK*2/sizeof(__u32));
 	}
@@ -372,7 +372,7 @@ static __s32 _read_page_map_tbl(__u32 nLogBlkPst)
 		checksum = _GetTblCheckSum((__u32 *)LML_PROCESS_TBL_BUF,  \
                 	PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t)/sizeof(__u32));
 	}
-
+	
     status = UserData[0].PageStatus;
     logicpagenum = UserData[0].LogicPageNum;
 
@@ -393,7 +393,7 @@ static __s32 _read_page_map_tbl(__u32 nLogBlkPst)
 			for(page = 0; page < PAGE_CNT_OF_SUPER_BLK; page++)
 				PAGE_MAP_TBL[page].PhyPageNum = *((__u16 *)LML_PROCESS_TBL_BUF + page);
 		}
-		else
+		else	
         	MEMCPY(PAGE_MAP_TBL,LML_PROCESS_TBL_BUF, PAGE_CNT_OF_SUPER_BLK*sizeof(struct __PageMapTblItem_t));
     }
 
@@ -617,7 +617,7 @@ static __u32 _find_blk_tbl_post_location(void)
     __u32 i;
     __u8 location;
     __u16 access_cnt ;
-
+	
     /*try to find clear cache*/
     for (i = 0; i < BLOCK_MAP_TBL_CACHE_CNT; i++)
     {
@@ -675,7 +675,7 @@ static __s32 _write_back_block_map_tbl(__u8 nZone)
     struct  __NandUserData_t  UserData[2];
     struct  __PhysicOpPara_t  param;
     struct __SuperPhyBlkType_t BadBlk,NewBlk;
-
+	
     /*write back all page map table within this zone*/
     if (NAND_OP_TRUE != _write_back_all_page_map_tbl(nZone)){
         MAPPING_ERR("write back all page map tbl err\n");
@@ -723,7 +723,7 @@ rewrite:
     param.MDataPtr = LML_PROCESS_TBL_BUF;
     param.SDataPtr = (void *)&UserData;
     param.SectBitmap = FULL_BITMAP_OF_SUPER_PAGE;
-    LML_CalculatePhyOpPar(&param, nZone, TableBlk, TablePage);
+    LML_CalculatePhyOpPar(&param, nZone, TableBlk, TablePage);    	
     LML_VirtualPageWrite(&param);
     if (NAND_OP_TRUE !=  PHY_SynchBank(param.BankNum, SYNC_CHIP_MODE)){
         BadBlk.PhyBlkNum = TableBlk;
@@ -734,8 +734,8 @@ rewrite:
         TableBlk = NewBlk.PhyBlkNum;
         TablePage = 0;
         goto rewrite;
-    }
-
+    }     
+	
     MEMCPY(LML_PROCESS_TBL_BUF, &DATA_BLK_TBL[512], 2048);
     TablePage ++;
     param.MDataPtr = LML_PROCESS_TBL_BUF;
@@ -755,8 +755,8 @@ rewrite:
         TablePage = 0;
         goto rewrite;
     }
-
-
+	
+	
     /*write back log block map table*/
     TablePage++;
     MEMSET(LML_PROCESS_TBL_BUF, 0xff, SECTOR_CNT_OF_SUPER_PAGE * SECTOR_SIZE);
@@ -807,8 +807,8 @@ static __s32 _read_block_map_tbl(__u8 nZone)
     {
         MAPPING_ERR("_read_block_map_tbl :read block map table0 err\n");
         return NAND_OP_FALSE;
-    }
-
+    }	
+	
     MEMCPY(DATA_BLK_TBL,LML_PROCESS_TBL_BUF,2048);
 
     TablePage++;
@@ -819,7 +819,7 @@ static __s32 _read_block_map_tbl(__u8 nZone)
         MAPPING_ERR("_read_block_map_tbl : read block map table1 err\n");
         return NAND_OP_FALSE;
     }
-
+	
     MEMCPY(&DATA_BLK_TBL[512],LML_PROCESS_TBL_BUF,2048);
     if(((__u32 *)DATA_BLK_TBL)[1023] != \
         _GetTblCheckSum((__u32 *)DATA_BLK_TBL,(DATA_BLK_CNT_OF_ZONE+FREE_BLK_CNT_OF_ZONE)))
@@ -895,7 +895,7 @@ __s32 BMM_SwitchMapTbl(__u32 nZone)
     __s32   result = NAND_OP_TRUE;
 
     if(NAND_OP_TRUE != _blk_map_tbl_cache_hit(nZone))
-    {
+    {	
         MAPPING_DBG("BMM_SwitchMapTbl : post zone %d cache\n",nZone);
 		result = (_blk_map_tbl_cache_post(nZone));
     }

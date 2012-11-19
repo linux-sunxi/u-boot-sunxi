@@ -31,8 +31,8 @@
 #ifndef __NAND_FORMAT_H__
 #define __NAND_FORMAT_H__
 
-//#include "nand_type.h"
-//#include "nand_physic.h"
+#include "nand_type.h"
+#include "nand_physic.h"
 
 
 //define the structure for a zone detail information
@@ -72,13 +72,13 @@ typedef struct _blk_for_boot1_t
 
 //define the sector bitmap in a super page to get the user data
 #if (0)
-#define SPARE_DATA_BITMAP   (SUPPORT_MULTI_PROGRAM ? (0x3 | (0x3 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x1)
+#define SPARE_DATA_BITMAP   (SUPPORT_MULTI_PROGRAM ? (0x3 | (0x3 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x3)
 #elif (1)
 #define SPARE_DATA_BITMAP   FULL_BITMAP_OF_SUPER_PAGE
 #endif
 //define the sector bitmap in a super page to get the logical information in the spare area
 #if (0)
-#define LOGIC_INFO_BITMAP   (SUPPORT_MULTI_PROGRAM ? (0x1 | (0x1 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x1)
+#define LOGIC_INFO_BITMAP   (SUPPORT_MULTI_PROGRAM ? (0x1 | (0x1 << SECTOR_CNT_OF_SINGLE_PAGE)) : 0x3)
 #elif (1)
 #define LOGIC_INFO_BITMAP   FULL_BITMAP_OF_SUPER_PAGE
 #endif
@@ -172,6 +172,8 @@ __s32 FMT_Exit(void);
 ************************************************************************************************************************
 */
 __s32 FMT_FormatNand(void);
+
+void ClearNandStruct( void );
 
 
 #endif  //ifndef __NAND_FORMAT_H__

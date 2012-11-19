@@ -27,7 +27,6 @@
 *
 ************************************************************************************************************************
 */
-#include "../include/nand_oal.h"
 #include "../include/nand_drv_cfg.h"
 #include "../include/nand_type.h"
 #include "../include/nand_physic.h"
