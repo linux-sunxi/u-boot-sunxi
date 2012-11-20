@@ -123,6 +123,9 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + (256 << 20))
 #define CONFIG_SYS_LOAD_ADDR		0x50000000 /* default load address */
 
+/* standalone support */
+#define CONFIG_STANDALONE_LOAD_ADDR	0x50000000
+
 #define CONFIG_SYS_HZ			1000
 
 /* valid baudrates */
