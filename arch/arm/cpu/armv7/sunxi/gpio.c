@@ -4,6 +4,7 @@
  * author:  Aaron<leafy.myeh@allwinnertech.com>
  * history: V0.1
  */
+#include <common.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/io.h>

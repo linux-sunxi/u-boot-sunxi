@@ -7,6 +7,7 @@
 #ifndef __TYPE_H
 #define __TYPE_H
 
+#if 0
 typedef unsigned long       DWORD;
 typedef int                 BOOL;
 typedef unsigned char       BYTE;
@@ -53,6 +54,8 @@ typedef unsigned int size_t;
 
 #ifndef NULL
 #define NULL (void*)0
+#endif
+
 #endif
 
 #endif
