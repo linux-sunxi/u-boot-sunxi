@@ -628,7 +628,7 @@ int sunxi_mmc_init(int sdc_no)
 
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 	mmc->host_caps = MMC_MODE_4BIT;
-	mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
+	mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS | MMC_MODE_HC;
 
 	mmc->f_min = 400000;
 	mmc->f_max = 52000000;
