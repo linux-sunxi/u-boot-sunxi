@@ -55,7 +55,7 @@
 //---------------------------------------------------------------
 //   reg base
 //---------------------------------------------------------------
-#define  USBC0_BASE                 0x01c13000
+#define  USBC0_BASE                 0x01c19000
 #define  USBC1_BASE                 0x01c14000
 #define  USBC2_BASE                 0x01c1E000
 
@@ -741,6 +741,7 @@ void USBC_INT_EnableUsbMiscUint(__hdle hUSB, __u32 mask);
 
 void USBC_INT_DisableEp(__hdle hUSB, __u32 ep_type, __u8 ep_index);
 void USBC_INT_DisableUsbMiscUint(__hdle hUSB, __u32 mask);
+u32 USBC_INT_IsEpEnabled(__hdle hUSB, __u32 ep_type, __u8 ep_index);
 
 void USBC_INT_DisableEpAll(__hdle hUSB, __u32 ep_type);
 void USBC_INT_DisableUsbMiscAll(__hdle hUSB);
@@ -830,6 +831,7 @@ __s32  USBC_close_otg(__hdle hUSB);
 __s32 USBC_init(bsp_usbc_t *usbc);
 __s32 USBC_exit(bsp_usbc_t *usbc);
 
+void clear_usb_reg(__u32 usb_base);
 
 #endif   //__USB_BSP_H__
 

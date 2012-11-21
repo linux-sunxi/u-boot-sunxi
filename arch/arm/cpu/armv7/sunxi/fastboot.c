@@ -46,7 +46,7 @@
 #endif
 
 /* 普通信息打印 */
-#if  0
+#if  1
     #define DMSG_INFO         			DMSG_PRINT
 #else
     #define DMSG_INFO(...)
@@ -60,7 +60,7 @@
 #endif
 
 /* usb & ccmu */
-#define FASTBOOT_USB_BASE               0x01c13000
+#define FASTBOOT_USB_BASE               0x01c19000
 #define FASTBOOT_SRAM_BASE              0x01c00000
 #define FASTBOOT_CCMU                   0x01c20000
 
@@ -1612,13 +1612,16 @@ int fastboot_preboot(void)
 */
 static u32 open_usb_clock(u32 ccmu_base)
 {
+#define CCM_REG_AHB_MOD_RESET           (ccmu_base + 0X2C0)
+#define CCM_BP_AHB_OTG_RESET            (24U)
+
     u32 reg_value = 0;
 
     DMSG_INFO("open_usb_clock\n");
-
+#ifndef AW_FPGA_V4_PLATFORM
     //Gating AHB clock for USB_phy0
 	reg_value = readl(ccmu_base + 0x60);
-	x_set_bit(reg_value, 0);	/* AHB clock gate usb0 */
+	x_set_bit(reg_value, 24);	/* AHB clock gate usb0 */
 	writel(reg_value, (ccmu_base + 0x60));
 
     //delay to wati SIE stable
@@ -1630,6 +1633,13 @@ static u32 open_usb_clock(u32 ccmu_base)
 	x_set_bit(reg_value, 8);
 	x_set_bit(reg_value, 0);//disable reset
 	writel(reg_value, (ccmu_base + 0xcc));
+#endif//#ifndef AW_FPGA_V4_PLATFORM
+
+//disable software reset 	
+	reg_value = readl(CCM_REG_AHB_MOD_RESET);
+	x_set_bit(reg_value, CCM_BP_AHB_OTG_RESET);
+	writel(reg_value, CCM_REG_AHB_MOD_RESET);
+
 
 	//delay some time
 	reg_value = 10000;
@@ -1660,6 +1670,7 @@ u32 close_usb_clock(u32 ccmu_base)
 {
     u32 reg_value = 0;
 
+#ifndef AW_FPGA_V4_PLATFORM
     DMSG_INFO("close_usb_clock\n");
 
     //开usb ahb时钟
@@ -1680,6 +1691,7 @@ u32 close_usb_clock(u32 ccmu_base)
 	//延时
 	reg_value = 10000;
 	while(reg_value--);
+#endif//#ifndef AW_FPGA_V4_PLATFORM
 
 	return 0;
 }
@@ -1705,7 +1717,7 @@ u32 close_usb_clock(u32 ccmu_base)
 int fastboot_init(struct cmd_fastboot_interface *interface)
 {
 	bsp_usbc_t usbc;
-#ifdef DEBUG
+#if DEBUG
     printf("fastboot_init\n");
 #endif
     device_strings[DEVICE_STRING_MANUFACTURER_INDEX]    = DEVICE_MANUFACTURER;
