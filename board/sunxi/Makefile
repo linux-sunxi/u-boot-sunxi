@@ -27,6 +27,7 @@
 
 obj-y	+= board.o
 obj-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
+obj-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 obj-$(CONFIG_A13_MID)		+= dram_a13_mid.o
 obj-$(CONFIG_A7HD)		+= dram_hyundai_a7hd.o
 obj-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
