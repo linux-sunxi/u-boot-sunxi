@@ -246,6 +246,8 @@
 
 /* PMU */
 #define CONFIG_SPL_POWER_SUPPORT
+#ifndef CONFIG_NO_AXP
 #define CONFIG_AXP209_POWER
+#endif
 
 #endif /* __CONFIG_H */
