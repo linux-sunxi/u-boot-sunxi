@@ -104,7 +104,6 @@ void s_init(void)
 
 }
 
-extern void sunxi_reset(void);
 void reset_cpu(ulong addr)
 {
 	sunxi_reset();
