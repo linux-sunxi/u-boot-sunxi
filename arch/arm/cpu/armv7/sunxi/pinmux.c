@@ -56,6 +56,6 @@ int sunxi_gpio_get_cfgpin(u32 pin)
 	cfg = readl(&pio->cfg[0] + index);
 	cfg >>= offset;
 
-	return (cfg & 0xf);
+	return cfg & 0xf;
 }
 
