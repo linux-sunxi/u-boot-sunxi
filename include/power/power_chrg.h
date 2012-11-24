@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2004, Psyent Corporation <www.psyent.com>
- * Scott McNutt <smcnutt@psyent.com>
+ *  Copyright (C) 2012 Samsung Electronics
+ *  Lukasz Majewski <l.majewski@samsung.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -20,12 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __ASM_STATUS_LED_H__
-#define __ASM_STATUS_LED_H__
 
-typedef unsigned led_id_t;
-extern void __led_init (led_id_t mask, int state);
-extern void __led_set (led_id_t mask, int state);
-inline void __led_toggle (led_id_t mask);
+#ifndef __POWER_CHARGER_H_
+#define __POWER_CHARGER_H_
 
-#endif	/* __ASM_STATUS_LED_H__ */
+/* Type of available chargers */
+enum {
+	CHARGER_NO = 0,
+	CHARGER_TA,
+	CHARGER_USB,
+	CHARGER_TA_500,
+	CHARGER_UNKNOWN,
+};
+
+enum {
+	UNKNOWN,
+	EXT_SOURCE,
+	CHARGE,
+	NORMAL,
+};
+
+#endif /* __POWER_CHARGER_H_ */
