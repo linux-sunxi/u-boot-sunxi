@@ -32,6 +32,6 @@ unsigned long do_go_exec(ulong (*entry)(int, char * const []), int argc,
 				 char * const argv[])
 {
 	invalidate_icache_all();
-	return entry (argc, argv);
+	return entry(argc, argv);
 }
 #endif
