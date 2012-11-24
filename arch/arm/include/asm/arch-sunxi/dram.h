@@ -72,7 +72,7 @@ struct sunxi_dram_reg {
 	u32 dqsbtr;		/* 0x22c dqsb timing register */
 	u32 mcr;		/* 0x230 mode configure register */
 	u8 res[0x8];
-	u32 reg_23c;		/* 0x23c register description unknown!!! */
+	u32 ppwrsctl;		/* 0x23c pad power save control */
 	u32 apr;		/* 0x240 arbiter period register */
 	u32 pldtr;		/* 0x244 priority level data threshold reg */
 	u8 res5[0x8];

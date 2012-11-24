@@ -311,9 +311,8 @@ int dramc_init(struct dram_para *para)
 	mctl_setup_dram_clock(para->clock);
 
 #ifdef CONFIG_SUN5I
-	// test-only: new code? does it work? change or remove comment
-	/* This is new unknown code! */
-	writel(0, &dram->reg_23c);
+	/* Disable any pad power save control */
+	writel(0, &dram->ppwrsctl);
 #endif
 
 	/* reset external DRAM */
