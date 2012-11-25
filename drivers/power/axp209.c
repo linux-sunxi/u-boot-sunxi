@@ -39,7 +39,7 @@ int axp209_write(enum axp209_reg reg, u8 val)
 	return i2c_write(0x34, reg, 1, &val, 1);
 }
 
-int axp209_read(enum axp209_reg reg, u8 * val)
+int axp209_read(enum axp209_reg reg, u8 *val)
 {
 	return i2c_read(0x34, reg, 1, val, 1);
 }
