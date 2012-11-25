@@ -86,7 +86,7 @@ int gen_check_sum(void *boot_buf)
 	return 0;
 }
 
-#define ALIGN(x, a) __ALIGN_MASK((x),(typeof(x))(a)-1)
+#define ALIGN(x, a) __ALIGN_MASK((x), (typeof(x))(a)-1)
 #define __ALIGN_MASK(x, mask) (((x)+(mask))&~(mask))
 
 #define SUN4I_SRAM_SIZE (24 * 1024)
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 	/* get input file size */
 	file_size = lseek(fd_in, 0, SEEK_END);
-	printf("File size: 0x%x \n", file_size);
+	printf("File size: 0x%x\n", file_size);
 
 	if (file_size > SRAM_LOAD_MAX_SIZE)
 		load_size = SRAM_LOAD_MAX_SIZE;
