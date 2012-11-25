@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2011
+ * (C) Copyright 2011-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
@@ -24,14 +24,14 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _SUNXI_CONFIG_H
-#define _SUNXI_CONFIG_H
+#ifndef _SUNXI_COMMON_CONFIG_H
+#define _SUNXI_COMMON_CONFIG_H
 
 /*
  * High Level Configuration Options
  */
 #define CONFIG_ALLWINNER	/* It's a Allwinner chip */
-#define	CONFIG_SUNXI		/* which is sunxi family */
+#define CONFIG_SUNXI		/* which is sunxi family */
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
@@ -42,8 +42,6 @@
  */
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
-
-/* Clock Defines */
 
 /* Serial & console */
 #define CONFIG_SYS_NS16550
@@ -131,20 +129,15 @@
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
+/* The stack sizes are set up in start.S using the settings below */
 #define CONFIG_STACKSIZE		(256 << 10)	/* 256 KB */
 
-/*-----------------------------------------------------------------------
- * FLASH and environment organization
- */
+/* FLASH and environment organization */
+
 #define CONFIG_SYS_NO_FLASH
 
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KB */
-#define CONFIG_IDENT_STRING		" Allwinner Technology "
+#define CONFIG_IDENT_STRING		" Allwinner Technology"
 
 #define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
@@ -250,4 +243,4 @@
 #define CONFIG_AXP209_POWER
 #endif
 
-#endif /* __CONFIG_H */
+#endif /* _SUNXI_COMMON_CONFIG_H */
