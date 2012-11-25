@@ -57,7 +57,7 @@ int dram_init(void)
 }
 
 #ifdef CONFIG_GENERIC_MMC
-int board_mmc_init(bd_t * bis)
+int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
 

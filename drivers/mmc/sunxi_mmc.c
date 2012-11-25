@@ -84,25 +84,30 @@ static void dumpmmcreg(struct sunxi_mmc *reg)
 #endif /* SUNXI_MMCDBG */
 
 struct sunxi_mmc_des {
-	u32:1, dic:1,		/* disable interrupt on completion */
-	last_des:1,		/* 1-this data buffer is the last buffer */
-	first_des:1,		/* 1-data buffer is the first buffer,
+	u32 reserved1_1:1;
+	u32 dic:1;		/* disable interrupt on completion */
+	u32 last_des:1;		/* 1-this data buffer is the last buffer */
+	u32 first_des:1;		/* 1-data buffer is the first buffer,
 				   0-data buffer contained in the next
 				   descriptor is 1st buffer */
-	des_chain:1,		/* 1-the 2nd address in the descriptor is the
+	u32 des_chain:1;	/* 1-the 2nd address in the descriptor is the
 				   next descriptor address */
-	end_of_ring:1,		/* 1-last descriptor flag when using dual
+	u32 end_of_ring:1;	/* 1-last descriptor flag when using dual
 				   data buffer in descriptor */
-	:24, card_err_sum:1,	/* transfer error flag */
-	own:1;			/* des owner:1-idma owns it, 0-host owns it */
+	u32 reserved1_2:24;
+        u32 card_err_sum:1;	/* transfer error flag */
+	u32 own:1;		/* des owner:1-idma owns it, 0-host owns it */
 #if defined CONFIG_SUN4I
 #define SDXC_DES_NUM_SHIFT 13
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
-	u32 data_buf1_sz:13, data_buf2_sz:13,:6;
+	u32 data_buf1_sz:13;
+	u32 data_buf2_sz:13;
+	u32 reserverd2_1:6;
 #elif defined CONFIG_SUN5I
 #define SDXC_DES_NUM_SHIFT 16
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
-	u32 data_buf1_sz:16, data_buf2_sz:16;
+	u32 data_buf1_sz:16;
+	u32 data_buf2_sz:16;
 #else
 #error ">>>> Wrong Platform for MMC <<<<"
 #endif
@@ -253,7 +258,8 @@ static int mmc_update_clk(struct mmc *mmc)
 
 	cmd = (1U << 31) | (1 << 21) | (1 << 13);
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & 0x80000000) && timeout--) ;
+	while ((readl(&mmchost->reg->cmd) & 0x80000000) && timeout--)
+		;
 	if (!timeout)
 		return -1;
 
@@ -341,7 +347,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout
-			       && (readl(&mmchost->reg->status) & (1 << 2))) ;
+			       && (readl(&mmchost->reg->status) & (1 << 2)))
+				;
 			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
@@ -351,7 +358,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout
-			       && (readl(&mmchost->reg->status) & (1 << 3))) ;
+			       && (readl(&mmchost->reg->status) & (1 << 3)))
+				;
 			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
@@ -411,13 +419,15 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 			pdes[des_idx].end_of_ring = 1;
 			pdes[des_idx].buf_addr_ptr2 = 0;
 		} else {
-			pdes[des_idx].buf_addr_ptr2 = (u32) & pdes[des_idx + 1];
+			pdes[des_idx].buf_addr_ptr2 = (u32)&pdes[des_idx + 1];
 		}
 		MMCDBG("frag %d, remain %d, des[%d](%08x): "
 			"[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
 			i, remain, des_idx, (u32)&pdes[des_idx],
-			(u32)((u32*)&pdes[des_idx])[0], (u32)((u32*)&pdes[des_idx])[1],
-			(u32)((u32*)&pdes[des_idx])[2], (u32)((u32*)&pdes[des_idx])[3]);
+			(u32)((u32 *)&pdes[des_idx])[0],
+			(u32)((u32 *)&pdes[des_idx])[1],
+			(u32)((u32 *)&pdes[des_idx])[2],
+			(u32)((u32 *)&pdes[des_idx])[3]);
 	}
 	flush_cache((unsigned long)pdes,
 		    sizeof(struct sunxi_mmc_des) * (des_idx + 1));
