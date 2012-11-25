@@ -33,55 +33,47 @@
 #include <malloc.h>
 #include <mmc.h>
 
-#undef SUNXI_MMCDBG
-
-#ifdef SUNXI_MMCDBG
-#define MMCDBG(fmt...)	printf("[mmc]: "fmt)
+#define MMCDBG(fmt, args...)	debug("[sunxi_mmc] " fmt, ##args)
 
 static void dumphex32(char *name, char *base, int len)
 {
 	__u32 i;
 
-	printf("dump %s registers:", name);
+	debug("dump %s registers:", name);
 	for (i = 0; i < len; i += 4) {
 		if (!(i & 0xf))
-			printf("\n0x%p : ", base + i);
-		printf("0x%08x ", readl(base + i));
+			debug("\n0x%p : ", base + i);
+		debug("0x%08x ", readl(base + i));
 	}
-	printf("\n");
+	debug("\n");
 }
 
 static void dumpmmcreg(struct sunxi_mmc *reg)
 {
-	printf("dump mmc registers:\n");
-	printf("gctrl     0x%08x\n", reg->gctrl);
-	printf("clkcr     0x%08x\n", reg->clkcr);
-	printf("timeout   0x%08x\n", reg->timeout);
-	printf("width     0x%08x\n", reg->width);
-	printf("blksz     0x%08x\n", reg->blksz);
-	printf("bytecnt   0x%08x\n", reg->bytecnt);
-	printf("cmd       0x%08x\n", reg->cmd);
-	printf("arg       0x%08x\n", reg->arg);
-	printf("resp0     0x%08x\n", reg->resp0);
-	printf("resp1     0x%08x\n", reg->resp1);
-	printf("resp2     0x%08x\n", reg->resp2);
-	printf("resp3     0x%08x\n", reg->resp3);
-	printf("imask     0x%08x\n", reg->imask);
-	printf("mint      0x%08x\n", reg->mint);
-	printf("rint      0x%08x\n", reg->rint);
-	printf("status    0x%08x\n", reg->status);
-	printf("ftrglevel 0x%08x\n", reg->ftrglevel);
-	printf("funcsel   0x%08x\n", reg->funcsel);
-	printf("dmac      0x%08x\n", reg->dmac);
-	printf("dlba      0x%08x\n", reg->dlba);
-	printf("idst      0x%08x\n", reg->idst);
-	printf("idie      0x%08x\n", reg->idie);
+	debug("dump mmc registers:\n");
+	debug("gctrl     0x%08x\n", reg->gctrl);
+	debug("clkcr     0x%08x\n", reg->clkcr);
+	debug("timeout   0x%08x\n", reg->timeout);
+	debug("width     0x%08x\n", reg->width);
+	debug("blksz     0x%08x\n", reg->blksz);
+	debug("bytecnt   0x%08x\n", reg->bytecnt);
+	debug("cmd       0x%08x\n", reg->cmd);
+	debug("arg       0x%08x\n", reg->arg);
+	debug("resp0     0x%08x\n", reg->resp0);
+	debug("resp1     0x%08x\n", reg->resp1);
+	debug("resp2     0x%08x\n", reg->resp2);
+	debug("resp3     0x%08x\n", reg->resp3);
+	debug("imask     0x%08x\n", reg->imask);
+	debug("mint      0x%08x\n", reg->mint);
+	debug("rint      0x%08x\n", reg->rint);
+	debug("status    0x%08x\n", reg->status);
+	debug("ftrglevel 0x%08x\n", reg->ftrglevel);
+	debug("funcsel   0x%08x\n", reg->funcsel);
+	debug("dmac      0x%08x\n", reg->dmac);
+	debug("dlba      0x%08x\n", reg->dlba);
+	debug("idst      0x%08x\n", reg->idst);
+	debug("idie      0x%08x\n", reg->idie);
 }
-#else
-#define MMCDBG(fmt...)
-#define dumphex32(fmt...)
-#define dumpmmcreg(fmt...)
-#endif /* SUNXI_MMCDBG */
 
 struct sunxi_mmc_des {
 	u32 reserved1_1:1;
@@ -246,6 +238,7 @@ static int mmc_clk_io_on(int sdc_no)
 	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char *)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char *)mmchost->reg, 0x100);
+	dumpmmcreg(mmchost->reg);
 
 	return 0;
 }
