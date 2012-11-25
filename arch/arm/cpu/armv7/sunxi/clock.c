@@ -34,11 +34,11 @@ static void clock_init_safe(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* Set safe defaults until PMU is configured */
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4| APB0_DIV_1 << 8 |
+	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
 	       CPU_CLK_SRC_OSC24M << 16, &ccm->cpu_ahb_apb0_cfg);
 	writel(0xa1005000, &ccm->pll1_cfg);
 	sdelay(200);
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4| APB0_DIV_1 << 8 |
+	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
 	       CPU_CLK_SRC_PLL1 << 16, &ccm->cpu_ahb_apb0_cfg);
 }
 #endif
@@ -102,7 +102,7 @@ int clock_twi_onoff(int port, int state)
 }
 
 #ifdef CONFIG_SPL_BUILD
-#define PLL1_CFG(N,K,M,P)	(1 << 31 | 0 << 30 | 8 << 26 | 0 << 25 | \
+#define PLL1_CFG(N, K, M, P)	(1 << 31 | 0 << 30 | 8 << 26 | 0 << 25 | \
 				 16 << 20 | (P) << 16 | 2 << 13 | (N) << 8 | \
 				 (K) << 4 | 0 << 3 | 0 << 2 | (M) << 0)
 #define RDIV(a, b)		((a + (b) - 1) / (b))
@@ -137,7 +137,7 @@ void clock_set_pll1(int hz)
 
 	/* Find target frequency */
 	while (pll1_para[i].freq < hz)
-	    i++;
+		i++;
 
 	hz = pll1_para[i].freq;
 
@@ -160,7 +160,7 @@ void clock_set_pll1(int hz)
 	apb0 = apb0 - 1;
 
 	/* Switch to 24MHz clock while changing PLL1 */
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4| APB0_DIV_1 << 8 |
+	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
 	       CPU_CLK_SRC_OSC24M << 16, &ccm->cpu_ahb_apb0_cfg);
 	sdelay(20);
 
