@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2011
+ * (C) Copyright 2011-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Aaron <leafy.myeh@allwinnertech.com>
  *
