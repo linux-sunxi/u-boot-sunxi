@@ -184,7 +184,7 @@ static int i2c_start(int status)
 	return 0;
 }
 
-int i2c_do_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
+int i2c_do_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 {
 	u32 status;
 	u32 ctl;
@@ -235,7 +235,7 @@ int i2c_do_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
 	return 0;
 }
 
-int i2c_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
+int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 {
 	int rc = i2c_do_read(chip, addr, alen, buffer, len);
 
@@ -244,7 +244,7 @@ int i2c_read(uchar chip, uint addr, int alen, uchar * buffer, int len)
 	return rc;
 }
 
-static int i2c_do_write(uchar chip, uint addr, int alen, uchar * buffer,
+static int i2c_do_write(uchar chip, uint addr, int alen, uchar *buffer,
 			int len)
 {
 	if (i2c_start(TWI_STAT_TX_STA) != 0)
@@ -268,7 +268,7 @@ static int i2c_do_write(uchar chip, uint addr, int alen, uchar * buffer,
 	return 0;
 }
 
-int i2c_write(uchar chip, uint addr, int alen, uchar * buffer, int len)
+int i2c_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 {
 	int rc = i2c_do_write(chip, addr, alen, buffer, len);
 

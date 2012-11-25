@@ -71,7 +71,7 @@ struct i2c {
 
 #define TWI_CLK_DIV_M		(0xF << 3)	/* 6:3bit  */
 #define TWI_CLK_DIV_N		(0x7 << 0)	/* 2:0bit */
-#define TWI_CLK_DIV(N,M)	((((N) & 0xF) << 3) | (((M) & 0x7) << 0))
+#define TWI_CLK_DIV(N, M)	((((N) & 0xF) << 3) | (((M) & 0x7) << 0))
 
 /* TWI Soft Reset Register Bit Fields & Masks  */
 /* write 1 to clear 0, when complete soft reset clear 0 */
