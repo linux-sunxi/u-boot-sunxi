@@ -95,7 +95,7 @@ struct sunxi_mmc_des {
 	u32 end_of_ring:1;	/* 1-last descriptor flag when using dual
 				   data buffer in descriptor */
 	u32 reserved1_2:24;
-        u32 card_err_sum:1;	/* transfer error flag */
+	u32 card_err_sum:1;	/* transfer error flag */
 	u32 own:1;		/* des owner:1-idma owns it, 0-host owns it */
 #if defined CONFIG_SUN4I
 #define SDXC_DES_NUM_SHIFT 13
@@ -447,7 +447,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	 * IDIE[1]      : IDMA receive interrupt flag
 	 */
 	rval = readl(&mmchost->reg->gctrl);
-	writel(rval | (1 << 5) | (1 << 2), &mmchost->reg->gctrl);	/* dma enable */
+	writel(rval | (1 << 5) | (1 << 2), &mmchost->reg->gctrl); /* dma enable */
 	writel((1 << 0), &mmchost->reg->dmac);	/* idma reset */
 	writel((1 << 1) | (1 << 7), &mmchost->reg->dmac);	/* idma on */
 	rval = readl(&mmchost->reg->idie) & (~3);
