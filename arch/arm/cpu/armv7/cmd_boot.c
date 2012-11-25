@@ -1,6 +1,5 @@
 /*
- * (C) Copyright 2000-2003
- * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ * (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
