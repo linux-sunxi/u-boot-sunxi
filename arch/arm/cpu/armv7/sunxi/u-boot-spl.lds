@@ -1,4 +1,10 @@
 /*
+ * (C) Copyright 2012
+ * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
+ * Tom Cubie <tangliang@allwinnertech.com>
+ *
+ * Based on omap-common/u-boot-spl.lds:
+ *
  * (C) Copyright 2002
  * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
  *
