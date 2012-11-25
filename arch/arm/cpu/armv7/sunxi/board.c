@@ -66,8 +66,8 @@ int gpio_init(void)
 #if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
 #ifdef CONFIG_SUN4I
 	/* disable GPB22,23 as uart0 tx,rx to avoid conflict */
-	gpio_direction_input(SUNXI_GPB(22));
-	gpio_direction_input(SUNXI_GPB(23));
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPIO_INPUT);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPIO_INPUT);
 #endif
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
