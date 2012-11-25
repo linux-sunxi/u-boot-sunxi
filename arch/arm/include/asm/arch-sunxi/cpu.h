@@ -130,13 +130,13 @@
 
 #ifndef __ASSEMBLY__
 /* boot type */
-typedef enum {
+enum sunxi_boot_type_t {
 	SUNXI_BOOT_TYPE_NULL,
 	SUNXI_BOOT_TYPE_MMC0,
 	SUNXI_BOOT_TYPE_NAND,
 	SUNXI_BOOT_TYPE_MMC2,
 	SUNXI_BOOT_TYPE_SPI
-} sunxi_boot_type_t;
+};
 
 sunxi_boot_type_t get_boot_type(void);
 void sunxi_board_init(void);
