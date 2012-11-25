@@ -47,7 +47,8 @@ DECLARE_GLOBAL_DATA_PTR;
  * Unfortunately we can't check how SPL was loaded so assume
  * it's always the first SD/MMC controller
  */
-u32 spl_boot_device(void) {
+u32 spl_boot_device(void)
+{
 	return BOOT_DEVICE_MMC1;
 }
 
