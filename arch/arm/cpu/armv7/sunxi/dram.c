@@ -109,11 +109,10 @@ static void mctl_enable_dllx(void)
 	bus_width >>= 6;
 	bus_width &= 7;
 
-	if (bus_width == 3) {
+	if (bus_width == 3)
 		n = 5;
-	} else {
+	else
 		n = 3;
-	}
 
 	for (i = 1; i < n; i++)
 		clrsetbits_le32(&dram->dllcr[i], 0x40000000, 0x80000000);
