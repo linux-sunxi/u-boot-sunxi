@@ -33,8 +33,6 @@
 #include <malloc.h>
 #include <mmc.h>
 
-#define MMCDBG(fmt, args...)	debug("[sunxi_mmc] " fmt, ##args)
-
 static void dumphex32(char *name, char *base, int len)
 {
 	__u32 i;
@@ -126,7 +124,7 @@ static int mmc_resource_init(int sdc_no)
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
-	MMCDBG("init mmc %d resource\n", sdc_no);
+	debug("init mmc %d resource\n", sdc_no);
 
 	switch (sdc_no) {
 	case 0:
@@ -175,7 +173,7 @@ static int mmc_clk_io_on(int sdc_no)
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
-	MMCDBG("init mmc %d clock and io\n", sdc_no);
+	debug("init mmc %d clock and io\n", sdc_no);
 
 	/* config gpio */
 	switch (sdc_no) {
@@ -298,7 +296,7 @@ static void mmc_set_ios(struct mmc *mmc)
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int clkdiv = 0;
 
-	MMCDBG("set ios: bus_width: %x, clock: %d, mod_clk\n", mmc->bus_width,
+	debug("set ios: bus_width: %x, clock: %d, mod_clk\n", mmc->bus_width,
 	       mmc->clock, mmchost->mod_clk);
 
 	/* Change clock first */
@@ -414,7 +412,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		} else {
 			pdes[des_idx].buf_addr_ptr2 = (u32)&pdes[des_idx + 1];
 		}
-		MMCDBG("frag %d, remain %d, des[%d](%08x): "
+		debug("frag %d, remain %d, des[%d](%08x): "
 			"[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
 			i, remain, des_idx, (u32)&pdes[des_idx],
 			(u32)((u32 *)&pdes[des_idx])[0],
@@ -469,7 +467,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	if (mmchost->fatal_err)
 		return -1;
 	if (cmd->resp_type & MMC_RSP_BUSY)
-		MMCDBG("mmc cmd %d check rsp busy\n", cmd->cmdidx);
+		debug("mmc cmd %d check rsp busy\n", cmd->cmdidx);
 	if (cmd->cmdidx == 12)
 		return 0;
 
@@ -513,7 +511,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		writel(data->blocks * data->blocksize, &mmchost->reg->bytecnt);
 	}
 
-	MMCDBG("mmc %d, cmd %d(0x%08x), arg 0x%08x\n", mmchost->mmc_no,
+	debug("mmc %d, cmd %d(0x%08x), arg 0x%08x\n", mmchost->mmc_no,
 	       cmd->cmdidx, cmdval | cmd->cmdidx, cmd->cmdarg);
 	writel(cmd->cmdarg, &mmchost->reg->arg);
 
@@ -529,7 +527,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		int ret = 0;
 
 		bytecnt = data->blocksize * data->blocks;
-		MMCDBG("trans data %d bytes\n", bytecnt);
+		debug("trans data %d bytes\n", bytecnt);
 #if defined(CONFIG_MMC_SUNXI_USE_DMA) && !defined(CONFIG_SPL_BUILD)
 		if (bytecnt > 64) {
 #else
@@ -557,7 +555,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		status = readl(&mmchost->reg->rint);
 		if (!timeout-- || (status & 0xbfc2)) {
 			error = status & 0xbfc2;
-			MMCDBG("cmd timeout %x\n", error);
+			debug("cmd timeout %x\n", error);
 			goto out;
 		}
 	} while (!(status & 0x4));
@@ -565,12 +563,12 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	if (data) {
 		unsigned done = 0;
 		timeout = usedma ? 0xffff * bytecnt : 0xffff;
-		MMCDBG("cacl timeout %x\n", timeout);
+		debug("cacl timeout %x\n", timeout);
 		do {
 			status = readl(&mmchost->reg->rint);
 			if (!timeout-- || (status & 0xbfc2)) {
 				error = status & 0xbfc2;
-				MMCDBG("data timeout %x\n", error);
+				debug("data timeout %x\n", error);
 				goto out;
 			}
 			if (data->blocks > 1)
@@ -586,7 +584,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			status = readl(&mmchost->reg->status);
 			if (!timeout--) {
 				error = -1;
-				MMCDBG("busy timeout\n");
+				debug("busy timeout\n");
 				goto out;
 			}
 		} while (status & (1 << 9));
@@ -597,12 +595,12 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		cmd->response[1] = readl(&mmchost->reg->resp2);
 		cmd->response[2] = readl(&mmchost->reg->resp1);
 		cmd->response[3] = readl(&mmchost->reg->resp0);
-		MMCDBG("mmc resp 0x%08x 0x%08x 0x%08x 0x%08x\n",
+		debug("mmc resp 0x%08x 0x%08x 0x%08x 0x%08x\n",
 		       cmd->response[3], cmd->response[2],
 		       cmd->response[1], cmd->response[0]);
 	} else {
 		cmd->response[0] = readl(&mmchost->reg->resp0);
-		MMCDBG("mmc resp 0x%08x\n", cmd->response[0]);
+		debug("mmc resp 0x%08x\n", cmd->response[0]);
 	}
 out:
 	if (data && usedma) {
@@ -625,7 +623,7 @@ out:
 	if (error) {
 		writel(0x7, &mmchost->reg->gctrl);
 		mmc_update_clk(mmc);
-		MMCDBG("mmc cmd %d err 0x%08x\n", cmd->cmdidx, error);
+		debug("mmc cmd %d err 0x%08x\n", cmd->cmdidx, error);
 	}
 	writel(0xffffffff, &mmchost->reg->rint);
 	writel(readl(&mmchost->reg->gctrl) | (1 << 1), &mmchost->reg->gctrl);
