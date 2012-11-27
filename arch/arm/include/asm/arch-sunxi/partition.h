@@ -31,7 +31,7 @@
 /* MBR       */
 #define     MBR_SIZE			    (16 * 1024)
 #define     DL_SIZE					(16 * 1024)
-#define   	MBR_MAGIC			    "softw311"
+#define   	MBR_MAGIC			    "softw411"
 #define     MBR_MAX_PART_COUNT		120
 #define     MBR_COPY_NUM          	4    //mbr的备份数量
 #define     MBR_RESERVED          	(MBR_SIZE - 32 - (MBR_MAX_PART_COUNT * sizeof(PARTITION)))   //mbr保留的空间

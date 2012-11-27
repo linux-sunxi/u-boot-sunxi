@@ -37,7 +37,7 @@
 //  nand driver 版本号
 //---------------------------------------------------------------
 #define  NAND_VERSION_0                 0x02
-#define  NAND_VERSION_1                 0x010
+#define  NAND_VERSION_1                 0x11
 
 //---------------------------------------------------------------
 //  结构体 定义
@@ -59,12 +59,12 @@ typedef struct
     __u32       OperationOpt;                       //the mask of the operation types which current nand flash can support support
     __u32        FrequencePar;                       //the parameter of the hardware access clock, based on 'MHz'
     __u32        EccMode;                            //the Ecc Mode for the nand flash chip, 0: bch-16, 1:bch-28, 2:bch_32   
-    __u32        NandChipId[8];                      //the nand chip id of current connecting nand chip
+    __u8        NandChipId[8];                      //the nand chip id of current connecting nand chip
     __u32       ValidBlkRatio;                      //the ratio of the valid physical blocks, based on 1024
 	__u32 		good_block_ratio;					//good block ratio get from hwscan
 	__u32		ReadRetryType;						//the read retry type
 	__u32       DDRType;
-	__u32		Reserved[32];
+	__u32		Reserved[22];
 }boot_nand_para_t;
 
 typedef struct boot_flash_info{
@@ -115,7 +115,6 @@ extern __s32 NAND_CacheWrite(__u32 blk, __u32 nblk, void *buf);
 extern __s32 NAND_CacheOpen(void);
 extern __s32 NAND_CacheClose(void);
 
-
 //for format
 extern __s32 FMT_Init(void);
 extern __s32 FMT_Exit(void);
@@ -133,7 +132,9 @@ extern __s32 PHY_ScanDDRParam(void);
 
 //for simplie(boot0)
 extern __s32 PHY_SimpleErase(struct boot_physical_param * eraseop);
+extern __s32 PHY_SimpleErase_2CH(struct boot_physical_param * eraseop);
 extern __s32 PHY_SimpleRead(struct boot_physical_param * readop);
+extern __s32 PHY_SimpleRead_2CH(struct boot_physical_param * readop);
 extern __s32 PHY_SimpleWrite(struct boot_physical_param * writeop);
 extern __s32 PHY_SimpleWrite_1K(struct boot_physical_param * writeop);
 extern __s32 PHY_SimpleWrite_Seq(struct boot_physical_param * writeop);
@@ -161,10 +162,17 @@ extern __s32 NFC_LSBExit(__u32 read_retry_type);
 //for rb int
 extern void NFC_RbIntEnable(void);
 extern void NFC_RbIntDisable(void);
-extern void NFC_RbIntClear(void);
-extern __u32 NFC_RbIntStatus(void);
+extern void NFC_RbIntClearStatus(void);
+extern __u32 NFC_RbIntGetStatus(void);
 extern __u32 NFC_GetRbSelect(void);
 extern __u32 NFC_GetRbStatus(__u32 rb);
+extern __u32 NFC_RbIntOccur(void);
+
+extern void NFC_DmaIntEnable(void);
+extern void NFC_DmaIntDisable(void);
+extern void NFC_DmaIntClearStatus(void);
+extern __u32 NFC_DmaIntGetStatus(void);
+extern __u32 NFC_DmaIntOccur(void);
 
 //for mbr
 extern int mbr2disks(struct nand_disk* disk_array);
@@ -175,7 +183,7 @@ extern int mbr2disks(struct nand_disk* disk_array);
 *   Description:
 *   1. if u wanna set dma callback hanlder(sleep during dma transfer) to free cpu for other tasks,
 *      one must call the interface before nand flash initialization.
-      this option is also protected by dma poll method,wakup(succeed or timeout) then check
+      this option is also protected by dma poll method,wakup(succeed or timeout) then check 
       dma transfer complete or still running.
 *   2. if u use dma poll method,no need to call the interface.
 *
