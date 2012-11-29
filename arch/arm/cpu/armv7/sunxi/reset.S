@@ -26,13 +26,17 @@
 
 #include <asm/arch/cpu.h>
 
-#define SUNXI_WDOG_CTL    0x01C20C90
-#define SUNXI_WDOG_MODE   0x01C20C94
+#define SUNXI_WDOG_CTL		0x01C20CB0
+#define SUNXI_WDOG_CFG		0x01C20CB4
+#define SUNXI_WDOG_MODE		0x01C20CB8
 
 .globl sunxi_reset
 sunxi_reset:
+	ldr r1, =SUNXI_WDOG_CFG
+	mov r3, #0x1
+	str r3, [r1]
 	ldr r1, =SUNXI_WDOG_MODE
-	mov r3, #0x3
+	mov r3, #0x1
 	str r3, [r1]
 	mov r0, r0
 _loop_forever:
