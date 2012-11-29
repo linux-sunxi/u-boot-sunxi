@@ -102,7 +102,7 @@ struct sunxi_mmc_des {
 	u32	data_buf1_sz	:13,
 		data_buf2_sz	:13,
     				:6;
-#else 
+#else
 #define SDXC_DES_NUM_SHIFT 15
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32	data_buf1_sz	:16,
@@ -166,7 +166,7 @@ static int mmc_clk_io_on(int sdc_no)
 	unsigned int divider;
 	unsigned int n, k, p;
 	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
-#ifndef MMC_FPGA
+#ifndef CONFIG_SUN6I_FPGA
 	static struct sunxi_gpio *gpio_c =
 			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
 	static struct sunxi_gpio *gpio_f =
@@ -203,7 +203,7 @@ static int mmc_clk_io_on(int sdc_no)
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
-	
+
 	/* config mod clock */
 	rval = readl(SUNXI_CCM_PLL5_CFG);
 	n = (rval >> 8) &  0x1f;
@@ -214,13 +214,13 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 4;
 	else
 		divider = 3;
-	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkbase);
+	writel((1U << 31) | (1U << 24) | divider, mmchost->mclkbase);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
 #else
-	mmchost->mod_clk = 24000000; 
+	mmchost->mod_clk = 24000000;
 #endif
 	return 0;
 }
@@ -313,7 +313,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 2)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
 			timeout = 0xfffff;
@@ -322,7 +322,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i=0; i<(byte_cnt>>2); i++) {
 			while(--timeout && (readl(&mmchost->reg->status)&(1 << 3)));
-			if (timeout <= 0) 
+			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
 			timeout = 0xfffff;
