@@ -51,7 +51,7 @@ static bd_t bdata __attribute__ ((section(".data")));
  */
 int storage_type = 0;
 int uart_console = 0;
-int mmc_card_no  = 2;
+int mmc_card_no  = 0;
 
 #ifdef CONFIG_CMD_NET
 extern int gmac_initialize(bd_t *bis);
@@ -111,7 +111,7 @@ void clock_init_u_boot(void)
 	ccm_set_ahb1_clk_src(AHB1_CLK_SRC);
 	ccm_set_apb2_clk(APB2_CLK);
 	ccm_clock_enable(UART0_CKID);
-	ccm_module_enable(UART0_CKID);	
+	ccm_module_enable(UART0_CKID);
 }
 */
 u32 get_base(void) {
