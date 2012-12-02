@@ -33,6 +33,8 @@
 #include <malloc.h>
 #include <mmc.h>
 
+#define CCMU_PLL6_CLK_BASE  (0x01c20000 + 0x28)
+
 #define MMC_FPGA
 #undef SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
@@ -115,6 +117,7 @@ struct sunxi_mmc_des {
 struct sunxi_mmc_host {
 	unsigned mmc_no;
 	unsigned hclkbase;
+	unsigned hclkrst;
 	unsigned mclkbase;
 	unsigned database;
 	unsigned fatal_err;
@@ -153,6 +156,7 @@ static int mmc_resource_init(int sdc_no)
 			break;
 	}
 	mmchost->hclkbase = SUNXI_CCM_AHB_GATING0;
+	mmchost->hclkrst = (0x1c20000 + 0x2c0);
 	mmchost->database = (unsigned int)mmchost->reg + 0x200;
 	mmchost->mmc_no = sdc_no;
 
@@ -165,36 +169,27 @@ static int mmc_clk_io_on(int sdc_no)
 	unsigned int pll5_clk;
 	unsigned int divider;
 	unsigned int n, k, p;
+	u32 gpioc_base = 0x01c20800 + 0x48;
+	u32 gpiof_base = 0x01c20800 + 0xb4;
+	u32 pll5_base = CCMU_PLL6_CLK_BASE;
 	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
 #ifndef CONFIG_SUN6I_FPGA
-	static struct sunxi_gpio *gpio_c =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-	static struct sunxi_gpio *gpio_f =
-			&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_F];
-	MMCDBG("init mmc %d clock and io\n", sdc_no);
-	/* config gpio */
 	switch (sdc_no) {
         case 0:
             /* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
-            writel(0x222222, &gpio_f->cfg[0]);
-            writel(0x555, &gpio_f->pull[0]);
-            writel(0xaaa, &gpio_f->drv[0]);
-            break;
+            writel(0x222222, gpiof_base + 0x0);
+            writel(0x555, gpiof_base + 0x1c);
+            writel(0xaaa, gpiof_base + 0x14);
 
-        case 1:
-            break;
+	        break;
 
         case 2:
             /* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
-            writel(0x33<<24, &gpio_c->cfg[0]);
-            writel(0x3333, &gpio_c->cfg[1]);
-            writel(0x555<<12, &gpio_c->pull[0]);
-            writel(0xaaa<<12, &gpio_c->drv[0]);
+            writel(0x33000000, gpioc_base + 0x0);
+            writel(0x3333, gpioc_base + 0x4);
+            writel(0x555 << 12, gpioc_base + 0x1c);
+            writel(0xaaa << 12, gpioc_base + 0x14);
             break;
-
-        case 3:
-            break;
-
         default:
             return -1;
 	}
@@ -204,8 +199,12 @@ static int mmc_clk_io_on(int sdc_no)
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
 
+	rval = readl(mmchost->hclkrst);
+	rval |= (1 << (8 + sdc_no));
+	writel(rval, mmchost->hclkrst);
+
 	/* config mod clock */
-	rval = readl(SUNXI_CCM_PLL5_CFG);
+	rval = readl(CCMU_PLL6_CLK_BASE);
 	n = (rval >> 8) &  0x1f;
 	k = ((rval >> 4) & 3) + 1;
 	p = 1 << ((rval >> 16) & 3);
@@ -214,8 +213,10 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 4;
 	else
 		divider = 3;
-	writel((1U << 31) | (1U << 24) | divider, mmchost->mclkbase);
-	mmchost->mod_clk = pll5_clk / (divider + 1);
+	//writel((1U << 31) | (1U << 24) | divider, mmchost->mclkbase);
+	//mmchost->mod_clk = pll5_clk / (divider + 1);
+	writel(0x80000000, mmchost->mclkbase);
+	mmchost->mod_clk = 24000000;
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);

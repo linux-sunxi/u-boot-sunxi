@@ -33,7 +33,8 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN6I				/* which is sun6i */
-#define CONFIG_SUN6I_FPGA			/* working with fpga board */
+//#define CONFIG_SUN6I_FPGA			/* working with fpga board */
+#undef  CONFIG_SUN6I_FPGA
 #define CONFIG_CMD_BOOTA
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
@@ -101,7 +102,7 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
-#define CONFIG_MMC_SUNXI_USE_DMA
+//#define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
 #define CONFIG_STORAGE_EMMC
