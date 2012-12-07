@@ -96,7 +96,7 @@ char *sw_cfg_get_str(const char *script_buf, const char *main_key, const char *s
  *
 -#########################################################################################*/
 static  char  *script_mod_buf = (char *)0x4; //pointer to first key
-static  int    script_main_key_count = 0;
+static  int    script_main_key_count = -1;
 
 static  int   _test_str_length(char *str)
 {
