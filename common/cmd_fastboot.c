@@ -1151,7 +1151,9 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			{
 				struct fastboot_ptentry *ptn;
 
-				ptn = fastboot_flash_find_ptn(cmdbuf + 6);
+                /*printf("%s,%d,buffer size = %d\n", __func__, __LINE__, buffer_size);*/
+                *(char*)(buffer + buffer_size) = 0;
+                ptn = fastboot_flash_find_ptn(cmdbuf + 6);
 				if (ptn == 0)
 				{
 					printf("Partition:'%s' does not exist\n", ptn->name);
@@ -1739,7 +1741,7 @@ fastboot_ptentry *fastboot_flash_find_ptn(const char *name)
 {
     unsigned int n;
 
-	printf("find ptn: %s\n", name);
+    printf("To find ptn: %s\n", name);
 
     for(n = 0; n < pcount; n++) {
 	    /* Make sure a substring is not accepted */
