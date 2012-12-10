@@ -70,3 +70,5 @@ cscope.*
 /onenand_ipl/onenand-ipl*
 /onenand_ipl/board/*/onenand*
 /onenand_ipl/board/*/*.S
+
+arch/arm/cpu/armv7/sunxi/asm-offsets.s
