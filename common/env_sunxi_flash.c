@@ -129,6 +129,8 @@ static void flash_env_relocate_spec(void)
 	}
 	env_import(buf, 1);
 
+	env_offset = start << 9;
+	printf("env_offset: %u\n", start);
 #endif
 }
 
