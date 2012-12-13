@@ -86,6 +86,7 @@ void arch_lmb_reserve(struct lmb *lmb)
 
 static void announce_and_cleanup(void)
 {
+	stick_printf();
 	printf("\nStarting kernel ...\n\n");
 
 #ifdef CONFIG_USB_DEVICE

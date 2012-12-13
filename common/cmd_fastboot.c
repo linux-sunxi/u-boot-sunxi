@@ -1565,6 +1565,10 @@ int do_fastboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	 * static paritions.  First save the start off so
 	 * it can be saved from run to run.
 	 */
+
+	/* new add */
+	fastboot_partition_init();
+
 	fastboot_flash_dump_ptn();
 
 	if (static_pcount >= 0) {

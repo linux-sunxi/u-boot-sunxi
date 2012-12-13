@@ -204,6 +204,7 @@ int env_import(const char *buf, int check)
 {
 	env_t *ep = (env_t *)buf;
 
+	tick_printf(__FILE__, __LINE__);
 	if (check) {
 		uint32_t crc;
 
@@ -214,9 +215,11 @@ int env_import(const char *buf, int check)
 			return 0;
 		}
 	}
-
+	tick_printf(__FILE__, __LINE__);
 	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', 0)) {
 		gd->flags |= GD_FLG_ENV_READY;
+
+		tick_printf(__FILE__, __LINE__);
 		return 1;
 	}
 

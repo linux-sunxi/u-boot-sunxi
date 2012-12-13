@@ -62,8 +62,14 @@ static int
 sunxi_flash_nand_read(unsigned int start_block, unsigned int nblock, void *buffer){
 	unsigned int nsize;
 
+	int ret;
+
+	tick_printf(__FILE__, __LINE__);
 	nsize = nblock<<9;
-	return sunxi_nand_read_opts(&nand_info[0], start_block<<9, &nsize, buffer, 0);
+	ret = sunxi_nand_read_opts(&nand_info[0], start_block<<9, &nsize, buffer, 0);
+	tick_printf(__FILE__, __LINE__);
+
+	return ret;
 }
 
 static int
@@ -89,7 +95,7 @@ static int
 sunxi_flash_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
+
 	status = mmc->block_dev.block_read(CONFIG_SYS_MMC_ENV_DEV, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
@@ -100,7 +106,7 @@ static int
 sunxi_flash_mmc_write(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
+
 	status = mmc->block_dev.block_write(CONFIG_SYS_MMC_ENV_DEV, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
@@ -124,7 +130,7 @@ int sunxi_flash_handle_init(void){
 	sunxi_flash_write = sunxi_flash_null_write;
 	sunxi_flash_get_size  = sunxi_flash_null_get_size;
 	sunxi_flash_exit  = sunxi_flash_null_exit;
-	
+
 	if(storage_type == 0){
 		sunxi_flash_read  = sunxi_flash_nand_read;
 		sunxi_flash_write = sunxi_flash_nand_write;
@@ -142,7 +148,7 @@ int sunxi_flash_handle_init(void){
 			puts("MMC init failed\n");
 			return  -1;
 		}
-		
+
 		sunxi_flash_read  = sunxi_flash_mmc_read;
 		sunxi_flash_write = sunxi_flash_mmc_write;
 		sunxi_flash_get_size  = sunxi_flash_mmc_get_size;

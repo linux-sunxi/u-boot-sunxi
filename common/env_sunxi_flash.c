@@ -116,17 +116,19 @@ static void flash_env_relocate_spec(void)
 	u32 start;
 	u32 size;
 
+	tick_printf(__FILE__, __LINE__);
 	start = sunxi_partition_get_offset_byname(CONFIG_SUNXI_ENV_PARTITION);
 	if(start == (u32)(-1)){
 		printf("fail to find part named %s\n", CONFIG_SUNXI_ENV_PARTITION);
 		use_default();
 		return;
 	}
-
+	tick_printf(__FILE__, __LINE__);
 	if(sunxi_flash_read(start, CONFIG_ENV_SIZE/512, buf)){
 		use_default();
 		return;
 	}
+	tick_printf(__FILE__, __LINE__);
 	env_import(buf, 1);
 
 #endif
@@ -138,7 +140,9 @@ void env_relocate_spec(void)
 #ifdef DEBUG
 	printf("env_relocate_spec storage_type = %d\n", storage_type);
 #endif
+	tick_printf(__FILE__, __LINE__);
 	flash_env_relocate_spec();
+	tick_printf(__FILE__, __LINE__);
 }
 
 #if !defined(ENV_IS_EMBEDDED)

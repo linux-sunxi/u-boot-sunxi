@@ -123,3 +123,43 @@ ulong get_tbclk(void)
 	tbclk = CONFIG_SYS_HZ;
 	return tbclk;
 }
+
+//#define  __TICK_PRINTF__
+
+#ifdef __TICK_PRINTF__
+void tick_printf(char *s, int line)
+{
+	uint time, time_sec, time_rest;
+
+	time = *(volatile unsigned int *)(0x01c20C00 + 0x84);
+	time_sec = time/1000;
+	time_rest = time%1000;
+	if(!s)
+	{
+		printf("[%8d.%3d] %s\n",time_sec, time_rest);
+	}
+	else
+	{
+		printf("[%8d.%3d] %s %d\n",time_sec, time_rest, s, line);
+	}
+
+	return ;
+}
+#else
+void tick_printf(char *s, int line)
+{
+}
+#endif
+
+void stick_printf(void)
+{
+	uint time, time_sec, time_rest;
+
+	time = *(volatile unsigned int *)(0x01c20C00 + 0x84);
+	time_sec = time/1000;
+	time_rest = time%1000;
+	printf("[%8d.%3d]\n",time_sec, time_rest);
+
+	return ;
+}
+
