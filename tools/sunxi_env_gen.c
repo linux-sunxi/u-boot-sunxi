@@ -44,7 +44,8 @@ int main(int argc, char * argv[])
 	char tmp[ENV_SIZE];
 	
 	env_t env;
-
+	memset(env.data,0,ENV_SIZE);
+	memset(tmp,0,ENV_SIZE);
 	size_t len = 0;
 
 	if(argc != 3) {
