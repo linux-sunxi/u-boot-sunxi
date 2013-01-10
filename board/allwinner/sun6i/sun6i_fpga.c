@@ -283,6 +283,9 @@ int board_late_init(void)
 }
 void dram_init_banksize(void)
 {
+	/*
+	 * We should init the Dram options, and kernel get it by tag.
+	 */
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
 	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
