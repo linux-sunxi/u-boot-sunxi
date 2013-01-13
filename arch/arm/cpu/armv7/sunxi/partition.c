@@ -34,7 +34,7 @@ typedef struct crc32_data
 	u32 table[256];
 }crc32_data_t;
 
-static char mbr_buf[1024];
+static char mbr_buf[MBR_SIZE];
 
 static u32 calc_crc32(void * buffer, u32 length)
 {
