@@ -68,7 +68,7 @@ uchar env_get_char_spec(int index)
 int env_init(void)
 {
 #ifdef DEBUG
-	printf("env init\n");
+//	printf("env init\n");
 #endif
 	/* use default */
 	gd->env_addr = (ulong)&default_environment[0];

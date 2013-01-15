@@ -34,7 +34,7 @@
 #include <mmc.h>
 
 #undef SUNXI_MMCDBG
-
+#define SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
 
@@ -218,12 +218,15 @@ static int mmc_clk_io_on(int sdc_no)
 	k = ((rval >> 4) & 3) + 1;
 	p = 1 << ((rval >> 16) & 3);
 	pll5_clk = 24000000 * n * k / p;
+    MMCDBG("PLL5 clock=%d\n",pll5_clk);
 	if (pll5_clk > 400000000)
 		divider = 4;
 	else
 		divider = 3;
+    //is there some problem ??? the phease is zero
 	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkbase);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
+    MMCDBG("mmchost->mod_clk=%d\n",mmchost->mod_clk);
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);

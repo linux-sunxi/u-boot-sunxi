@@ -468,7 +468,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 	sw_gpio_init();
 	if(script_parser_fetch("target", "storage_type", &storage_type, sizeof(int)))
+	{
+		printf("can't fetch storage_type from script,set to zero\n");
 		storage_type = 0;
+	}
 	if((storage_type < 0) || (storage_type > 2)){
 		storage_type = 0;
 	}
@@ -531,9 +534,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 #ifdef CONFIG_ALLWINNER
 	//liugang add for card boot, 2012-10-23
-	printf("%s: mannly set storage_type/mmc_card_no = 2, for card boot, by liugang\n", __func__);
-	storage_type = 2;
-	mmc_card_no = 2;
+	//printf("%s: mannly set storage_type/mmc_card_no = 0, for card boot, by liugang\n", __func__);
+	//storage_type = 1;
+	//mmc_card_no = 0;
 
 	if(!storage_type){
 		puts("NAND:  ");

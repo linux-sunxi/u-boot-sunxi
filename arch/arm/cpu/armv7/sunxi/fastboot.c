@@ -1705,7 +1705,7 @@ u32 close_usb_clock(u32 ccmu_base)
 int fastboot_init(struct cmd_fastboot_interface *interface)
 {
 	bsp_usbc_t usbc;
-#if DEBUG
+#ifdef DEBUG
     printf("fastboot_init\n");
 #endif
     device_strings[DEVICE_STRING_MANUFACTURER_INDEX]    = DEVICE_MANUFACTURER;
