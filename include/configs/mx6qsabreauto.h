@@ -15,9 +15,15 @@
 #define CONFIG_MACH_TYPE	3529
 #define CONFIG_MXC_UART_BASE	UART4_BASE
 #define CONFIG_CONSOLE_DEV		"ttymxc3"
+#define CONFIG_DEFAULT_FDT_FILE	"imx6q-sabreauto.dtb"
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"
 #define PHYS_SDRAM_SIZE		(2u * 1024 * 1024 * 1024)
 
 #include "mx6qsabre_common.h"
+
+#define CONFIG_SYS_FSL_USDHC_NUM	2
+#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_SYS_MMC_ENV_DEV		0
+#endif
 
 #endif                         /* __MX6QSABREAUTO_CONFIG_H */

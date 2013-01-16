@@ -179,6 +179,9 @@
 #define IH_MAGIC	0x27051956	/* Image Magic Number		*/
 #define IH_NMLEN		32	/* Image Name Length		*/
 
+/* Reused from common.h */
+#define ROUND(a, b)		(((a) + (b) - 1) & ~((b) - 1))
+
 /*
  * Legacy format image header,
  * all data in network byte order (aka natural aka bigendian).
@@ -460,7 +463,6 @@ static inline void image_set_name(image_header_t *hdr, const char *name)
 int image_check_hcrc(const image_header_t *hdr);
 int image_check_dcrc(const image_header_t *hdr);
 #ifndef USE_HOSTCC
-int getenv_yesno(char *var);
 ulong getenv_bootm_low(void);
 phys_size_t getenv_bootm_size(void);
 phys_size_t getenv_bootm_mapsize(void);
@@ -615,6 +617,7 @@ int fit_image_check_type(const void *fit, int noffset, uint8_t type);
 int fit_image_check_comp(const void *fit, int noffset, uint8_t comp);
 int fit_check_format(const void *fit);
 
+int fit_conf_find_compat(const void *fit, const void *fdt);
 int fit_conf_get_node(const void *fit, const char *conf_uname);
 int fit_conf_get_kernel_node(const void *fit, int noffset);
 int fit_conf_get_ramdisk_node(const void *fit, int noffset);

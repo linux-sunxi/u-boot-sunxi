@@ -34,10 +34,6 @@
 #define CONFIG_SYS_TEXT_BASE	0x97800000
 
 #include <asm/arch/imx-regs.h>
-/*
- * Disabled for now due to build problems under Debian and a significant
- * increase in the final file size: 144260 vs. 109536 Bytes.
- */
 
 #define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -144,12 +140,12 @@
  ***********************************************************/
 
 #include <config_cmd_default.h>
-
+#define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
 #define CONFIG_CMD_DATE
 
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	1
 
 #define CONFIG_ETHPRIME		"FEC0"
 
@@ -235,6 +231,7 @@
 
 #define CONFIG_SYS_DDR_CLKSEL	0
 #define CONFIG_SYS_CLKTL_CBCDR	0x59E35100
+#define CONFIG_SYS_MAIN_PWR_ON
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization

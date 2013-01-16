@@ -402,13 +402,13 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
-	serial_initialize();
-
 	debug ("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
 
 	WATCHDOG_RESET ();
 
 	gd->reloc_off =  dest_addr - CONFIG_SYS_MONITOR_BASE;
+
+	serial_initialize();
 
 	monitor_flash_len = (ulong)&__init_end - dest_addr;
 
@@ -462,8 +462,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		 *
 		 * NOTE: Maybe we should add some WATCHDOG_RESET()? XXX
 		 */
-		s = getenv ("flashchecksum");
-		if (s && (*s == 'y')) {
+		if (getenv_yesno("flashchecksum") == 1) {
 			printf ("  CRC: %08X",
 					crc32 (0,
 						   (const unsigned char *) CONFIG_SYS_FLASH_BASE,

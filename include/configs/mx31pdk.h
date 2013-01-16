@@ -61,6 +61,7 @@
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE	UART1_BASE
 #define CONFIG_HW_WATCHDOG
+#define CONFIG_IMX_WATCHDOG
 #define CONFIG_MXC_GPIO
 
 #define CONFIG_HARD_SPI
@@ -106,7 +107,7 @@
 
 #define CONFIG_BOARD_LATE_INIT
 
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	1
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
 	"bootargs_base=setenv bootargs console=ttymxc0,115200\0"	\

@@ -40,6 +40,7 @@
 #define CLK_MODE_MASK		0xfffffff8
 #define CLK_DIV_SEL		0xFFFFFFE0
 #define CPGMAC0_IDLE		0x30000
+#define DPLL_CLKDCOLDO_GATE_CTRL        0x300
 
 const struct cm_perpll *cmper = (struct cm_perpll *)CM_PER;
 const struct cm_wkuppll *cmwkup = (struct cm_wkuppll *)CM_WKUP;
@@ -150,6 +151,16 @@ static void enable_per_clocks(void)
 		;
 #endif /* CONFIG_SERIAL6 */
 
+	/* GPMC */
+	writel(PRCM_MOD_EN, &cmper->gpmcclkctrl);
+	while (readl(&cmper->gpmcclkctrl) != PRCM_MOD_EN)
+		;
+
+	/* ELM */
+	writel(PRCM_MOD_EN, &cmper->elmclkctrl);
+	while (readl(&cmper->elmclkctrl) != PRCM_MOD_EN)
+		;
+
 	/* MMC0*/
 	writel(PRCM_MOD_EN, &cmper->mmc0clkctrl);
 	while (readl(&cmper->mmc0clkctrl) != PRCM_MOD_EN)
@@ -193,6 +204,11 @@ static void enable_per_clocks(void)
 	/* RTC */
 	writel(PRCM_MOD_EN, &cmrtc->rtcclkctrl);
 	while (readl(&cmrtc->rtcclkctrl) != PRCM_MOD_EN)
+		;
+
+	/* MUSB */
+	writel(PRCM_MOD_EN, &cmper->usb0clkctrl);
+	while (readl(&cmper->usb0clkctrl) != PRCM_MOD_EN)
 		;
 }
 
@@ -290,6 +306,8 @@ static void per_pll_config(void)
 
 	while (readl(&cmwkup->idlestdpllper) != ST_DPLL_CLK)
 		;
+
+	writel(DPLL_CLKDCOLDO_GATE_CTRL, &cmwkup->clkdcoldodpllper);
 }
 
 void ddr_pll_config(unsigned int ddrpll_m)

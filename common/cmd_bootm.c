@@ -537,7 +537,7 @@ static int do_bootm_subcommand(cmd_tbl_t *cmdtp, int flag, int argc,
 		}
 			break;
 #endif
-#if defined(CONFIG_OF_LIBFDT)
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_LMB)
 		case BOOTM_STATE_FDT:
 		{
 			boot_fdt_add_mem_rsv_regions(&images.lmb,
@@ -592,12 +592,18 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	static int relocated = 0;
 
-	/* relocate boot function table */
 	if (!relocated) {
 		int i;
+
+		/* relocate boot function table */
 		for (i = 0; i < ARRAY_SIZE(boot_os); i++)
 			if (boot_os[i] != NULL)
 				boot_os[i] += gd->reloc_off;
+
+		/* relocate names of sub-command table */
+		for (i = 0; i < ARRAY_SIZE(cmd_bootm_sub); i++)
+			cmd_bootm_sub[i].name += gd->reloc_off;
+
 		relocated = 1;
 	}
 #endif
@@ -949,8 +955,19 @@ static void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 			 * node
 			 */
 			bootstage_mark(BOOTSTAGE_ID_FIT_NO_UNIT_NAME);
+#ifdef CONFIG_FIT_BEST_MATCH
+			if (fit_uname_config)
+				cfg_noffset =
+					fit_conf_get_node(fit_hdr,
+							  fit_uname_config);
+			else
+				cfg_noffset =
+					fit_conf_find_compat(fit_hdr,
+							     gd->fdt_blob);
+#else
 			cfg_noffset = fit_conf_get_node(fit_hdr,
 							fit_uname_config);
+#endif
 			if (cfg_noffset < 0) {
 				bootstage_error(BOOTSTAGE_ID_FIT_NO_UNIT_NAME);
 				return NULL;

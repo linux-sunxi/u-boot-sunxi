@@ -80,11 +80,18 @@
 #define DDRPHY_0_CONFIG_BASE		(CTRL_BASE + 0x1400)
 #define DDRPHY_CONFIG_BASE		DDRPHY_0_CONFIG_BASE
 
+/* GPMC Base address */
+#define GPMC_BASE			0x50000000
+
 /* CPSW Config space */
 #define AM335X_CPSW_BASE		0x4A100000
 #define AM335X_CPSW_MDIO_BASE		0x4A101000
 
 /* RTC base address */
 #define AM335X_RTC_BASE			0x44E3E000
+
+/* OTG */
+#define AM335X_USB0_OTG_BASE		0x47401000
+#define AM335X_USB1_OTG_BASE		0x47401800
 
 #endif /* __AM33XX_HARDWARE_H */

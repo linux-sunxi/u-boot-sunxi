@@ -54,6 +54,7 @@
 #define CONFIG_MACH_TYPE		MACH_TYPE_SEABOARD
 
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_LATE_INIT		/* Make sure LCD init is complete */
 
 /* I2C */
 #define CONFIG_TEGRA_I2C
@@ -71,8 +72,11 @@
 
 #define CONFIG_DOS_PARTITION
 #define CONFIG_EFI_PARTITION
+#define CONFIG_FS_EXT4
+#define CONFIG_FS_FAT
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
+#define CONFIG_CMD_FS_GENERIC
 
 /* Environment in eMMC, at the end of 2nd "boot sector" */
 #define CONFIG_ENV_IS_IN_MMC
@@ -99,12 +103,16 @@
 #define CONFIG_TEGRA_KEYBOARD
 #define CONFIG_KEYBOARD
 
-#undef TEGRA_DEVICE_SETTINGS
-#define TEGRA_DEVICE_SETTINGS	"stdin=serial,tegra-kbc\0" \
-				"stdout=serial\0" \
-				"stderr=serial\0"
+/* USB keyboard */
+#define CONFIG_USB_KEYBOARD
 
-#include "tegra-common-post.h"
+/* LCD support */
+#define CONFIG_LCD
+#define CONFIG_PWM_TEGRA
+#define CONFIG_VIDEO_TEGRA
+#define LCD_BPP				LCD_COLOR16
+#define CONFIG_SYS_WHITE_ON_BLACK
+#define CONFIG_CONSOLE_SCROLL_LINES	10
 
 /* NAND support */
 #define CONFIG_CMD_NAND
@@ -113,6 +121,6 @@
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 
-/* Somewhat oddly, the NAND base address must be a config option */
-#define CONFIG_SYS_NAND_BASE	NV_PA_NAND_BASE
+#include "tegra-common-post.h"
+
 #endif /* __CONFIG_H */

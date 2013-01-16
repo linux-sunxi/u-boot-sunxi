@@ -52,8 +52,11 @@
 
 #define CONFIG_DOS_PARTITION
 #define CONFIG_EFI_PARTITION
+#define CONFIG_FS_EXT4
+#define CONFIG_FS_FAT
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
+#define CONFIG_CMD_FS_GENERIC
 
 /* Environment in eMMC, at the end of 2nd "boot sector" */
 #define CONFIG_ENV_IS_IN_MMC
@@ -74,6 +77,9 @@
 /* General networking support */
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
+
+/* USB keyboard */
+#define CONFIG_USB_KEYBOARD
 
 #include "tegra-common-post.h"
 

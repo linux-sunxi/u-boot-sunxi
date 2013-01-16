@@ -492,9 +492,9 @@ int usb_get_configuration_no(struct usb_device *dev,
 {
 	int result;
 	unsigned int tmp;
-	struct usb_configuration_descriptor *config;
+	struct usb_config_descriptor *config;
 
-	config = (struct usb_configuration_descriptor *)&buffer[0];
+	config = (struct usb_config_descriptor *)&buffer[0];
 	result = usb_get_descriptor(dev, USB_DT_CONFIG, cfgno, buffer, 9);
 	if (result < 9) {
 		if (result < 0)
@@ -805,6 +805,18 @@ struct usb_device *usb_alloc_new_device(void *controller)
 	return &usb_dev[dev_index - 1];
 }
 
+/*
+ * Free the newly created device node.
+ * Called in error cases where configuring a newly attached
+ * device fails for some reason.
+ */
+void usb_free_device(void)
+{
+	dev_index--;
+	USB_PRINTF("Freeing device node: %d\n", dev_index);
+	memset(&usb_dev[dev_index], 0, sizeof(struct usb_device));
+	usb_dev[dev_index].devnum = -1;
+}
 
 /*
  * By the time we get here, the device has gotten a new device ID
