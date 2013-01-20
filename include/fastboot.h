@@ -158,7 +158,7 @@ typedef struct fastboot_ptentry fastboot_ptentry;
 struct fastboot_ptentry
 {
 	/* The logical name for this partition, null terminated */
-	char name[16];
+	char name[32];
 	/* The start wrt the nand part, must be multiple of nand block size */
 	unsigned int start;
 	/* The length of the partition, must be multiple of nand block size */

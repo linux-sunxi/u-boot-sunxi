@@ -215,6 +215,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	sunxi_flash_exit();
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
+	sr32(SUNXI_CCM_APB1_GATING, 16, 2, 0);
 	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
 
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);

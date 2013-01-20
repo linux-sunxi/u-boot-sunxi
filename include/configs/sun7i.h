@@ -115,7 +115,7 @@
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (4 << 20))
 
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND

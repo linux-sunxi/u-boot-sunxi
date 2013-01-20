@@ -96,7 +96,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 		if((!strncmp(part_name, "boot", 4)) || (!strncmp(part_name, "recovery", 4)))
 		{
-			readall_flag = 1;
+		//	readall_flag = 1;
 		}
 		start_block = sunxi_partition_get_offset_byname((const char *)part_name);
 		if(start_block == (u64)(-1))

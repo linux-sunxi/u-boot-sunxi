@@ -42,8 +42,8 @@ void fastboot_flash_partition_init(void)
 {
 	fastboot_ptentry fb_part;
 	int index, part_total;
-	char partition_sets[256];
-	char part_name[16];
+	char partition_sets[512];
+	char part_name[32];
 	char *pa_index;
 	int  part_name_count;	
 
@@ -57,9 +57,9 @@ void fastboot_flash_partition_init(void)
 	}
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
-	memset(partition_sets, ' ', 256);
+	memset(partition_sets, ' ', sizeof(partition_sets));
 
-	memset(part_name, 0, 16);
+	memset(part_name, 0, sizeof(part_name));
 	if(!storage_type)
 	{
 		memcpy(part_name, "nanda", 5);

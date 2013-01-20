@@ -25,7 +25,8 @@ include $(TOPDIR)/config.mk
 
 all:
 ifeq ($(notdir $(shell find ./ -name lib)), lib)
-
+	
+	@echo "make lib-nand from source"
 	make -C lib
 
 else

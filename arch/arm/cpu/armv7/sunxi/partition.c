@@ -178,11 +178,11 @@ int sunxi_partition_init(void)
         crc = calc_crc32(&mbr->version, MBR_SIZE-4);
         if(crc == mbr->crc32)
         {
-            if(mbr->PartCount < 32)
+            if(mbr->PartCount < MBR_MAX_PART_COUNT)
             {
                 PARTITION* pe = mbr->array;
 
-                for(i=0; i<mbr->PartCount && i < MBR_MAX_PART_COUNT; i++, pe++)
+                for(i=0; i<mbr->PartCount; i++, pe++)
                 {
                     unsigned long long  len, addr;
 
