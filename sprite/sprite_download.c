@@ -186,7 +186,7 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 		//memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t));
 		nand_uboot_get_flash_info((void *)boot0->prvt_head.storage_data, STORAGE_BUFFER_SIZE);
 	}
-	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
+//	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
 	/* regenerate check sum */
 	boot0->boot_head.check_sum = sunxi_sprite_generate_checksum(buffer, boot0->boot_head.length, boot0->boot_head.check_sum);
 	//校验数据是否正确

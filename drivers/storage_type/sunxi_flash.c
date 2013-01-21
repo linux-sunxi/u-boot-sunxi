@@ -34,12 +34,12 @@
 *
 *                                             function
 *
-*    
 *
-*    
 *
-*    
-*    
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -68,12 +68,12 @@ sunxi_null_exit(void){
 *
 *                                             function
 *
-*    
 *
-*    
 *
-*    
-*    
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -98,12 +98,12 @@ static struct mmc *mmc_boot, *mmc_sprite;
 *
 *                                             function
 *
-*    
 *
-*    
 *
-*    
-*    
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -144,12 +144,12 @@ sunxi_flash_nand_exit(void)
 *
 *                                             function
 *
-*    
 *
-*    
 *
-*    
-*    
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -171,7 +171,7 @@ sunxi_flash_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer
 //sunxi_mmc_read_sequence(unsigned int start_block, unsigned int nblock, void *buffer){
 
 //	int status;
-	
+
 //	status = mmc_boot->block_dev.block_int_read(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 //					nblock, buffer);
 
@@ -183,7 +183,7 @@ static int
 sunxi_flash_mmc_write(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
+
 	status = mmc_boot->block_dev.block_write(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
@@ -205,12 +205,12 @@ sunxi_flash_mmc_exit(void){
 *
 *                                             function
 *
-*    
 *
-*    
 *
-*    
-*    
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -218,7 +218,7 @@ static int
 sunxi_sprite_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
+
 	status = mmc_sprite->block_dev.block_read(mmc_sprite->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
@@ -229,7 +229,7 @@ static int
 sunxi_sprite_mmc_write(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
-	
+
 	status = mmc_sprite->block_dev.block_write(mmc_sprite->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 
@@ -257,12 +257,12 @@ sunxi_sprite_mmc_exit(void){
 *
 *											  function
 *
-*	 
 *
-*	 
 *
-*	 
-*	 
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -324,12 +324,12 @@ int sunxi_sprite_exit(void)
 *
 *											  function
 *
-*	 
 *
-*	 
 *
-*	 
-*	 
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */
@@ -342,10 +342,11 @@ int sunxi_flash_handle_init(void)
 
 //	uboot_spare_head.boot_data.storage_type = 0;
 //	uboot_spare_head.boot_data.work_mode = WORK_MODE_BOOT;//WORK_MODE_CARD_PRODUCT;
-	
+
     workmode = uboot_spare_head.boot_data.work_mode;
 #ifdef DEBUG
-    printf("workmode = %d\n", workmode);    
+    printf("workmode = %d\n", workmode);
+    debug("storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 #endif
 
 	if(workmode == WORK_MODE_BOOT)
@@ -380,11 +381,11 @@ int sunxi_flash_handle_init(void)
 				return  -1;
 			}
 			debug("mmc %d init ok\n", card_no);
-			
+
 			sunxi_flash_read_pt  = sunxi_flash_mmc_read;
 			sunxi_flash_write_pt = sunxi_flash_mmc_write;
 			sunxi_flash_size_pt  = sunxi_flash_mmc_size;
-			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;			
+			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;
 		}
 		else
 		{
@@ -392,7 +393,7 @@ int sunxi_flash_handle_init(void)
 			sdc_used  = 0;
             script_parser_patch("nand_para", "nand_used", &nand_used, 1);
 		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
-			
+
 		    puts("NAND:   ");
 		    nand_uboot_init(1);
 			debug("init ok\n");
@@ -407,12 +408,12 @@ int sunxi_flash_handle_init(void)
 	else if(workmode & WORK_MODE_PRODUCT)		/* 量产模式 */
 	{
 	    if(1)                  /* burn nand */
-        {			
+        {
             sunxi_sprite_read_pt  = sunxi_flash_nand_read;
 			sunxi_sprite_write_pt = sunxi_flash_nand_write;
 			sunxi_sprite_erase_pt = sunxi_flash_nand_erase;
 			sunxi_sprite_size_pt  = sunxi_flash_nand_size;
-			sunxi_sprite_exit_pt  = sunxi_flash_nand_exit;	
+			sunxi_sprite_exit_pt  = sunxi_flash_nand_exit;
 
 			debug("sunxi sprite has installed nand function\n");
 			uboot_spare_head.boot_data.storage_type = 0;
@@ -434,7 +435,7 @@ int sunxi_flash_handle_init(void)
 			sunxi_sprite_write_pt = sunxi_sprite_mmc_write;
 			sunxi_sprite_erase_pt = sunxi_sprite_mmc_erase;
 			sunxi_sprite_size_pt  = sunxi_sprite_mmc_size;
-			sunxi_sprite_exit_pt  = sunxi_sprite_mmc_exit;	
+			sunxi_sprite_exit_pt  = sunxi_sprite_mmc_exit;
 
 			debug("sunxi sprite has installed sdcard2 function\n");
 			uboot_spare_head.boot_data.storage_type = 2;
@@ -442,7 +443,7 @@ int sunxi_flash_handle_init(void)
 
 		if(workmode & 0x07)     //sdcard burn mode
 		{
-            board_mmc_pre_init(0);	
+            board_mmc_pre_init(0);
 			mmc_boot = find_mmc_device(0);
 			if(!mmc_boot)
 			{
@@ -458,7 +459,7 @@ int sunxi_flash_handle_init(void)
 			sunxi_flash_read_pt  = sunxi_flash_mmc_read;
 			sunxi_flash_write_pt = sunxi_flash_mmc_write;
 			sunxi_flash_size_pt  = sunxi_flash_mmc_size;
-			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;			    
+			sunxi_flash_exit_pt  = sunxi_flash_mmc_exit;
 		}
 	}
 	else if(workmode & WORK_MODE_UPDATE)		/* 升级模式 */
@@ -467,7 +468,7 @@ int sunxi_flash_handle_init(void)
 	else   /* undefined mode */
 	{
 	}
-	
+
 	return 0;
 }
 /*
@@ -475,12 +476,12 @@ int sunxi_flash_handle_init(void)
 *
 *											  function
 *
-*	 
 *
-*	 
 *
-*	 
-*	 
+*
+*
+*
+*
 *
 ************************************************************************************************************
 */

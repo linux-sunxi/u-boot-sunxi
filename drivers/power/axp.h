@@ -20,33 +20,19 @@
 #ifndef   __AXP_H__
 #define   __AXP_H__
 
-#include <i2c.h>
+#include <asm/arch/p2wi.h>
+#include <asm/arch/sys_config.h>
 
 #define  AXP_POWER_ON_BY_POWER_KEY       0
 #define  AXP_POWER_ON_BY_POWER_TRIGGER   1
 
 
-#define  AXP_POWER_NULL					 0
-#define  AXP_POWER_PMU209				 1
-
-
-
-//static inline int axp_i2c_read(unsigned char chip, unsigned int addr, unsigned char *buffer)
-//{
-//	return i2c_read(chip, addr, 1, buffer, 1);
-//}
-//
-//static inline int axp_i2c_write(unsigned char chip, unsigned int addr, unsigned char data)
-//{
-//	return i2c_write(chip, addr, 1, &data, 1);
-//}
-
-static inline int axp_i2c_read(unsigned char chip, unsigned int addr, unsigned char *buffer)
+static inline int axp_i2c_read(unsigned char chip, unsigned char addr, unsigned char *buffer)
 {
 	return p2wi_read(&addr, buffer, 1);
 }
 
-static inline int axp_i2c_write(unsigned char chip, unsigned int addr, unsigned char data)
+static inline int axp_i2c_write(unsigned char chip, unsigned char addr, unsigned char data)
 {
 	return p2wi_write(&addr, &data, 1);
 }

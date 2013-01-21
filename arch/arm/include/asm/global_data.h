@@ -77,6 +77,14 @@ typedef	struct	global_data {
     int             boot_card_num;
 	unsigned int    layer_para;
     unsigned int    layer_hd;
+	int             key_pressd_value;
+	int             power_step_level;
+	int             pmu_suspend_chgcur;
+	int             pmu_runtime_chgcur;
+	int             limit_vol;
+	int             limit_cur;
+	int             limit_pcvol;
+	int             limit_pccur;
 #endif
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */

@@ -113,9 +113,9 @@
 #define	AW_IRQ_GPU			(AW_IRQ_GIC_START + 97)		/*	GPU			*/
 
 #define	AW_IRQ_CTI0			(AW_IRQ_GIC_START + 108)	/*	CTI0		*/
-#define	AW_IRQ_CTI0			(AW_IRQ_GIC_START + 109)	/*	CTI1		*/
-#define	AW_IRQ_CTI0			(AW_IRQ_GIC_START + 110)	/*	CTI2		*/
-#define	AW_IRQ_CTI0			(AW_IRQ_GIC_START + 111)	/*	CTI3		*/
+#define	AW_IRQ_CTI1			(AW_IRQ_GIC_START + 109)	/*	CTI1		*/
+#define	AW_IRQ_CTI2			(AW_IRQ_GIC_START + 110)	/*	CTI2		*/
+#define	AW_IRQ_CTI3			(AW_IRQ_GIC_START + 111)	/*	CTI3		*/
 #define AW_IRQ_COMMTX0		(AW_IRQ_GIC_START + 112)	/*	COMMTX0		*/
 #define AW_IRQ_COMMTX1		(AW_IRQ_GIC_START + 113)	/*	COMMTX1		*/
 #define AW_IRQ_COMMTX2		(AW_IRQ_GIC_START + 114)	/*	COMMTX2		*/

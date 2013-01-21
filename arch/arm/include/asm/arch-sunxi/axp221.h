@@ -17,10 +17,8 @@
  * along with this program;
  *
  */
-#ifndef   __AXP229_REGS_H__
-#define   __AXP229_REGS_H__
-
-#include "axp.h"
+#ifndef   __AXP221_REGS_H__
+#define   __AXP221_REGS_H__
 
 #define   AXP22_ADDR              (0x68)
 
@@ -44,7 +42,8 @@
 #define   BOOT_POWER22_OUTPUT_CTL1     	   			(0x10)
 #define   BOOT_POWER22_OUTPUT_CTL2     	   			(0x12)
 #define   BOOT_POWER22_OUTPUT_CTL3     	   			(0x13)
-#define   BOOT_POWER22_DC1OUT_VOL               (0x21)
+#define   BOOT_POWER22_OUTPUT_DLDO3_VO				(0x17)
+#define   BOOT_POWER22_DC1OUT_VOL               	(0x21)
 #define   BOOT_POWER22_DC2OUT_VOL          			(0x22)
 #define   BOOT_POWER22_DC3OUT_VOL          			(0x23)
 #define   BOOT_POWER22_DC4OUT_VOL          			(0x24)
@@ -88,7 +87,7 @@
 #define   BOOT_POWER22_GPIO0_CTL           			(0x90)
 #define   BOOT_POWER22_GPIO0_VOL           			(0x91)
 #define   BOOT_POWER22_GPIO1_CTL           			(0x92)
-#define   BOOT_POWER22_GPIO2_CTL           			(0x93)
+#define   BOOT_POWER22_GPIO1_VOL           			(0x93)
 #define   BOOT_POWER22_GPIO012_SIGNAL      			(0x94)
 #define   BOOT_POWER22_GPIO3_CTL           			(0x95)
 #define   BOOT_POWER22_GPIO012_PDCTL       			(0x97)
@@ -135,32 +134,4 @@
 #define   BOOT_POWER22_BAT_POWERL8             		(0x72)
 
 
-extern	int  axp221_clear_data_buffer(void);
-extern	int  axp221_reboot_coulomb(void);
-extern	int  axp221_probe_dcin_exist(void);
-extern  int  axp221_probe_battery_exist(void);
-extern  int  axp221_probe_battery_vol(void);
-extern  int  axp221_probe_key(void);
-extern	int  axp221_probe_last_poweron_status(void);
-extern	int  axp221_set_power_off(void);
-extern	int  axp221_probe_bat_coulomb_count(void);
-extern	int  axp221_probe_poweron_cause(void);
-extern	int  axp221_probe_charge_current(void);
-extern	int  axp221_probe_charge_status(void);
-extern  int  axp221_set_charge_control(void);
-extern	int  axp221_probe_rest_battery_capacity(void);
-extern	int  axp221_probe_buttery_resistance_record(void);
-extern	int  axp221_set_next_poweron_status(int data);
-extern	int  axp221_set_dcdc2(int set_vol);
-extern	int  axp221_set_dcdc3(int set_vol);
-extern	int  axp221_set_dcdc4(int set_vol);
-extern	int  axp221_set_ldo2(int set_vol);
-extern	int  axp221_set_ldo3(int set_vol);
-extern	int  axp221_set_ldo4(int set_vol);
-extern	int  axp221_set_poweroff_vol(int set_vol);
-extern	int  axp221_set_charge_current(int current);
-extern	int  axp221_set_vbus_cur_limit(int current);
-extern	int  axp221_set_vbus_vol_limit(int vol);
-
-
-#endif /* __AXP229_REGS_H__ */
+#endif /* __AXP221_REGS_H__ */

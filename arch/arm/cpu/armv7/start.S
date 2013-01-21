@@ -200,6 +200,9 @@ call_board_init_f:
 	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
 	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
 	ldr	r0,=0x00000000
+
+	@bl  boot_standby_relocat
+
 	bl	board_init_f
 
 /*------------------------------------------------------------------------------*/

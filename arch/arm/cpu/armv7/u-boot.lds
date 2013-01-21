@@ -45,15 +45,19 @@ SECTIONS
 		__int_vector_start = .;
 		arch/arm/cpu/armv7/start.o	(.text)
 		__int_vector_end = .;
-		*(.text)
+		*(EXCLUDE_FILE(standby/libstandby.o ).text)
 	}
 
-	. = ALIGN(4);
-	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
+	. = ALIGN(16);
+	.rodata :
+	{
+		*(EXCLUDE_FILE(standby/libstandby.o ).rodata*)
+	}
 
-	. = ALIGN(4);
-	.data : {
-		*(.data)
+	. = ALIGN(16);
+	.data :
+	{
+		*(EXCLUDE_FILE(standby/libstandby.o ).data)
 	}
 
 	. = ALIGN(4);
@@ -79,6 +83,14 @@ SECTIONS
 	}
 
 	_end = .;
+
+	.boot_standby 0x800 :
+	AT ( LOADADDR (.dynsym) + SIZEOF (.dynsym) )
+	{
+		_standby_start = .;
+		standby/libstandby.o (.text .data .bss .rodata)
+		_standby_end = .;
+	}
 
 	.bss __rel_dyn_start (OVERLAY) : {
 		__bss_start = .;

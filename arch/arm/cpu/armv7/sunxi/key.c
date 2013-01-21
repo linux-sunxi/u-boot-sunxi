@@ -66,38 +66,34 @@ int sunxi_key_read(void)
     struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
 	
 	ints = sunxi_key_base->ints;
+	/* clear the pending data */
+	sunxi_key_base->ints |= (ints & 0x1f);
 	/* if there is already data pending,
 	 read it */
-	if( ints & ADC0_DATA_PENDING) 
+	if( ints & ADC0_KEYDOWN_PENDING) 
+	{
+		if(ints & ADC0_DATA_PENDING)
+		{
+			key = sunxi_key_base->data0 & 0x3f;
+			if(!key)
+			{
+				key = -1;
+			}
+		}
+	}
+	else if(ints & ADC0_DATA_PENDING)
 	{
 		key = sunxi_key_base->data0 & 0x3f;
-#ifdef DEBUG
-		printf("key pressed, value=0x%x\n", key);
-#endif
+		if(!key)
+		{
+			key = -1;
+		}
 	}
-	/* clear the pending data */
-	sunxi_key_base->ints = ints;
-	return key;
-}
-
-
-int sunxi_key_probe(void) 
-{
-	u32 ints;
-	int key = -1;
-    struct sunxi_lradc *sunxi_key_base = (struct sunxi_lradc *)SUNXI_LRADC_BASE;
-	
-	ints = sunxi_key_base->ints;
-	
-	if( ints & (ADC0_KEYDOWN_PENDING | ADC0_DATA_PENDING)) 
-	{
-		key = 1;
 #ifdef DEBUG
-		puts("key pressed\n");
+	if(key > 0)
+		printf("key pressed value=0x%x\n", key);
 #endif
-	}
-	/* clear the pending data */
-	sunxi_key_base->ints = ints;
+
 	return key;
 }
 

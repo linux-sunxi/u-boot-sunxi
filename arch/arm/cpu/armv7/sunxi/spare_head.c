@@ -21,8 +21,7 @@ struct spare_boot_head_t  uboot_spare_head = {
 							 	      {
 										  { 0 },		//dram para
 							 	      	  1008,			//run core clock
-							 	      	  1400,			//run core vol
-							 	      	  3600,			//vol threshold
+							 	      	  1200,			//run core vol
 							 	      	  0,			//uart port
 							 	      	  {             //uart gpio
 							 	      	    {2, 22, 2, -1, -1, -1, 0, 0},

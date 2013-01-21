@@ -25,7 +25,7 @@
 /* MBR       */
 #define     SUNXI_MBR_SIZE			    (16 * 1024)
 #define     SUNXI_DL_SIZE				(16 * 1024)
-#define   	SUNXI_MBR_MAGIC			    "softw311"
+#define   	SUNXI_MBR_MAGIC			    "softw411"
 #define     SUNXI_MBR_MAX_PART_COUNT	120
 #define     SUNXI_MBR_COPY_NUM          4    //mbr的备份数量
 #define     SUNXI_MBR_RESERVED          (SUNXI_MBR_SIZE - 32 - (SUNXI_MBR_MAX_PART_COUNT * sizeof(sunxi_partition)))   //mbr保留的空间

@@ -21,6 +21,7 @@
 #define  __spare_head_h__
 
 #include "nand_bsp.h"
+#include "dram.h"
 /* work mode */
 #define WORK_MODE_PRODUCT      (1<<4)
 #define WORK_MODE_UPDATE       (1<<5)
@@ -59,29 +60,7 @@ typedef struct sdcard_spare_info_t
 }
 sdcard_spare_info;
 
-typedef struct _boot_dram_para_t
-{
-    unsigned int           dram_baseaddr;
-    unsigned int           dram_clk;
-    unsigned int           dram_type;
-    unsigned int           dram_rank_num;
-    unsigned int           dram_chip_density;
-    unsigned int           dram_io_width;
-    unsigned int		   dram_bus_width;
-    unsigned int           dram_cas;
-    unsigned int           dram_zq;
-    unsigned int           dram_odt_en;
-    unsigned int 		   dram_size;
-    unsigned int           dram_tpr0;
-    unsigned int           dram_tpr1;
-    unsigned int           dram_tpr2;
-    unsigned int           dram_tpr3;
-    unsigned int           dram_tpr4;
-    unsigned int           dram_tpr5;
-    unsigned int 		   dram_emr1;
-    unsigned int           dram_emr2;
-    unsigned int           dram_emr3;
-}boot_dram_para_t;
+
 
 #endif
 

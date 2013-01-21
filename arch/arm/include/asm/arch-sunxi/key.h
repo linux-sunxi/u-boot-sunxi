@@ -33,10 +33,10 @@ struct sunxi_lradc {
 	volatile u32 data1;        /* lradc 1 data */
 };
 
-#define LRADC_EN                  0x1    /* LRADC enable */
+#define LRADC_EN                  (0x1 << 6)   /* LRADC enable */
 #define LRADC_SAMPLE_RATE         0x2    /* 32.25 Hz */
 #define LEVELB_VOL                0x2    /* 0x33(~1.6v) */
-#define LRADC_HOLD_EN             0x1    /* sample hold enable */
+#define LRADC_HOLD_EN             (0x1 << 6)    /* sample hold enable */
 #define KEY_MODE_SELECT           0x0    /* normal mode */
 
 #define ADC0_DATA_PENDING         (1 << 0)    /* adc0 has data */

@@ -29,6 +29,9 @@ s32 p2wi_init(void)
 	//PG[24][25] used as p2wi SCK and SDA under FPGA platform.
 	writel(0x33, 0x01c20800 + 0xE4);
 #endif
+	reg_val = readl(0x1f01400 + 0x28);
+	reg_val |= (1 << 0);
+	writel(reg_val, 0x1f01400 + 0x28);
 
 	reg_val = readl(0x1f02C00 + 0x00);
 	reg_val &= ~((0x07 << 0) | (0x07 << 4));
@@ -59,6 +62,20 @@ s32 p2wi_init(void)
 
 s32 p2wi_exit(void)
 {
+	__u32 reg_val;
+
+	reg_val = readl(0x1f01400 + 0xb0);
+	reg_val &= ~(1 << 3);
+	writel(reg_val, 0x1f01400 + 0xb0);
+
+	reg_val = readl(0x1f01400 + 0x28);
+	reg_val &= ~(1 << 3);
+	writel(reg_val, 0x1f01400 + 0x28);
+
+#ifdef	CONFIG_SUN6I_FPGA
+	//PG[24][25] used as p2wi SCK and SDA under FPGA platform.
+	writel(0x0, 0x01c20800 + 0xE4);
+#endif
 	return 0;
 }
 
@@ -209,7 +226,7 @@ void p2wi_set_pmu_mode(u32 slave_addr, u32 reg, u32 data)
 void p2wi_set_clk(u32 sck)
 {
 #ifndef	CONFIG_SUN6I_FPGA
-	u32 src_clk = ccu_get_sclk_freq(CCU_SYS_CLK_APB0);
+	u32 src_clk = 12000000;
 	u32 div = src_clk / sck / 2 - 1;
 	u32 sda_odly = div >> 1;
 	u32 rval = div | (sda_odly << 8);

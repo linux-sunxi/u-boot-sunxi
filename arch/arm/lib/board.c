@@ -252,7 +252,7 @@ init_fnc_t *init_sequence[] = {
 #ifdef CONFIG_FSL_ESDHC
 	get_clocks,
 #endif
-	env_init,		/* initialize environment */
+	env_init,			/* initialize environment */
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
@@ -269,7 +269,7 @@ init_fnc_t *init_sequence[] = {
 	init_func_i2c,
 #if defined(CONFIG_SUNXI_AXP)
 	power_init,
-#endif	
+#endif
 #endif
     check_update_key,
 	dram_init,		/* configure available RAM banks */
@@ -295,10 +295,14 @@ void board_init_f(ulong bootflag)
 	//while((*(volatile unsigned int *)(0)) != 1);
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0) {
-			hang ();
+			//hang ();
+			early_fel();	/* modify by jerry */
 		}
 	}
 
+	debug("%x\n", &uboot_spare_head);
+	printf("first workmode=%d\n",       uboot_spare_head.boot_data.work_mode);
+	debug("first  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
 	 * Ram is setup, size stored in gd !!
@@ -434,6 +438,7 @@ void board_init_f(ulong bootflag)
 	gd->reloc_off = addr - _TEXT_BASE;
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
 	memcpy((void *)addr, (void *)_TEXT_BASE, sizeof(struct spare_boot_head_t));
+	debug("from %x to %x, size %x\n", (void *)_TEXT_BASE, (void *)addr, sizeof(struct spare_boot_head_t));
 	memcpy(id, (void *)gd, sizeof(gd_t));
 	relocate_code(addr_sp, id, addr + sizeof(struct spare_boot_head_t));
 
@@ -475,6 +480,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	/* Enable caches */
 	enable_caches();
+
+	debug("%x\n", &uboot_spare_head);
+	printf("secend workmode=%d\n",       uboot_spare_head.boot_data.work_mode);
+	debug("secend  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
@@ -531,9 +540,23 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
-	DRV_DISP_Init();
-	board_display_device_open();
-	board_display_layer_open();
+//	DRV_DISP_Init();
+//	board_display_device_open();
+//	board_display_layer_open();
+
+	{
+		int vol;
+		int ret;
+
+		vol = 0;
+		ret = script_parser_fetch("power_sply", "aldo3_vol", &vol, 1);
+		printf("vol=%d, ret=%d\n", vol, ret);
+		ret = script_parser_fetch("mmc2_para", "sdc_buswidth", &vol, 1);
+		printf("sdc_buswidth=%d, ret=%d\n", vol, ret);
+		ret = script_parser_fetch("lcd0_para", "lcd_vt", &vol, 1);
+		printf("lcd_vt=%d, ret=%d\n", vol, ret);
+	}
+
 	ret = sunxi_flash_handle_init();
 	if(!ret)
 	{
@@ -547,6 +570,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif/*CONFIG_CMD_NAND*/
 
+	//boot_standby_mode();
 
 #if defined(CONFIG_GENERIC_MMC)
 	if(storage_type){
@@ -663,7 +687,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 	workmode = uboot_spare_head.boot_data.work_mode;
 	debug("work mode %d\n", workmode);
-	
+
 	if(workmode == WORK_MODE_BOOT)
     {
 #ifdef CONFIG_ALLWINNER
@@ -673,7 +697,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		}
 #endif
     	/* main_loop() can return to retry autoboot, if so just run it again. */
-    	for (;;) 
+    	for (;;)
 		{
 			main_loop();
 		}

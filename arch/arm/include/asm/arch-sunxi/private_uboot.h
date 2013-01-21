@@ -42,10 +42,9 @@ struct spare_boot_ctrl_head
 /******************************************************************************/
 struct spare_boot_data_head
 {
-	boot_dram_para_t      		dram_para;              // dram init para
+	unsigned int                dram_para[32];
 	int							run_clock;				// Mhz
 	int							run_core_vol;			// mV
-	int							vol_threshold;			// mV
 	int							uart_port;              // UART控制器编号
 	normal_gpio_cfg             uart_gpio[2];           // UART控制器(调试打印口)GPIO信息
 	int							twi_port;               // TWI控制器编号
@@ -53,10 +52,11 @@ struct spare_boot_data_head
 	int		                    work_mode;              // 工作模式
     int                         storage_type;           // 存储介质类型  0：nand   1：sdcard    2: spinor
     normal_gpio_cfg             nand_gpio[32];          // nand GPIO信息
-    char						nand_spare_data[STORAGE_BUFFER_SIZE];	// nand 额外信息
+    char						nand_spare_data[256];	// nand 额外信息
     normal_gpio_cfg             sdcard_gpio[32];		// sdcard GPIO信息
-    char             			sdcard_spare_data[STORAGE_BUFFER_SIZE];	// sdcard 额外信息
-    int							reserved[1];			// 保留数据位, 16bytes align
+    char             			sdcard_spare_data[256];	// sdcard 额外信息
+    int							reserved[6];			// 保留数据位, 256bytes align
+
 };
 
 struct spare_boot_head_t

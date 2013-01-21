@@ -18,65 +18,14 @@
  *
  */
 #include <common.h>
+#include <asm/arch/power.h>
+#include <asm/arch/axp221.h>
 #include "axp.h"
-#include "axp209.h"
-#include "axp221.h"
+#include "axp221_i.h"
 
-int power_step_level = 1;
+DECLARE_GLOBAL_DATA_PTR;
 
-static int axp_default_void(void);
-static int axp_default_int(int data);
-
-
-int  (* axp_point_clear_data_buffer			)(void) = axp_default_void;
-int  (* axp_point_reboot_coulomb			)(void) = axp_default_void;
-int  (* axp_point_probe_dcin_exist			)(void) = axp_default_void;
-int  (* axp_point_probe_battery_exist		)(void) = axp_default_void;
-int  (* axp_point_probe_battery_vol			)(void) = axp_default_void;
-int  (* axp_point_probe_key	        		)(void) = axp_default_void;
-int  (* axp_point_probe_last_poweron_status	)(void) = axp_default_void;
-int  (* axp_point_set_power_off				)(void) = axp_default_void;
-int  (* axp_point_probe_bat_coulomb_count	)(void) = axp_default_void;
-int  (* axp_point_probe_poweron_cause		)(void) = axp_default_void;
-int  (* axp_point_probe_charge_current		)(void) = axp_default_void;
-int  (* axp_point_probe_rest_battery_capacity)(void) = axp_default_void;
-int  (* axp_point_set_charge_control		)(void) = axp_default_void;
-int  (* axp_point_probe_buttery_resistance_record)(void) = axp_default_void;
-int  (* axp_point_set_next_poweron_status	)(int data) = axp_default_int;
-int  (* axp_point_set_dcdc2					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_dcdc3					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_dcdc4					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_ldo2					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_ldo3					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_ldo4					)(int set_vol) = axp_default_int;
-int  (* axp_point_set_poweroff_vol			)(int set_vol) = axp_default_int;
-int  (* axp_point_set_charge_current		)(int current) = axp_default_int;
-int  (* axp_point_set_vbus_cur_limit		)(int current) = axp_default_int;
-int  (* axp_point_set_vbus_vol_limit		)(int vol) = axp_default_int;
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-static int axp_default_void(void)
-{
-	return 0;
-}
-static int axp_default_int(int data)
-{
-	return 0;
-}
+extern int axp_probe_power_supply_condition(void);
 /*
 ************************************************************************************************************
 *
@@ -95,86 +44,24 @@ static int axp_default_int(int data)
 */
 int axp_probe(void)
 {
-	u8 pmu_type;
-	char  buffer;
-	int i;
+	u8    pmu_type;
 
-	if(axp_i2c_read(AXP20_ADDR, BOOT_POWER20_VERSION, &pmu_type))
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_VERSION, &pmu_type))
 	{
-		puts("axp read error\n");
+		printf("axp read error\n");
+
 		return -1;
 	}
-	debug("pmu type = %d\n", pmu_type);
-
 	pmu_type &= 0x0f;
-//	if(pmu_type == 1)
-//	{
-//		/* pmu type AXP209 */
-//		puts("PMU: AXP209\n");
-//		axp_point_clear_data_buffer			 		= axp209_clear_data_buffer;
-//		axp_point_reboot_coulomb			 		= axp209_reboot_coulomb;
-//		axp_point_probe_dcin_exist			 		= axp209_probe_dcin_exist;
-//	    axp_point_probe_battery_exist		 		= axp209_probe_battery_exist;
-//	    axp_point_probe_battery_vol			 		= axp209_probe_battery_vol;
-//	    axp_point_probe_key     			 		= axp209_probe_key;
-//		axp_point_probe_last_poweron_status	 		= axp209_probe_last_poweron_status;
-//		axp_point_set_power_off				 		= axp209_set_power_off;
-//		axp_point_probe_bat_coulomb_count	 		= axp209_probe_bat_coulomb_count;
-//		axp_point_probe_poweron_cause		 		= axp209_probe_poweron_cause;
-//		axp_point_probe_charge_current		 		= axp209_probe_charge_current;
-//		axp_point_probe_rest_battery_capacity		= axp209_probe_rest_battery_capacity;
-//		axp_point_probe_buttery_resistance_record 	= axp209_probe_buttery_resistance_record;
-//		axp_point_set_charge_control				   = axp209_set_charge_control;
-//
-//		axp_point_set_next_poweron_status	        = axp209_set_next_poweron_status;
-//		axp_point_set_dcdc2					        = axp209_set_dcdc2;
-//		axp_point_set_dcdc3					        = axp209_set_dcdc3;
-//		axp_point_set_dcdc4					        = axp_default_int;
-//		axp_point_set_ldo2					        = axp209_set_ldo2;
-//		axp_point_set_ldo3					        = axp209_set_ldo3;
-//		axp_point_set_ldo4					        = axp209_set_ldo4;
-//		axp_point_set_poweroff_vol			        = axp209_set_poweroff_vol;
-//		axp_point_set_charge_current		       	= axp209_set_charge_current;
-//		axp_point_set_vbus_cur_limit		        = axp209_set_vbus_cur_limit;
-//		axp_point_set_vbus_vol_limit		        = axp209_set_vbus_vol_limit;
-//
-//		return 0;
-//	}
 	if(pmu_type & 0x06)
 	{
 		/* pmu type AXP221 */
-		puts("PMU: AXP221\n");
-		axp_point_clear_data_buffer			 		= axp221_clear_data_buffer;
-		//axp_point_reboot_coulomb			 		= axp221_reboot_coulomb;
-		axp_point_probe_dcin_exist			 		= axp221_probe_dcin_exist;
-	    axp_point_probe_battery_exist		 		= axp221_probe_battery_exist;
-	    axp_point_probe_battery_vol			 		= axp221_probe_battery_vol;
-	    axp_point_probe_key     			 		= axp221_probe_key;
-		axp_point_probe_last_poweron_status	 		= axp221_probe_last_poweron_status;
-		axp_point_set_power_off				 		= axp221_set_power_off;
-		//axp_point_probe_bat_coulomb_count	 		= axp221_probe_bat_coulomb_count;
-		axp_point_probe_poweron_cause		 		= axp221_probe_poweron_cause;
-		axp_point_probe_charge_current		 		= axp221_probe_charge_current;
-		axp_point_probe_rest_battery_capacity		= axp221_probe_rest_battery_capacity;
-		axp_point_probe_buttery_resistance_record 	= axp221_probe_buttery_resistance_record;
-		axp_point_set_charge_control				= axp221_set_charge_control;
-
-		axp_point_set_next_poweron_status	        = axp221_set_next_poweron_status;
-		axp_point_set_dcdc2					        = axp221_set_dcdc2;
-		axp_point_set_dcdc3					        = axp221_set_dcdc3;
-		axp_point_set_dcdc4					        = axp221_set_dcdc4;
-		axp_point_set_ldo2					        = axp221_set_ldo2;
-		axp_point_set_ldo3					        = axp221_set_ldo3;
-		axp_point_set_ldo4					        = axp221_set_ldo4;
-		axp_point_set_poweroff_vol			        = axp221_set_poweroff_vol;
-		axp_point_set_charge_current		       	= axp221_set_charge_current;
-		axp_point_set_vbus_cur_limit		        = axp221_set_vbus_cur_limit;
-		axp_point_set_vbus_vol_limit		        = axp221_set_vbus_vol_limit;
+		printf("PMU: AXP221\n");
 
 		return 0;
 	}
 
-	puts("PMU: NULL\n");
+	printf("PMU: NULL\n");
 
 	return -1;
 }
@@ -194,103 +81,10 @@ int axp_probe(void)
 *
 ************************************************************************************************************
 */
-int axp_probe_power_supply_condition(void)
+int axp_get_power_vol_level(void)
 {
-	int   dcin_exist, bat_vol;
-	int   buffer_value;
-	char  bat_value, bat_cou;
-	int   ratio;
-
-    /* 使能库仑计  */
-	//axp_point_reboot_coulomb();
-    //检测电压，决定是否开机
-    dcin_exist = axp_probe_dcin_exist();
-    debug("dcin_exist = %d\n", dcin_exist);
-    //先判断条件，如果上次关机记录的电量百分比<=5%,同时库仑计值小于5mAh，则关机，否则继续判断
-    bat_vol = axp_probe_battery_vol();
-	printf("bat vol = %d\n", bat_vol);
-	if((bat_vol < 3400) && (!dcin_exist))
-	{
-	    axp_set_hardware_poweroff_vol();
-		axp_set_power_off();
-		for(;;);
-	}
-	//读之前的记录百分比
-	//buffer_value = axp_point_probe_buttery_resistance_record();
-	//if(buffer_value < 0)
-	//{
-	//	printf("axp read error\n");
-	//	return -1;
-	//}
-	ratio = axp221_probe_battery_ratio();
-	if(ratio < 0)
-	{
-		return -1;
-	}
-	else if(ratio <= 1)
-	{
-		power_step_level = 2;
-	}
-	else
-	{
-		power_step_level = 3;
-	}
-#if 0
-	if(buffer_value & 0x80)
-	{
-		bat_value = buffer_value & 0x7f;
-		bat_cou = axp_point_probe_bat_coulomb_count();
-		if((bat_value <= 0) && (bat_cou < 30))
-		{
-			printf("bat_cou=%x\n", bat_cou);
-		}
-		if(dcin_exist)
-		{
-			if(bat_vol > (3600 + 100))
-			{
-				axp_point_clear_data_buffer();
-				power_step_level = 2;
-			}
-			else
-			{
-				power_step_level = 3;
-			}
-		}
-		else
-		{
-			if(bat_vol > 3600)
-			{
-				axp_point_clear_data_buffer();
-				power_step_level = 3;
-			}
-			else
-			{
-				power_step_level = 1;
-			}
-		}
-	}
-	else
-	{
-		if(dcin_exist)
-		{
-			power_step_level = 2;
-		}
-		else
-		{
-			if(bat_vol >= 3600)
-			{
-				power_step_level = 3;
-			}
-			else
-			{
-				power_step_level = 1;
-			}
-		}
-	}
-#endif
-	return 0;
+	return gd->power_step_level;
 }
-
 /*
 ************************************************************************************************************
 *
@@ -309,11 +103,12 @@ int axp_probe_power_supply_condition(void)
 */
 int axp_probe_startup_cause(void)
 {
+	int ret = -1;
 	int buffer_value;
-	int poweron_reason, next_action;
-	int ret;
+	int poweron_reason, next_action = 0;
 
-	buffer_value = axp_point_probe_last_poweron_status();
+	buffer_value = axp221_probe_last_poweron_status();
+	printf("axp buffer %x\n", buffer_value);
 	if(buffer_value < 0)
 	{
 		return -1;
@@ -329,11 +124,10 @@ int axp_probe_startup_cause(void)
 		return 0;
 	}
 	//获取 开机原因，是按键触发，或者插入电压触发
-	poweron_reason = axp_point_probe_poweron_cause();
-	next_action = 0x0e;
-	ret         = 1;
+	poweron_reason = axp221_probe_poweron_cause();
 	if(poweron_reason == AXP_POWER_ON_BY_POWER_KEY)
 	{
+		printf("key trigger\n");
 		next_action = 0x0e;
 		ret = 1;
 	}
@@ -344,7 +138,7 @@ int axp_probe_startup_cause(void)
     	ret = 0;
 	}
 	//把开机原因写入寄存器
-	axp_point_set_next_poweron_status(next_action);
+	axp221_set_next_poweron_status(next_action);
 
     return ret;
 }
@@ -373,7 +167,8 @@ int axp_set_hardware_poweron_vol(void) //设置开机之后，PMU硬件关机电压为2.9V
 		printf("boot power:unable to find power off vol set\n");
 		vol_value = 2900;
 	}
-	return axp_point_set_poweroff_vol(vol_value);
+
+	return axp221_set_poweroff_vol(vol_value);
 }
 /*
 ************************************************************************************************************
@@ -400,7 +195,8 @@ int axp_set_hardware_poweroff_vol(void) //设置关机之后，PMU硬件下次开机电压为3.3
 		printf("boot power:unable to find power off vol set\n");
 		vol_value = 3300;
 	}
-	return axp_point_set_poweroff_vol(vol_value);
+
+	return axp221_set_poweroff_vol(vol_value);
 }
 /*
 ************************************************************************************************************
@@ -420,7 +216,7 @@ int axp_set_hardware_poweroff_vol(void) //设置关机之后，PMU硬件下次开机电压为3.3
 */
 int  axp_set_power_off(void)
 {
-	return axp_point_set_power_off();
+	return axp221_set_power_off();
 }
 /*
 ************************************************************************************************************
@@ -440,7 +236,7 @@ int  axp_set_power_off(void)
 */
 int axp_set_next_poweron_status(int value)
 {
-	return axp_point_set_next_poweron_status(value);
+	return axp221_set_next_poweron_status(value);
 }
 /*
 ************************************************************************************************************
@@ -458,29 +254,12 @@ int axp_set_next_poweron_status(int value)
 *
 ************************************************************************************************************
 */
-int  axp_probe_dcin_exist(void)
+int  axp_power_get_dcin_battery_exist(int *dcin_exist, int *battery_exist)
 {
-	return axp_point_probe_dcin_exist();
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int  axp_probe_battery_exist(void)
-{
-	return axp_point_probe_battery_exist();
+	*dcin_exist = axp221_probe_dcin_exist();
+	*battery_exist = axp221_probe_battery_exist();
+
+	return 0;
 }
 /*
 ************************************************************************************************************
@@ -500,7 +279,7 @@ int  axp_probe_battery_exist(void)
 */
 int  axp_probe_battery_vol(void)
 {
-	return axp_point_probe_battery_vol();
+	return axp221_probe_battery_vol();
 }
 /*
 ************************************************************************************************************
@@ -520,7 +299,7 @@ int  axp_probe_battery_vol(void)
 */
 int  axp_probe_rest_battery_capacity(void)
 {
-	return axp_point_probe_rest_battery_capacity();
+	return axp221_probe_battery_ratio();
 }
 /*
 ************************************************************************************************************
@@ -540,7 +319,7 @@ int  axp_probe_rest_battery_capacity(void)
 */
 int  axp_probe_key(void)
 {
-	return axp_point_probe_key();
+	return axp221_probe_key();
 }
 /*
 ************************************************************************************************************
@@ -558,67 +337,29 @@ int  axp_probe_key(void)
 *
 ************************************************************************************************************
 */
-int axp_set_power_supply_output(void)
+int  axp_set_dc1sw(int on_off)
 {
-	int vol_value;
-
-	//set dcdc3
-	if(!script_parser_fetch("target", "dcdc3_vol", &vol_value, 1))
-	{
-		axp_set_dcdc3(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find dcdc3 set\n");
-	}
-	//set dcdc4
-	if(!script_parser_fetch("target", "dcdc4_vol", &vol_value, 1))
-	{
-		axp_set_dcdc4(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find dcdc4 set\n");
-	}
-    //set dcdc5
-	if(!script_parser_fetch("target", "dcdc5_vol", &vol_value, 1))
-	{
-		axp221_set_dcdc5(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find dcdc5 set\n");
-	}
-#if 0
-	//set ldo2
-	if(!script_parser_fetch("target", "ldo2_vol", &vol_value, 1))
-	{
-		axp_set_ldo2(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo2 set\n");
-	}
-	//set ldo3
-	if(!script_parser_fetch("target", "ldo3_vol", &vol_value, 1))
-	{
-		axp_set_ldo3(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo3 set\n");
-	}
-	//set ldo4
-	if(!script_parser_fetch("target", "ldo4_vol", &vol_value, 1))
-	{
-		axp_set_ldo4(vol_value);
-	}
-	else
-	{
-		printf("boot power:unable to find ldo4 set\n");
-	}
-#endif
-	return 0;
+	return axp221_set_dc1sw(on_off);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int  axp_set_dcdc1(int set_vol)
+{
+	return axp221_set_dcdc1(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -638,7 +379,7 @@ int axp_set_power_supply_output(void)
 */
 int  axp_set_dcdc2(int set_vol)
 {
-	return axp_point_set_dcdc2(set_vol);
+	return axp221_set_dcdc2(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -658,7 +399,7 @@ int  axp_set_dcdc2(int set_vol)
 */
 int  axp_set_dcdc3(int set_vol)
 {
-	return axp_point_set_dcdc3(set_vol);
+	return axp221_set_dcdc3(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -678,7 +419,27 @@ int  axp_set_dcdc3(int set_vol)
 */
 int  axp_set_dcdc4(int set_vol)
 {
-	return axp_point_set_dcdc4(set_vol);
+	return axp221_set_dcdc4(set_vol);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int  axp_set_dcdc5(int set_vol)
+{
+	return axp221_set_dcdc5(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -699,7 +460,7 @@ int  axp_set_dcdc4(int set_vol)
 
 int  axp_set_ldo2(int set_vol)
 {
-	return axp_point_set_ldo2(set_vol);
+	return axp221_set_ldo2(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -719,7 +480,7 @@ int  axp_set_ldo2(int set_vol)
 */
 int  axp_set_ldo3(int set_vol)
 {
-	return axp_point_set_ldo3(set_vol);
+	return axp221_set_ldo3(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -739,7 +500,7 @@ int  axp_set_ldo3(int set_vol)
 */
 int  axp_set_ldo4(int set_vol)
 {
-	return axp_point_set_ldo4(set_vol);
+	return axp221_set_ldo4(set_vol);
 }
 /*
 ************************************************************************************************************
@@ -759,7 +520,7 @@ int  axp_set_ldo4(int set_vol)
 */
 int  axp_probe_charge_current(void)
 {
-	return axp_point_probe_charge_current();
+	return axp221_probe_charge_current();
 }
 /*
 ************************************************************************************************************
@@ -779,7 +540,7 @@ int  axp_probe_charge_current(void)
 */
 int  axp_set_charge_current(int current)
 {
-	return axp_point_set_charge_current(current);
+	return axp221_set_charge_current(current);
 }
 /*
 ************************************************************************************************************
@@ -799,7 +560,7 @@ int  axp_set_charge_current(int current)
 */
 int  axp_set_charge_control(void)
 {
-	return axp_point_set_charge_control();
+	return axp221_set_charge_control();
 }
 /*
 ************************************************************************************************************
@@ -817,9 +578,12 @@ int  axp_set_charge_control(void)
 *
 ************************************************************************************************************
 */
-int  axp_set_vbus_cur_limit(int current)
+int axp_set_vbus_limit_dc(void)
 {
-	return axp_point_set_vbus_cur_limit(current);
+	axp221_set_vbus_vol_limit(gd->limit_vol);
+	axp221_set_vbus_cur_limit(gd->limit_cur);
+
+	return 0;
 }
 /*
 ************************************************************************************************************
@@ -837,8 +601,462 @@ int  axp_set_vbus_cur_limit(int current)
 *
 ************************************************************************************************************
 */
-int  axp_set_vbus_vol_limit(int vol)
+int axp_set_vbus_limit_pc(void)
 {
-	return axp_point_set_vbus_vol_limit(vol);
+	axp221_set_vbus_vol_limit(gd->limit_pcvol);
+	axp221_set_vbus_cur_limit(gd->limit_pccur);
+
+	return 0;
 }
 
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_set_all_limit(void)
+{
+	int usbvol_limit = 0;
+	int usbcur_limit = 0;
+
+	script_parser_fetch("pmu_para", "pmu_usbvol_limit", &usbvol_limit, 1);
+	script_parser_fetch("pmu_para", "pmu_usbcur_limit", &usbcur_limit, 1);
+	script_parser_fetch("pmu_para", "pmu_usbvol", (int *)&gd->limit_vol, 1);
+	script_parser_fetch("pmu_para", "pmu_usbcur", (int *)&gd->limit_cur, 1);
+	script_parser_fetch("pmu_para", "pmu_usbvol_pc", (int *)&gd->limit_pcvol, 1);
+	script_parser_fetch("pmu_para", "pmu_usbcur_pc", (int *)&gd->limit_pccur, 1);
+#ifdef DEBUG
+	printf("usbvol_limit = %d, limit_vol = %d\n", usbvol_limit, gd->limit_vol);
+	printf("usbcur_limit = %d, limit_cur = %d\n", usbcur_limit, gd->limit_cur);
+#endif
+	if(!usbvol_limit)
+	{
+		gd->limit_vol = 0;
+
+	}
+	if(!usbcur_limit)
+	{
+		gd->limit_cur = 0;
+	}
+
+	axp_set_vbus_limit_pc();
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_set_suspend_chgcur(void)
+{
+	return axp221_set_chgcur(gd->pmu_suspend_chgcur);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_set_runtime_chgcur(void)
+{
+	return axp221_set_chgcur(gd->pmu_runtime_chgcur);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_set_charge_vol_limit(void)
+{
+	int ret1;
+	int ret2;
+
+	ret1 = script_parser_fetch("pmu_para", "pmu_runtime_chgcur", (int *)&gd->pmu_runtime_chgcur, 1);
+	ret2 = script_parser_fetch("pmu_para", "pmu_suspend_chgcur", (int *)&gd->pmu_suspend_chgcur, 1);
+
+	if(ret1)
+	{
+		gd->pmu_runtime_chgcur = 600;
+	}
+	if(ret2)
+	{
+		gd->pmu_suspend_chgcur = 1500;
+	}
+#if DEBUG
+	printf("pmu_runtime_chgcur=%d\n", gd->pmu_runtime_chgcur);
+	printf("pmu_suspend_chgcur=%d\n", gd->pmu_suspend_chgcur);
+#endif
+	axp_set_suspend_chgcur();
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_set_power_supply_output(void)
+{
+	int vol_value;
+	int cpus_sel;
+
+	//set dcdc1
+	if(!script_parser_fetch("power_sply", "dcdc1_vol", &vol_value, 1))
+	{
+		if(!axp_set_dcdc1(vol_value))
+		{
+			printf("dcdc1 %d\n", vol_value);
+		}
+	}
+	//set dcdc2
+	if(!script_parser_fetch("power_sply", "dcdc2_vol", &vol_value, 1))
+	{
+		if(!axp_set_dcdc2(vol_value))
+		{
+			printf("dcdc2 %d\n", vol_value);
+		}
+	}
+#ifdef DEBUG
+	else
+	{
+		printf("boot power:unable to find dcdc2 set\n");
+	}
+#endif
+	//set dcdc4
+	if(!script_parser_fetch("power_sply", "dcdc4_vol", &vol_value, 1))
+	{
+		if(!axp_set_dcdc4(vol_value))
+		{
+			printf("dcdc4 %d\n", vol_value);
+		}
+	}
+#ifdef DEBUG
+	else
+	{
+		printf("boot power:unable to find dcdc4 set\n");
+	}
+#endif
+    //set dcdc5
+	if(!script_parser_fetch("power_sply", "dcdc5_vol", &vol_value, 1))
+	{
+		if(!axp_set_dcdc5(vol_value))
+		{
+			printf("dcdc5 %d\n", vol_value);
+		}
+	}
+#ifdef DEBUG
+	else
+	{
+		printf("boot power:unable to find dcdc5 set\n");
+	}
+#endif
+#if 0
+	//set ldo2
+	if(!script_parser_fetch("power_sply", "ldo2_vol", &vol_value, 1))
+	{
+		if(!axp_set_ldo2(vol_value))
+		{
+			printf("boot power:set ldo2 to %d ok\n", vol_value);
+		}
+	}
+#ifdef DEBUG
+	else
+	{
+		printf("boot power:unable to find ldo2 set\n");
+	}
+#endif
+	//set ldo3
+	if(!script_parser_fetch("power_sply", "ldo3_vol", &vol_value, 1))
+	{
+		if(!axp_set_ldo3(vol_value))
+		{
+			printf("boot power:set ldo3 to %d ok\n", vol_value);
+		}
+	}
+#ifdef DEBUG
+	else
+	{
+		printf("boot power:unable to find ldo3 set\n");
+	}
+#endif
+#endif
+	//set ldo4
+//	if(!script_parser_fetch("power_sply", "ldo4_vol", &vol_value, 1))
+//	{
+//		axp_set_ldo4(vol_value);
+//	}
+//	else
+//	{
+//		printf("boot power:unable to find ldo4 set\n");
+//	}
+	if(!script_parser_fetch("power_sply", "cpus_source", &cpus_sel, 1))
+	{
+		if(cpus_sel)
+		{
+			if(!script_parser_fetch("power_sply", "gpio1ldo_vol", &vol_value, 1))
+			{
+				if(!axp221_set_gpio1ldo(cpus_sel, vol_value))
+				{
+					printf("boot power:set gpio1ldo to %d ok\n", vol_value);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_probe_power_supply_condition(void)
+{
+	int   dcin_exist, bat_vol;
+	//int   buffer_value;
+	//char  bat_value, bat_cou;
+	int   ratio;
+
+	//检测电压，决定是否开机
+    dcin_exist = axp221_probe_dcin_exist();
+#ifdef DEBUG
+    printf("dcin_exist = %x\n", dcin_exist);
+#endif
+    //先判断条件，如果上次关机记录的电量百分比<=5%,同时库仑计值小于5mAh，则关机，否则继续判断
+    if(!dcin_exist)
+    {
+    	bat_vol = axp221_probe_battery_vol();
+		printf("bat vol = %d\n", bat_vol);
+		if(bat_vol < 3400)
+		{
+			printf("bat vol is lower than 3400 and dcin is not exist\n");
+			printf("we have to close it\n");
+		    axp_set_hardware_poweroff_vol();
+			axp221_set_power_off();
+			for(;;);
+		}
+    }
+
+	ratio = axp221_probe_battery_ratio();
+	printf("bat ratio = %d\n", ratio);
+	if(ratio < 0)
+	{
+		return -1;
+	}
+	else if(ratio < 1)
+	{
+		if(dcin_exist)
+		{
+			//外部电源存在，电池电量极低
+			gd->power_step_level = BATTERY_RATIO_TOO_LOW_WITH_DCIN;
+		}
+		else
+		{
+			//外部电源不存在，电池电量极低
+			gd->power_step_level = BATTERY_RATIO_TOO_LOW_WITHOUT_DCIN;
+		}
+	}
+	else
+	{
+		gd->power_step_level = BATTERY_RATIO_ENOUGH;
+	}
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_init(void)
+{
+	int ret = -1;
+	int dcdc3_vol;
+
+	ret = script_parser_fetch("power_sply", "dcdc3_vol", &dcdc3_vol, 1);
+	if(ret)
+	{
+		dcdc3_vol = 1200;
+	}
+#ifdef DEBUG
+	printf("set dcdc3 to %d\n", dcdc3_vol);
+#endif
+	if(!axp_probe())
+	{
+		if(!axp_probe_power_supply_condition())
+		{
+			if(!axp_set_dcdc3(dcdc3_vol))
+			{
+				printf("dcdc3 %d\n", dcdc3_vol);
+				ret = 0;
+			}
+			else
+			{
+				printf("axp_set_dcdc3 fail\n");
+			}
+		}
+		else
+		{
+			printf("axp_probe_power_supply_condition error\n");
+		}
+	}
+	else
+	{
+		printf("axp_probe error\n");
+	}
+
+	return ret;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+static __u8 power_int_value[8];
+
+int axp_int_enable(__u8 *value)
+{
+	axp221_int_enable_read(power_int_value);
+	axp221_int_enable_write(value);
+	//打开小cpu的中断使能
+	*(volatile unsigned int *)(0x01f00c00 + 0x10) |= 1;
+	*(volatile unsigned int *)(0x01f00c00 + 0x40) |= 1;
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_int_disable(void)
+{
+	*(volatile unsigned int *)(0x01f00c00 + 0x10) |= 1;
+	*(volatile unsigned int *)(0x01f00c00 + 0x40) &= ~1;
+
+	return axp221_int_enable_write(power_int_value);
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp_int_query(__u8 *addr)
+{
+	int ret;
+
+	ret = axp221_int_query(addr);
+	*(volatile unsigned int *)(0x01f00c00 + 0x10) |= 1;
+
+	return ret;
+}

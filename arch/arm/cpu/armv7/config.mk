@@ -23,7 +23,7 @@
 PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -msoft-float
 
 # Make ARMv5 to allow more compilers to work, even though its v7a.
-PLATFORM_CPPFLAGS += -march=armv5
+PLATFORM_CPPFLAGS += -mcpu=cortex-a7
 # =========================================================================
 #
 # Supply options according to compiler version

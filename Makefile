@@ -284,6 +284,8 @@ LIBS += api/libapi.o
 LIBS += post/libpost.o
 LIBS += sprite/libsprite.o
 
+LIBS += standby/libstandby.o
+
 ifeq ($(SOC),omap3)
 LIBS += $(CPUDIR)/omap-common/libomap-common.o
 endif

@@ -198,20 +198,36 @@ int board_late_init(void)
 }
 void dram_init_banksize(void)
 {
+	/*
+	 * We should init the Dram options, and kernel get it by tag.
+	 */
+	int dram_size;
+	int ret;
+	//gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	ret = script_parser_fetch("dram_para", "dram_para1", &dram_size, 1);
+	if(ret)
+	{
+		dram_size &= 0xffff;
+		if(dram_size)
+		{
+			gd->bd->bi_dram[0].size = dram_size * 1024 * 1024;
+		}
+		else
+		{
+			gd->bd->bi_dram[0].size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+		}
+	}
+	else
+	{
+		gd->bd->bi_dram[0].size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	}
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = uboot_spare_head.boot_data.dram_para.dram_size;
 }
 
 int dram_init(void)
 {
-	//gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
-#ifndef CONFIG_SUN6I_FPGA	
-	printf("Dram size: %d Mbit\n", uboot_spare_head.boot_data.dram_para.dram_size);
-    gd->ram_size = uboot_spare_head.boot_data.dram_para.dram_size << 20;
-#else
-	printf("Dram size: %d Mbit\n", 512);
-	gd->ram_size = 512 * 1024  * 1024;
-#endif
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+
 	return 0;
 }
 
@@ -255,7 +271,7 @@ int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	puts("Board: SUN6I-BOARD\n");
+	puts("Board: SUN6I\n");
 	return 0;
 }
 #endif
@@ -677,7 +693,7 @@ int board_display_device_open(void)
 	}
 
 	return ret;
-#else 
+#else
 	DRV_lcd_open(0);
 #endif
 	return 0;
