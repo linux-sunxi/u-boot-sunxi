@@ -36,4 +36,5 @@ if [ -z "$MODULE" ]; then
 	MODULE="all"
 fi
 
+	export PATH=$PATH:${TOOLSPATH}/../buildroot/output/external-toolchain/bin/
 	make distclean CROSS_COMPILE=arm-linux-gnueabi- && make -j8 $PLATFORM CROSS_COMPILE=arm-linux-gnueabi-
