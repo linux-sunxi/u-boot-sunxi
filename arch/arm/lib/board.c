@@ -290,6 +290,7 @@ void board_init_f(ulong bootflag)
 
 	memset((void *)gd, 0, sizeof(gd_t));
 
+	boot_standby_relocate();
 	gd->mon_len = _bss_end_ofs + sizeof(struct spare_boot_head_t);
 
 	//while((*(volatile unsigned int *)(0)) != 1);
@@ -569,8 +570,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		nand_init();        /* go init the NAND */
 	}
 #endif/*CONFIG_CMD_NAND*/
-
-	//boot_standby_mode();
 
 #if defined(CONFIG_GENERIC_MMC)
 	if(storage_type){

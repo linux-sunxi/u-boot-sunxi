@@ -132,6 +132,18 @@ __int_vector_start__:
 __int_vector_end__:
 	.word  __int_vector_end - _start
 
+.globl  _standby_start__
+_standby_start__:
+	.word  _standby_start - _start
+
+.globl  _standby_end__
+_standby_end__:
+	.word  _standby_end - _start
+
+.globl  _standby_start_lma__
+_standby_start_lma__:
+	.word  _standby_start_lma - _start
+
 #ifdef CONFIG_USE_IRQ
 /* IRQ stack memory (calculated at run-time) */
 .globl IRQ_STACK_START
@@ -419,6 +431,24 @@ cpu_init_crit:
 	mov	lr, ip			@ restore link
 	mov	pc, lr			@ back to my caller
 #endif
+
+	.globl boot_standby_relocate
+boot_standby_relocate:
+	ldr r0, _standby_start__
+	ldr r1, _standby_end__
+	ldr r2, _standby_start_lma__
+	adr r3, _start
+
+	add r0, r0, r3
+	add r1, r1, r3
+	add r2, r2, r3
+
+copy_standby_loop:
+	ldmia   r2!, {r7-r8}
+	stmia   r0!, {r7-r8}
+	cmp     r0, r1
+	blo     copy_standby_loop
+	mov     pc, lr
 
 #ifndef CONFIG_SPL_BUILD
 /*

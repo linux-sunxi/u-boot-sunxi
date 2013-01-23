@@ -84,8 +84,9 @@ SECTIONS
 
 	_end = .;
 
-	.boot_standby 0x800 :
-	AT ( LOADADDR (.dynsym) + SIZEOF (.dynsym) )
+	_standby_start_lma = .;
+	.boot_standby 0x400 :
+	AT ( ADDR (.dynsym) + SIZEOF (.dynsym) )
 	{
 		_standby_start = .;
 		standby/libstandby.o (.text .data .bss .rodata)

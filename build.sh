@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PLATFORM=""
+PLATFORM="sun6i"
 MODULE=""
 TOOLSPATH=`pwd`
 show_help()
@@ -38,3 +38,4 @@ fi
 
 	export PATH=$PATH:${TOOLSPATH}/../buildroot/output/external-toolchain/bin/
 	make distclean CROSS_COMPILE=arm-linux-gnueabi- && make -j8 $PLATFORM CROSS_COMPILE=arm-linux-gnueabi-
+	cp -rf u-boot.bin  ../brandy/out_source
