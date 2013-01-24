@@ -418,64 +418,14 @@ int axp221_set_dc1sw(int on_off)
 	}
 	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
 	{
-		printf("sunxi pmu error : unable to set dcdc1\n");
+		printf("sunxi pmu error : unable to set dc1sw\n");
 
 		return -1;
 	}
 
 	return 0;
 }
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int axp221_set_dldo3(int on_off)
-{
-    u8   reg_value;
 
-	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_DLDO3_VO, 0x0b))
-	{
-		printf("sunxi pmu error : unable to set dldo3\n");
-
-		return -1;
-	}
-
-	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-    {
-		printf("sunxi pmu error : unable to read output ctl 2\n");
-
-        return -1;
-    }
-    if(on_off)
-    {
-		reg_value |= (1 << 5);
-	}
-	else
-	{
-		reg_value &= ~(1 << 5);
-	}
-
-	if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	{
-		printf("sunxi pmu error : unable to set output ctl 2\n");
-
-		return -1;
-	}
-
-	return 0;
-}
 /*
 ************************************************************************************************************
 *
@@ -549,6 +499,7 @@ int axp221_set_dcdc2(int set_vol)
     reg_value |= (set_vol - 600)/20;
     if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DC2OUT_VOL, reg_value))
     {
+    	printf("sunxi pmu error : unable to set dcdc2\n");
         return -1;
     }
 
@@ -697,39 +648,42 @@ int axp221_set_dcdc5(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo2(int set_vol)
+int axp221_set_aldo1(int set_vol)
 {
-	u8 reg_value;
+	u8 gate;
+	u8 vol_value;
 
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &gate))
+    {
+        return -1;
+    }
 	if(!set_vol)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<6);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<6);
 	}
 	else
 	{
+		gate |=  (1<<6);
 		if((set_vol < 700) || (set_vol > 3300))
 		{
 			return -1;
 		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO2OUT_VOL, &reg_value))
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_ALDO1OUT_VOL, &vol_value))
 	    {
 	        return -1;
 	    }
-	    reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO2OUT_VOL, reg_value))
+	    vol_value &= 0x1f;
+		vol_value |= ((set_vol - 700)/100);
+	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ALDO1OUT_VOL, vol_value))
 	    {
 	        return -1;
 	    }
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, gate))
+    {
+    	printf("sunxi pmu error : unable to set aldo1\n");
+        return -1;
+    }
 
 	return 0;
 }
@@ -749,39 +703,42 @@ int axp221_set_ldo2(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo3(int set_vol)
+int axp221_set_aldo2(int set_vol)
 {
-	u8 reg_value;
+	u8 gate;
+	u8 vol_value;
 
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &gate))
+    {
+        return -1;
+    }
 	if(!set_vol)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= ~(1<<7);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, reg_value))
-		{
-			return -1;
-		}
+	    gate &= ~(1<<7);
 	}
 	else
 	{
+		gate |=  (1<<7);
 		if((set_vol < 700) || (set_vol > 3300))
 		{
 			return -1;
 		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO3OUT_VOL, reg_value))
-		{
-			return -1;
-		}
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_ALDO2OUT_VOL, &vol_value))
+	    {
+	        return -1;
+	    }
+	    vol_value &= 0x1f;
+		vol_value |= ((set_vol - 700)/100);
+	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ALDO2OUT_VOL, vol_value))
+	    {
+	        return -1;
+	    }
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL1, gate))
+    {
+    	printf("sunxi pmu error : unable to set aldo2\n");
+        return -1;
+    }
 
 	return 0;
 }
@@ -801,90 +758,42 @@ int axp221_set_ldo3(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo4(int set_vol)
+int axp221_set_aldo3(int set_vol)
 {
-	u8 reg_value;
+	u8 gate;
+	u8 vol_value;
 
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL3, &gate))
+    {
+        return -1;
+    }
 	if(!set_vol)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL3, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<7);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL3, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<7);
 	}
 	else
 	{
+		gate |=  (1<<7);
 		if((set_vol < 700) || (set_vol > 3300))
 		{
 			return -1;
 		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO4OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO4OUT_VOL, reg_value))
-		{
-			return -1;
-		}
-	}
-	return 0;
-}
-/*
-************************************************************************************************************
-*
-*                                             function
-*
-*    函数名称：
-*
-*    参数列表：
-*
-*    返回值  ：
-*
-*    说明    ：
-*
-*
-************************************************************************************************************
-*/
-int axp221_set_ldo5(int set_vol)
-{
-	u8 reg_value;
-
-	if(!set_vol)
-	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
+		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_ALDO3OUT_VOL, &vol_value))
 	    {
 	        return -1;
 	    }
-	    reg_value &= ~(1<<3);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
+	    vol_value &= 0x1f;
+		vol_value |= ((set_vol - 700)/100);
+	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ALDO3OUT_VOL, vol_value))
 	    {
 	        return -1;
 	    }
 	}
-	else
-	{
-		if((set_vol < 700) || (set_vol > 3300))
-		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO5OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO5OUT_VOL, reg_value))
-		{
-			return -1;
-		}
-	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL3, gate))
+    {
+    	printf("sunxi pmu error : unable to set aldo3\n");
+        return -1;
+    }
 
 	return 0;
 }
@@ -904,39 +813,33 @@ int axp221_set_ldo5(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo6(int set_vol)
+int axp221_set_dldo1(int on_off)
 {
-	u8 reg_value;
+	u8 gate;
 
-	if(!set_vol)
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<4);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<3);
 	}
 	else
 	{
-		if((set_vol < 700) || (set_vol > 3300))
+		gate |=  (1<<3);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DLDO1_VOL, 0x0b))
 		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO6OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO6OUT_VOL, reg_value))
-		{
+			printf("sunxi pmu error : unable to set dldo1\n");
+
 			return -1;
 		}
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set dldo1\n");
+        return -1;
+    }
 
 	return 0;
 }
@@ -956,39 +859,33 @@ int axp221_set_ldo6(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo7(int set_vol)
+int axp221_set_dldo2(int on_off)
 {
-	u8 reg_value;
+	u8 gate;
 
-	if(!set_vol)
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<5);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<4);
 	}
 	else
 	{
-		if((set_vol < 700) || (set_vol > 3300))
+		gate |=  (1<<4);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DLDO2_VOL, 0x0b))
 		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO7OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO7OUT_VOL, reg_value))
-		{
+			printf("sunxi pmu error : unable to set dldo2\n");
+
 			return -1;
 		}
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set dldo2\n");
+        return -1;
+    }
 
 	return 0;
 }
@@ -1008,39 +905,34 @@ int axp221_set_ldo7(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo8(int set_vol)
+int axp221_set_dldo3(int on_off)
 {
-	u8 reg_value;
+	u8 gate;
 
-	if(!set_vol)
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<6);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<5);
 	}
 	else
 	{
-		if((set_vol < 700) || (set_vol > 3300))
+		gate |=  (1<<5);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DLDO3_VOL, 0x0b))
 		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO8OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO8OUT_VOL, reg_value))
-		{
+			printf("sunxi pmu error : unable to set dldo3\n");
+
 			return -1;
 		}
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set dldo3\n");
+        return -1;
+    }
+
 	return 0;
 }
 /*
@@ -1059,39 +951,34 @@ int axp221_set_ldo8(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo9(int set_vol)
+int axp221_set_dldo4(int on_off)
 {
-	u8 reg_value;
+	u8 gate;
 
-	if(!set_vol)
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~1;
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<6);
 	}
 	else
 	{
-		if((set_vol < 700) || (set_vol > 3300))
+		gate |=  (1<<6);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_DLDO4_VOL, 0x0b))
 		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO9OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO9OUT_VOL, reg_value))
-		{
+			printf("sunxi pmu error : unable to set dldo4\n");
+
 			return -1;
 		}
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set dldo4\n");
+        return -1;
+    }
+
 	return 0;
 }
 /*
@@ -1110,39 +997,126 @@ int axp221_set_ldo9(int set_vol)
 *
 ************************************************************************************************************
 */
-int axp221_set_ldo10(int set_vol)
+int axp221_set_eldo1(int on_off)
 {
-	u8 reg_value;
+	u8 gate;
 
-	if(!set_vol)
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
 	{
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &reg_value))
-	    {
-	        return -1;
-	    }
-	    reg_value &= ~(1<<1);
-	    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, reg_value))
-	    {
-	        return -1;
-	    }
+	    gate &= ~(1<<0);
 	}
 	else
 	{
-		if((set_vol < 700) || (set_vol > 3300))
+		gate |=  (1<<0);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ELDO1_VOL, 0x0b))
 		{
-			return -1;
-		}
-		if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_LDO10OUT_VOL, &reg_value))
-		{
-			return -1;
-		}
-		reg_value &= 0x1f;
-		reg_value |= ((reg_value - 700)/100);
-		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_LDO11OUT_VOL, reg_value))
-		{
+			printf("sunxi pmu error : unable to set eldo1\n");
+
 			return -1;
 		}
 	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set eldo2\n");
+        return -1;
+    }
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp221_set_eldo2(int on_off)
+{
+	u8 gate;
+
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
+	{
+	    gate &= ~(1<<1);
+	}
+	else
+	{
+		gate |=  (1<<1);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ELDO1_VOL, 0x0b))
+		{
+			printf("sunxi pmu error : unable to set eldo1\n");
+
+			return -1;
+		}
+	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set eldo2\n");
+        return -1;
+    }
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    函数名称：
+*
+*    参数列表：
+*
+*    返回值  ：
+*
+*    说明    ：
+*
+*
+************************************************************************************************************
+*/
+int axp221_set_eldo3(int on_off)
+{
+	u8 gate;
+
+	if(axp_i2c_read(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, &gate))
+    {
+        return -1;
+    }
+	if(!on_off)
+	{
+	    gate &= ~(1<<2);
+	}
+	else
+	{
+		gate |=  (1<<2);
+		if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_ELDO3_VOL, 0x0b))
+		{
+			printf("sunxi pmu error : unable to set eldo3\n");
+
+			return -1;
+		}
+	}
+    if(axp_i2c_write(AXP22_ADDR, BOOT_POWER22_OUTPUT_CTL2, gate))
+    {
+    	printf("sunxi pmu error : unable to set eldo3\n");
+        return -1;
+    }
+
 	return 0;
 }
 /*

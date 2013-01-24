@@ -47,10 +47,10 @@ int timer_init(void)
 	/* start avs as counter */
 	ccm_reg->avs_clk_cfg |= (1 << 31);
 	/* avs0 counted by ms */
-	timer_reg->avs.ctl  = 3;		
+	timer_reg->avs.ctl  = 3;
 	timer_reg->avs.div  = 0xc2ee0;
 	timer_reg->avs.cnt0 = 0;
-	
+
 	return 0;
 }
 
@@ -60,7 +60,7 @@ void timer_exit(void)
 	struct sunxi_ccm_reg *ccm_reg = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	timer_reg->tirqen  = 0;
-	timer_reg->tirqsta |= 0x043f;	
+	timer_reg->tirqsta |= 0x043f;
 	timer_reg->avs.ctl = 0;
 	timer_reg->avs.div = 0x05DB05DB;
 	timer_reg->timer[0].ctl = 0;
@@ -77,7 +77,7 @@ void watchdog_disable(void)
 	/* disable watchdog */
 	writel(0, &(wdog->mode));
 
-	return ;	
+	return ;
 }
 
 void watchdog_enable(void)
@@ -89,8 +89,8 @@ void watchdog_enable(void)
 	wdog->cfg = 1;
 	wdog->mode = 1;
 
-	return ;	
-	
+	return ;
+
 }
 /* timer without interrupts */
 /* count the delay by seconds */
@@ -123,7 +123,7 @@ ulong get_timer_masked(void)
 }
 
 /* delay x useconds */
-void __udelay(unsigned long usec)
+void __usdelay(unsigned long usec)
 {
 	u32 t1, t2;
 	struct sunxi_timer_reg *timer_reg = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
@@ -185,7 +185,7 @@ struct __timer_callback
 	unsigned int  data;
 };
 
-struct __timer_callback timer_callback[2] = 
+struct __timer_callback timer_callback[2] =
 {
     	{timerX_callback_default, 0},
     	{timerX_callback_default, 1}
@@ -213,7 +213,7 @@ void timer0_func(void *data)
 
 	debug("timer 0 occur\n");
 
-    timer_callback[0].func_back((void *)timer_callback[0].data); 
+    timer_callback[0].func_back((void *)timer_callback[0].data);
 
 	return ;
 }
@@ -233,7 +233,7 @@ void timer1_func(void *data)
 
 	debug("timer 1 occur\n");
 
-    timer_callback[1].func_back((void *)timer_callback[1].data); 
+    timer_callback[1].func_back((void *)timer_callback[1].data);
 
 	return ;
 }
@@ -246,11 +246,11 @@ void init_timer(struct timer_list *timer)
 
 void add_timer(struct timer_list *timer)
 {
-	u32 reg_val;	
+	u32 reg_val;
 	int timer_num;
 	struct sunxi_timer     *timer_tcontrol;
 	struct sunxi_timer_reg *timer_reg;
-	
+
 	if(timer->expires <= 0)
 	{
 		timer->expires = 1000;
@@ -278,25 +278,25 @@ void add_timer(struct timer_list *timer)
 	debug("timer status = %x, number = %d\n", timer_used_status, timer_num);
 	timer->timer_num = timer_num;
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
-	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[timer_num];	
-#ifndef CONFIG_SUN6I_FPGA	
-	reg_val =   (0 << 0)  |            // 不启动TIMER              
-				(1 << 1)  |            // 使用单次模式              
-				(1 << 2)  |            // 使用高频晶振24M              
-				(5 << 4)  |            // 除频系统32，保证当设置时间是1的时候，触发延时1ms    			  
-				(1 << 7);	
+	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[timer_num];
+#ifndef CONFIG_SUN6I_FPGA
+	reg_val =   (0 << 0)  |            // 不启动TIMER
+				(1 << 1)  |            // 使用单次模式
+				(1 << 2)  |            // 使用高频晶振24M
+				(5 << 4)  |            // 除频系统32，保证当设置时间是1的时候，触发延时1ms
+				(1 << 7);
 #else
-	reg_val =   (0 << 0)  |            // 不启动TIMER              
-				(1 << 1)  |            // 使用单次模式              
-				(0 << 2)  |            // 使用高频晶振24M              
-				(0 << 4)  |            //     			  
-				(1 << 7);	
+	reg_val =   (0 << 0)  |            // 不启动TIMER
+				(1 << 1)  |            // 使用单次模式
+				(0 << 2)  |            // 使用高频晶振24M
+				(0 << 4)  |            //
+				(1 << 7);
 #endif
 	timer_tcontrol->ctl = reg_val;
-#ifndef CONFIG_SUN6I_FPGA	
-	timer_tcontrol->inter = timer->expires * (24000 / 32);	
+#ifndef CONFIG_SUN6I_FPGA
+	timer_tcontrol->inter = timer->expires * (24000 / 32);
 #else
-	timer_tcontrol->inter = timer->expires * 1000/32;	
+	timer_tcontrol->inter = timer->expires * 1000/32;
 #endif
 	timer_callback[timer_num].func_back = timer->function;
 	timer_callback[timer_num].data      = timer->data;
@@ -315,7 +315,7 @@ void add_timer(struct timer_list *timer)
 	timer_reg->tirqen  |= (1 << timer_num);
 	debug("timer number = %d\n", timer_num);
 
-	return ;	    
+	return ;
 }
 
 
@@ -326,9 +326,9 @@ void del_timer(struct timer_list *timer)
 	int    num = timer->timer_num;
 
 	debug("timer status at delling begin = %x, number = %d\n", timer_used_status, num);
-	
+
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
-	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];	
+	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];
 
 	irq_disable(AW_IRQ_TIMER0 + num);
 	timer_tcontrol->ctl &= ~1;

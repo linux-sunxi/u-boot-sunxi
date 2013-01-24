@@ -76,9 +76,11 @@
 
 #define CONFIG_SYS_I2C_SPEED        400000
 #define CONFIG_SYS_I2C_SLAVE        0x68
-#define CONFIG_SUNXI_I2C			1
+//#define CONFIG_SUNXI_I2C			1
+#undef  CONFIG_SUNXI_I2C
 #define CONFIG_SUNXI_AXP			1
-#define CONFIG_HARD_I2C			    1
+//#define CONFIG_HARD_I2C			    1
+#undef  CONFIG_HARD_I2C
 #define CONFIG_RTC_SUNXI            1
 
 /* Serial & console */
@@ -131,7 +133,7 @@
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no		
+#define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
 #define CONFIG_STORAGE_EMMC
 #define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
 #define CONFIG_MMC_LOGICAL_OFFSET   (20 * 1024 * 1024/512)

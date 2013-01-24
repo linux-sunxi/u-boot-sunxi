@@ -37,7 +37,7 @@ void udelay(unsigned long usec)
 	do {
 		WATCHDOG_RESET();
 		kv = usec > CONFIG_WD_PERIOD ? CONFIG_WD_PERIOD : usec;
-		__udelay (kv);
+		__usdelay (kv);
 		usec -= kv;
 	} while(usec);
 }

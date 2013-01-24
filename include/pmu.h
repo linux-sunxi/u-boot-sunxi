@@ -29,9 +29,12 @@ extern int axp_set_power_supply_output(void);
 extern int axp_set_dcdc2(int set_vol);
 extern int axp_set_dcdc3(int set_vol);
 extern int axp_set_dcdc4(int set_vol);
-extern int axp_set_ldo2(int set_vol);
-extern int axp_set_ldo3(int set_vol);
-extern int axp_set_ldo4(int set_vol);
+extern int axp_set_dcdc5(int set_vol);
+
+extern int axp_set_eldo3(int on_off);
+extern int axp_set_dldo3(int on_off);
+
+extern int axp_set_dc1sw(int on_off);
 
 extern int axp_set_hardware_poweroff_vol(void);
 extern int axp_set_hardware_poweron_vol(void);

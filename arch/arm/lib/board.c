@@ -179,17 +179,25 @@ static int display_dram_config(void)
 
 	return (0);
 }
-
+#if defined(CONFIG_SUNXI_I2C)
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 static int init_func_i2c(void)
 {
 	puts("I2C:   ");
-	//i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-	p2wi_init();
+	i2c_init();
 	puts("ready\n");
 	return (0);
 }
 #endif
+#endif
+
+static int init_func_p2wi(void)
+{
+	puts("p2wi:   ");
+	p2wi_init();
+	puts("ready\n");
+	return (0);
+}
 
 #if defined(CONFIG_CMD_PCI) || defined (CONFIG_PCI)
 #include <pci.h>
@@ -265,12 +273,8 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_DISPLAY_BOARDINFO)
 	checkboard,		/* display board info */
 #endif
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
-	init_func_i2c,
-#if defined(CONFIG_SUNXI_AXP)
+	init_func_p2wi,
 	power_init,
-#endif
-#endif
     check_update_key,
 	dram_init,		/* configure available RAM banks */
 	NULL,

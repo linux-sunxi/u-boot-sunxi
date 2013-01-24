@@ -32,23 +32,29 @@ extern  int axp221_probe_last_poweron_status(void);
 extern  int axp221_set_next_poweron_status(int data);
 extern  int axp221_write_data_buffer(int buffer, uchar value);
 extern  int axp221_probe_poweron_cause(void);
+
 extern  int axp221_set_dc1sw(int on_off);
-extern  int axp221_set_dldo3(int on_off);
+
 extern  int axp221_set_dcdc1(int set_vol);
 extern  int axp221_set_dcdc2(int set_vol);
 extern  int axp221_set_dcdc3(int set_vol);
 extern  int axp221_set_dcdc4(int set_vol);
 extern  int axp221_set_dcdc5(int set_vol);
-extern  int axp221_set_ldo2(int set_vol);
-extern  int axp221_set_ldo3(int set_vol);
-extern  int axp221_set_ldo4(int set_vol);
-extern  int axp221_set_ldo5(int set_vol);
-extern  int axp221_set_ldo6(int set_vol);
-extern  int axp221_set_ldo7(int set_vol);
-extern  int axp221_set_ldo8(int set_vol);
-extern  int axp221_set_ldo9(int set_vol);
-extern  int axp221_set_ldo10(int set_vol);
+extern  int axp221_set_aldo1(int set_vol);
+extern  int axp221_set_aldo2(int set_vol);
+extern  int axp221_set_aldo3(int set_vol);
+
+extern  int axp221_set_dldo1(int on_off);
+extern  int axp221_set_dldo2(int on_off);
+extern  int axp221_set_dldo3(int on_off);
+extern  int axp221_set_dldo4(int on_off);
+
+extern  int axp221_set_eldo1(int on_off);
+extern  int axp221_set_eldo2(int on_off);
+extern  int axp221_set_eldo3(int on_off);
+
 extern  int axp221_set_gpio1ldo(int onoff, int set_vol);
+
 extern  int axp221_set_power_off(void);
 extern  int axp221_set_poweroff_vol(int set_vol);
 extern  int axp221_set_charge_current(int current);

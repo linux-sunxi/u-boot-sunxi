@@ -81,11 +81,11 @@
 * D8h    Second Address byte + Write bit transmitted, ACK not received
 * F8h    No relevant status information or no interrupt
 *-----------------------------------------------------------------------------*/
-//static  struct sunxi_twi_reg *i2c[SUNXI_I2C_CONTROLLER] = 
+//static  struct sunxi_twi_reg *i2c[SUNXI_I2C_CONTROLLER] =
 //{
 //    (struct sunxi_twi_reg *)(SUNXI_TWI0_BASE),
 //	(struct sunxi_twi_reg *)(SUNXI_TWI1_BASE),
-//	(struct sunxi_twi_reg *)(SUNXI_TWI2_BASE)		
+//	(struct sunxi_twi_reg *)(SUNXI_TWI2_BASE)
 //};
 static  struct sunxi_twi_reg *i2c;
 /*
@@ -422,7 +422,7 @@ void i2c_init(int speed, int slaveaddr)
 	i2c = (struct sunxi_twi_reg *)SUNXI_TWI0_BASE;
 	/* reset i2c clock    */
 	ccm_reg->apb1_gate &= ~1;
-	__udelay(1000);
+	__usdelay(1000);
 	ccm_reg->apb1_gate |=  1;
 	/* set i2c gpio */
 	sunxi_set_gpio_all((void *)uboot_spare_head.boot_data.twi_gpio, 2);
@@ -437,18 +437,18 @@ void i2c_init(int speed, int slaveaddr)
     {
     	/* toggle I2CSCL until bus idle */
     	i2c->lcr = 0x05;
-    	__udelay(500);
+    	__usdelay(500);
     	i = 10;
 		while ((i > 0) && ((i2c->lcr & 0x02) != 2))
 		{
 			i2c->lcr |= 0x08;
-			__udelay(1000);
+			__usdelay(1000);
 			i2c->lcr &= ~0x08;
-			__udelay(1000);
+			__usdelay(1000);
 			i--;
 		}
 		i2c->lcr = 0x0;
-		__udelay(500);
+		__usdelay(500);
     }
 
 	if(speed < 100)

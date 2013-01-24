@@ -25,7 +25,7 @@ int do_fel(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	axp_set_next_poweron_status(0);
 	timer_exit();
 	sunxi_key_exit();
-	i2c_exit();
+	p2wi_exit();
 	sunxi_dma_exit();
 	sunxi_flash_exit();
 	disable_interrupts();
@@ -57,7 +57,7 @@ int early_fel(void)
 	addr = FEL_BASE;
 	timer_exit();
 	sunxi_key_exit();
-	i2c_exit();
+	p2wi_exit();
 	sunxi_dma_exit();
 	disable_interrupts();
 	interrupt_exit();
@@ -68,6 +68,6 @@ int early_fel(void)
 	disable_caches();
 	asm volatile("mov pc, %0" : : "r" (addr) : "memory");
 
-	return 0;    
+	return 0;
 }
 
