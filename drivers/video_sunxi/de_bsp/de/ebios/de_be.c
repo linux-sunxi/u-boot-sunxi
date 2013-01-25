@@ -563,7 +563,11 @@ __u32 DE_Get_Reg_Base(__u32 sel)
 
 __u32 DE_BE_Reg_Init(__u32 sel)
 {
-	memset((void*)(image_reg_base[sel]+0x800), 0,0x1000-0x800); 
+	printf("DE_BE_Reg_Init, base:%x\n", (image_reg_base[sel]+0x800));
+    //memset((void*)(image_reg_base[sel]+0x800), 0,0x1000-0x800);
+    printf("memset \n");
+    DE_BE_WUINT32(sel,DE_BE_DMA_CTRL,0x33333333);
+    printf("DE_BE_WUINT32 \n");
 
 	return 0;
 }
@@ -616,9 +620,22 @@ __s32 DE_BE_Get_SystemPalette(__u32 sel, __u32 *pbuffer, __u32 offset,__u32 size
 
 __s32 DE_BE_Enable(__u32 sel)
 {
+#if 0
     DE_BE_WUINT32(sel,DE_BE_MODE_CTL_OFF,DE_BE_RUINT32(sel, DE_BE_MODE_CTL_OFF) | (0x01<<1));//start
     DE_BE_WUINT32(sel,DE_BE_MODE_CTL_OFF,DE_BE_RUINT32(sel, DE_BE_MODE_CTL_OFF) | 0x01);//enable  
-    
+#else
+    __u32 tmp;
+    printf("DE_BE_Enable 1\n");
+    tmp = *(volatile __u32*)0x1e60804;
+     printf("read 804\n");
+    *(volatile __u32*)0x1e60804 = 0xff00ff00;
+    printf("write 804\n");
+    *(volatile __u32*)0x1e60800 = (*(volatile __u32*)0x1e60800) | (0x01<<1);
+    printf("DE_BE_Enable 2\n");
+    *(volatile __u32*)0x1e60800 = (*(volatile __u32*)0x1e60800) | (0x01);
+    printf("DE_BE_Enable 3\n");
+#endif
+
     return 0;
 }   
 
@@ -630,12 +647,11 @@ __s32 DE_BE_Disable(__u32 sel)
     return 0;
 } 
 
-// 0:lcd0 only; 1:lcd1 only
-// 2:lcd0+fe0; 3:lcd1+fe0
-// 4:lcd0+fe1; 5:lcd1+fe1
+// 0:lcd
 // 6:fe0 only;  7:fe1 only
 __s32 DE_BE_Output_Select(__u32 sel, __u32 out_sel)
 {
+    out_sel = ((out_sel != 0) && (out_sel != 6) && (out_sel !=7))? 0:out_sel;
     DE_BE_WUINT32(sel,DE_BE_MODE_CTL_OFF,(DE_BE_RUINT32(sel, DE_BE_MODE_CTL_OFF) & 0xff8fffff) | (out_sel << 20));//start
 
     if((out_sel == 6) || (out_sel == 7))

@@ -35,18 +35,30 @@ __s32 BSP_disp_cfg_finish(__u32 sel)
 	return DIS_SUCCESS;
 }
 
+__s32 BSP_disp_vsync_event_enable(__u32 sel, __bool enable)
+{
+    gdisp.screen[sel].vsync_event_en = enable;
+    
+    return DIS_SUCCESS;
+}
 void LCD_vbi_event_proc(__u32 sel, __u32 tcon_index)
 {    
     __u32 cur_line = 0, start_delay = 0;
     __u32 i = 0;
     
+    printf("V\n");
+
+    if(gdisp.screen[sel].vsync_event_en && gdisp.init_para.vsync_event)
+    {
+        gdisp.init_para.vsync_event(sel);
+    }
 	Video_Operation_In_Vblanking(sel, tcon_index);
 
     cur_line = TCON_get_cur_line(sel, tcon_index);
     start_delay = TCON_get_start_delay(sel, tcon_index);
     if(cur_line > start_delay-4)
 	{
-	    DE_INF("int:%d,%d\n", cur_line,start_delay);
+	    //DE_INF("int:%d,%d\n", cur_line,start_delay);
         if(gpanel_info[sel].lcd_fresh_mode == 0)//return while not  trigger mode 
 		{
 		    return ;

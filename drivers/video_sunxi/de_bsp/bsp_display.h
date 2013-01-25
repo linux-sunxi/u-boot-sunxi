@@ -2,7 +2,7 @@
 #ifndef __EBSP_DISPLAY_H__
 #define __EBSP_DISPLAY_H__
 
-#define __FPGA_DEBUG__
+
 //#define __LINUX_OSAL__
 //#define __MELIS_OSAL__
 //#define __WINCE_OSAL__
@@ -44,6 +44,7 @@
 #include <linux/types.h>
 #include <linux/timer.h>
 #include <mach/irqs.h>
+#include <linux/sunxi_physmem.h>
 
 typedef unsigned int __hdle;
 
@@ -86,10 +87,10 @@ typedef unsigned int __hdle;
 #ifdef __UBOOT_OSAL__
 #include <common.h>
 #include <malloc.h>
-#include <asm/arch/drv_display_sun4i.h>
+#include <asm/arch/drv_display.h>
 #include <asm/arch/sys_config.h>
 #include <asm/arch/intc.h>
-
+#include <pmu.h>
 
 #define OSAL_PRINTF  printf       
 #define __inf        printf       
@@ -141,6 +142,7 @@ typedef struct
     __s32 (*hdmi_resume)(void);
     __s32 (*hdmi_get_disp_func)(__disp_hdmi_func *disp_func);
 	__s32 (*disp_int_process)(__u32 sel);
+	__s32 (*vsync_event)(__u32 sel);
 }__disp_bsp_init_para;
 
 
@@ -184,6 +186,7 @@ extern __s32 BSP_disp_set_output_csc(__u32 sel, __disp_output_type_t type);
 extern __s32 BSP_disp_de_flicker_enable(__u32 sel, __bool b_en);
 extern __s32 BSP_disp_store_image_reg(__u32 sel, __u32 addr);
 extern __s32 BSP_disp_restore_image_reg(__u32 sel, __u32 addr);
+extern __s32 BSP_disp_vsync_event_enable(__u32 sel, __bool enable);
 
 extern __s32 BSP_disp_layer_request(__u32 sel, __disp_layer_work_mode_t mode);
 extern __s32 BSP_disp_layer_release(__u32 sel, __u32 hid);

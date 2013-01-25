@@ -326,12 +326,13 @@ typedef union
 		__u32 tx_size                    :  8 ;    // default: 0;
 		__u32 tx_status                  :  1 ;    // default: 0;
 		__u32 tx_flag                    :  1 ;    // default: 0;
-		__u32 res0                       :  7 ;    // default: ;
+		__u32 res0                       :  6 ;    // default: ;
 		__u32 rx_size                    :  5 ;    // default: 0;
+		__u32 res1                       :  3 ;    // default: ;
 		__u32 rx_status                  :  1 ;    // default: 0;
 		__u32 rx_flag                    :  1 ;    // default: 0;
 		__u32 rx_overflow                :  1 ;    // default: 0;
-		__u32 res1                       :  7 ;    // default: ;
+		__u32 res2                       :  5 ;    // default: ;
 	} bits;
 } dsi_cmd_ctl_reg_t;
 
@@ -340,10 +341,10 @@ typedef union
 	__u32 dwval;
 	struct
 	{
-		__u32 byte3						 :  8 ;    // default: 0;
-		__u32 byte2                      :  8 ;    // default: 0;
+		__u32 byte0						 :  8 ;    // default: 0;
 		__u32 byte1                      :  8 ;    // default: 0;
-		__u32 byte0                      :  8 ;    // default: 0;
+		__u32 byte2                      :  8 ;    // default: 0;
+		__u32 byte3                      :  8 ;    // default: 0;
 	} bits;
 } dsi_cmd_data_reg_t;
 
@@ -459,9 +460,9 @@ typedef struct
 	dsi_blk_pkg1_reg_t			dsi_blk_vblk1;				//0x0ec
 	dsi_reservd_reg_t			dsi_reg0f0[68];				//0x0f0~0x1fc
 	dsi_cmd_ctl_reg_t			dsi_cmd_ctl;				//0x200
-	dsi_reservd_reg_t			dsi_reg204[7];				//0x204~0x21c
-	dsi_cmd_data_reg_t			dsi_cmd_rx[8];				//0x220~0x23c
-	dsi_reservd_reg_t			dsi_reg240[40];				//0x240~0x2dc
+	dsi_reservd_reg_t			dsi_reg204[15];				//0x204~0x23c
+	dsi_cmd_data_reg_t			dsi_cmd_rx[8];				//0x240~0x25c
+	dsi_reservd_reg_t			dsi_reg260[32];				//0x260~0x2dc
 	dsi_debug0_reg_t			dsi_debug_video0;			//0x02e0
 	dsi_debug1_reg_t			dsi_debug_video1;			//0x02e4
 	dsi_reservd_reg_t			dsi_reg2e8[2];				//0x2e8~0x2ec
@@ -685,7 +686,8 @@ typedef union
 		__u32 reg_svdlc           :  4 ;    // default: 0;
 		__u32 reg_svtt            :  4 ;    // default: 0;
 		__u32 reg_csmps           :  2 ;    // default: 0;
-		__u32 res1                :  2 ;    // default: ;
+		__u32 res1                :  1 ;    // default: ;
+		__u32 reg_vttmode         :  1 ;    // default: ;
 	} bits;
 } dphy_ana1_reg_t;
 
@@ -750,7 +752,11 @@ typedef union
 		__u32 reg_tmsd            :  2 ;    // default: 0;
 		__u32 reg_tmsc            :  2 ;    // default: 0;
 		__u32 reg_ckdv            :  5 ;    // default: 0;
-		__u32 res0                : 15 ;    // default: ;
+		__u32 res0                :  3 ;    // default: ;
+		__u32 reg_dmplvd		  :  4 ;
+		__u32 reg_dmplvc		  :  1 ;
+		__u32 res1				  :  7 ;
+
 	} bits;
 } dphy_ana4_reg_t;
 
@@ -1050,7 +1056,7 @@ typedef struct
 	dphy_int_pd0_reg_t				dphy_int_pd0;		//0x070
 	dphy_int_pd1_reg_t				dphy_int_pd1;		//0x074
 	dphy_int_pd2_reg_t				dphy_int_pd2;		//0x078
-	dphy_reservd_reg_t				dphy_reg07c[26];	//0x07c~0x0dc
+	dphy_reservd_reg_t				dphy_reg07c[25];	//0x07c~0x0dc
 	dphy_dbg0_reg_t					dphy_dbg0;			//0xe0
 	dphy_dbg1_reg_t					dphy_dbg1;			//0xe4
 	dphy_dbg2_reg_t					dphy_dbg2;			//0xe8

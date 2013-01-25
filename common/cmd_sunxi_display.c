@@ -23,7 +23,7 @@
 #include <command.h>
 #include <asm/io.h>
 #include <asm/arch/boot_type.h>
-#include <asm/arch/drv_display_sun4i.h>
+#include <asm/arch/drv_display.h>
 #define		BMP_MAGIC      (0x4D42)
 #define		SUNXI_BMP_LIMIT (2 * 1024 *1024) 
 #define		DISPALY_RESERVED_MEM (0x40000000 + (512 - 64 - 32) * 1024 * 1024 )

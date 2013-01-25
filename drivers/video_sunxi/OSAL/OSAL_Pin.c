@@ -24,6 +24,14 @@ __hdle OSAL_GPIO_Request(user_gpio_set_t *gpio_list, __u32 group_count_max)
 {    
     //__inf("OSAL_GPIO_Request, port:%d, port_num:%d, mul_sel:%d, pull:%d, drv_level:%d, data:%d\n", gpio_list->port, gpio_list->port_num, gpio_list->mul_sel, gpio_list->pull, gpio_list->drv_level, gpio_list->data);
 
+    if(gpio_list->port == 0xffff)
+    {
+        __u32 on_off;
+        on_off = gpio_list->data;
+        axp_set_dc1sw(on_off);
+        return 0xffff;  	
+    }
+
     return gpio_request(gpio_list, group_count_max);
 }
 
@@ -38,7 +46,10 @@ __hdle OSAL_GPIO_Request_Ex(char *main_name, const char *sub_name)
 __s32 OSAL_GPIO_Release(__hdle p_handler, __s32 if_release_to_default_status)
 {
     //__inf("OSAL_GPIO_Release\n");
-    gpio_release(p_handler, if_release_to_default_status);
+    if(p_handler != 0xffff)
+    {
+        gpio_release(p_handler, if_release_to_default_status);
+    }
     
     return 0;
 }

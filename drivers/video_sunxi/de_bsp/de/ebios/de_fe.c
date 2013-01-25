@@ -150,6 +150,12 @@ __s32 DE_SCAL_Config_Src(__u8 sel, __scal_buf_addr_t *addr, __scal_src_size_t *s
 		scal_dev[sel]->linestrd1.dwval = image_w1;
 		scal_dev[sel]->linestrd2.dwval = image_w1;
 
+        if(type->fmt == DE_SCAL_INYUV420)
+        {
+            scal_dev[sel]->linestrd0.dwval = image_w0;
+            scal_dev[sel]->linestrd1.dwval = ((image_w1+15)>>4)<<4;
+            scal_dev[sel]->linestrd2.dwval = ((image_w1+15)>>4)<<4;
+        }
         de_scal_ch0_offset = image_w0 * y_off0 + x_off0;
         de_scal_ch1_offset = image_w1 * y_off1 + x_off1;
         de_scal_ch2_offset = image_w1 * y_off1 + x_off1;

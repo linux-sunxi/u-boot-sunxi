@@ -108,7 +108,9 @@ __s32 DRV_lcd_open(__u32 sel)
 
 	if((BSP_disp_lcd_used(sel)) && (g_disp_drv.b_lcd_open[sel] == 0))
     {   
-	    BSP_disp_lcd_open_before(sel);
+	    printf("DRV_lcd_open #1\n");
+        BSP_disp_lcd_open_before(sel);
+        printf("DRV_lcd_open #2\n");
 
 	    flow = BSP_disp_lcd_get_open_flow(sel);
 	    for(i=0; i<flow->func_num; i++)
@@ -116,10 +118,13 @@ __s32 DRV_lcd_open(__u32 sel)
 	        __u32 timeout = flow->func[i].delay;
 
 	        flow->func[i].func(sel);
+            printf("DRV_lcd_open #3.%d, timout=%d\n",i, timeout);
 	    	disp_delay_ms(timeout);
+            printf("come back from delay, step=%d, timeout=%d\n", i, timeout);
 	    }
 
 	    BSP_disp_lcd_open_after(sel);
+        printf("DRV_lcd_open #4\n");
 
 		g_disp_drv.b_lcd_open[sel] = 1;
 	}
@@ -193,7 +198,47 @@ __s32 DRV_DISP_Init(void)
     memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
     
     BSP_disp_init(&para);
+    printf("====BSP_disp_init ok =====\n");
     BSP_disp_open();
+    printf("====display init end ====\n");
+    BSP_disp_print_reg(1, DISP_REG_CCMU);
+    {
+        __disp_color_t bk_color;
+
+        DRV_lcd_open(0);
+        printf("====DRV_lcd_open ====\n");
+        __msdelay(1000);
+        BSP_disp_lcd_set_src(0,DISP_LCDC_SRC_WHITE);
+        printf("====lcd_white_src ====\n");
+        __msdelay(1000);
+        BSP_disp_lcd_set_src(0,DISP_LCDC_SRC_BLACK);
+        printf("====lcd_black_src ====\n");
+        __msdelay(1000);
+        BSP_disp_lcd_set_src(0,DISP_LCDC_SRC_DE_CH1);
+        printf("====lcd_ch1_src ====\n");
+        __msdelay(1000);
+
+        bk_color.red = 0xff;
+        bk_color.green = 0x00;
+        bk_color.blue = 0x00;
+        BSP_disp_set_bk_color(0,&bk_color);
+        printf("==== red bk color ====\n");
+        __msdelay(1000);
+
+        bk_color.red = 0x00;
+        bk_color.green = 0xff;
+        bk_color.blue = 0x00;
+        BSP_disp_set_bk_color(0,&bk_color);
+        printf("==== red green color ====\n");
+        __msdelay(1000);
+
+        bk_color.red = 0x00;
+        bk_color.green = 0x00;
+        bk_color.blue = 0xff;
+        BSP_disp_set_bk_color(0,&bk_color);
+        printf("==== red bk color ====\n");
+        __msdelay(1000);
+    }
     printf("====display init end ====\n");
 
     return 0;

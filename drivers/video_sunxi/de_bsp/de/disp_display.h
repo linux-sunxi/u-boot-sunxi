@@ -43,6 +43,9 @@
 #define DE_FLICKER_REQUIRED 0x02000000
 #define DE_FLICKER_REQUIRED_MASK (~(DE_FLICKER_REQUIRED))
 
+#define LCD_GPIO_SCL 4
+#define LCD_GPIO_SDA 5
+
 typedef struct
 {
     __bool                  lcd_used;
@@ -55,16 +58,13 @@ typedef struct
 	
 	__bool                  lcd_pwm_used;
 	user_gpio_set_t         lcd_pwm;
+    __u32                   lcd_pwm_ch;
 
-	__bool                  lcd_gpio_used[4];
-    user_gpio_set_t         lcd_gpio[4];
+	__bool                  lcd_gpio_used[6];
+    user_gpio_set_t         lcd_gpio[6];
 
     __bool                  lcd_io_used[28];
     user_gpio_set_t         lcd_io[28];
-
-//    __u32                   init_bright;//back light brightness
-//	__u32                   lcd_bright;
-//    __u32                   lcd_bright_dimming;//IEP-drc backlight dimming rate: 0 -256 (256: no dimming; 0: the most dimming)
 
     __u32                   backlight_bright;
     __u32                   backlight_dimming;//IEP-drc backlight dimming rate: 0 -256 (256: no dimming; 0: the most dimming)
@@ -146,7 +146,8 @@ typedef struct
 	__u32                   out_csc;
 
 	__disp_lcd_cfg_t        lcd_cfg;
-    __hdle                  gpio_hdl[4];
+    __hdle                  gpio_hdl[6];//index4: scl;  index5: sda
+    __bool                  vsync_event_en;
 }__disp_screen_t;
 
 typedef struct

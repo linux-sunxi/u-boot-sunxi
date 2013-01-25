@@ -33,11 +33,12 @@ COBJS-y += dev_disp.o \
 							de_bsp/de/disp_clk.o de_bsp/de/disp_combined.o de_bsp/de/disp_de.o de_bsp/de/disp_display.o\
 							de_bsp/de/disp_event.o de_bsp/de/disp_hdmi.o de_bsp/de/disp_hwc.o de_bsp/de/disp_layer.o\
 							de_bsp/de/disp_lcd.o de_bsp/de/disp_scaler.o de_bsp/de/disp_tv.o\
-							de_bsp/de/disp_vga.o de_bsp/de/disp_video.o\
+							de_bsp/de/disp_vga.o de_bsp/de/disp_video.o de_bsp/de/disp_lcd_iic.o\
 							de_bsp/iep/cmu/iep_cmu.o de_bsp/de/disp_iep.o\
 							de_bsp/iep/drc/iep_drc.o de_bsp/iep/drc/iep_drc_ebios.o\
 							de_bsp/iep/deu/iep_deu.o de_bsp/iep/deu/iep_deu_ebios.o\
 							de_bsp/lcd/lcd0_panel_cfg.o de_bsp/lcd/lcd1_panel_cfg.o\
+							de_bsp/lcd/lcd_bak/lcd_edp_anx9804.o de_bsp/lcd/lcd_bak/lcd_edp_anx6345.o\
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

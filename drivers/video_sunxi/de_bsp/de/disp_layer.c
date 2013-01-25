@@ -422,12 +422,11 @@ __s32 BSP_disp_layer_release(__u32 sel, __u32 hid)
           
             BSP_disp_cmu_layer_enable(sel, IDTOHAND(hid),FALSE);
             disp_cmu_layer_clear(sel);
-                
-          
-            BSP_disp_deu_enable(sel, IDTOHAND(hid), FALSE);
-            disp_deu_clear(sel, IDTOHAND(hid));
 
             Scaler_Release(layer_man->scaler_index, FALSE);      /*release a scaler object */
+            //pr_warn("BSP_disp_deu_disable, ====1======sel=%d,hid=%d\n",sel,hid);
+            BSP_disp_deu_enable(sel, IDTOHAND(hid), FALSE);
+            disp_deu_clear(sel, IDTOHAND(hid));
         }
         else
         {
@@ -442,6 +441,8 @@ __s32 BSP_disp_layer_release(__u32 sel, __u32 hid)
     DE_BE_Layer_Set_Framebuffer(sel, hid, &layer_src);
 
     memset(layer_man, 0 ,sizeof(__layer_man_t));
+    layer_man->para.scn_win.width  = 0x1;
+    layer_man->para.scn_win.height = 0x1;
     DE_BE_Layer_Enable(sel, hid, FALSE);
     DE_BE_Layer_Video_Enable(sel, hid, FALSE);
     DE_BE_Layer_Video_Ch_Sel(sel, hid, 0);
@@ -567,6 +568,7 @@ __s32 BSP_disp_layer_set_framebuffer(__u32 sel, __u32 hid, __disp_fb_t * pfb)//k
                 layer_fb.offset_x   = layer_man->para.src_win.x;
                 layer_fb.offset_y   = layer_man->para.src_win.y;
                 layer_fb.format = pfb->format;
+                layer_fb.pre_multiply = pfb->pre_multiply;
                 DE_BE_Layer_Set_Framebuffer(sel, hid,&layer_fb);
             }
 
@@ -675,6 +677,7 @@ __s32 BSP_disp_layer_set_src_window(__u32 sel, __u32 hid,__disp_rect_t *regn)//i
                 layer_fb.offset_x   = regn->x;
                 layer_fb.offset_y   = regn->y;
                 layer_fb.format = layer_man->para.fb.format;
+                layer_fb.pre_multiply = layer_man->para.fb.pre_multiply;
 
                 DE_BE_Layer_Set_Framebuffer(sel, hid,&layer_fb);
             }
@@ -771,15 +774,15 @@ __s32 BSP_disp_layer_set_screen_window(__u32 sel, __u32 hid,__disp_rect_t * regn
             outsize.width = regn->width;
 
             ret = Scaler_Set_Output_Size(layer_man->scaler_index, &outsize);
-            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
-            {
-                IEP_CMU_Set_Imgsize(sel, regn->width, regn->height);
-            }
             if(ret != DIS_SUCCESS)
             {
                 DE_WRN("Scaler_Set_Output_Size fail!\n");
                 BSP_disp_cfg_finish(sel);
                 return ret;
+            }
+            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)) ==1)
+            {
+                IEP_CMU_Set_Imgsize(sel, regn->width, regn->height);
             }
         }
         if(get_fb_type(layer_man->para.fb.format) == DISP_FB_TYPE_YUV && layer_man->para.mode != DISP_LAYER_WORK_MODE_SCALER)
@@ -873,12 +876,12 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
         {
             if(layer_man->para.mode == DISP_LAYER_WORK_MODE_SCALER)
             {
-                if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
+                if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)) ==1)
                 {
                     BSP_disp_cmu_layer_enable(sel, IDTOHAND(hid), FALSE);
                     disp_cmu_layer_clear(sel);
                 }
-                if(BSP_disp_deu_get_enable(sel,IDTOHAND(hid)))
+                if(BSP_disp_deu_get_enable(sel,IDTOHAND(hid)) ==1)
                 {
                     BSP_disp_deu_enable(sel,IDTOHAND(hid),FALSE);
                     disp_deu_clear(sel, IDTOHAND(hid));
@@ -928,6 +931,7 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
             {
                 scaler->out_fb.seq= DISP_SEQ_P3210;
                 scaler->out_fb.format= DISP_FORMAT_YUV444;
+                scaler->out_fb.mode = DISP_MOD_NON_MB_PLANAR;
             }else
             {
                 scaler->out_fb.seq= DISP_SEQ_ARGB;
@@ -974,7 +978,7 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
             DE_SCAL_Output_Select(layer_man->scaler_index, sel);
             disp_deu_output_select(sel, IDTOHAND(hid), sel);
             Scaler_Set_Para(layer_man->scaler_index, scaler);
-            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)))
+            if(BSP_disp_cmu_layer_get_enable(sel, IDTOHAND(hid)) ==1)
             {
                 IEP_CMU_Set_Imgsize(sel, player->scn_win.width, player->scn_win.height);
             }
@@ -1011,6 +1015,7 @@ __s32 BSP_disp_layer_set_para(__u32 sel, __u32 hid,__disp_layer_info_t *player)
                 layer_fb.fb_width   = player->fb.size.width;
                 layer_fb.offset_x   = player->src_win.x;
                 layer_fb.offset_y   = player->src_win.y;
+                layer_fb.pre_multiply = player->fb.pre_multiply;
 
 	            bpp = DE_BE_Format_To_Bpp(sel, layer_fb.format);
                 size = (player->fb.size.width * player->scn_win.height * bpp + 7)/8;

@@ -9,16 +9,40 @@ __s32 Image_init(__u32 sel)
 {
     
     image_clk_init(sel);
+    printf("image_clk_init, 0x1c20064=0x%x, 0x1c20104=0x%x\n", *(volatile __u32*)0x1c20064, *(volatile __u32*)0x1c20104);
+    BSP_disp_print_reg(1, DISP_REG_CCMU);
 	image_clk_on(sel);	//when access image registers, must open MODULE CLOCK of image
+	printf("image_clk_on\n");
 	DE_BE_Reg_Init(sel);
-	
+    printf("DE_BE_Reg_Init\n");
+    
     //BSP_disp_sprite_init(sel);
     
     Image_open(sel);
+    printf("Image_open\n");
 
     DE_BE_EnableINT(sel, DE_IMG_REG_LOAD_FINISH);
+    printf("DE_BE_EnableINT\n");
     DE_BE_reg_auto_load_en(sel, 0);
+    printf("DE_BE_reg_auto_load_en\n");
 	
+    if(sel == 0)
+    {
+        OSAL_RegISR(INTC_IRQNO_IMAGE0,0,Scaler_event_proc, (void *)sel,0,0);
+        printf("OSAL_RegISR\n");
+#ifndef __LINUX_OSAL__
+        OSAL_InterruptEnable(INTC_IRQNO_IMAGE0);
+        printf("OSAL_InterruptEnable\n");
+
+#endif
+    }
+    else if(sel == 1)
+    {
+        OSAL_RegISR(INTC_IRQNO_IMAGE1,0,Scaler_event_proc, (void *)sel,0,0);
+#ifndef __LINUX_OSAL__
+        OSAL_InterruptEnable(INTC_IRQNO_IMAGE1);
+#endif
+    }
     return DIS_SUCCESS;
 }
       
@@ -171,17 +195,10 @@ __s32 BSP_disp_set_output_csc(__u32 sel, __disp_output_type_t type)
         if(enhance_en == 0)
         {
             enhance_en = 1;
-#ifndef __FPGA_DEBUG__
             bright = gdisp.screen[sel].lcd_cfg.lcd_bright;
             contrast = gdisp.screen[sel].lcd_cfg.lcd_contrast;
             saturation = gdisp.screen[sel].lcd_cfg.lcd_saturation;
             hue = gdisp.screen[sel].lcd_cfg.lcd_hue;
-#else
-            bright = 50;//gdisp.screen[sel].lcd_cfg.lcd_bright;
-            contrast = 50;//gdisp.screen[sel].lcd_cfg.lcd_contrast;
-            saturation = 57;//gdisp.screen[sel].lcd_cfg.lcd_saturation;
-            hue = 50;//gdisp.screen[sel].lcd_cfg.lcd_hue;
-#endif
         }
     }
 

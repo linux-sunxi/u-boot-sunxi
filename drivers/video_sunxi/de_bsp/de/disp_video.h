@@ -61,7 +61,7 @@ __s32 disp_video_get_dit_mode(__u32 scaler_index);
 
 extern frame_para_t g_video[2][4];
 extern void* disp_malloc(__u32 num_bytes);
-extern  void disp_free(void * p);
+extern  void disp_free(void * virt_addr, void* phy_addr);
 
 
 #endif

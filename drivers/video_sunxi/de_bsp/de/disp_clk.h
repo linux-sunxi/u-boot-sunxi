@@ -3,8 +3,10 @@
 
 #include "disp_display_i.h"
 
-#define  AW_MOD_CLK_AHB_TVE0  AW_SYS_CLK_NONE
-#define  AW_MOD_CLK_AHB_TVE1  AW_SYS_CLK_NONE
+#define  MOD_CLK_AHB_TVE0  0
+#define  MOD_CLK_AHB_TVE1  0
+#define  AHB_CLK_TVE0  0
+#define  AHB_CLK_TVE1  0
 
 typedef struct
 {
@@ -23,6 +25,44 @@ typedef struct
 	
 }__disp_clk_tab;
 
+typedef struct
+{
+	__u32 factor_n;
+	__u32 factor_k;
+	__u32 divider_m;
+}__disp_ccmu_coef;
+
+
+typedef struct __CCMU_MIPI_PLL_REG0040
+{
+    __u32   FactorM:4;          //bit0,  PLL FactorM
+    __u32   FactorK:2;          //bit4,  PLL FactorM
+    __u32   reserved0:2;        //bit6,  reserved
+    __u32   FactorN:4;          //bit8,  PLL factor N
+    __u32   reserved1:4;        //bit12, reserved
+    __u32   VfbSel:1;           //bit16, 0-mipi mode(n,k,m valid), 1-hdmi mode(sint_frac, sdiv2
+                                //       s6p25_7p5, pll_feedback_div valid)
+    __u32   FeedBackDiv:1;      //bit17, pll feedback division, 0:x5, 1:x7
+    __u32   reserved2:2;        //bit18, reserved
+    __u32   SdmEn:1;            //bit20, sdm enable
+    __u32   PllSrc:1;           //bit21, PLL source, 0:video pll0, 1:video pll1
+    __u32   Ldo2En:1;           //bit22, LDO2 enable
+    __u32   Ldo1En:1;           //bit23, LDO1 enable
+    __u32   reserved3:1;        //bit24, reserved
+    __u32   Sel625Or750:1;      //bit25, select pll out is input*6.25 or 7.50
+    __u32   SDiv2:1;            //bit26, PLL output seclect, 0:pll output, 1:pll output x2
+    __u32   FracMode:1;         //bit27, PLL output mode, 0:integer mode, 1:fraction mode
+    __u32   Lock:1;             //bit28, lock flag
+    __u32   reserved4:2;        //bit29, reserved
+    __u32   PLLEn:1;            //bit31, PLL enable
+} __ccmu_mipi_pll_reg0040_t;
+
+typedef struct __CCMU_MIPI_PLL_BIAS_REG0240
+{
+    __u32  reserved0:28;           //bit0
+    __u32  pllvdd_ldo_out_ctrl:3;  //bit28, pll ldo output control
+    __u32  vco_rst:31;             //bit31, vco reset in
+}__ccmu_mipi_pll_bias_reg0240_t;
 
 __s32 image_clk_init(__u32 sel);
 __s32 image_clk_exit(__u32 sel);
@@ -53,6 +93,12 @@ __s32 lvds_clk_init(void);
 __s32 lvds_clk_exit(void);
 __s32 lvds_clk_on(void);
 __s32 lvds_clk_off(void);
+
+__s32 dsi_clk_init(void);
+__s32 dsi_clk_exit(void);
+__s32 dsi_clk_on(void);
+__s32 dsi_clk_off(void);
+
 
 __s32 disp_pll_init(void);
 __s32 disp_clk_cfg(__u32 sel, __u32 type, __u8 mode);

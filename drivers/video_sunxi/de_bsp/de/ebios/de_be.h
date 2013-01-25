@@ -26,6 +26,7 @@
 #define DE_BE_DLCDP_CRD_CTL_OFF1                0x8bc	/*direct lcd pipe coordinate control register1 offset*/
 #define DE_BE_INT_EN_OFF                        0x8c0
 #define DE_BE_INT_FLAG_OFF                      0x8c4
+#define DE_BE_DMA_CTRL                          0x8cc   /* 0X33333333 */
 #define DE_BE_HWC_CRD_CTL_OFF             	    0x8d8	/*hardware cursor coordinate control register offset*/
 #define DE_BE_HWC_FRMBUF_OFF                    0x8e0	/*hardware cursor framebuffer control*/
 #define DE_BE_WB_CTRL_OFF						0x8f0	/*back-end write back control */

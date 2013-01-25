@@ -35,7 +35,7 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sunxi_mbr.h>
 #include <asm/arch/boot_type.h>
-#include <asm/arch/drv_display_sun4i.h>
+#include <asm/arch/drv_display.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

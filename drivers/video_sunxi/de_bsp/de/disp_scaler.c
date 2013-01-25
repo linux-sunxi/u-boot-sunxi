@@ -302,9 +302,6 @@ __s32 Scaler_Init(__u32 sel)
     if(sel == 0)
     {
         OSAL_RegISR(INTC_IRQNO_SCALER0,0,Scaler_event_proc, (void *)sel,0,0);
-#ifdef __FPGA_DEBUG__
-        OSAL_RegISR(INTC_IRQNO_SCALER0+1,0,Scaler_event_proc, (void *)sel,0,0);//BE INT
-#endif
 #ifndef __LINUX_OSAL__
         OSAL_InterruptEnable(INTC_IRQNO_SCALER0);
 #endif
@@ -769,7 +766,7 @@ __s32 Scaler_Set_Para(__u32 sel, __disp_scaler_t *scl)
 		}
 		else
 		{	
-			DE_WRN("output mode:%d invalid in Display_Scaler_Start\n",scaler->out_fb.mode);
+			DE_WRN("output mode:%d invalid in Scaler_Set_Para\n",scaler->out_fb.mode);
 			return DIS_FAIL;
 		}
 	}
@@ -788,7 +785,7 @@ __s32 Scaler_Set_Para(__u32 sel, __disp_scaler_t *scl)
 		}
 		else
 		{
-			DE_WRN("output para invalid in Display_Scaler_Start,mode:%d,format:%d\n",scaler->out_fb.mode, scaler->out_fb.format);
+			DE_WRN("output para invalid in Scaler_Set_Para,mode:%d,format:%d\n",scaler->out_fb.mode, scaler->out_fb.format);
 			return DIS_FAIL;
 		}
 	}  
@@ -1096,6 +1093,7 @@ __s32 BSP_disp_scaler_start_ex(__u32 handle,__disp_scaler_para_t *para)
     DE_SCAL_Set_Writeback_Addr_ex(sel,&out_addr,&out_size,&out_type);
     DE_SCAL_Writeback_Linestride_Enable(sel);
     DE_SCAL_Output_Select(sel, 3);
+    DE_SCAL_Input_Select(sel, 0);
     
     DE_SCAL_EnableINT(sel,DE_WB_END_IE);
     DE_SCAL_Start(sel);   

@@ -22,6 +22,7 @@
 #define  __OSAL_PIN_H__
 
 #include "OSAL.h"
+#include <pmu.h>
 
 __hdle OSAL_GPIO_Request(user_gpio_set_t *gpio_list, __u32 group_count_max);
 

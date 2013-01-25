@@ -29,13 +29,28 @@ static __u32 g_iep_status[2] = {0,0};
 #define ____SEPARATOR_DRC_CLK____
 __s32 drc_clk_init(__u32 sel)
 {
+	__u32 pll_freq;
+    __u32 mclk_div;
+
+    DE_INF("drc %d clk init\n", sel);
 	if(!sel)
 	{
-	    h_drcahbclk0 = OSAL_CCMU_OpenMclk(AW_AHB_CLK_DRC0);
-	    h_drcdramclk0 = OSAL_CCMU_OpenMclk(AW_DRAM_CLK_DRC0);
-	    h_drcmclk0 = OSAL_CCMU_OpenMclk(AW_MOD_CLK_IEPDRC0);
+	    h_drcahbclk0 = OSAL_CCMU_OpenMclk(AHB_CLK_DRC0);
+	    h_drcdramclk0 = OSAL_CCMU_OpenMclk(DRAM_CLK_DRC0);
+	    h_drcmclk0 = OSAL_CCMU_OpenMclk(MOD_CLK_IEPDRC0);
 
 		OSAL_CCMU_MclkReset(h_drcmclk0, RST_INVAILD);
+
+		OSAL_CCMU_SetMclkSrc(h_drcmclk0, SYS_CLK_PLL9);
+
+		pll_freq = OSAL_CCMU_GetSrcFreq(SYS_CLK_PLL9);
+        mclk_div = 1;
+        while((pll_freq / mclk_div) > 300000000)
+        {
+            mclk_div ++;
+        }
+		OSAL_CCMU_SetMclkDiv(h_drcmclk0, mclk_div);
+		
 		OSAL_CCMU_MclkOnOff(h_drcahbclk0, CLK_ON);
 		OSAL_CCMU_MclkOnOff(h_drcmclk0, CLK_ON);
 		
@@ -43,11 +58,22 @@ __s32 drc_clk_init(__u32 sel)
 	}
 	else
 	{
-		h_drcahbclk1 = OSAL_CCMU_OpenMclk(AW_AHB_CLK_DRC1);
-	    h_drcdramclk1 = OSAL_CCMU_OpenMclk(AW_DRAM_CLK_DRC1);
-	    h_drcmclk1 = OSAL_CCMU_OpenMclk(AW_MOD_CLK_IEPDRC1);
+		h_drcahbclk1 = OSAL_CCMU_OpenMclk(AHB_CLK_DRC1);
+	    h_drcdramclk1 = OSAL_CCMU_OpenMclk(DRAM_CLK_DRC1);
+	    h_drcmclk1 = OSAL_CCMU_OpenMclk(MOD_CLK_IEPDRC1);
 
 		OSAL_CCMU_MclkReset(h_drcmclk1, RST_INVAILD);
+
+		OSAL_CCMU_SetMclkSrc(h_drcmclk1, SYS_CLK_PLL10);
+		
+		pll_freq = OSAL_CCMU_GetSrcFreq(SYS_CLK_PLL10);
+        mclk_div = 1;
+        while((pll_freq / mclk_div) > 300000000)
+        {
+            mclk_div ++;
+        }
+		OSAL_CCMU_SetMclkDiv(h_drcmclk1, mclk_div);
+				
 		OSAL_CCMU_MclkOnOff(h_drcahbclk1, CLK_ON);
 		OSAL_CCMU_MclkOnOff(h_drcmclk1, CLK_ON);
 		
@@ -461,7 +487,6 @@ __s32 drc_close_proc(__u32 sel)
 #define ____SEPARATOR_DRC_BSP____
 __s32 IEP_Drc_Init(__u32 sel)
 {
-
 #ifdef DRC_DEFAULT_ENABLE
 	__disp_rect_t regn;
 #endif
@@ -474,11 +499,7 @@ __s32 IEP_Drc_Init(__u32 sel)
 	memset(&gpwrsv[sel], 0, sizeof(__drc_pwrsv_t));
 
 	drc_clk_init(sel);
-#ifdef __LINUX_OSAL__
-	pttab[sel] = kmalloc(IEP_LGC_TAB_SIZE, GFP_KERNEL | __GFP_ZERO);
-#else
-    pttab[sel] = OSAL_PhyAlloc(IEP_LGC_TAB_SIZE);
-#endif
+	pttab[sel] = OSAL_PhyAlloc(IEP_LGC_TAB_SIZE);//OSAL_PhyAlloc(IEP_LGC_TAB_SIZE);
 
 	sprintf(primary_key, "lcd%d_para", sel);
 
@@ -501,8 +522,9 @@ __s32 IEP_Drc_Init(__u32 sel)
 			lcdgamma = (value - 10)/2;
 		}
 	}
-
+#if defined(__LINUX_OSAL__)
 	memcpy(pttab[sel], pwrsv_lgc_tab[128*lcdgamma], IEP_LGC_TAB_SIZE);
+#endif
 	
 #ifdef DRC_DEFAULT_ENABLE
 #ifdef DRC_DEMO_HALF_SCREEN
@@ -528,7 +550,7 @@ __s32 IEP_Drc_Init(__u32 sel)
 __s32 IEP_Drc_Exit(__u32 sel)
 {
 	drc_clk_exit(sel);
-	OSAL_PhyFree(pttab[sel], IEP_LGC_TAB_SIZE);
+	OSAL_PhyFree(pttab[sel],IEP_LGC_TAB_SIZE);
 	return DIS_SUCCESS;
 }
 

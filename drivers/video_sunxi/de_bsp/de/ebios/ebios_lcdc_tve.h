@@ -142,6 +142,7 @@ __s32   dsi_cfg(__u32 sel,__panel_para_t * panel);
 __s32   dsi_exit(__u32 sel);
 __s32   dsi_open(__u32 sel,__panel_para_t * panel);
 __s32   dsi_close(__u32 sel);
+__s32   dsi_inst_busy(__u32 sel);
 __s32   dsi_tri_start(__u32 sel);
 __s32   dsi_dcs_wr(__u32 sel,__u8 cmd,__u8* para_p,__u32 para_num);
 __s32   dsi_dcs_wr_index(__u32 sel,__u8 index);
