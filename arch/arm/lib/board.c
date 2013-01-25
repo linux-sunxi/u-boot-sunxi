@@ -276,10 +276,10 @@ init_fnc_t *init_sequence[] = {
 #endif
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	init_func_i2c,
+#endif
 #if defined(CONFIG_SUNXI_AXP)
 	init_func_p2wi,
 	power_source_init,
-#endif
 #endif
     check_update_key,
 	dram_init,		/* configure available RAM banks */
@@ -551,9 +551,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
-//	DRV_DISP_Init();
-//	board_display_device_open();
-//	board_display_layer_open();
 
 	{
 		int vol;
@@ -567,6 +564,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		ret = script_parser_fetch("lcd0_para", "lcd_vt", &vol, 1);
 		printf("lcd_vt=%d, ret=%d\n", vol, ret);
 	}
+
+//  DRV_DISP_Init();
+//	board_display_device_open();
+//	board_display_layer_open();
 
 	ret = sunxi_flash_handle_init();
 	if(!ret)
