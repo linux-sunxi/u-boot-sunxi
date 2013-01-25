@@ -353,6 +353,7 @@ int sunxi_flash_handle_init(void)
 	{
 	    int nand_used, sdc_used;
 
+		uboot_spare_head.boot_data.storage_type = 1;
 		storage_type = uboot_spare_head.boot_data.storage_type;
 		debug("storage type = %d\n", storage_type);
         if((storage_type == 1) || (storage_type == 2))

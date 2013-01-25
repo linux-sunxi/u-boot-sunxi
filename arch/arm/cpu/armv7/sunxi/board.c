@@ -27,7 +27,6 @@
 #include <common.h>
 #include <asm/io.h>
 #include <pmu.h>
-#include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/key.h>
@@ -43,21 +42,6 @@ int uart_console = 0;
 
 DECLARE_GLOBAL_DATA_PTR;
 
-
-void  reposition_boot_standby( void )
-{
-//#if 0
-//	memcpy((void *)&_standby_start, (void *)&_standby_start_lma, ((__u32)&_standby_end - (__u32)&_standby_start));
-//#else
-//	int *dst = &_standby_start;
-//	int *src = &_standby_end;
-//
-//	while (dst < &_standby_end)
-//	{
-//		*dst++ = *src++;
-//	}
-//#endif
-}
 
 u32 get_base(void)
 {
@@ -141,9 +125,22 @@ int script_init(void)
 	return 0;
 }
 
-int power_init(void)
+int power_source_init(void)
 {
-	return axp_init();
+	int pll1;
+
+	if(!axp_init())
+	{
+		sunxi_clock_set_corepll(uboot_spare_head.boot_data.run_clock, 0);
+	}
+	pll1 = sunxi_clock_get_corepll();
+
+	printf("pll1 = %d Mhz\n", pll1);
+
+	sunxi_clock_set_pll6();
+	sunxi_clock_set_mbus();
+
+	return 0;
 }
 
 

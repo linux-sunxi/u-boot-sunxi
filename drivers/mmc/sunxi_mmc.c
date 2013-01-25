@@ -28,18 +28,11 @@
 #include <asm/io.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/ccmu.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
 #include <malloc.h>
 #include <mmc.h>
-
-
-#define MMC0_SCLK_CFG	(0x01c20000 + 0x88)
-#define MMC1_SCLK_CFG	(MMC0_SCLK_CFG + 4)
-#define MMC2_SCLK_CFG	(MMC0_SCLK_CFG + 8)
-#define MMC3_SCLK_CFG	(MMC0_SCLK_CFG + 0xc)
-#define CCM_AHB1_GATING0	(0x1c20000 + 0X60)
-#define CCM_AHB1_RESET0	(0x1c20000 + 0X2C0)
 
 #undef SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
@@ -122,8 +115,8 @@ struct sunxi_mmc_des {
 struct sunxi_mmc_host {
 	unsigned mmc_no;
 	unsigned hclkbase;
+	unsigned hclkrst;
 	unsigned mclkbase;
-	unsigned rstbase;
 	unsigned database;
 	unsigned fatal_err;
 	unsigned mod_clk;
@@ -142,26 +135,26 @@ static int mmc_resource_init(int sdc_no)
 	switch (sdc_no) {
 		case 0:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC0_BASE;
-			mmchost->mclkbase = MMC0_SCLK_CFG;
+			mmchost->mclkbase = CCM_SDC0_SCLK_CTRL;
 			break;
 		case 1:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC1_BASE;
-			mmchost->mclkbase = MMC1_SCLK_CFG;
+			mmchost->mclkbase = CCM_SDC1_SCLK_CTRL;
 			break;
 		case 2:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC2_BASE;
-			mmchost->mclkbase = MMC2_SCLK_CFG;
+			mmchost->mclkbase = CCM_SDC2_SCLK_CTRL;
 			break;
 		case 3:
 			mmchost->reg = (struct sunxi_mmc *)SUNXI_MMC3_BASE;
-			mmchost->mclkbase = MMC3_SCLK_CFG;
+			mmchost->mclkbase = CCM_SDC3_SCLK_CTRL;
 			break;
 		default:
 			printf("Wrong mmc number %d\n", sdc_no);
 			break;
 	}
-	mmchost->hclkbase = CCM_AHB1_GATING0;
-	mmchost->hclkbase = CCM_AHB1_RESET0;
+	mmchost->hclkbase = CCM_AHB1_GATE0_CTRL;
+	mmchost->hclkrst  = CCM_AHB1_RST_REG0;
 	mmchost->database = (unsigned int)mmchost->reg + 0x200;
 	mmchost->mmc_no = sdc_no;
 
@@ -171,58 +164,45 @@ static int mmc_resource_init(int sdc_no)
 static int mmc_clk_io_on(int sdc_no)
 {
 	unsigned int rval;
-	unsigned int pll5_clk;
-	unsigned int divider;
-	unsigned int n, k, p;
-	int          index;
+	u32 gpioc_base = SUNXI_PIO_BASE + 0x48;
+	u32 gpiof_base = SUNXI_PIO_BASE + 0xb4;
 	struct sunxi_mmc_host* mmchost = &mmc_host[sdc_no];
-	MMCDBG("init mmc %d clock and io\n", sdc_no);
-	/* config gpio */
-	if((sdc_no != 0) && (sdc_no != 2))
-	{
-		return -1;
+
+	switch (sdc_no) {
+        case 0:
+            /* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
+            writel(0x222222, gpiof_base + 0x0);
+            writel(0x555, gpiof_base + 0x1c);
+            writel(0xaaa, gpiof_base + 0x14);
+
+	        break;
+
+        case 2:
+            /* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
+            writel(0x33000000, gpioc_base + 0x0);
+            writel(0x3333, gpioc_base + 0x4);
+            writel(0x555 << 12, gpioc_base + 0x1c);
+            writel(0xaaa << 12, gpioc_base + 0x14);
+            break;
+        default:
+            return -1;
 	}
-	if(sdc_no == 0)
-	{
-		index = 0;
-	}
-	else if(sdc_no == 2)
-	{
-		index = 8;
-	}
-	else
-	{
-		return -1;
-	}
-	//sunxi_set_gpio_all((void *)&uboot_spare_head.boot_data.sdcard_gpio[index], 6);
+
 	/* config ahb clock */
 	rval = readl(mmchost->hclkbase);
 	rval |= (1 << (8 + sdc_no));
 	writel(rval, mmchost->hclkbase);
-	
-	rval = readl(mmchost->rstbase);
+
+	rval = readl(mmchost->hclkrst);
 	rval |= (1 << (8 + sdc_no));
-	writel(rval, mmchost->rstbase);
+	writel(rval, mmchost->hclkrst);
 
 	/* config mod clock */
-	rval = readl(SUNXI_CCM_PLL5_CFG);
-	n = (rval >> 8) &  0x1f;
-	k = ((rval >> 4) & 3) + 1;
-	p = 1 << ((rval >> 16) & 3);
-	pll5_clk = 24000000 * n * k / p;
-	if (pll5_clk > 400000000)
-		divider = 4;
-	else
-		divider = 3;
-	writel((1U << 31) | (2U << 8) | (2U << 20) | (2U << 24) | divider, mmchost->mclkbase);
-	mmchost->mod_clk = pll5_clk / (divider + 1);
+	writel(0x80000000, mmchost->mclkbase);
+	mmchost->mod_clk = 24000000;
 	dumphex32("ccmu", (char*)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char*)SUNXI_PIO_BASE, 0x100);
 	dumphex32("mmc", (char*)mmchost->reg, 0x100);
-
-#ifdef CONFIG_SUN6I_FPGA
-	mmchost->mod_clk = 24000000;
-#endif
 
 	return 0;
 }
@@ -243,29 +223,54 @@ static int mmc_update_clk(struct mmc *mmc)
 	return 0;
 }
 
-static int mmc_config_clock(struct mmc *mmc, unsigned div)
+static int mmc_config_clock(struct mmc *mmc, unsigned clk)
 {
 	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned rval = readl(&mmchost->reg->clkcr);
+	unsigned int clkdiv = 0;
+
+	/* Disable Clock */
+	rval &= ~(1 << 16);
+	writel(rval, &mmchost->reg->clkcr);
+	if(mmc_update_clk(mmc))
+		return -1;
+
+	if (clk <=400000) {
+		mmchost->mod_clk = 400000;
+		writel(0x8012010f, mmchost->mclkbase);
+	} else {
+		u32 pll6clk;
+		u32 n,m;
+
+		pll6clk = sunxi_clock_get_pll6();
+		clkdiv = pll6clk / clk - 1;
+			if (clkdiv < 16) {
+			n = 0;
+			m = clkdiv;
+		} else if (clkdiv < 32) {
+			n = 1;
+			m = clkdiv>>1;
+		} else {
+			n = 2;
+			m = clkdiv>>2;
+		}
+		mmchost->mod_clk = clk;
+		writel(0x81200200 | (n << 16) | m, mmchost->mclkbase);
+	        MMCDBG("init mmc pll6clk %d, clk %d, mclkbase %x\n", pll6clk, mmchost->mod_clk, readl(mmchost->mclkbase));
+	}
 
 	/*
 	 * CLKCREG[7:0]: divider
 	 * CLKCREG[16]:  on/off
 	 * CLKCREG[17]:  power save
 	 */
-	/* Disable Clock */
-	rval &= ~(1 << 16);
-	writel(rval, &mmchost->reg->clkcr);
-	if(mmc_update_clk(mmc))
-		return -1;
 	/* Change Divider Factor */
 	rval &= ~(0xFF);
-	rval |= div;
 	writel(rval, &mmchost->reg->clkcr);
 	if(mmc_update_clk(mmc))
 		return -1;
 	/* Re-enable Clock */
-	rval |= (1 << 16);
+	rval |= (3 << 16);
 	writel(rval, &mmchost->reg->clkcr);
 	if(mmc_update_clk(mmc))
 		return -1;
@@ -275,17 +280,14 @@ static int mmc_config_clock(struct mmc *mmc, unsigned div)
 static void mmc_set_ios(struct mmc *mmc)
 {
 	struct sunxi_mmc_host* mmchost = (struct sunxi_mmc_host *)mmc->priv;
-	unsigned int clkdiv = 0;
 
-	MMCDBG("set ios: bus_width: %x, clock: %d, mod_clk\n", mmc->bus_width, mmc->clock, mmchost->mod_clk);
 
-	/* Change clock first */
-	clkdiv = (mmchost->mod_clk + (mmc->clock>>1))/mmc->clock/2;
-	if (mmc->clock)
-		if (mmc_config_clock(mmc, clkdiv)) {
-			mmchost->fatal_err = 1;
-			return;
-		}
+	MMCDBG("ios: bus: %d, clock: %d\n", mmc->bus_width, mmc->clock);
+
+	if (mmc->clock && mmc_config_clock(mmc, mmc->clock)) {
+		MMCDBG("[mmc]: " "*** update clock failed\n");
+		mmchost->fatal_err = 1;
+	}
 	/* Change bus width */
 	if (mmc->bus_width == 8)
 		writel(2, &mmchost->reg->width);

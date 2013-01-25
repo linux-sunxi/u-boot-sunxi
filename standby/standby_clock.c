@@ -19,7 +19,7 @@
 **********************************************************************************************************************
 */
 #include "standby_i.h"
-#include <asm/arch/clock.h>
+#include <asm/arch/ccmu.h>
 
 
 //static  __u32  pll1_value = 0;
@@ -87,12 +87,12 @@ static int standby_set_divd(int pll)
 	__u32 reg_val;
 
 	//config axi
-	reg_val = readl(SUNXI_CCM_OSC24M_CFG);
+	reg_val = readl(CCM_CPU_L2_AXI_CTRL);
 	reg_val &= ~(0x03 << 0);
 	reg_val |=  (0x02 << 0);
-	writel(reg_val, SUNXI_CCM_OSC24M_CFG);
+	writel(reg_val, CCM_CPU_L2_AXI_CTRL);
 	//config ahb
-	reg_val = readl(SUNXI_CCM_CPU_AHB_APB0_CFG);
+	reg_val = readl(CCM_AHB1_APB1_CTRL);
 	reg_val &= ~((0x03 << 12) | (0x03 << 8) | (0x03 << 4));
 	reg_val |=   (0x02 << 12);
 	if(pll <= 400)
@@ -111,7 +111,7 @@ static int standby_set_divd(int pll)
 	{
 		reg_val |= (3 << 4);
 	}
-	writel(reg_val, SUNXI_CCM_CPU_AHB_APB0_CFG);
+	writel(reg_val, CCM_AHB1_APB1_CTRL);
 
 	return 0;
 }
@@ -123,10 +123,10 @@ __s32 standby_clock_to_24M(void)
 
 	standby_set_divd(24);
 
-	reg_val = readl(SUNXI_CCM_OSC24M_CFG);
+	reg_val = readl(CCM_CPU_L2_AXI_CTRL);
     reg_val &= ~(0x03 << 16);
     reg_val |=  (0x01 << 16);
-    writel(reg_val, SUNXI_CCM_OSC24M_CFG);
+    writel(reg_val, CCM_CPU_L2_AXI_CTRL);
 
 	for(i=0; i<0x4000; i++);
 
@@ -140,7 +140,7 @@ __s32 standby_clock_to_pll1(void)
 	__u32 factor_n;
 	__u32 factor_k, div_m;
 
-	reg_val  = readl(SUNXI_CCM_PLL1_CFG);
+	reg_val  = readl(CCM_PLL1_CPUX_CTRL);
 	factor_n = ((reg_val >> 8) & 0x1f) + 1;
 	factor_k = ((reg_val >> 4) & 0x3) + 1;
 	div_m = ((reg_val >> 0) & 0x3) + 1;
@@ -149,10 +149,10 @@ __s32 standby_clock_to_pll1(void)
 
 	standby_set_divd(pll1);
 
-	reg_val = readl(SUNXI_CCM_OSC24M_CFG);
+	reg_val = readl(CCM_PLL1_CPUX_CTRL);
     reg_val &= ~(0x03 << 16);
     reg_val |=  (0x02 << 16);
-    writel(reg_val, SUNXI_CCM_OSC24M_CFG);
+    writel(reg_val, CCM_PLL1_CPUX_CTRL);
 
 	return 0;
 }
@@ -162,61 +162,61 @@ void standby_clock_plldisable(void)
 {
 	uint reg_val;
 
-	reg_val = readl(SUNXI_CCM_PLL1_CFG);
+	reg_val = readl(CCM_PLL1_CPUX_CTRL);
 	reg_val &= ~(1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL1_CFG);
+	writel(reg_val, CCM_PLL1_CPUX_CTRL);
 
-	reg_val = readl(SUNXI_CCM_PLL3_CFG);
+	reg_val = readl(CCM_PLL3_VIDEO_CTRL);
 	reg_val &= ~(1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL3_CFG);
+	writel(reg_val, CCM_PLL3_VIDEO_CTRL);
 
-	reg_val = readl(SUNXI_CCM_PLL6_CFG);
+	reg_val = readl(CCM_PLL6_MOD_CTRL);
 	reg_val &= ~(1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL6_CFG);
+	writel(reg_val, CCM_PLL6_MOD_CTRL);
 
-	reg_val = readl(SUNXI_CCM_PLL7_CFG);
+	reg_val = readl(CCM_PLL7_VIDEO1_CTRL);
 	reg_val &= ~(1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL7_CFG);
+	writel(reg_val, CCM_PLL7_VIDEO1_CTRL);
 }
 
 void standby_clock_pllenable(void)
 {
 	__u32 reg_val;
 
-	reg_val = readl(SUNXI_CCM_PLL1_CFG);
+	reg_val = readl(CCM_PLL1_CPUX_CTRL);
 	reg_val |= (1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL1_CFG);
+	writel(reg_val, CCM_PLL1_CPUX_CTRL);
 	do
 	{
-		reg_val = readl(SUNXI_CCM_PLL1_CFG);
+		reg_val = readl(CCM_PLL1_CPUX_CTRL);
 	}
 	while(!(reg_val & (0x1 << 28)));
 
 
-	reg_val = readl(SUNXI_CCM_PLL3_CFG);
+	reg_val = readl(CCM_PLL3_VIDEO_CTRL);
 	reg_val |= (1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL3_CFG);
+	writel(reg_val, CCM_PLL3_VIDEO_CTRL);
 	do
 	{
-		reg_val = readl(SUNXI_CCM_PLL3_CFG);
+		reg_val = readl(CCM_PLL3_VIDEO_CTRL);
 	}
 	while(!(reg_val & (0x1 << 28)));
 
-	reg_val = readl(SUNXI_CCM_PLL6_CFG);
+	reg_val = readl(CCM_PLL6_MOD_CTRL);
 	reg_val |= (1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL6_CFG);
+	writel(reg_val, CCM_PLL6_MOD_CTRL);
 	do
 	{
-		reg_val = readl(SUNXI_CCM_PLL6_CFG);
+		reg_val = readl(CCM_PLL6_MOD_CTRL);
 	}
 	while(!(reg_val & (0x1 << 28)));
 
-	reg_val = readl(SUNXI_CCM_PLL7_CFG);
+	reg_val = readl(CCM_PLL7_VIDEO1_CTRL);
 	reg_val |= (1U << 31);
-	writel(reg_val, SUNXI_CCM_PLL7_CFG);
+	writel(reg_val, CCM_PLL7_VIDEO1_CTRL);
 	do
 	{
-		reg_val = readl(SUNXI_CCM_PLL7_CFG);
+		reg_val = readl(CCM_PLL7_VIDEO1_CTRL);
 	}
 	while(!(reg_val & (0x1 << 28)));
 }

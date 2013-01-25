@@ -205,7 +205,7 @@ void dram_init_banksize(void)
 	int ret;
 	//gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 	ret = script_parser_fetch("dram_para", "dram_para1", &dram_size, 1);
-	if(ret)
+	if(!ret)
 	{
 		dram_size &= 0xffff;
 		if(dram_size)

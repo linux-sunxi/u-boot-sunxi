@@ -113,6 +113,8 @@
 
 #define SUNXI_RTC_BASE				0X01F00000
 
+#define SUNXI_R_PRCM_REGS_BASE      0x01f01400
+
 #define SUNXI_P2WI_BASE             0x01F03400
 
 #define SUNXI_BROM_BASE				0XFFFF0000		/* 32K */

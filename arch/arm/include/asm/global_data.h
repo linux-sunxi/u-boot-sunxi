@@ -85,6 +85,9 @@ typedef	struct	global_data {
 	int             limit_cur;
 	int             limit_pcvol;
 	int             limit_pccur;
+
+	char            *script_mod_buf;
+	int             script_main_key_count;
 #endif
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */

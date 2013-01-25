@@ -16,10 +16,13 @@
 #define SZ_16M                            0x01000000
 
 #include <common.h>
+#include <malloc.h>
 #include <asm/io.h>
 #include <asm/arch/platform.h>
 #include <asm/arch/sys_config.h>
 #include <asm/arch/cpu.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 static script_sub_key_t *sw_cfg_get_subkey(const char *script_buf, const char *main_key, const char *sub_key)
 {
@@ -88,8 +91,8 @@ char *sw_cfg_get_str(const char *script_buf, const char *main_key, const char *s
  *                        Script Operations
  *
 -#########################################################################################*/
-static  char  *script_mod_buf = (char *)4; //pointer to first key
-static  int    script_main_key_count = -1;
+//static  char  *script_mod_buf = (char *)(4); //pointer to first key
+//static  int    script_main_key_count = -1;
 
 static  int   _test_str_length(char *str)
 {
@@ -111,16 +114,12 @@ int script_parser_init(char *script_buf)
 {
     script_head_t   *script_head;
 
-	script_mod_buf = NULL;
-	//debug("script init, addr=%x\n", script_buf);
-	//printf("script_mod_buf=%x\n", (uint)script_mod_buf);
-    //printf("script_main_key_count=%x\n", (uint)&script_main_key_count);
 	if(script_buf)
     {
-        script_mod_buf = script_buf;
-        script_head = (script_head_t *)script_mod_buf;
+        gd->script_mod_buf = script_buf;
+        script_head = (script_head_t *)script_buf;
 
-        script_main_key_count = script_head->main_key_count;
+        gd->script_main_key_count = script_head->main_key_count;
 
         return SCRIPT_PARSER_OK;
     }
@@ -132,8 +131,8 @@ int script_parser_init(char *script_buf)
 
 int script_parser_exit(void)
 {
-    script_mod_buf = NULL;
-    script_main_key_count = 0;
+    gd->script_mod_buf = NULL;
+    gd->script_main_key_count = 0;
 
     return SCRIPT_PARSER_OK;
 }
@@ -147,9 +146,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
     int    i, j;
     int    pattern, word_count;
     /* check params */
-	//printf("script_mod_buf=%x\n", (uint)script_mod_buf);
-    //printf("script_main_key_count=%x\n", (uint)&script_main_key_count);
-    if((!script_mod_buf) || (script_main_key_count <= 0))
+    if((!gd->script_mod_buf) || (gd->script_main_key_count <= 0))
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
@@ -179,9 +176,9 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
         strncpy(sub_bkname, sub_name, 31);
         sub_char = sub_bkname;
     }
-    for(i=0;i<script_main_key_count;i++)
+    for(i=0;i<gd->script_main_key_count;i++)
     {
-        main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+        main_key = (script_main_key_t *)(gd->script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
         if(strcmp(main_key->main_name, main_char))
         {
             continue;
@@ -190,7 +187,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
         /* now find sub key */
         for(j=0;j<main_key->lenth;j++)
         {
-            sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
+            sub_key = (script_sub_key_t *)(gd->script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
             if(strcmp(sub_key->sub_name, sub_char))
             {
                 continue;
@@ -201,7 +198,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
             switch(pattern)
             {
                 case SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD:
-                    value[0] = *(int *)(script_mod_buf + (sub_key->offset<<2));
+                    value[0] = *(int *)(gd->script_mod_buf + (sub_key->offset<<2));
                     break;
 
                 case SCIRPT_PARSER_VALUE_TYPE_STRING:
@@ -209,7 +206,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
                     {
                         word_count = count;
                     }
-                    memcpy((char *)value, script_mod_buf + (sub_key->offset<<2), word_count << 2);
+                    memcpy((char *)value, gd->script_mod_buf + (sub_key->offset<<2), word_count << 2);
                     break;
 
                 case SCIRPT_PARSER_VALUE_TYPE_MULTI_WORD:
@@ -223,7 +220,7 @@ int script_parser_fetch(char *main_name, char *sub_name, int value[], int count)
                         return SCRIPT_PARSER_BUFFER_NOT_ENOUGH;
                     }
                     strcpy( user_gpio_cfg->gpio_name, sub_char);
-                    memcpy(&user_gpio_cfg->port, script_mod_buf + (sub_key->offset<<2),  sizeof(script_gpio_set_t) - 32);
+                    memcpy(&user_gpio_cfg->port, gd->script_mod_buf + (sub_key->offset<<2),  sizeof(script_gpio_set_t) - 32);
                     break;
                 }
             }
@@ -246,7 +243,7 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 	int    pattern, word_count;
 
 	//检查脚本buffer是否存在
-	if(!script_mod_buf)
+	if(!gd->script_mod_buf)
 	{
 		return SCRIPT_PARSER_EMPTY_BUFFER;
 	}
@@ -275,9 +272,9 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 		strncpy(sub_bkname, sub_name, 31);
 		sub_char = sub_bkname;
 	}
-	for(i=0;i<script_main_key_count;i++)
+	for(i=0;i<gd->script_main_key_count;i++)
 	{
-		main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+		main_key = (script_main_key_t *)(gd->script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
 		if(strcmp(main_key->main_name, main_char))    //如果主键不匹配，寻找下一个主键
 		{
 			continue;
@@ -285,7 +282,7 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 		//主键匹配，寻找子键名称匹配
 		for(j=0;j<main_key->lenth;j++)
 		{
-			sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
+			sub_key = (script_sub_key_t *)(gd->script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
 			if(strcmp(sub_key->sub_name, sub_char))    //如果主键不匹配，寻找下一个主键
 			{
 				continue;
@@ -295,7 +292,7 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 			//取出数据
 			if(pattern == SCIRPT_PARSER_VALUE_TYPE_SINGLE_WORD)                      //单word数据类型
 			{
-				*(int *)(script_mod_buf + (sub_key->offset<<2)) = *(int *)str;
+				*(int *)(gd->script_mod_buf + (sub_key->offset<<2)) = *(int *)str;
 
     			return SCRIPT_PARSER_OK;
     		}
@@ -303,8 +300,8 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
     		{
     			script_gpio_set_t  *user_gpio_cfg = (script_gpio_set_t *)str;
 
-    			memset(script_mod_buf + (sub_key->offset<<2), 0, 24);
-    			memcpy(script_mod_buf + (sub_key->offset<<2), &user_gpio_cfg->port, 24);
+    			memset(gd->script_mod_buf + (sub_key->offset<<2), 0, 24);
+    			memcpy(gd->script_mod_buf + (sub_key->offset<<2), &user_gpio_cfg->port, 24);
 
     			return SCRIPT_PARSER_OK;
     		}
@@ -314,8 +311,8 @@ int script_parser_patch(char *main_name, char *sub_name, void *str, int str_size
 				{
 					str_size = word_count;
 				}
-				memset(script_mod_buf + (sub_key->offset<<2), 0, word_count << 2);
-				memcpy(script_mod_buf + (sub_key->offset<<2), str, str_size << 2);
+				memset(gd->script_mod_buf + (sub_key->offset<<2), 0, word_count << 2);
+				memcpy(gd->script_mod_buf + (sub_key->offset<<2), str, str_size << 2);
 
 				return SCRIPT_PARSER_OK;
     		}
@@ -332,7 +329,7 @@ int script_parser_subkey_count(char *main_name)
     script_main_key_t  *main_key = NULL;
     int    i;
 
-    if(!script_mod_buf)
+    if(!gd->script_mod_buf)
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
@@ -350,9 +347,9 @@ int script_parser_subkey_count(char *main_name)
         main_char = main_bkname;
     }
 
-    for(i=0;i<script_main_key_count;i++)
+    for(i=0;i<gd->script_main_key_count;i++)
     {
-        main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+        main_key = (script_main_key_t *)(gd->script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
         if(strcmp(main_key->main_name, main_char))
         {
             continue;
@@ -366,12 +363,12 @@ int script_parser_subkey_count(char *main_name)
 
 int script_parser_mainkey_count(void)
 {
-    if(!script_mod_buf)
+    if(!gd->script_mod_buf)
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
 
-    return     script_main_key_count;
+    return  gd->script_main_key_count;
 }
 
 int script_parser_mainkey_get_gpio_count(char *main_name)
@@ -383,7 +380,7 @@ int script_parser_mainkey_get_gpio_count(char *main_name)
     int    i, j;
     int    pattern, gpio_count = 0;
 
-    if(!script_mod_buf)
+    if(!gd->script_mod_buf)
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
@@ -401,9 +398,9 @@ int script_parser_mainkey_get_gpio_count(char *main_name)
         main_char = main_bkname;
     }
 
-    for(i=0;i<script_main_key_count;i++)
+    for(i=0;i<gd->script_main_key_count;i++)
     {
-        main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+        main_key = (script_main_key_t *)(gd->script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
         if(strcmp(main_key->main_name, main_char))
         {
             continue;
@@ -411,7 +408,7 @@ int script_parser_mainkey_get_gpio_count(char *main_name)
 
         for(j=0;j<main_key->lenth;j++)
         {
-            sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
+            sub_key = (script_sub_key_t *)(gd->script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
 
             pattern    = (sub_key->pattern>>16) & 0xffff;
 
@@ -435,7 +432,7 @@ int script_parser_mainkey_get_gpio_cfg(char *main_name, void *gpio_cfg, int gpio
     int    i, j;
     int    pattern, user_index;
 
-    if(!script_mod_buf)
+    if(!gd->script_mod_buf)
     {
         return SCRIPT_PARSER_EMPTY_BUFFER;
     }
@@ -455,9 +452,9 @@ int script_parser_mainkey_get_gpio_cfg(char *main_name, void *gpio_cfg, int gpio
         main_char = main_bkname;
     }
 
-    for(i=0;i<script_main_key_count;i++)
+    for(i=0;i<gd->script_main_key_count;i++)
     {
-        main_key = (script_main_key_t *)(script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
+        main_key = (script_main_key_t *)(gd->script_mod_buf + (sizeof(script_head_t)) + i * sizeof(script_main_key_t));
         if(strcmp(main_key->main_name, main_char))
         {
             continue;
@@ -467,7 +464,7 @@ int script_parser_mainkey_get_gpio_cfg(char *main_name, void *gpio_cfg, int gpio
         user_index = 0;
         for(j=0;j<main_key->lenth;j++)
         {
-            sub_key = (script_sub_key_t *)(script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
+            sub_key = (script_sub_key_t *)(gd->script_mod_buf + (main_key->offset<<2) + (j * sizeof(script_sub_key_t)));
           /*  printf("subkey name = %s\n", sub_key->sub_name);*/
             pattern    = (sub_key->pattern>>16) & 0xffff;
            /* printf("subkey pattern = %d\n", pattern);*/
@@ -475,7 +472,7 @@ int script_parser_mainkey_get_gpio_cfg(char *main_name, void *gpio_cfg, int gpio
             if(SCIRPT_PARSER_VALUE_TYPE_GPIO_WORD == pattern)
             {
                 strcpy( user_gpio_cfg[user_index].gpio_name, sub_key->sub_name);
-                memcpy(&user_gpio_cfg[user_index].port, script_mod_buf + (sub_key->offset<<2), sizeof(script_gpio_set_t) - 32);
+                memcpy(&user_gpio_cfg[user_index].port, gd->script_mod_buf + (sub_key->offset<<2), sizeof(script_gpio_set_t) - 32);
                 user_index++;
                 if(user_index >= gpio_count)
                 {
