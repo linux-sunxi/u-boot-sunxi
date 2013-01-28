@@ -13,7 +13,7 @@ static __u32 *pttab[2];   //POINTER of LGC tab
 static __u32 printf_cnt=0; //for test
 static __u32 g_iep_status[2] = {0,0};
 
-//power save core 
+//power save core
 #define SCENE_CHNG_THR   45	//
 #define SCENE_CHANGE_DETECT_DISABLE 1	//enable detetion cause filcker in actual ic test 111230, so disable it.
 
@@ -23,7 +23,7 @@ static __u32 g_iep_status[2] = {0,0};
 #define RST_VAILD   1
 
 //#define DRC_DEFAULT_ENABLE	//Enable drc default
-//#define DRC_DEMO_HALF_SCREEN //when defined DRC_DEFAULT_ENABLE, run DRC in DEMO mode 		
+//#define DRC_DEMO_HALF_SCREEN //when defined DRC_DEFAULT_ENABLE, run DRC in DEMO mode
 #define PWRSAVE_PROC_THRES	85 //when BSP_disp_lcd_get_bright() exceed PWRSAVE_PROC_THRES, STOP PWRSAVE.
 
 #define ____SEPARATOR_DRC_CLK____
@@ -41,19 +41,19 @@ __s32 drc_clk_init(__u32 sel)
 
 		OSAL_CCMU_MclkReset(h_drcmclk0, RST_INVAILD);
 
-		OSAL_CCMU_SetMclkSrc(h_drcmclk0, SYS_CLK_PLL9);
+		OSAL_CCMU_SetMclkSrc(h_drcmclk0, SYS_CLK_PLL10);
 
-		pll_freq = OSAL_CCMU_GetSrcFreq(SYS_CLK_PLL9);
+		pll_freq = OSAL_CCMU_GetSrcFreq(SYS_CLK_PLL10);
         mclk_div = 1;
         while((pll_freq / mclk_div) > 300000000)
         {
             mclk_div ++;
         }
 		OSAL_CCMU_SetMclkDiv(h_drcmclk0, mclk_div);
-		
+
 		OSAL_CCMU_MclkOnOff(h_drcahbclk0, CLK_ON);
 		OSAL_CCMU_MclkOnOff(h_drcmclk0, CLK_ON);
-		
+
 		g_drc_clk_status  |= (CLK_DRC0_AHB_ON | CLK_DRC0_MOD_ON);
 	}
 	else
@@ -65,7 +65,7 @@ __s32 drc_clk_init(__u32 sel)
 		OSAL_CCMU_MclkReset(h_drcmclk1, RST_INVAILD);
 
 		OSAL_CCMU_SetMclkSrc(h_drcmclk1, SYS_CLK_PLL10);
-		
+
 		pll_freq = OSAL_CCMU_GetSrcFreq(SYS_CLK_PLL10);
         mclk_div = 1;
         while((pll_freq / mclk_div) > 300000000)
@@ -73,10 +73,10 @@ __s32 drc_clk_init(__u32 sel)
             mclk_div ++;
         }
 		OSAL_CCMU_SetMclkDiv(h_drcmclk1, mclk_div);
-				
+
 		OSAL_CCMU_MclkOnOff(h_drcahbclk1, CLK_ON);
 		OSAL_CCMU_MclkOnOff(h_drcmclk1, CLK_ON);
-		
+
 		g_drc_clk_status  |= (CLK_DRC1_AHB_ON | CLK_DRC1_MOD_ON);
 	}
 	return DIS_SUCCESS;
@@ -92,12 +92,12 @@ __s32 drc_clk_exit(__u32 sel)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcdramclk0, CLK_OFF);
 		}
-		
+
 		if(g_drc_clk_status & CLK_DRC0_MOD_ON)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcmclk0, CLK_OFF);
 		}
-		
+
 		if(g_drc_clk_status & CLK_DRC0_AHB_ON)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcahbclk0, CLK_OFF);
@@ -105,7 +105,7 @@ __s32 drc_clk_exit(__u32 sel)
 
 		OSAL_CCMU_CloseMclk(h_drcahbclk0);
 	    OSAL_CCMU_CloseMclk(h_drcdramclk0);
-	    OSAL_CCMU_CloseMclk(h_drcmclk0);					
+	    OSAL_CCMU_CloseMclk(h_drcmclk0);
 
 		g_drc_clk_status &= (CLK_DRC0_AHB_OFF & CLK_DRC0_MOD_OFF & CLK_DRC0_DRAM_OFF);
 	}
@@ -117,12 +117,12 @@ __s32 drc_clk_exit(__u32 sel)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcdramclk1, CLK_OFF);
 		}
-		
+
 		if(g_drc_clk_status & CLK_DRC1_MOD_ON)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcmclk1, CLK_OFF);
 		}
-		
+
 		if(g_drc_clk_status & CLK_DRC1_AHB_ON)
 		{
 			OSAL_CCMU_MclkOnOff(h_drcahbclk1, CLK_OFF);
@@ -130,7 +130,7 @@ __s32 drc_clk_exit(__u32 sel)
 
 		OSAL_CCMU_CloseMclk(h_drcahbclk1);
 	    OSAL_CCMU_CloseMclk(h_drcdramclk1);
-	    OSAL_CCMU_CloseMclk(h_drcmclk1);					
+	    OSAL_CCMU_CloseMclk(h_drcmclk1);
 
 		g_drc_clk_status &= (CLK_DRC1_AHB_OFF & CLK_DRC1_MOD_OFF & CLK_DRC1_DRAM_OFF);
 	}
@@ -168,7 +168,7 @@ __s32 drc_clk_close(__u32 sel)
 
 		g_drc_clk_status &= (CLK_DRC1_DRAM_OFF);
 	}
-	return DIS_SUCCESS;	
+	return DIS_SUCCESS;
 }
 
 #define ____SEPARATOR_DRC_MAIN_TASK____
@@ -180,8 +180,8 @@ __s32 drc_enable(__u32 sel, __u32 en)
 {
 	switch(en)
 	{
-		case 0:		
-	
+		case 0:
+
 			if(g_iep_status[sel] & DRC_USED)
 			{
 				g_iep_status[sel] |= DRC_NEED_CLOSED;
@@ -190,9 +190,9 @@ __s32 drc_enable(__u32 sel, __u32 en)
 			{
 				DE_INF("[iep_drc.c]DRC hasn't opened yet !\n");
 			}
-			break;	
-			
-		case 1:	
+			break;
+
+		case 1:
 			if(g_iep_status[sel] & DRC_REQUIRED)
 			{
 				//if((gdisp.screen[sel].output_type == DISP_OUTPUT_TYPE_LCD) && (gdisp.screen[sel].status & LCD_ON))
@@ -218,8 +218,8 @@ __s32 drc_enable(__u32 sel, __u32 en)
 				DE_INF("[iep_drc.c]Run DISP_CMD_DRC_ON will open DRC !\n");
 			}
 			break;
-	
-		case 2:	
+
+		case 2:
 			if(g_iep_status[sel] & DRC_USED)
 			{
 				drc_close_proc(sel);
@@ -239,27 +239,27 @@ __s32 drc_init(__u32 sel)
 {
 	//DRC clk
 	drc_clk_open(sel);
-	
-	//DRC module 		
-	DRC_EBIOS_Set_Mode(sel, 2);		
-	DRC_EBIOS_Set_Display_Size(sel, giep[sel].scn_width, giep[sel].scn_height);	
+
+	//DRC module
+	DRC_EBIOS_Set_Mode(sel, 2);
+	DRC_EBIOS_Set_Display_Size(sel, giep[sel].scn_width, giep[sel].scn_height);
 	DRC_EBIOS_Drc_Set_Spa_Coeff(sel, spatial_coeff);
 	DRC_EBIOS_Drc_Set_Int_Coeff(sel, intensity_coeff);
-	DRC_EBIOS_Drc_Adjust_Enable(sel, 0);	//default: no adjust 
+	DRC_EBIOS_Drc_Adjust_Enable(sel, 0);	//default: no adjust
 	DRC_EBIOS_Drc_Set_Lgc_Autoload_Disable(sel, 0); //default: autoload enable
 	DRC_EBIOS_Lh_Set_Mode(sel, 0);	//default: histogram normal mode
 	DRC_EBIOS_Lh_Set_Thres(sel, hist_thres_pwrsv);
-	
+
 	memset(gpwrsv[sel].min_adj_index_hist, 255, sizeof(__u8)*IEP_LH_PWRSV_NUM);
 
 	giep[sel].drc_win_en = 1;
 /*	giep[sel].drc_win.x = 0;
-	giep[sel].drc_win.y = 0;		
-	giep[sel].drc_win.width = scn_width;		
-	giep[sel].drc_win.height = scn_height;*/ //will clear when drc enable actually, but apps dont know when, so delete it.		
+	giep[sel].drc_win.y = 0;
+	giep[sel].drc_win.width = scn_width;
+	giep[sel].drc_win.height = scn_height;*/ //will clear when drc enable actually, but apps dont know when, so delete it.
 	giep[sel].waitframe = 1;	//set 1 to make sure first frame wont get a random lgc table
 	giep[sel].runframe = 0;
-		
+
 	return DIS_SUCCESS;
 
 }
@@ -272,8 +272,8 @@ __s32 drc_init(__u32 sel)
 *
 * Description : PoWeRSAVE alg core
 *
-* Arguments   : sel		<screen index>        
-*		        
+* Arguments   : sel		<screen index>
+*
 * Returns         :     0
 *
 *Note	       :    power save mode alg.  Dynamic adjust backlight and lgc gain through screen content and user backlight setting
@@ -301,15 +301,15 @@ static __inline __s32 PWRSAVE_CORE(__u32 sel)
 		DRC_EBIOS_Drc_Set_Lgc_Addr(sel, lgcaddr);	//set "gain=1" tab to lgc
 
         BSP_disp_lcd_set_bright_dimming(sel, 256);
-		BSP_disp_lcd_set_bright(sel, BSP_disp_lcd_get_bright(sel),1);	
-			
+		BSP_disp_lcd_set_bright(sel, BSP_disp_lcd_get_bright(sel),1);
+
 	}
 	else
 	{
 		p95=0;
-		
+
 		hist_region_num = (hist_region_num>8)? 8 : IEP_LH_INTERVAL_NUM;
-		
+
 		//read histogram result
 		DRC_EBIOS_Lh_Get_Cnt_Rec(sel, histcnt);
 
@@ -318,7 +318,7 @@ static __inline __s32 PWRSAVE_CORE(__u32 sel)
 			size += histcnt[i];
 		}
 		size = (size==0) ? 1 : size;
-		
+
 		//calculate some var
 		hist[0] = (histcnt[0]*100)/size;
 		for (i = 1; i < hist_region_num; i++)
@@ -341,16 +341,16 @@ static __inline __s32 PWRSAVE_CORE(__u32 sel)
 		}
 
 		min_adj_index = p95;
-		
+
 		//__inf("min_adj_index: %d\n", min_adj_index);
-		
+
 #if SCENE_CHANGE_DETECT_DISABLE
 		for(i = 0; i <IEP_LH_PWRSV_NUM - 1; i++)
 		{
 			gpwrsv[sel].min_adj_index_hist[i] = gpwrsv[sel].min_adj_index_hist[i+1];
 		}
 		gpwrsv[sel].min_adj_index_hist[IEP_LH_PWRSV_NUM-1] = min_adj_index;
-		
+
 		for (i = 0; i <IEP_LH_PWRSV_NUM; i++)
 		{
 			drc_filter_total += drc_filter[i];
@@ -372,7 +372,7 @@ static __inline __s32 PWRSAVE_CORE(__u32 sel)
 				gpwrsv[sel].min_adj_index_hist[i] = gpwrsv[sel].min_adj_index_hist[i+1];
 			}
 			gpwrsv[sel].min_adj_index_hist[IEP_LH_PWRSV_NUM-1] = min_adj_index;
-			
+
 			for (i = 0; i <IEP_LH_PWRSV_NUM; i++)
 			{
 				drc_filter_total += drc_filter[i];
@@ -400,10 +400,10 @@ static __inline __s32 PWRSAVE_CORE(__u32 sel)
 		{
 			printf_cnt++;
 		}
-		
+
 		//virtual to physcal addr
 		lgcaddr = (__u32)OSAL_VAtoPA((void*)lgcaddr);
-		
+
 		DRC_EBIOS_Drc_Set_Lgc_Addr(sel, lgcaddr);
 	}
 
@@ -421,7 +421,7 @@ __s32 drc_proc(__u32 sel)
 	csc_mode = (giep[sel].video_mode_en)?3:1;
 	drc_mode = (giep[sel].video_mode_en==1)?0:1;
 	DRC_EBIOS_Drc_Set_Mode(sel, drc_mode);
-	
+
 	if(giep[sel].runframe < giep[sel].waitframe)
 	{
 		//first  frame, wont get the valid histogram, so open a "zero" window
@@ -429,16 +429,16 @@ __s32 drc_proc(__u32 sel)
 		bot = 0;
 		left = 0;
 		right = 0;
-		
+
 		DRC_EBIOS_Set_Win_Para(sel, top, bot, left, right);
 		DRC_EBIOS_Win_Enable(sel, 1);		//enable here
 		DRC_EBIOS_Set_Csc_Coeff(sel, csc_mode);		//12-04-01 debug flicker in LCD opening
 		//BSP_disp_set_output_csc(sel, gdisp.screen[sel].output_type, 1);	//TBD
-		
+
 		lgcaddr = (__u32)pttab[sel] + ((128-1)<<9);
 		lgcaddr = (__u32)OSAL_VAtoPA((void*)lgcaddr);
 		DRC_EBIOS_Drc_Set_Lgc_Addr(sel, lgcaddr);	//set "gain=1" tab to lgc
-		DRC_EBIOS_Enable(sel);  //enable here		
+		DRC_EBIOS_Enable(sel);  //enable here
 		//DE_INF("waitting for runframe %d up to%d!\n", giep.runframe, giep.waitframe);
 		giep[sel].runframe++;
 	}
@@ -464,17 +464,17 @@ __s32 drc_proc(__u32 sel)
 }
 
 __s32 drc_close_proc(__u32 sel)
-{	
+{
 
 	//DRC module
 	DRC_EBIOS_Disable(sel);
-	
+
 	//another module
     //BSP_disp_set_output_csc(sel, gdisp.screen[sel].output_type, 0);	//TBD
 
 	//DRC clk
 	drc_clk_close(sel);
-	
+
 	g_iep_status[sel] &= DRC_USED_MASK;
 	g_iep_status[sel] &= DRC_NEED_CLOSED_MASK;
 
@@ -525,14 +525,14 @@ __s32 IEP_Drc_Init(__u32 sel)
 #if defined(__LINUX_OSAL__)
 	memcpy(pttab[sel], pwrsv_lgc_tab[128*lcdgamma], IEP_LGC_TAB_SIZE);
 #endif
-	
+
 #ifdef DRC_DEFAULT_ENABLE
 #ifdef DRC_DEMO_HALF_SCREEN
 	regn.x = BSP_disp_get_screen_width(sel)/2;	//TBD
 	regn.y = 0;
 	regn.width = BSP_disp_get_screen_width(sel)/2;
 	regn.height = BSP_disp_get_screen_height(sel);
-#else 
+#else
 	regn.x = 0;
 	regn.y = 0;
 	regn.width = BSP_disp_get_screen_width(sel);
@@ -546,7 +546,7 @@ __s32 IEP_Drc_Init(__u32 sel)
 	return DIS_SUCCESS;
 
 }
-	
+
 __s32 IEP_Drc_Exit(__u32 sel)
 {
 	drc_clk_exit(sel);
@@ -571,9 +571,9 @@ __s32 IEP_Drc_Enable(__u32 sel, __u32 en)
 	{
 		g_iep_status[sel] &= DRC_REQUIRED_MASK;
 	}
-	
+
 	drc_enable(sel, en);
-	
+
 	return DIS_SUCCESS;
 }
 
@@ -585,7 +585,7 @@ __s32 IEP_Drc_Set_Winodw(__u32 sel, __disp_rect_t window)//full screen for defau
 {
 /*
 	__u32 scn_width, scn_height;
-	
+
 	scn_width = BSP_disp_get_screen_width(sel);	//TBD
     scn_height = BSP_disp_get_screen_height(sel);	//TBD
 
@@ -593,12 +593,12 @@ __s32 IEP_Drc_Set_Winodw(__u32 sel, __disp_rect_t window)//full screen for defau
 		(window.y < 0) || ((window->y + window.height)>scn_height))
 	{
 		DE_WRN("IEP_Drc_Set_Winodw for lcd%d: win_x: %d, win_y: %d, win_width: %d, win_height: %d.\n", sel, window.x, window.y, window.width, window.height);
-		DE_WRN("DRC Windows Size Invaild!\n");	
+		DE_WRN("DRC Windows Size Invaild!\n");
 		return DIS_PARA_FAILED;
 	}//tbd
 */
 	//drc
-	memcpy(&giep[sel].drc_win, &window, sizeof(__disp_rect_t)); 
+	memcpy(&giep[sel].drc_win, &window, sizeof(__disp_rect_t));
 	DE_INF("IEP_Drc_Set_Winodw for lcd%d: drc window win_x: %d, win_y: %d, win_width: %d, win_height: %d.\n", sel, giep[sel].drc_win.x, giep[sel].drc_win.y, giep[sel].drc_win.width, giep[sel].drc_win.height);
 
 	return DIS_SUCCESS;
@@ -614,7 +614,7 @@ __s32 IEP_Drc_Operation_In_Vblanking(__u32 sel)
 	{
 		drc_proc(sel);
 	}
-	
+
 	return DIS_SUCCESS;
 }
 
@@ -623,16 +623,16 @@ __s32 IEP_Drc_Set_Reg_Base(__u32 sel, __u32 base)
 
 	DRC_EBIOS_Set_Reg_Base(sel, base);
 	return DIS_SUCCESS;
-	
+
 }
 
 __s32 IEP_Drc_Set_Mode(__u32 sel, __iep_drc_mode_t mode)
 {
 
 	giep[sel].video_mode_en = mode;
-    
+
 	return DIS_SUCCESS;
-	
+
 }
 
 __s32 IEP_Drc_Early_Suspend(__u32 sel)//close clk

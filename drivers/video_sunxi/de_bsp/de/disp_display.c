@@ -60,25 +60,19 @@ __s32 BSP_disp_init(__disp_bsp_init_para * para)
     BSP_disp_close_lcd_backlight(0);
     //BSP_disp_close_lcd_backlight(1);
 
-	printf("==\n");
 	disp_pll_init();
-    printf("disp_pll_init\n");
 
 //    Scaler_Init(0);
-//    printf("Scaler_Init\n");
 //    Scaler_Init(1);
     Image_init(0);
-    printf("Image_init\n");
 
 //    Image_init(1);
     Disp_lcdc_init(0);
-    printf("Disp_lcdc_init\n");
 
     //Disp_lcdc_init(1);
 //    Display_Hdmi_Init();
 
     iep_init(0);
-    printf("iep_init\n");
     //iep_init(1);
 
     //disp_video_init();
@@ -202,7 +196,7 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
             size = 0x3f0;
             sprintf(str, "lcdc0:\n");
             break;
-            
+
         case DISP_REG_LCDC1:
             base = gdisp.init_para.base_lcdc1;
             size = 0x3f0;
@@ -279,7 +273,7 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
             size = 0x100;
             sprintf(str, "dphy:\n");
             break;
-            
+
         default:
             return DIS_FAIL;
     }
@@ -312,7 +306,7 @@ __s32 BSP_disp_print_reg(__bool b_force_on, __u32 id)
 #else
         if(b_force_on)
         {
-            printf("0x%x:%x,%x,%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
+            OSAL_PRINTF("0x%x:%x,%x,%x,%x\n", base + i, reg[0], reg[1], reg[2], reg[3]);
         }
         else
         {

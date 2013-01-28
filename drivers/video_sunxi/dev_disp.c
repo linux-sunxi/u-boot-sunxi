@@ -5,7 +5,7 @@
 fb_info_t g_fbi;
 __disp_drv_t g_disp_drv;
 
-#define __user 
+#define __user
 #define HZ 100
 #define EFAULT 1
 
@@ -35,7 +35,7 @@ __s32 disp_delay_ms(__u32 ms)
 {
     /* todo */
     udelay(ms*1000);
-    return 0;   
+    return 0;
 }
 // [before][step_0][delay_0][step_1][delay_1]......[step_n-2][delay_n-2][step_n-1][delay_n-1][after]
 void DRV_lcd_open_callback(void *parg)
@@ -68,7 +68,7 @@ void DRV_lcd_open_callback(void *parg)
         lcd_op_finished[sel] = 1;
     }
 }
-/*
+
 __s32 DRV_lcd_open(__u32 sel)
 {
     if(BSP_disp_lcd_used(sel))
@@ -76,15 +76,15 @@ __s32 DRV_lcd_open(__u32 sel)
         lcd_flow_cnt[sel] = 0;
         lcd_op_finished[sel] = 0;
         lcd_open_start[sel] = 1;
-        
+
         init_timer(&lcd_timer[sel]);
-        
+
         BSP_disp_lcd_open_before(sel);
         DRV_lcd_open_callback((void*)sel);
     }
     return 0;
 }
-*/
+
 __bool DRV_lcd_check_open_finished(__u32 sel)
 {
 	if(BSP_disp_lcd_used(sel) && (lcd_open_start[sel] == 1))
@@ -100,17 +100,15 @@ __bool DRV_lcd_check_open_finished(__u32 sel)
 }
 
 
-
+/*
 __s32 DRV_lcd_open(__u32 sel)
 {
     __u32 i = 0;
     __lcd_flow_t *flow;
 
 	if((BSP_disp_lcd_used(sel)) && (g_disp_drv.b_lcd_open[sel] == 0))
-    {   
-	    printf("DRV_lcd_open #1\n");
+    {
         BSP_disp_lcd_open_before(sel);
-        printf("DRV_lcd_open #2\n");
 
 	    flow = BSP_disp_lcd_get_open_flow(sel);
 	    for(i=0; i<flow->func_num; i++)
@@ -118,20 +116,17 @@ __s32 DRV_lcd_open(__u32 sel)
 	        __u32 timeout = flow->func[i].delay;
 
 	        flow->func[i].func(sel);
-            printf("DRV_lcd_open #3.%d, timout=%d\n",i, timeout);
 	    	disp_delay_ms(timeout);
-            printf("come back from delay, step=%d, timeout=%d\n", i, timeout);
-	    }
+ 	    }
 
 	    BSP_disp_lcd_open_after(sel);
-        printf("DRV_lcd_open #4\n");
 
 		g_disp_drv.b_lcd_open[sel] = 1;
 	}
 
     return 0;
 }
-
+*/
 
 __s32 DRV_lcd_close(__u32 sel)
 {
@@ -170,11 +165,11 @@ __s32 disp_int_process(__u32 sel)
 __s32 DRV_DISP_Init(void)
 {
     __disp_bsp_init_para para;
-    
+
     printf("====display init =====\n");
 
     memset(&para, 0, sizeof(__disp_bsp_init_para));
-    
+
     para.base_image0   = 0x1e60000;
     para.base_image1   = 0x1e40000;
     para.base_scaler0  = 0x1e00000;
@@ -196,18 +191,15 @@ __s32 DRV_DISP_Init(void)
     //para.hdmi_get_disp_func     = disp_get_hdmi_func;
 
     memset(&g_disp_drv, 0, sizeof(__disp_drv_t));
-    
+
     BSP_disp_init(&para);
-    printf("====BSP_disp_init ok =====\n");
     BSP_disp_open();
-    printf("====display init end ====\n");
-    BSP_disp_print_reg(1, DISP_REG_CCMU);
-    {
+    if(1)
+   	{
         __disp_color_t bk_color;
 
         DRV_lcd_open(0);
         printf("====DRV_lcd_open ====\n");
-        __msdelay(1000);
         BSP_disp_lcd_set_src(0,DISP_LCDC_SRC_WHITE);
         printf("====lcd_white_src ====\n");
         __msdelay(1000);
@@ -248,7 +240,7 @@ __s32 DRV_DISP_Exit(void)
 {
     //BSP_disp_close();
 	BSP_disp_exit(g_disp_drv.exit_mode);
-	
+
     return 0;
 }
 
@@ -284,9 +276,9 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         __wrn("ioctl:%x fail when in suspend!\n", cmd);
         return -1;
     }
-    
+
 #if 0
-    if(cmd!=DISP_CMD_TV_GET_INTERFACE && cmd!=DISP_CMD_HDMI_GET_HPD_STATUS && cmd!=DISP_CMD_GET_OUTPUT_TYPE 
+    if(cmd!=DISP_CMD_TV_GET_INTERFACE && cmd!=DISP_CMD_HDMI_GET_HPD_STATUS && cmd!=DISP_CMD_GET_OUTPUT_TYPE
     	&& cmd!=DISP_CMD_SCN_GET_WIDTH && cmd!=DISP_CMD_SCN_GET_HEIGHT
     	&& cmd!=DISP_CMD_VIDEO_SET_FB && cmd!=DISP_CMD_VIDEO_GET_FRAME_ID)
     {
@@ -448,7 +440,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_SET_ENHANCE_WINDOW:
         {
             __disp_rect_t para;
-            
+
             if(copy_from_user(&para, (void __user *)ubuffer[1],sizeof(__disp_rect_t)))
     		{
     		    __wrn("copy_from_user fail\n");
@@ -461,7 +453,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_GET_ENHANCE_WINDOW:
         {
             __disp_rect_t para;
-            
+
             ret = BSP_disp_cmu_get_window(ubuffer[0], &para);
             if(copy_to_user((void __user *)ubuffer[1],&para, sizeof(__disp_layer_info_t)))
     		{
@@ -486,7 +478,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_DE_FLICKER_OFF:
             ret = BSP_disp_de_flicker_enable(ubuffer[0], 0);
             break;
-            
+
         case DISP_CMD_DRC_ON:
             ret = BSP_disp_drc_enable(ubuffer[0], 1);
             break;
@@ -498,17 +490,17 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_GET_DRC_EN:
             ret = BSP_disp_drc_get_enable(ubuffer[0]);
             break;
-                
+
         case DISP_CMD_DRC_SET_WINDOW:
         {
             __disp_rect_t para;
-            
+
             if(copy_from_user(&para, (void __user *)ubuffer[1],sizeof(__disp_rect_t)))
             {
                 __wrn("copy_from_user fail\n");
                 return  -EFAULT;
             }
-        
+
             ret = BSP_disp_drc_set_window(ubuffer[0], &para);
             break;
        }
@@ -834,13 +826,13 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case DISP_CMD_LAYER_VPP_SET_WINDOW:
         {
             __disp_rect_t para;
-            
+
             if(copy_from_user(&para, (void __user *)ubuffer[2],sizeof(__disp_rect_t)))
             {
                 __wrn("copy_from_user fail\n");
                 return  -EFAULT;
             }
-        
+
             ret = BSP_disp_deu_set_window(ubuffer[0], ubuffer[1], &para);
             break;
        }
@@ -1446,7 +1438,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			ret =  disp_mem_request(ubuffer[0]);
 			break;
 
-	
+
 		case DISP_CMD_MEM_RELASE:
 			ret =  disp_mem_release(ubuffer[0]);
 			break;
@@ -1490,7 +1482,7 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		case DISP_CMD_LCD_CHECK_OPEN_FINISH:
 			ret = DRV_lcd_check_open_finished(ubuffer[0]);
 			break;
-		
+
         case DISP_CMD_PRINT_REG:
             ret = BSP_disp_print_reg(1, ubuffer[0]);
             break;

@@ -26,15 +26,17 @@ extern int kdb_trap_printk;
 /* 普通内存分配 */
 void * OSAL_malloc(__u32 Size)
 {
-	//return vmalloc(Size);
-	/* to do */
-	return 0;
+    void * addr;
+
+    addr = malloc(Size);
+	return addr;
 }
 
 void OSAL_free(void *pAddr)
 {
-    //vfree(pAddr);
-    /* to do */
+    free(pAddr);
+
+    return;
 }
 
 /* 连续的物理内存分配 */

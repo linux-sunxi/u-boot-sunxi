@@ -7,32 +7,23 @@
 
 __s32 Image_init(__u32 sel)
 {
-    
+
     image_clk_init(sel);
-    printf("image_clk_init, 0x1c20064=0x%x, 0x1c20104=0x%x\n", *(volatile __u32*)0x1c20064, *(volatile __u32*)0x1c20104);
-    BSP_disp_print_reg(1, DISP_REG_CCMU);
 	image_clk_on(sel);	//when access image registers, must open MODULE CLOCK of image
-	printf("image_clk_on\n");
 	DE_BE_Reg_Init(sel);
-    printf("DE_BE_Reg_Init\n");
-    
+
     //BSP_disp_sprite_init(sel);
-    
+
     Image_open(sel);
-    printf("Image_open\n");
 
     DE_BE_EnableINT(sel, DE_IMG_REG_LOAD_FINISH);
-    printf("DE_BE_EnableINT\n");
     DE_BE_reg_auto_load_en(sel, 0);
-    printf("DE_BE_reg_auto_load_en\n");
-	
+
     if(sel == 0)
     {
         OSAL_RegISR(INTC_IRQNO_IMAGE0,0,Scaler_event_proc, (void *)sel,0,0);
-        printf("OSAL_RegISR\n");
 #ifndef __LINUX_OSAL__
         OSAL_InterruptEnable(INTC_IRQNO_IMAGE0);
-        printf("OSAL_InterruptEnable\n");
 
 #endif
     }
@@ -45,30 +36,30 @@ __s32 Image_init(__u32 sel)
     }
     return DIS_SUCCESS;
 }
-      
+
 __s32 Image_exit(__u32 sel)
-{    
+{
     DE_BE_DisableINT(sel, DE_IMG_REG_LOAD_FINISH);
     //BSP_disp_sprite_exit(sel);
     image_clk_exit(sel);
-        
+
     return DIS_SUCCESS;
 }
 
 __s32 Image_open(__u32  sel)
 {
    DE_BE_Enable(sel);
-      
+
    return DIS_SUCCESS;
 }
-      
+
 
 __s32 Image_close(__u32 sel)
 {
    DE_BE_Disable(sel);
-   
+
    gdisp.screen[sel].status &= IMAGE_USED_MASK;
-   
+
    return DIS_SUCCESS;
 }
 
@@ -146,7 +137,7 @@ __s32 BSP_disp_get_enhance_enable(__u32 sel)
 
 
 __s32 BSP_disp_set_screen_size(__u32 sel, __disp_rectsz_t * size)
-{    
+{
     DE_BE_set_display_size(sel, size->width, size->height);
 
     gdisp.screen[sel].screen_width = size->width;
@@ -171,7 +162,7 @@ __s32 BSP_disp_set_output_csc(__u32 sel, __disp_output_type_t type)
     {
         __s32 ret = 0;
         __s32 value = 0;
-        
+
         out_color_range = DISP_COLOR_RANGE_16_255;
 
         ret = OSAL_Script_FetchParser_Data("disp_init", "screen0_out_color_range", &value, 1);
@@ -211,7 +202,7 @@ __s32 BSP_disp_set_output_csc(__u32 sel, __disp_output_type_t type)
 }
 
 __s32 BSP_disp_de_flicker_enable(__u32 sel, __bool b_en)
-{   
+{
 	if(b_en)
 	{
 		gdisp.screen[sel].de_flicker_status |= DE_FLICKER_REQUIRED;
@@ -229,7 +220,7 @@ __s32 Disp_set_out_interlace(__u32 sel)
 	__u32 i;
 	__bool b_cvbs_out = 0;
 
-	if(gdisp.screen[sel].output_type==DISP_OUTPUT_TYPE_TV && 
+	if(gdisp.screen[sel].output_type==DISP_OUTPUT_TYPE_TV &&
 	    (gdisp.screen[sel].tv_mode==DISP_TV_MOD_PAL || gdisp.screen[sel].tv_mode==DISP_TV_MOD_PAL_M ||
 	    gdisp.screen[sel].tv_mode==DISP_TV_MOD_PAL_NC || gdisp.screen[sel].tv_mode==DISP_TV_MOD_NTSC))
 	{
@@ -269,7 +260,7 @@ __s32 Disp_set_out_interlace(__u32 sel)
 	DE_BE_Set_Outitl_enable(sel, gdisp.screen[sel].b_out_interlace);
 
     BSP_disp_cfg_finish(sel);
-    
+
 	return DIS_SUCCESS;
 }
 

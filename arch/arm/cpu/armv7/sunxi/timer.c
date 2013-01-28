@@ -345,4 +345,14 @@ void del_timer(struct timer_list *timer)
 	return ;
 }
 
+void stick_printf(void)
+{
+	uint time, time_sec, time_rest;
 
+	time = *(volatile unsigned int *)(0x01c20C00 + 0x84);
+	time_sec = time/1000;
+	time_rest = time%1000;
+	printf("[%8d.%3d]\n",time_sec, time_rest);
+
+	return ;
+}
