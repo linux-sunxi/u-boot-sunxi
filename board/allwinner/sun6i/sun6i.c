@@ -179,7 +179,7 @@ void set_boot_type_arg(void){
 /* add board specific code here */
 int board_init(void) {
 
-	gd->bd->bi_arch_number = 3495;
+	gd->bd->bi_arch_number = 3892;
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 	debug("board_init storage_type = %d\n",uboot_spare_head.boot_data.storage_type);
 
@@ -431,9 +431,7 @@ int board_display_framebuffer_set(int width, int height, int bitcount, void *buf
 	layer_para->b_trd_out		= 0;
 	layer_para->out_trd_mode 	= 0;
 
-	debug("layer para = %x\n", (uint)layer_para);
 	gd->layer_para = (uint)layer_para;
-	debug("layer para = %x\n", gd->layer_para);
 
 	return 0;
 }
@@ -472,7 +470,7 @@ int board_display_framebuffer_change(void *buffer)
 
 int board_display_device_open(void)
 {
-#ifndef CONFIG_SUN6I_FPGA
+#if (0) 
 	int  value = 1;
 	int  ret;
 	__u32 output_type = 0;

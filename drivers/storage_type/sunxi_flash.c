@@ -111,14 +111,14 @@ static struct mmc *mmc_boot, *mmc_sprite;
 static int
 sunxi_flash_nand_read(uint start_block, uint nblock, void *buffer)
 {
-	debug("nand read %x, sectors %x\n", start_block, nblock);
+//	debug("nand read %x, sectors %x\n", start_block, nblock);
 	return nand_uboot_read(start_block, nblock, buffer);
 }
 
 static int
 sunxi_flash_nand_write(uint start_block, uint nblock, void *buffer)
 {
-	debug("nand write : start %d, sector %d\n", start_block, nblock);
+//	debug("nand write : start %d, sector %d\n", start_block, nblock);
 	return nand_uboot_write(start_block, nblock, buffer);
 }
 
@@ -269,11 +269,10 @@ sunxi_sprite_mmc_exit(void){
 
 int sunxi_flash_read (uint start_block, uint nblock, void *buffer)
 {
-	debug("sunxi flash read : start %d, sector %d\n", start_block, nblock);
+//	debug("sunxi flash read : start %d, sector %d\n", start_block, nblock);
 	return sunxi_flash_read_pt(start_block, nblock, buffer);
 }
 
-//int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int sunxi_flash_write(uint start_block, uint nblock, void *buffer)
 {
 	return sunxi_flash_write_pt(start_block, nblock, buffer);
@@ -296,7 +295,6 @@ int sunxi_sprite_read (uint start_block, uint nblock, void *buffer)
 	return sunxi_sprite_read_pt(start_block, nblock, buffer);
 }
 
-//int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int sunxi_sprite_write(uint start_block, uint nblock, void *buffer)
 {
 	return sunxi_sprite_write_pt(start_block, nblock, buffer);
@@ -353,7 +351,6 @@ int sunxi_flash_handle_init(void)
 	{
 	    int nand_used, sdc_used;
 
-		uboot_spare_head.boot_data.storage_type = 1;
 		storage_type = uboot_spare_head.boot_data.storage_type;
 		debug("storage type = %d\n", storage_type);
         if((storage_type == 1) || (storage_type == 2))

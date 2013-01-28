@@ -59,6 +59,9 @@ void OSAL_PhyFree(void *pAddr, __u32 Size)
 /* 虚拟内存和物理内存之间的转化 */
 unsigned int OSAL_VAtoPA(void *va)
 {
+	if((unsigned int)(va) > 0x40000000)
+        return (void*)((unsigned int)(va) - 0x40000000);
+
 	return (unsigned int)va;
     //return virt_to_phys(va);
 }

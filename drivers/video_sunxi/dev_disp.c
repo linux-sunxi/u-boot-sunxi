@@ -194,7 +194,8 @@ __s32 DRV_DISP_Init(void)
 
     BSP_disp_init(&para);
     BSP_disp_open();
-    if(1)
+#if 0
+	if(0)
    	{
         __disp_color_t bk_color;
 
@@ -232,7 +233,7 @@ __s32 DRV_DISP_Init(void)
         __msdelay(1000);
     }
     printf("====display init end ====\n");
-
+#endif
     return 0;
 }
 

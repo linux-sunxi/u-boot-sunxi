@@ -212,8 +212,8 @@ __u32 get_fatent (fsdata *mydata, __u32 entry)
 		return ret;
 	}
 
-	debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n",
-	       mydata->fatsize, entry, entry, offset, offset);
+	//debug("FAT%d: entry: 0x%04x = %d, offset: 0x%04x = %d\n",
+	//       mydata->fatsize, entry, entry, offset, offset);
 
 	/* Read a new block of FAT entries into the cache. */
 	if (bufnum != mydata->fatbufnum) {
@@ -273,8 +273,8 @@ __u32 get_fatent (fsdata *mydata, __u32 entry)
 		}
 		break;
 	}
-	debug("FAT%d: ret: %08x, offset: %04x\n",
-	       mydata->fatsize, ret, offset);
+	//debug("FAT%d: ret: %08x, offset: %04x\n",
+	//       mydata->fatsize, ret, offset);
 
 	return ret;
 }

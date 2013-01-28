@@ -299,8 +299,7 @@ void board_init_f(ulong bootflag)
 	__asm__ __volatile__("": : :"memory");
 
 	memset((void *)gd, 0, sizeof(gd_t));
-
-	boot_standby_relocate();
+	//boot_standby_relocate();
 	gd->mon_len = _bss_end_ofs + sizeof(struct spare_boot_head_t);
 
 	//while((*(volatile unsigned int *)(0)) != 1);
@@ -310,7 +309,6 @@ void board_init_f(ulong bootflag)
 			early_fel();	/* modify by jerry */
 		}
 	}
-
 	debug("%x\n", &uboot_spare_head);
 	printf("first workmode=%d\n",       uboot_spare_head.boot_data.work_mode);
 	debug("first  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
@@ -497,6 +495,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	debug("secend  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
+
+	printf("start0 = %x\n", gd->layer_para);
+
 	board_init();	/* Setup chipselects */
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
@@ -565,9 +566,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		printf("lcd_vt=%d, ret=%d\n", vol, ret);
 	}
 
-//  DRV_DISP_Init();
-//	board_display_device_open();
-//	board_display_layer_open();
+    DRV_DISP_Init();
+	board_display_device_open();
+	board_display_layer_open();
 
 	ret = sunxi_flash_handle_init();
 	if(!ret)
