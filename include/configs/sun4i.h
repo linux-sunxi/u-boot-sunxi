@@ -178,7 +178,7 @@
 	"mmc_root=/dev/mmcblk0p4\0" \
 	"init=/init\0" \
 	"loglevel=8\0" \
-	"setargs=setenv bootargs console=${console} root=${nand_root}" \
+	"setargs=setenv bootargs console=${console} root=${nand_root} " \
 	"init=${init} loglevel=${loglevel}\0" \
 	"boot_normal=nand read 50000000 boot; boota 50000000\0" \
 	"boot_recovery=nand read 50000000 recovery; boota 50000000\0" \
