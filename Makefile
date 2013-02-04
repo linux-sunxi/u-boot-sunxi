@@ -302,6 +302,7 @@ endif
 
 ifeq ($(SOC),sunxi)
 LIBS += nand_sunxi/libnand
+LIBS += nand_sunxi/nand_interface/libnand_interface.o
 endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))

@@ -40,6 +40,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static struct bootloader_message misc_message;
 
+#ifdef DEBUG
 void fastboot_partition_init(void)
 {
 	fastboot_ptentry fb_part;
@@ -84,7 +85,40 @@ void fastboot_partition_init(void)
 
 	setenv("partitions", partition_sets);
 }
+#else
+void fastboot_flash_partition_init(void)
+{
+	fastboot_ptentry fb_part;
+	int index, part_total;
 
+	printf("--------fastboot partitions--------\n");
+	part_total = sunxi_partition_get_total_num();
+	if((part_total <= 0) || (part_total > MBR_MAX_PART_COUNT))
+	{
+		printf("mbr not exist\n");
+
+		return ;
+	}
+	printf("-total partitions:%d-\n", part_total);
+	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
+
+	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
+		sunxi_partition_get_name(index, &fb_part.name[0]);
+		fb_part.start = sunxi_partition_get_offset(index) * 512;
+		fb_part.length = sunxi_partition_get_size(index) * 512;
+		fb_part.flags = 0;
+		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
+		fastboot_flash_add_ptn(&fb_part);
+	}
+	printf("-----------------------------------\n");
+}
+#endif
+void fastboot_partition_init(void) {
+#ifdef DEBUG
+	printf("fastboot_partition_init storage type = %d\n", storage_type);
+#endif
+	fastboot_flash_partition_init();
+}
 static struct bootloader_message misc_message;
 
 int android_misc_flash_check(void) {
@@ -190,7 +224,7 @@ int board_init(void) {
  */
 int board_late_init(void)
 {
-	fastboot_partition_init();
+	//fastboot_partition_init();
 	set_boot_type_arg();
 	check_android_misc();
 	return 0;
