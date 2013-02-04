@@ -22,7 +22,7 @@ function build_uboot()
         *)
             make -j8 ${LICHEE_CHIP} CROSS_COMPILE=arm-linux-gnueabi-
             [ $? -ne 0 ] && exit 1
-            cp -f u-boot.bin ../out/${LICHEE_CHIP}/${LICHEE_PLATFORM}/common/
+            cp -f u-boot.bin ../out/${LICHEE_PLATFORM}/common/
             ;;
     esac
 }
@@ -57,9 +57,9 @@ if [ "${LICHEE_CHIP}" = "${LICHEE_PLATFORM}" ] ; then
     LICHEE_PLATFORM="linux"
 fi
 
-tooldir="$(dirname `pwd`)/out/${LICHEE_CHIP}/${LICHEE_PLATFORM}/common/buildroot/external-toolchain"
+tooldir="$(dirname `pwd`)/out/${LICHEE_PLATFORM}/common/buildroot/external-toolchain"
 if [ -d ${tooldir} ] ; then
-    if ! echo $PATH | grep "$tooldir" ; then
+    if ! echo $PATH | grep -q "$tooldir" ; then
         export PATH=${tooldir}/bin:$PATH
     fi
 else
