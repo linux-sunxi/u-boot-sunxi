@@ -42,11 +42,11 @@ void fastboot_flash_partition_init(void)
 {
 	fastboot_ptentry fb_part;
 	int index, part_total;
-	char partition_sets[512];
+	char partition_sets[1024];
 	char part_name[32];
 	char *pa_index;
 	int  part_name_count;	
-
+    
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
 	if((part_total <= 0) || (part_total > MBR_MAX_PART_COUNT))
