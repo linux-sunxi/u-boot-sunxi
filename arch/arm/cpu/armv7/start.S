@@ -358,6 +358,22 @@ copy_int_loop:
 
 	blo     copy_int_loop
 #endif
+
+boot_standby_relocate:
+	ldr r0, _standby_start__
+	ldr r1, _standby_end__
+	ldr r2, _standby_start_lma__
+	adr r3, _start
+
+	add r0, r0, r3
+	add r1, r1, r3
+	add r2, r2, r3
+
+copy_standby_loop:
+	ldmia   r2!, {r7-r8}
+	stmia   r0!, {r7-r8}
+	cmp     r0, r1
+	blo     copy_standby_loop
 /*
  * We are done. Do not return, instead branch to second part of board
  * initialization, now running from RAM.
@@ -431,24 +447,6 @@ cpu_init_crit:
 	mov	lr, ip			@ restore link
 	mov	pc, lr			@ back to my caller
 #endif
-
-	.globl boot_standby_relocate
-boot_standby_relocate:
-	ldr r0, _standby_start__
-	ldr r1, _standby_end__
-	ldr r2, _standby_start_lma__
-	adr r3, _start
-
-	add r0, r0, r3
-	add r1, r1, r3
-	add r2, r2, r3
-
-copy_standby_loop:
-	ldmia   r2!, {r7-r8}
-	stmia   r0!, {r7-r8}
-	cmp     r0, r1
-	blo     copy_standby_loop
-	mov     pc, lr
 
 #ifndef CONFIG_SPL_BUILD
 /*

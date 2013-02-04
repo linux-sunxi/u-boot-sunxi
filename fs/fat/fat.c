@@ -616,7 +616,7 @@ static dir_entry *get_dentfromdir (fsdata *mydata, int startsect,
 						dentptr++;
 						continue;
 					}
-					debug("vfatname: |%s|\n", l_name);
+					//debug("vfatname: |%s|\n", l_name);
 				} else
 #endif
 				{
@@ -674,7 +674,7 @@ static dir_entry *get_dentfromdir (fsdata *mydata, int startsect,
 
 			if (strcmp(filename, s_name)
 			    && strcmp(filename, l_name)) {
-				debug("Mismatch: |%s|%s|\n", s_name, l_name);
+				//debug("Mismatch: |%s|%s|\n", s_name, l_name);
 				dentptr++;
 				continue;
 			}

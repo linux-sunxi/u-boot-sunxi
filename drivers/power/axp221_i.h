@@ -25,6 +25,7 @@ extern	int axp221_clear_data_buffer(void);
 extern  int axp221_probe_dcin_exist(void);
 extern  int axp221_probe_battery_ratio(void);
 extern  int axp221_probe_battery_exist(void);
+extern  int axp221_probe_power_status(void);
 extern  int axp221_probe_battery_vol(void);
 extern  int axp221_probe_buttery_resistance_record(void);
 extern  int axp221_probe_key(void);

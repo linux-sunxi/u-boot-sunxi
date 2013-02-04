@@ -299,7 +299,6 @@ void board_init_f(ulong bootflag)
 	__asm__ __volatile__("": : :"memory");
 
 	memset((void *)gd, 0, sizeof(gd_t));
-	//boot_standby_relocate();
 	gd->mon_len = _bss_end_ofs + sizeof(struct spare_boot_head_t);
 
 	//while((*(volatile unsigned int *)(0)) != 1);
@@ -568,7 +567,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
     DRV_DISP_Init();
 	board_display_device_open();
-	board_display_layer_open();
+	board_display_layer_request();
 
 	ret = sunxi_flash_handle_init();
 	if(!ret)
@@ -704,7 +703,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef CONFIG_ALLWINNER
 		if(!ret)
 		{
-			sunxi_logo_display();
+			board_status_probe();	
+			sunxi_bmp_display("bootlogo.bmp");
 		}
 #endif
     	/* main_loop() can return to retry autoboot, if so just run it again. */

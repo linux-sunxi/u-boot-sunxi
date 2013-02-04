@@ -261,6 +261,7 @@ void add_timer(struct timer_list *timer)
 	{
 		return ;
 	}
+	debug("timer delay time %d\n", timer->expires);
 	if(!(timer_used_status & 0x01))
 	{
 		timer_used_status |= 0x01;
@@ -277,7 +278,7 @@ void add_timer(struct timer_list *timer)
 
 		return ;
 	}
-	debug("timer status = %x, number = %d\n", timer_used_status, timer_num);
+	//debug("timer status = %x, number = %d\n", timer_used_status, timer_num);
 	timer->timer_num = timer_num;
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[timer_num];
@@ -310,12 +311,12 @@ void add_timer(struct timer_list *timer)
 	{
 		irq_install_handler(AW_IRQ_TIMER0 + timer_num, timer1_func, (void *)&timer_callback[timer_num].data);
 	}
-	debug("timer number = %d\n", timer_num);
+	//debug("timer number = %d\n", timer_num);
 	irq_enable(AW_IRQ_TIMER0 + timer_num);
 	timer_tcontrol->ctl |= 1;
 	timer_reg->tirqsta  = (1 << timer_num);
 	timer_reg->tirqen  |= (1 << timer_num);
-	debug("timer number = %d\n", timer_num);
+	//debug("timer number = %d\n", timer_num);
 
 	return ;
 }
@@ -327,7 +328,7 @@ void del_timer(struct timer_list *timer)
 	struct sunxi_timer_reg *timer_reg;
 	int    num = timer->timer_num;
 
-	debug("timer status at delling begin = %x, number = %d\n", timer_used_status, num);
+	//debug("timer status at delling begin = %x, number = %d\n", timer_used_status, num);
 
 	timer_reg      =   (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	timer_tcontrol = &((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[num];
@@ -340,7 +341,7 @@ void del_timer(struct timer_list *timer)
 	timer_callback[num].data = num;
 	timer_callback[num].func_back = timerX_callback_default;
 	timer_used_status &= ~(1 << num);
-	debug("timer status at delling end = %x\n", timer_used_status);
+	//debug("timer status at delling end = %x\n", timer_used_status);
 
 	return ;
 }

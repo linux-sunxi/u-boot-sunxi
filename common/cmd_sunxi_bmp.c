@@ -29,19 +29,10 @@
 #include <bmp_layout.h>
 #include <command.h>
 #include <malloc.h>
+#include <asm/arch/bat.h>
 
-typedef struct
-{
-	int x;
-	int y;
-	int bit;
-	void *buffer;
-}
-sunxi_bmp_store_t;
-
-static int sunxi_bmp_info (uint addr);
-static int sunxi_bmp_decode(ulong addr, uint de_addr, sunxi_bmp_store_t *bmp_info);
-static int sunxi_bmp_display(sunxi_bmp_store_t bmp_info);
+static int sunxi_bmp_probe_info (uint addr);
+static int sunxi_bmp_show(sunxi_bmp_store_t bmp_info);
 /*
  * Allocate and decompress a BMP image using gunzip().
  *
@@ -92,7 +83,7 @@ static int do_sunxi_bmp_info(cmd_tbl_t * cmdtp, int flag, int argc, char * const
 		return cmd_usage(cmdtp);
 	}
 
-	return (sunxi_bmp_info(addr));
+	return (sunxi_bmp_probe_info(addr));
 }
 
 U_BOOT_CMD(
@@ -154,8 +145,8 @@ static int do_sunxi_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char * co
 		de_addr = SUNXI_DISPLAY_FRAME_BUFFER_ADDR;
 	}
 	debug("bmp addr %x, display addr %x\n", addr, de_addr);
-
-	if(!sunxi_bmp_decode(addr, de_addr, &bmp_info))
+	bmp_info.buffer = (void *)de_addr;
+	if(!sunxi_bmp_decode(addr, &bmp_info))
 	{
 		debug("decode bmp ok\n");
 
@@ -168,29 +159,33 @@ static int do_sunxi_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char * co
 
 
 U_BOOT_CMD(
-	sunxi_bmp_display,	4,	1,	do_sunxi_bmp_display,
+	sunxi_bmp_show,	4,	1,	do_sunxi_bmp_display,
 	"manipulate BMP image data",
 	"sunxi_bmp_display addr [de addr]\n"
 	"parameters 1 : the address where the bmp stored\n"
 	"parameters 2 : option para, the address where the bmp display\n"
 );
 
-int sunxi_logo_display(void)
+int sunxi_bmp_display(char *name)
 {
 	sunxi_bmp_store_t bmp_info;
+	char  bmp_name[32];
+	char *const bmp_argv[6] = { "fatload", "sunxi_flash", "0", "40000000", bmp_name, NULL };
 
-	char *const bmp_argv[6] = { "fatload", "sunxi_flash", "0", "40000000", "bootlogo.bmp", NULL };
+	memset(bmp_name, 0, 32);
+	strcpy(bmp_name, name);
     if(do_fat_fsload(0, 0, 5, bmp_argv))
 	{
-	   printf("sunxi bmp info error : unable to open logo file %s\n");
+	   printf("sunxi bmp info error : unable to open logo file %s\n", bmp_argv[4]);
 
 	   return -1;
     }
-	if(!sunxi_bmp_decode(0x40000000, SUNXI_DISPLAY_FRAME_BUFFER_ADDR, &bmp_info))
+	bmp_info.buffer = (void *)SUNXI_DISPLAY_FRAME_BUFFER_ADDR;
+	if(!sunxi_bmp_decode(0x40000000, &bmp_info))
 	{
 		debug("decode bmp ok\n");
 
-		return sunxi_bmp_display(bmp_info);
+		return sunxi_bmp_show(bmp_info);
 	}
 
 	return -1;
@@ -205,7 +200,7 @@ int sunxi_logo_display(void)
  * Return:      None
  *
  */
-static int sunxi_bmp_info(uint addr)
+static int sunxi_bmp_probe_info(uint addr)
 {
 	bmp_image_t *bmp=(bmp_image_t *)addr;
 
@@ -233,7 +228,7 @@ static int sunxi_bmp_info(uint addr)
  * Return:      None
  *
  */
-static int sunxi_bmp_decode(ulong addr, uint de_addr, sunxi_bmp_store_t *bmp_info)
+int sunxi_bmp_decode(unsigned long addr, sunxi_bmp_store_t *bmp_info)
 {
 	char *tmp_buffer;
 	char *bmp_data;
@@ -260,7 +255,7 @@ static int sunxi_bmp_decode(ulong addr, uint de_addr, sunxi_bmp_store_t *bmp_inf
 	y = (bmp->header.height & 0x80000000) ? (-bmp->header.height):(bmp->header.height);
 	debug("bmp x = %x, bmp y = %x\n", x, y);
 
-	tmp_buffer = (char *)de_addr;
+	tmp_buffer = (char *)bmp_info->buffer;
 	bmp_data = (char *)(addr + bmp->header.data_offset);
 	if(bmp->header.height & 0x80000000)
     {
@@ -282,12 +277,11 @@ static int sunxi_bmp_decode(ulong addr, uint de_addr, sunxi_bmp_store_t *bmp_inf
     bmp_info->x = x;
     bmp_info->y = y;
     bmp_info->bit = bmp->header.bit_count;
-    bmp_info->buffer = de_addr;
 
 	return 0;
 }
 
-static int sunxi_bmp_display(sunxi_bmp_store_t bmp_info)
+static int sunxi_bmp_show(sunxi_bmp_store_t bmp_info)
 {
 	debug("begin to set framebuffer\n");
 	if(board_display_framebuffer_set(bmp_info.x, bmp_info.y, bmp_info.bit, (void *)bmp_info.buffer))
@@ -297,66 +291,10 @@ static int sunxi_bmp_display(sunxi_bmp_store_t bmp_info)
 		return -2;
 	}
 	debug("begin to show layer\n");
-	board_display_layer_show(0);
+	board_display_show(0);
 	debug("bmp display finish\n");
 
 	return 0;
 }
 
-#define  BMP_TEST_MAX    11
-int do_sunxi_bmp_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	char  filename[32];
-	char  *const name[11] = {"bat0.bmp", "bat1.bmp", "bat2.bmp", "bat3.bmp", "bat4.bmp", "bat5.bmp", "bat6.bmp",
-		            "bat7.bmp", "bat8.bmp", "bat9.bmp", "bat10.bmp"};
-	char *const bmp_argv[6] = { "fatload", "sunxi_flash", "0", "0x40000000", filename, NULL };
-	int  i = 0;
-	sunxi_bmp_store_t  bmp_store[11];
-
-	for(i=0;i<BMP_TEST_MAX;i++)
-	{
-		memset(filename, 0, 32);
-		memcpy(filename, name[i], strlen(name[i]));
-
-		if(do_fat_fsload(0, 0, 5, bmp_argv))
-		{
-		   printf("sunxi bmp info error : unable to open bmp file %s\n", name[i]);
-
-		   return -1;
-	    }
-	    if(sunxi_bmp_decode(0x40000000, (0x41000000 + i * 1024 * 1024), &bmp_store[i]))
-	    {
-	    	printf("sunxi bmp decode error : unable to decode %s\n", name[i]);
-
-	    	return -1;
-	    }
-	}
-	i = 0;
-	if(board_display_framebuffer_set(bmp_store[0].x, bmp_store[0].y, bmp_store[0].bit, (void *)bmp_store[0].buffer))
-	{
-		printf("sunxi bmp display error : set frame buffer error\n");
-
-		return -2;
-	}
-	board_display_layer_show(0);
-	while(1)
-	{
-		__msdelay(2000);
-		i ++;
-		if(i >= BMP_TEST_MAX)
-		{
-			i = 0;
-		}
-		board_display_framebuffer_change(bmp_store[i].buffer);
-	}
-
-	return 0;
-}
-
-
-U_BOOT_CMD(
-	sunxi_bmp_test,	1,	1,	do_sunxi_bmp_test,
-	"bmp test\n",
-	"test only\n"
-);
 

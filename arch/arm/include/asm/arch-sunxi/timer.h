@@ -99,7 +99,7 @@ extern void add_timer(struct timer_list *timer);
 
 extern void del_timer(struct timer_list *timer);
 
-extern void __udelay(unsigned long usec);
+extern void __usdelay(unsigned long usec);
 
 extern void __msdelay(unsigned long msec);
 

@@ -147,7 +147,7 @@ static int boot_enter_standby(void)
 	standby_int_disable();
 
 	//mctl_deep_sleep_test();
-	dram_power_save_process();
+	//dram_power_save_process();
 
 	//standby_serial_putc('1');
 
@@ -185,7 +185,7 @@ static int boot_exit_standby(void)
 	standby_clock_pllenable();
 	standby_clock_to_pll1();
 	//standby_serial_putc('7');
-	dram_power_up_process();
+	//dram_power_up_process();
 	//standby_serial_putc('8');
 	standby_axp_restore_int_status();
 	standby_gic_restore();
@@ -226,23 +226,19 @@ static int boot_standby_detect(void)
 	}
 	if(power_int_status[0] & 0x24)			//外部电源移除
 	{
-		if(standby_axp_probe_dcin_exist() <= 0)
+		if(standby_axp_probe_dcin_exist() <= 0)	//没有外部电源存在
 		{
 			return 4;
 		}
+		else
+		{
+			return 8;						//还有外部电源存在
+		}
 	}
-//	if((power_int_status[1] & 0x04) && (battery_exist==1))			//充电完成
-//	{
-//		return 5;
-//	}
-	if(power_int_status[0] & 0x08)			//usb火牛接入
+	if(power_int_status[0] & 0x48)			//外部电源接入
 	{
 		return 8;
 	}
-//	if(power_int_status[0] & 0x04)			//usb火牛移除
-//	{
-//		return 9;
-//	}
 
 	return 0;
 }
@@ -271,6 +267,7 @@ static int boot_mod_enter_standby(void)
 //		boot_driver_standby(i, boot_MOD_ENTER_STANDBY, 0);
 //	}
 
+
 	return 0;
 }
 /*
@@ -297,6 +294,7 @@ static int boot_mod_exit_standby(void)
 //	{
 //		boot_driver_standby(i, boot_MOD_EXIT_STANDBY, 0);
 //	}
+
 
 	return 0;
 }

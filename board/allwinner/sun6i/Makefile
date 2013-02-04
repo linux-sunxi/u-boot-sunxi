@@ -26,16 +26,22 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).o
 
-COBJS	:= sun6i.o
+COBJS-y += sun6i.o
+COBJS-y += sunxi_bat_cartoon.o
+COBJS-y += sunxi_load_check.o
+COBJS-y += sunxi_de.o
+COBJS-y += sunxi_power_probe.o
+COBJS-y += usb_probe.o
 
-SRCS	:= $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS-y))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
-$(LIB):	$(obj).depend $(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
+$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(SOBJS) $(OBJS)
 
 distclean:	clean
 	rm -f $(LIB) core *.bak $(obj).depend

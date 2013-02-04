@@ -5,7 +5,7 @@
  */
 #include <common.h>
 
-static int do_shutdown(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_shutdown(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int off_vol;
 	int ret;

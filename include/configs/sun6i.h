@@ -42,12 +42,20 @@
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN6I				/* which is sun6i */
 #undef  CONFIG_SUN6I_FPGA
+
+//#define FORCE_BOOT_STANDBY
+#undef FORCE_BOOT_STANDBY
+
+#define BOOT_USB_DETECT_DELAY_TIME   (1000)
 //#define CONFIG_SUN6I_FPGA			/* working with fpga board */
 //#define AW_FPGA_V4_PLATFORM
 #define CONFIG_CMD_BOOTA
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
 #define BOARD_LATE_INIT				/* init the fastboot partitions */
+
+#define BOOT_STANDBY_MOD_ENTER_STANDBY				  0xf0
+#define BOOT_STANDBY_MOD_EXIT_STANDBY				  0xf1
 
 #define SYS_CONFIG_BASE             0x43000000
 #define CONFIG_SYS_TEXT_BASE		0x4A000000

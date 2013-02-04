@@ -57,4 +57,14 @@ extern int axp_set_vbus_vol_limit(int vol);
 
 extern int axp_probe_key(void);
 
+extern int axp_get_power_vol_level(void);
+extern int axp_power_get_dcin_battery_exist(int *dcin_exist, int *battery_exist);
+
+extern int axp_set_vbus_limit_dc(void);
+extern int axp_set_vbus_limit_pc(void);
+
+extern int axp_int_enable(unsigned char *value);
+extern int axp_int_disable(void);
+extern int axp_int_query(unsigned char *addr);
+
 #endif	/* _PMU_H_ */

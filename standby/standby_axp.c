@@ -114,7 +114,7 @@ int standby_axp_store_int_status(void)
 	    int_reg ++;
 	}
 
-	standby_int_enable[0] = 0x2C;
+	standby_int_enable[0] = 0x6C;
 	standby_int_enable[1] = 0x0;
 	standby_int_enable[2] = 0x3;
 	standby_int_enable[3] = 0x0;
