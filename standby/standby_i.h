@@ -37,7 +37,7 @@ extern int standby_axp_output_control(int onoff);
 extern int standby_axp_store_int_status(void);
 extern int standby_axp_restore_int_status(void);
 extern int standby_axp_int_query(__u8 *int_status);
-extern int standby_axp_probe_dcin_exist(void);
+extern int standby_axp_probe_power_exist(void);
 extern int standby_axp_probe_key(void);
 extern int standby_axp_probe_usb(void);
 

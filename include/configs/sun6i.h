@@ -27,7 +27,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define DEBUG    1
+//#define DEBUG    1
+#undef DEBUG
 
 #ifndef __KERNEL__
 #define __KERNEL__
@@ -45,6 +46,9 @@
 
 //#define FORCE_BOOT_STANDBY
 #undef FORCE_BOOT_STANDBY
+
+#define BOOT_MOD_ENTER_STANDBY       (0)
+#define BOOT_MOD_EXIT_STANDBY        (1)
 
 #define BOOT_USB_DETECT_DELAY_TIME   (1000)
 //#define CONFIG_SUN6I_FPGA			/* working with fpga board */

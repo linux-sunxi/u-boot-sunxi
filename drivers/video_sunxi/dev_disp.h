@@ -1,6 +1,7 @@
 #ifndef __DEV_DISP_H__
 #define __DEV_DISP_H__
 
+#include <common.h>
 #include "drv_disp_i.h"
 
 // 1M + 64M(ve) + 16M(fb)
@@ -19,7 +20,7 @@ struct info_mm {
 typedef struct
 {
 	struct device   *       dev;
-	
+
 	__u32                   base_image0;
 	__u32                   base_image1;
 	__u32                   base_scaler0;
@@ -41,12 +42,12 @@ typedef struct
     __u32                   base_cmu1;
     __u32                   base_dsi0;
     __u32                   base_dsi1;
-	
+
     __disp_init_t           disp_init;
-    
+
     __bool                  fb_enable[FB_MAX];
     __fb_mode_t             fb_mode[FB_MAX];
-    __u32                   layer_hdl[FB_MAX][2];//[fb_id][0]:screen0 layer handle;[fb_id][1]:screen1 layer handle 
+    __u32                   layer_hdl[FB_MAX][2];//[fb_id][0]:screen0 layer handle;[fb_id][1]:screen1 layer handle
     struct fb_info *        fbinfo[FB_MAX];
     __disp_fb_create_para_t fb_para[FB_MAX];
 	unsigned long           wait_count[2];
@@ -60,7 +61,7 @@ typedef struct
     __u32    		    exit_mode;//0:clean all  1:disable interrupt
     __bool              b_cache[2];
 	__bool			    b_lcd_open[2];
- 
+
 }__disp_drv_t;
 
 

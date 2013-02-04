@@ -85,12 +85,14 @@ boot_restore_sp:
 */
 	.globl boot_set_sp
 boot_set_sp:
-	ldr  sp, =0x8000
+	ldr  sp, =0x7000
 	mov  pc, lr
 
 	.globl boot_halt
 boot_halt:
 	wfi
+
+	mov  pc, lr
 
 
 

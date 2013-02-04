@@ -193,9 +193,9 @@ static int init_func_i2c(void)
 
 static int init_func_p2wi(void)
 {
-	puts("p2wi:   ");
+	debug("p2wi:   ");
 	p2wi_init();
-	puts("ready\n");
+	debug("ready\n");
 	return (0);
 }
 
@@ -308,9 +308,6 @@ void board_init_f(ulong bootflag)
 			early_fel();	/* modify by jerry */
 		}
 	}
-	debug("%x\n", &uboot_spare_head);
-	printf("first workmode=%d\n",       uboot_spare_head.boot_data.work_mode);
-	debug("first  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
 	 * Ram is setup, size stored in gd !!
@@ -488,15 +485,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	/* Enable caches */
 	enable_caches();
-
-	debug("%x\n", &uboot_spare_head);
-	printf("secend workmode=%d\n",       uboot_spare_head.boot_data.work_mode);
-	debug("secend  storage type = %d\n", uboot_spare_head.boot_data.storage_type);
-
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
-
-	printf("start0 = %x\n", gd->layer_para);
-
+	
 	board_init();	/* Setup chipselects */
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
@@ -551,20 +541,6 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef DEBUG
     puts("ready to config storage\n");
 #endif
-
-	{
-		int vol;
-		int ret;
-
-		vol = 0;
-		ret = script_parser_fetch("power_sply", "aldo3_vol", &vol, 1);
-		printf("vol=%d, ret=%d\n", vol, ret);
-		ret = script_parser_fetch("mmc2_para", "sdc_buswidth", &vol, 1);
-		printf("sdc_buswidth=%d, ret=%d\n", vol, ret);
-		ret = script_parser_fetch("lcd0_para", "lcd_vt", &vol, 1);
-		printf("lcd_vt=%d, ret=%d\n", vol, ret);
-	}
-
     DRV_DISP_Init();
 	board_display_device_open();
 	board_display_layer_request();

@@ -18,9 +18,11 @@
 * Descript:
 **********************************************************************************************************************
 */
+#include <common.h>
 #include "standby_i.h"
 #include "standby.h"
 
+DECLARE_GLOBAL_DATA_PTR;
 
 static int boot_enter_standby(void);
 static int boot_exit_standby(void);
@@ -78,7 +80,7 @@ int boot_early_standby_mode(void)
 		return 3;
 	}
 	//检查外部电源是否存在
-	if(standby_axp_probe_dcin_exist() <= 0)
+	if(standby_axp_probe_power_exist() <= 0)
 	{
 		if(standby_flag)
 		{
@@ -94,7 +96,10 @@ int boot_early_standby_mode(void)
 		}
 		return 2;
 	}
-	boot_mod_enter_standby();      //控制模块进入standby
+	if(!standby_flag)
+	{
+		boot_mod_enter_standby();      //控制模块进入standby
+	}
 	//检查是否有USB电源插入
 	usb_status = standby_axp_probe_usb();
 	if(usb_status > 0)
@@ -103,6 +108,7 @@ int boot_early_standby_mode(void)
 	}
 	status = -1;
 	boot_enter_standby();
+	//while((*(volatile unsigned int *)(0)) != 0x1234);
 	do
 	{
 		//开始循环检查是否开始唤醒
@@ -113,7 +119,7 @@ int boot_early_standby_mode(void)
 	//发现需要唤醒，退出standby
 	boot_exit_standby();
 	//退出模块的standby
-	if((status != 8) && (status != 9))
+	if(status != 8)
 	{
 		boot_mod_exit_standby();
 		standby_flag = 0;
@@ -147,7 +153,7 @@ static int boot_enter_standby(void)
 	standby_int_disable();
 
 	//mctl_deep_sleep_test();
-	//dram_power_save_process();
+	dram_power_save_process();
 
 	//standby_serial_putc('1');
 
@@ -185,7 +191,7 @@ static int boot_exit_standby(void)
 	standby_clock_pllenable();
 	standby_clock_to_pll1();
 	//standby_serial_putc('7');
-	//dram_power_up_process();
+	dram_power_up_process();
 	//standby_serial_putc('8');
 	standby_axp_restore_int_status();
 	standby_gic_restore();
@@ -216,6 +222,7 @@ static int boot_standby_detect(void)
 
 	//检查中断触发
 	standby_axp_int_query(power_int_status);
+	//standby_serial_putc('1');
 	if(power_int_status[2] & 0x02)			//电源按键短按
 	{
 		return 2;
@@ -226,7 +233,7 @@ static int boot_standby_detect(void)
 	}
 	if(power_int_status[0] & 0x24)			//外部电源移除
 	{
-		if(standby_axp_probe_dcin_exist() <= 0)	//没有外部电源存在
+		if(standby_axp_probe_power_exist() <= 0)	//没有外部电源存在
 		{
 			return 4;
 		}
@@ -235,7 +242,7 @@ static int boot_standby_detect(void)
 			return 8;						//还有外部电源存在
 		}
 	}
-	if(power_int_status[0] & 0x48)			//外部电源接入
+	if(power_int_status[0] & 0x48)			//外部电源插入
 	{
 		return 8;
 	}
@@ -258,15 +265,19 @@ static int boot_standby_detect(void)
 *
 ************************************************************************************************************
 */
+extern int DRV_DISP_Standby(uint cmd, void *pArg);
+
+typedef int (* boot_mod_standby)(uint cmd, void *pArg);
+
 static int boot_mod_enter_standby(void)
 {
-//	int i;
-//
-//	for(i=0;i<EMOD_COUNT_MAX;i++)
-//	{
-//		boot_driver_standby(i, boot_MOD_ENTER_STANDBY, 0);
-//	}
+	uint addr;
+	boot_mod_standby  mod_func;
 
+	addr = (uint)DRV_DISP_Standby + gd->reloc_off;
+	mod_func = (boot_mod_standby *)addr;
+
+	mod_func(BOOT_MOD_ENTER_STANDBY, 0);
 
 	return 0;
 }
@@ -288,13 +299,13 @@ static int boot_mod_enter_standby(void)
 */
 static int boot_mod_exit_standby(void)
 {
-//	int i;
-//
-//	for(i=0;i<EMOD_COUNT_MAX;i++)
-//	{
-//		boot_driver_standby(i, boot_MOD_EXIT_STANDBY, 0);
-//	}
+	uint addr;
+	boot_mod_standby  mod_func;
 
+	addr = (uint)DRV_DISP_Standby + gd->reloc_off;
+	mod_func = (boot_mod_standby *)addr;
+
+	mod_func(BOOT_MOD_EXIT_STANDBY, 0);
 
 	return 0;
 }

@@ -84,7 +84,7 @@ int do_fat_fsload (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 1;
 	}
 
-	printf("\n%ld bytes read\n", size);
+	debug("\n%ld bytes read\n", size);
 
 	sprintf(buf, "%lX", size);
 	setenv("filesize", buf);

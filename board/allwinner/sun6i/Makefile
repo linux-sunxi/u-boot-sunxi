@@ -31,7 +31,7 @@ COBJS-y += sunxi_bat_cartoon.o
 COBJS-y += sunxi_load_check.o
 COBJS-y += sunxi_de.o
 COBJS-y += sunxi_power_probe.o
-COBJS-y += usb_probe.o
+COBJS-y += sunxi_usb_probe.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))

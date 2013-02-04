@@ -227,7 +227,7 @@ __standby_axp_int_query_err:
 *
 ************************************************************************************************************
 */
-int standby_axp_probe_dcin_exist(void)
+int standby_axp_probe_power_exist(void)
 {
 	u8 reg_value;
 

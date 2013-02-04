@@ -131,7 +131,7 @@ static void flash_env_relocate_spec(void)
 
 void env_relocate_spec(void)
 {
-	printf("env_relocate_spec storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
+	debug("env_relocate_spec storage_type = %d\n", uboot_spare_head.boot_data.storage_type);
 	flash_env_relocate_spec();
 }
 

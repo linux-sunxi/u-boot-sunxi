@@ -23,7 +23,7 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/intc.h>
 #include <asm/io.h>
-#include "usb_register.h"
+#include "sunxi_usb_register.h"
 
 struct timer_list  timer_for_usb;
 static int         usb_working = 0;
@@ -522,7 +522,7 @@ static void usb_init(void)
 	usb_select_ep(0);
 	usb_ep0_flush_fifo();
 
-	printf("USB Device!!\n");
+	debug("USB Device!!\n");
 	usb_clear_bus_interrupt_enable(0xff);
 	usb_set_bus_interrupt_enable(0xf7);
 	//usb_set_eptx_interrupt_enable(0x3f);
@@ -580,7 +580,7 @@ static void usb_detect_irq_handler(void *p_arg)
 	temp = usb_get_bus_interrupt_status();
 	usb_clear_bus_interrupt_status(temp);
 
-	printf("usb irq %x\n", temp);
+	debug("usb irq %x\n", temp);
 
 	if(temp & 0x04)
 	{
@@ -614,7 +614,7 @@ static void usb_detect_irq_handler(void *p_arg)
 */
 int usb_detect_enter(void)
 {
-	printf("usb start detect\n");
+	debug("usb start detect\n");
 	if(!usb_working)
 	{
 		printf("usb enter detect\n");

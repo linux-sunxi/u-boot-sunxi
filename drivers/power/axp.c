@@ -109,7 +109,7 @@ int axp_probe_startup_cause(void)
 	int poweron_reason, next_action = 0;
 
 	buffer_value = axp221_probe_last_poweron_status();
-	printf("axp buffer %x\n", buffer_value);
+	debug("axp buffer %x\n", buffer_value);
 	if(buffer_value < 0)
 	{
 		return -1;
@@ -885,7 +885,7 @@ int axp_probe_power_supply_condition(void)
     if(!dcin_exist)
     {
     	bat_vol = axp221_probe_battery_vol();
-		printf("bat vol = %d\n", bat_vol);
+		printf("PMU: bat vol = %d\n", bat_vol);
 		if(bat_vol < 3400)
 		{
 			printf("bat vol is lower than 3400 and dcin is not exist\n");
@@ -897,7 +897,7 @@ int axp_probe_power_supply_condition(void)
     }
 
 	ratio = axp221_probe_battery_ratio();
-	printf("bat ratio = %d\n", ratio);
+	printf("PMU: bat ratio = %d\n", ratio);
 	if(ratio < 0)
 	{
 		return -1;
@@ -957,7 +957,7 @@ int axp_init(void)
 		{
 			if(!axp_set_dcdc3(dcdc3_vol))
 			{
-				printf("dcdc3 %d\n", dcdc3_vol);
+				printf("PMU: dcdc3 %d\n", dcdc3_vol);
 				ret = 0;
 			}
 			else

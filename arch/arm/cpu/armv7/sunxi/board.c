@@ -135,7 +135,7 @@ int power_source_init(void)
 	}
 	pll1 = sunxi_clock_get_corepll();
 
-	printf("pll1 = %d Mhz\n", pll1);
+	printf("PMU: pll1 %d Mhz\n", pll1);
 
 	sunxi_clock_set_pll6();
 	sunxi_clock_set_mbus();
@@ -157,11 +157,10 @@ int check_update_key(void)
 	ret = script_parser_fetch("fel_key", "fel_key_max", &fel_key_max, 1);
     if(ret)
     {
-    	printf("fel key old mode\n");
+    	debug("fel key old mode\n");
 		fel_key_mode = 1;
 	}
 
-	printf("key\n");
 	sunxi_key_read();
 	__msdelay(10);
 
@@ -218,7 +217,7 @@ int check_update_key(void)
 	    ret = sunxi_key_read();  				//读取按键信息
 	    if(ret < 0)             				//没有按键按下
 	    {
-	        printf("no key found\n");
+	        debug("no key found\n");
 	        return 0;
 	    }
 	    else

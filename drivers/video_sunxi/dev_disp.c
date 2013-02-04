@@ -12,7 +12,7 @@ __disp_drv_t g_disp_drv;
 static __u32    lcd_flow_cnt[2] = {0};
 static __bool   lcd_op_finished[2] = {0};
 struct timer_list lcd_timer[2];
-static __bool   lcd_open_start[2] = {0};
+static __bool   lcd_op_start[2] = {0};
 static unsigned int gbuffer[4096];
 static __u32 suspend_output_type[2] = {0,0};
 static __u32 suspend_status = 0;//0:normal; suspend_status&1 != 0:in early_suspend; suspend_status&2 != 0:in suspend;
@@ -75,7 +75,7 @@ __s32 DRV_lcd_open(__u32 sel)
     {
         lcd_flow_cnt[sel] = 0;
         lcd_op_finished[sel] = 0;
-        lcd_open_start[sel] = 1;
+        lcd_op_start[sel] = 1;
 
         init_timer(&lcd_timer[sel]);
 
@@ -87,11 +87,12 @@ __s32 DRV_lcd_open(__u32 sel)
 
 __bool DRV_lcd_check_open_finished(__u32 sel)
 {
-	if(BSP_disp_lcd_used(sel) && (lcd_open_start[sel] == 1))
+	if(BSP_disp_lcd_used(sel) && (lcd_op_start[sel] == 1))
 	{
 	    if(lcd_op_finished[sel])
 	    {
 	        del_timer(&lcd_timer[sel]);
+            lcd_op_start[sel] == 0;
 	    }
 		return lcd_op_finished[sel];
 	}
@@ -126,7 +127,6 @@ __s32 DRV_lcd_open(__u32 sel)
 
     return 0;
 }
-*/
 
 __s32 DRV_lcd_close(__u32 sel)
 {
@@ -154,6 +154,69 @@ __s32 DRV_lcd_close(__u32 sel)
 	}
     return 0;
 }
+*/
+
+void DRV_lcd_close_callback(void *parg)
+{
+    __lcd_flow_t *flow;
+    __u32 sel = (__u32)parg;
+    __s32 i = lcd_flow_cnt[sel]++;
+
+    flow = BSP_disp_lcd_get_close_flow(sel);
+
+    if(i < flow->func_num)
+    {
+    	flow->func[i].func(sel);
+        if(flow->func[i].delay == 0)
+        {
+            DRV_lcd_close_callback((void*)sel);
+        }
+        else
+        {
+            lcd_timer[sel].data = sel;
+			lcd_timer[sel].expires = flow->func[i].delay;
+			lcd_timer[sel].function = DRV_lcd_close_callback;
+			add_timer(&lcd_timer[sel]);
+        }
+    }
+    else if(i == flow->func_num)
+    {
+        BSP_disp_lcd_close_after(sel);
+        lcd_op_finished[sel] = 1;
+    }
+}
+
+__s32 DRV_lcd_close(__u32 sel)
+{
+    if(BSP_disp_lcd_used(sel))
+    {
+        lcd_flow_cnt[sel] = 0;
+        lcd_op_finished[sel] = 0;
+        lcd_op_start[sel] = 1;
+
+        init_timer(&lcd_timer[sel]);
+
+        BSP_disp_lcd_close_befor(sel);
+        DRV_lcd_close_callback((void*)sel);
+    }
+
+    return 0;
+}
+
+__bool DRV_lcd_check_close_finished(__u32 sel)
+{
+    if(BSP_disp_lcd_used(sel) && (lcd_op_start[sel] == 1))
+    {
+        if(lcd_op_finished[sel])
+        {
+            del_timer(&lcd_timer[sel]);
+            lcd_op_start[sel] == 0;
+        }
+        return lcd_op_finished[sel];
+    }
+
+    return 1;
+}
 
 
 __s32 disp_int_process(__u32 sel)
@@ -166,7 +229,7 @@ __s32 DRV_DISP_Init(void)
 {
     __disp_bsp_init_para para;
 
-    printf("====display init =====\n");
+    debug("====display init =====\n");
 
     memset(&para, 0, sizeof(__disp_bsp_init_para));
 
@@ -244,8 +307,6 @@ __s32 DRV_DISP_Exit(void)
 
     return 0;
 }
-
-
 
 long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -1493,6 +1554,70 @@ long disp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     }
 
 	return ret;
+}
+
+#define  DELAY_ONCE_TIME   (50)
+
+__s32 DRV_DISP_Standby(__u32 cmd, void *pArg)
+{
+	__s32 ret;
+	__s32 timedly = 5000;
+	__s32 check_time = timedly/DELAY_ONCE_TIME;
+
+	if(cmd == BOOT_MOD_ENTER_STANDBY)
+	{
+		DRV_lcd_close(0);
+		do
+		{
+			ret = DRV_lcd_check_close_finished(0);
+			if(ret == 1)
+			{
+				break;
+			}
+			else if(ret == -1)
+			{
+				return -1;
+			}
+			__msdelay(DELAY_ONCE_TIME);
+			check_time --;
+			if(check_time <= 0)
+			{
+				return -1;
+			}
+		}
+		while(1);
+		BSP_disp_clk_off(3);
+
+		return 0;
+	}
+	else if(cmd == BOOT_MOD_EXIT_STANDBY)
+	{
+		BSP_disp_clk_on(3);
+		DRV_lcd_open(0);
+		do
+		{
+			ret = DRV_lcd_check_open_finished(0);
+			if(ret == 1)
+			{
+				break;
+			}
+			else if(ret == -1)
+			{
+				return -1;
+			}
+			__msdelay(DELAY_ONCE_TIME);
+			check_time --;
+			if(check_time <= 0)
+			{
+				return -1;
+			}
+		}
+		while(1);
+
+		return 0;
+	}
+
+	return -1;
 }
 
 

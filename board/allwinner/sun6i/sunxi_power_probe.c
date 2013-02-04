@@ -123,7 +123,7 @@ void power_limit_detect_enter(void)
 	power_int_enable[4] = 0;
 	power_int_enable[5] = 0;
 
-	printf("power_limit_detect_enter\n");
+	printf("power limit detect enter\n");
 
 	axp_int_enable(power_int_enable);
 	irq_install_handler(AW_IRQ_NMI, power_int_irq, 0);
@@ -150,4 +150,6 @@ void power_limit_detect_exit(void)
 	usb_detect_exit();
 	axp_int_disable();
 	irq_disable(AW_IRQ_NMI);
+
+	printf("power limit detect exit\n");
 }

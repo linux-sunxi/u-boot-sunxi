@@ -34,12 +34,25 @@
 #include "sunxi_bat_cartoon.h"
 #include "power_probe.h"
 #include "sunxi_de.h"
+#include <standby.h>
 
 #define  FORCE_BOOT_STANDBY   1
 
 DECLARE_GLOBAL_DATA_PTR;
 
 int boot_standby_action = 0;
+
+typedef int (* standby_func)(void);
+
+static int board_try_boot_standby(void)
+{
+	uint func_addr = (uint)boot_standby_mode;
+	standby_func   boot_standby_func;
+
+	boot_standby_func = (standby_func)(func_addr - gd->reloc_off);
+
+	return boot_standby_func();
+}
 
 static int board_probe_power_level(void)
 {
@@ -50,7 +63,7 @@ static int board_probe_power_level(void)
 	axp_probe_key();
 	//获取电源状态
 	power_status = axp_get_power_vol_level();
-	printf("power status = %d\n", power_status);
+	debug("power status = %d\n", power_status);
 	if(power_status == BATTERY_RATIO_TOO_LOW_WITHOUT_DCIN)
 	{
 		printf("battery power is low with no dc or ac, should be set off\n");
@@ -66,7 +79,7 @@ static int board_probe_power_level(void)
 	//2: 不允许插火牛直接开机，必须通过判断：满足以下条件可以直接开机：长按power按键，前次是系统状态，不要求电池电量
 	//3: 任意状态下，允许插火牛直接开机，不要求电池电量
 	script_parser_fetch("target", "power_start", &power_start, 1);
-	printf("power start cause = %d\n", power_start);
+	debug("power start cause = %d\n", power_start);
 	if(power_start == BATTERY_RATIO_TOO_LOW_WITH_DCIN)//低电，同时带外部电源状态下
 	{
 		if(!(power_start & 0x02))	//需要判断当前电池电量，要求power_start的第1bit的值为0
@@ -101,7 +114,7 @@ static int board_probe_poweron_cause(void)
 	int status = -1;
 
 	status = axp_probe_startup_cause();
-	printf("startup status = %d\n", status);
+	debug("startup status = %d\n", status);
 #ifdef FORCE_BOOT_STANDBY
 	status = 1;
 #endif
@@ -204,8 +217,7 @@ static int board_standby_status(void)
 		printf("enter standby\n");
 		board_display_layer_close();
 		power_limit_detect_exit();
-		while((*(volatile unsigned int *)(0)) != 0x1234);
-		status = boot_standby_mode();
+		status = board_try_boot_standby();
 //		{
 //			int k;
 //
