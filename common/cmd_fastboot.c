@@ -65,6 +65,8 @@
 #endif
 #ifdef CONFIG_FASTBOOT
 
+#define dbg(fmt...) //printf("L%d,", __LINE__),printf(fmt)
+#define msg(fmt...) printf("FastBot:"fmt)
 #define MY_DEBUG
 /* Use do_reset for fastboot's 'reboot' command */
 extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
@@ -99,8 +101,8 @@ static struct cmd_fastboot_interface interface =
 	.transfer_buffer_size  = 0,
 };
 
-static unsigned int download_size;
-static unsigned int download_bytes;
+static unsigned int download_size;      //Total size to download
+static unsigned int download_bytes;     //size already download
 static unsigned int download_bytes_unpadded;
 static unsigned int download_error;
 static unsigned int continue_booting;
@@ -804,43 +806,44 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 {
 	int ret = 1;
 	unsigned char tmp_buffer;
+	char response[65];	/* Use 65 instead of 64 null gets dropped strcpy's need the extra byte */
+    static unsigned _promptSz = 1U<<20; 
 #ifdef DEBUG
 	printf("fast boot rx handle storage_type is %d\n",storage_type);
 #endif
-	/* Use 65 instead of 64
-	   null gets dropped
-	   strcpy's need the extra byte */
-	char response[65];
+
 	tmp_buffer=buffer;
-	if (download_size)
+	if (download_size)//RX data should be a download cmd data, or a kind of command
 	{
 		/* Something to download */
 		if (buffer_size)
 		{
 			/* Handle possible overflow */
-			unsigned int transfer_size =
-				download_size - download_bytes;
+			unsigned int transfer_size = download_size - download_bytes;
+
+            if(!download_bytes){
+                _promptSz = ((download_size>>3) < (2U<<20)) ? (download_size>>3) : (2U<<20);//prompt 8 times for each download
+            }
 
 			if (buffer_size < transfer_size)
 				transfer_size = buffer_size;
 
 			/* Save the data to the transfer buffer */
-			memcpy (interface.transfer_buffer + download_bytes,
-				buffer, transfer_size);
+            /*memcpy (interface.transfer_buffer + download_bytes, buffer, transfer_size);FIXME: donn't copy to speed up!!*/
 
 			download_bytes += transfer_size;
 
 			/* Check if transfer is done */
-			if (download_bytes >= download_size) {
-				/* Reset global transfer variable,
-				   Keep download_bytes because it will be
+			if (download_bytes >= download_size) 
+            {
+				/* Reset global transfer variable, Keep download_bytes because it will be
 				   used in the next possible flashing command */
 				download_size = 0;
-				/* The download buffer and cmd buffer is the same one
-				   since the partition name ends without a trailing 0 byte
-				   we need to clear the buffer after download finished
-				   for the next possible command. */
+				/* The download buffer and cmd buffer is the same one since the partition name ends without a trailing 0 byte
+				   we need to clear the buffer after download finished for the next possible command. */
 				memset(tmp_buffer, 0, transfer_size);
+                dbg("transfer_size=0x%x\n", transfer_size);
+                interface.total_download_size = interface.left_download_size = 0;
 
 				if (download_error) {
 					/* There was an earlier error */
@@ -852,62 +855,28 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				}
 				fastboot_tx_status(response, strlen(response));
 
-				printf ("\ndownloading of %d MB finished\n",
-					download_bytes >> 20);
+				printf ("\ndownloading of %d MB finished\n", download_bytes >> 20);
 
-#if 0 /* We don't need to pad */
-#if defined(CONFIG_STORAGE_NAND)
-				/* Pad to block length
-				   In most cases, padding the download to be
-				   block aligned is correct. The exception is
-				   when the following flash writes to the oob
-				   area.  This happens when the image is a
-				   YAFFS image.  Since we do not know what
-				   the download is until it is flashed,
-				   go ahead and pad it, but save the true
-				   size in case if should have
-				   been unpadded */
-				download_bytes_unpadded = download_bytes;
-				if (interface.nand_block_size)
-				{
-					if (download_bytes %
-					    interface.nand_block_size)
-					{
-						unsigned int pad = interface.nand_block_size - (download_bytes % interface.nand_block_size);
-						unsigned int i;
-
-						for (i = 0; i < pad; i++)
-						{
-							if (download_bytes >= interface.transfer_buffer_size)
-								break;
-
-							interface.transfer_buffer[download_bytes] = 0;
-							download_bytes++;
-						}
-					}
-				}
-#endif
-#endif /* #if 0 */
 			}
 
 			/* Provide some feedback */
 			if (download_bytes &&
-			    0 == (download_bytes %
-				  (16 * interface.nand_block_size)))
+			    download_bytes >= _promptSz)
 			{
-				/* Some feeback that the
-				   download is happening */
+				/* Some feeback that the download is happening */
 				if (download_error)
 					printf("X\n");
 				else
-					printf("downloading %d MB ...\r", download_bytes >> 20);
+                {
+					printf("Downloading %d MB ...\r", download_bytes >> 20);
+                    _promptSz += ((download_size>>3) > (2U<<20)) ? (2U<<20) :(download_size>>3);//prompt 8 times for each download
+                }
 			}
 		}
 		else
 		{
 			/* Ignore empty buffers */
-			printf ("Warning empty download buffer\n");
-			printf ("Ignoring\n");
+			printf ("Warning:Ignoring empty download buffer\n");
 		}
 		ret = 0;
 	}
@@ -1022,11 +991,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 			download_bytes = 0;
 			/* Reset error */
 			download_error = 0;
-#ifdef MY_DEBUG
-			printf("download_size = %d\n", download_size);
-#endif
 
-			printf ("Starting download of %d MB\n", download_size >> 20);
+			msg("Starting download of %d MB\n", download_size >> 20);
 
 			if (0 == download_size)
 			{
@@ -1044,6 +1010,8 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 				/* The default case, the transfer fits
 				   completely in the interface buffer */
 				sprintf(response, "DATA%08x", download_size);
+                interface.total_download_size = interface.left_download_size  = download_size;
+                dbg("download_size = 0x%xBytes\n", download_size);
 			}
 			ret = 0;
 		}
@@ -1616,9 +1584,9 @@ int do_fastboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	if (2 == argc) {
 		long try_seconds;
 		char *try_seconds_end;
+
 		/* Check for timeout */
-		try_seconds = simple_strtol(argv[1],
-					    &try_seconds_end, 10);
+		try_seconds = simple_strtol(argv[1], &try_seconds_end, 10);
 		if ((try_seconds_end != argv[1]) &&
 		    (try_seconds >= 0)) {
 			check_timeout = 1;
@@ -1648,7 +1616,8 @@ int do_fastboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			timeout_endtime = get_ticks();
 			timeout_endtime += timeout_ticks;
 
-			while (1) {
+			while (1) 
+            {
 				uint64_t current_time = 0;
 				poll_status = fastboot_poll();
 

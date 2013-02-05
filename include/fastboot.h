@@ -146,7 +146,8 @@ struct cmd_fastboot_interface
 
 	   Set by board	*/ 
 	unsigned int transfer_buffer_size;
-
+    unsigned int total_download_size;//in bytes, store length in "downlad command"
+    unsigned int left_download_size;//in bytes, store length not downladed yet, should always <= total_download_size
 };
 
 /* Android-style flash naming */

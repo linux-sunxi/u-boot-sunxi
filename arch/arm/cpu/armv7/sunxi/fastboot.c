@@ -1076,46 +1076,68 @@ static void fastboot_rx_error(void)
 */
 static int fastboot_rx(void)
 {
-	int ret = FASTBOOT_INACTIVE;
+	int ret = FASTBOOT_OK;
 	u8 old_ep_index = 0;
-	int err = 1;
+    const unsigned total_download_size = fastboot_interface->total_download_size;
+    unsigned int   left_download_size  = fastboot_interface->left_download_size;
+    unsigned char* rxBuf = fastboot_fifo_bulk_ep;
+    u32 fifoAddr  = 0;
+    u32 recordLen = 0;
+
+    if(total_download_size){//download command data size is 0
+        DMSG_DEBUG("total_download_size=0x%x, left_download_size=0x%x\n", total_download_size, left_download_size);
+        rxBuf = fastboot_interface->transfer_buffer + (total_download_size - left_download_size);
+    }
 
 	old_ep_index = USBC_GetActiveEp(udc.bsp);
-	USBC_SelectActiveEp(udc.bsp, BULK_OUT_EP_INDEX);
 
-	if(USBC_Dev_IsReadDataReady(udc.bsp, USBC_EP_TYPE_RX)){
-		u16 count = 0;
-		u32 fifo  = 0;
+	USBC_SelectActiveEp(udc.bsp, BULK_OUT_EP_INDEX);
+    fifoAddr = USBC_SelectFIFO(udc.bsp, BULK_OUT_EP_INDEX);
+
+	while(USBC_Dev_IsReadDataReady(udc.bsp, USBC_EP_TYPE_RX) 
+            && USBC_ReadLenFromFifo(udc.bsp, USBC_EP_TYPE_RX)
+            /*&& left_download_size*/)
+    {
+		u16 fifoCnt = 0;
 		int fifo_size = fastboot_fifo_size();
 
-		ret = FASTBOOT_OK;
+		fifoCnt = USBC_ReadLenFromFifo(udc.bsp, USBC_EP_TYPE_RX);
+		USBC_ReadPacket(udc.bsp, fifoAddr, fifoCnt, rxBuf);
 
-		count = USBC_ReadLenFromFifo(udc.bsp, USBC_EP_TYPE_RX);
-		fifo = USBC_SelectFIFO(udc.bsp, BULK_OUT_EP_INDEX);
-		USBC_ReadPacket(udc.bsp, fifo, count, (void *)fastboot_fifo_bulk_ep);
-
-        if(count > fifo_size){
+        if(fifoCnt > fifo_size){
 			fastboot_rx_error();
-		}else{
-			ReadDataStatusComplete(udc.bsp, USBC_EP_TYPE_RX, 1);
+            ret = FASTBOOT_ERROR;
+            break;
 		}
+
+        ReadDataStatusComplete(udc.bsp, USBC_EP_TYPE_RX, 1);
 
 		/* Pass this up to the interface's handler */
-		if (fastboot_interface &&
-		    fastboot_interface->rx_handler) {
-			if(!fastboot_interface->rx_handler(fastboot_fifo_bulk_ep, count)){
-				err = 0;
-			}
+		if (fastboot_interface && fastboot_interface->rx_handler) 
+        {
+			if(fastboot_interface->rx_handler(rxBuf, fifoCnt))
+            {
+                ret = FASTBOOT_ERROR;
+                break;
+            }
 		}
 
-		if(err){
-		    DMSG_PANIC("err: rx_handler failed\n");
-		    ret = FASTBOOT_ERROR;
-	    }
+        if(total_download_size) 
+        {
+            fastboot_interface->left_download_size -= fifoCnt;
+            rxBuf += fifoCnt;
+            recordLen += fifoCnt;
+        }
+        /*break;*/
 	}
+
+    if(FASTBOOT_OK != ret){
+        DMSG_PANIC("err: rx_handler failed\n");
+    }
 
 	USBC_SelectActiveEp(udc.bsp, old_ep_index);
 
+    DMSG_DEBUG("recordLen=0x%x\n", recordLen);//how many bytes received in one time
 	return ret;
 }
 
@@ -1734,6 +1756,8 @@ int fastboot_init(struct cmd_fastboot_interface *interface)
 	fastboot_interface->nand_oob_size           = 64;
 	fastboot_interface->transfer_buffer         = (unsigned char *) FASTBOOT_TRANSFER_BUFFER;
 	fastboot_interface->transfer_buffer_size    = FASTBOOT_TRANSFER_BUFFER_SIZE;
+    fastboot_interface->total_download_size     = 0;
+    fastboot_interface->left_download_size      = 0;
 
     udc.usb_base    = FASTBOOT_USB_BASE;
     udc.sram_base   = FASTBOOT_SRAM_BASE;
