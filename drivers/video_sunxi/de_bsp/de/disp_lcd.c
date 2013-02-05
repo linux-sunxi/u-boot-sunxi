@@ -1185,7 +1185,7 @@ __s32 LCD_POWER_EN(__u32 sel, __bool b_en)
             }
         }
     }
-    LCD_delay_ms(50);
+    LCD_delay_ms(5);
     if(b_en)
     {
         Disp_lcdc_pin_cfg(sel, DISP_OUTPUT_TYPE_LCD, 1);

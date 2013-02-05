@@ -36,8 +36,6 @@
 #include "sunxi_de.h"
 #include <standby.h>
 
-#define  FORCE_BOOT_STANDBY   1
-
 DECLARE_GLOBAL_DATA_PTR;
 
 int boot_standby_action = 0;
@@ -66,7 +64,7 @@ static int board_probe_power_level(void)
 	debug("power status = %d\n", power_status);
 	if(power_status == BATTERY_RATIO_TOO_LOW_WITHOUT_DCIN)
 	{
-		printf("battery power is low with no dc or ac, should be set off\n");
+		tick_printf("battery power is low with no dc or ac, should be set off\n");
 		sunxi_bmp_display("os_show\\low_pwr.bmp");
 		__msdelay(3000);
 
@@ -84,7 +82,7 @@ static int board_probe_power_level(void)
 	{
 		if(!(power_start & 0x02))	//需要判断当前电池电量，要求power_start的第1bit的值为0
 		{							//此种情况下，直接关机
-			printf("battery low power with dc or ac, should charge longer\n");
+			tick_printf("battery low power with dc or ac, should charge longer\n");
 			sunxi_bmp_display("os_show\\bempty.bmp");
 			__msdelay(3000);
 
@@ -139,7 +137,7 @@ static int board_probe_bat_status(void)
 			{
 				if(battery_charge_cartoon_init() < 0)
 				{
-					printf("init charge cartoon fail\n");
+					tick_printf("init charge cartoon fail\n");
 
 					return -1;
 				}
@@ -158,7 +156,7 @@ static int board_probe_bat_status(void)
 #endif
 	if(bat_exist <= 0)
 	{
-		printf("no battery exist\n");
+		tick_printf("no battery exist\n");
 		if(bat_init)
 		{
 			battery_charge_cartoon_exit();
@@ -169,7 +167,7 @@ static int board_probe_bat_status(void)
 	{
 		if(battery_charge_cartoon_init() < 0)
 		{
-			printf("init charge cartoon fail\n");
+			tick_printf("init charge cartoon fail\n");
 
 			return -1;
 		}
@@ -186,12 +184,11 @@ static int board_standby_status(void)
 	int   ret;
 
 	this_bat_cal = axp_probe_rest_battery_capacity();
-	printf("base bat_cal = %d\n", this_bat_cal);
+	tick_printf("base bat_cal = %d\n", this_bat_cal);
 	if(this_bat_cal > 95)
 	{
 		this_bat_cal = 100;
 	}
-	this_bat_cal = 20;
 	//启动中断检测
 	usb_detect_for_charge(BOOT_USB_DETECT_DELAY_TIME + 200);
 	//启动axp检测
@@ -214,33 +211,20 @@ static int board_standby_status(void)
 ******************************************************************/
 	do
 	{
-		printf("enter standby\n");
+		tick_printf("enter standby\n");
 		board_display_layer_close();
 		power_limit_detect_exit();
 		status = board_try_boot_standby();
-//		{
-//			int k;
-//
-//			for(k=0;k<10;k++)
-//			{
-//				printf("delay ");
-//				printf("%d  ", k);
-//				__msdelay(500);
-//			}
-//			printf("\n");
-//			status = 2;
-//		}
-		printf("exit standby by %d\n", status);
+		tick_printf("exit standby by %d\n", status);
 
 		bat_cal = axp_probe_rest_battery_capacity();
-		bat_cal = 20;
-		printf("current bat_cal = %d\n", bat_cal);
+		tick_printf("current bat_cal = %d\n", bat_cal);
 		if(bat_cal > this_bat_cal)
 		{
 			this_bat_cal = bat_cal;
 		}
 __start_case_status__:
-		printf("status = %d\n", status);
+		tick_printf("status = %d\n", status);
 		switch(status)
 		{
 			case 2:		//短按power按键导致唤醒

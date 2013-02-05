@@ -56,12 +56,12 @@ int axp_probe(void)
 	if(pmu_type & 0x06)
 	{
 		/* pmu type AXP221 */
-		printf("PMU: AXP221\n");
+		tick_printf("PMU: AXP221\n");
 
 		return 0;
 	}
 
-	printf("PMU: NULL\n");
+	tick_printf("PMU: NULL\n");
 
 	return -1;
 }
@@ -116,12 +116,12 @@ int axp_probe_startup_cause(void)
 	}
     if(buffer_value == 0x0e)		//表示前一次是在系统状态，下一次应该也进入系统
     {
-    	printf("pre sys mode\n");
+    	tick_printf("pre sys mode\n");
     	return -1;
     }
     else if(buffer_value == 0x0f)      //表示前一次是在boot standby状态，下一次也应该进入boot standby
 	{
-		printf("pre boot mode\n");
+		tick_printf("pre boot mode\n");
 		status = axp221_probe_power_status();
     	if(status <= 0)
     	{
@@ -141,13 +141,13 @@ int axp_probe_startup_cause(void)
 	poweron_reason = axp221_probe_poweron_cause();
 	if(poweron_reason == AXP_POWER_ON_BY_POWER_KEY)
 	{
-		printf("key trigger\n");
+		tick_printf("key trigger\n");
 		next_action = 0x0e;
 		ret = 0;
 	}
 	else if(poweron_reason == AXP_POWER_ON_BY_POWER_TRIGGER)
 	{
-		printf("power trigger\n");
+		tick_printf("power trigger\n");
 		next_action = 0x0f;
     	ret = 1;
 	}
@@ -885,7 +885,7 @@ int axp_probe_power_supply_condition(void)
     if(!dcin_exist)
     {
     	bat_vol = axp221_probe_battery_vol();
-		printf("PMU: bat vol = %d\n", bat_vol);
+		tick_printf("PMU: bat vol = %d\n", bat_vol);
 		if(bat_vol < 3400)
 		{
 			printf("bat vol is lower than 3400 and dcin is not exist\n");
@@ -897,7 +897,7 @@ int axp_probe_power_supply_condition(void)
     }
 
 	ratio = axp221_probe_battery_ratio();
-	printf("PMU: bat ratio = %d\n", ratio);
+	tick_printf("PMU: bat ratio = %d\n", ratio);
 	if(ratio < 0)
 	{
 		return -1;
@@ -957,7 +957,7 @@ int axp_init(void)
 		{
 			if(!axp_set_dcdc3(dcdc3_vol))
 			{
-				printf("PMU: dcdc3 %d\n", dcdc3_vol);
+				tick_printf("PMU: dcdc3 %d\n", dcdc3_vol);
 				ret = 0;
 			}
 			else

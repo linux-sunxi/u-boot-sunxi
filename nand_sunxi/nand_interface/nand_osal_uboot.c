@@ -28,9 +28,9 @@
 
 int NAND_Print(const char * str, ...)
 {
-#ifdef DEBUG
-    printf(str);
-#endif
+//#ifdef DEBUG
+//    printf(str);
+//#endif
     return 0;
 }
 

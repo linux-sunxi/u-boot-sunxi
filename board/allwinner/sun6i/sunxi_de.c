@@ -41,21 +41,36 @@ int board_display_layer_request(void)
 	gd->layer_hd = disp_ioctl(NULL, DISP_CMD_LAYER_REQUEST, (void*)arg);
 	if(gd->layer_hd == 0)
 	{
-        printf("sunxi display error : display request layer failed\n");
+        tick_printf("sunxi display error : display request layer failed\n");
 
         return -1;
 	}
 
 	return 0;
 }
-
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
 int board_display_layer_release(void)
 {
 	__u32 arg[4];
 
 	if(gd->layer_hd == 0)
 	{
-        printf("sunxi display error : display layer is NULL\n");
+        tick_printf("sunxi display error : display layer is NULL\n");
 
         return -1;
 	}
@@ -65,8 +80,23 @@ int board_display_layer_release(void)
 
 	return disp_ioctl(NULL, DISP_CMD_LAYER_RELEASE, (void*)arg);
 }
-
-static int board_display_wait_lcd_open(void)
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int board_display_wait_lcd_open(void)
 {
 	int ret;
 	int timedly = 5000;
@@ -93,7 +123,31 @@ static int board_display_wait_lcd_open(void)
 	}
 	while(1);
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int board_display_set_exit_mode(void)
+{
+	uint arg[4] = { 0 };
 
+	arg[0] = DISP_EXIT_MODE_CLEAN_PARTLY;
+	disp_ioctl(NULL, DISP_CMD_SET_EXIT_MODE, (void *)arg);
+
+	return 0;
+}
 /*
 *******************************************************************************
 *                     board_display_layer_open
@@ -202,12 +256,35 @@ int board_display_layer_para_set(void)
 *
 ************************************************************************************************************
 */
-int board_display_show(int display_source)
+int board_display_show_until_lcd_open(int display_source)
 {
     if(!display_source)
     {
     	board_display_wait_lcd_open();
     }
+    board_display_layer_para_set();
+	board_display_layer_open();
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int board_display_show(int display_source)
+{
     board_display_layer_para_set();
 	board_display_layer_open();
 
@@ -240,7 +317,7 @@ int board_display_framebuffer_set(int width, int height, int bitcount, void *buf
 		layer_para = (__disp_layer_info_t *)malloc(sizeof(__disp_layer_info_t));
 		if(!layer_para)
 		{
-			printf("sunxi display error: unable to malloc memory for layer\n");
+			tick_printf("sunxi display error: unable to malloc memory for layer\n");
 
 			return -1;
 		}
@@ -298,7 +375,7 @@ int board_display_framebuffer_change(void *buffer)
 
 	if(disp_ioctl(NULL, DISP_CMD_LAYER_GET_FB, (void*)arg))
 	{
-		printf("sunxi display error :get framebuffer failed\n");
+		tick_printf("sunxi display error :get framebuffer failed\n");
 
 		return -1;
 	}
@@ -310,7 +387,7 @@ int board_display_framebuffer_change(void *buffer)
 	//debug("try to set framebuffer %x\n", (uint)buffer);
     if(disp_ioctl(NULL, DISP_CMD_LAYER_SET_FB, (void*)arg))
     {
-        printf("sunxi display error :set framebuffer failed\n");
+        tick_printf("sunxi display error :set framebuffer failed\n");
 
 		return -1;
 	}
@@ -334,13 +411,13 @@ int board_display_device_open(void)
 //screen0_output_type
 	if(script_parser_fetch("boot_disp", "output_type", &value, 1) < 0)
 	{
-		printf("fetch script data boot_disp.output_type fail\n");
+		tick_printf("fetch script data boot_disp.output_type fail\n");
 		err_count ++;
 		value = 0;
 	}
 	else
 	{
-		printf("boot_disp.output_type=%d\n", value);
+		tick_printf("boot_disp.output_type=%d\n", value);
 	}
 
 	if(value == 0)
@@ -365,20 +442,20 @@ int board_display_device_open(void)
 	}
 	else
 	{
-		printf("invalid screen0_output_type %d\n", value);
+		tick_printf("invalid screen0_output_type %d\n", value);
 
 		return -1;
 	}
 //screen0_output_mode
 	if(script_parser_fetch("boot_disp", "output_mode", &value, 1) < 0)
 	{
-		printf("fetch script data boot_disp.output_mode fail\n");
+		tick_printf("fetch script data boot_disp.output_mode fail\n");
 		err_count ++;
 		value = 0;
 	}
 	else
 	{
-		printf("boot_disp.output_mode=%d\n", value);
+		tick_printf("boot_disp.output_mode=%d\n", value);
 	}
 
 	if(output_type == DISP_OUTPUT_TYPE_TV || output_type == DISP_OUTPUT_TYPE_HDMI)
@@ -393,12 +470,12 @@ int board_display_device_open(void)
 //auto hot plug detect
 	if(script_parser_fetch("boot_disp", "auto_hpd", &value, 1) < 0)
 	{
-		printf("fetch script data boot_disp.auto_hpd fail\n");
+		tick_printf("fetch script data boot_disp.auto_hpd fail\n");
 		err_count ++;
 		value = 0;
 	}else
 	{
-		printf("boot_disp.auto_hpd=%d\n", value);
+		tick_printf("boot_disp.auto_hpd=%d\n", value);
 	}
 
 
@@ -406,11 +483,11 @@ int board_display_device_open(void)
 	{
 		if(script_parser_fetch("lcd0_para", "lcd_used", &value, 1) < 0)
 		{
-			printf("fetch script data lcd0_para.lcd_used fail\n");
+			tick_printf("fetch script data lcd0_para.lcd_used fail\n");
 			value = 0;
 		}else
 		{
-			printf("lcd0_para.lcd_used=%d\n", value);
+			tick_printf("lcd0_para.lcd_used=%d\n", value);
 		}
 
 		value = 0;
@@ -445,20 +522,20 @@ int board_display_device_open(void)
 					ret = disp_ioctl(NULL, DISP_CMD_TV_GET_INTERFACE, 0, (void*)arg);
 					__msdelay(200);
 				}
-				printf("tv detect, ret = %d\n", ret);
+				tick_printf("tv detect, ret = %d\n", ret);
 				if((ret & DISP_TV_CVBS) == DISP_TV_CVBS)
 				{
 					output_type = DISP_OUTPUT_TYPE_TV;
 					output_mode = DISP_TV_MOD_PAL;
-					printf("cvbs plug\n");
+					tick_printf("cvbs plug\n");
 				}else if((ret & DISP_TV_YPBPR) == DISP_TV_YPBPR)
 				{
 					output_type = DISP_OUTPUT_TYPE_TV;
 					output_mode = DISP_TV_MOD_720P_50HZ;
-					printf("ypbpr plug\n");
+					tick_printf("ypbpr plug\n");
 				}else
 				{
-					printf("no device plug\n");
+					tick_printf("no device plug\n");
 					output_type = DISP_OUTPUT_TYPE_NONE;
 				}
 			}

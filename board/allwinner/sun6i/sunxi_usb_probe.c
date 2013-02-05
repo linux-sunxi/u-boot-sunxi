@@ -552,7 +552,7 @@ static void timer_test_usbdc(unsigned long p_arg)
 	usb_working = 0;
 
 	//打开火牛限流
-	printf("timer irq ,set dc\n");
+	tick_printf("timer irq ,set dc\n");
 	axp_set_vbus_limit_pc();
 
 	return ;
@@ -590,7 +590,7 @@ static void usb_detect_irq_handler(void *p_arg)
 		usb_working = 0;
 
 		//打开usb限流
-		printf("usb irq ,set pc\n");
+		tick_printf("usb irq ,set pc\n");
 		axp_set_vbus_limit_pc();
 	}
 
@@ -617,7 +617,7 @@ int usb_detect_enter(void)
 	debug("usb start detect\n");
 	if(!usb_working)
 	{
-		printf("usb enter detect\n");
+		tick_printf("usb enter detect\n");
 		usb_working = 1;
 		usb_clock_init();
 
@@ -652,7 +652,7 @@ int usb_detect_enter(void)
 */
 int usb_detect_exit(void)
 {
-	printf("usb exit detect\n");
+	tick_printf("usb exit detect\n");
 	usb_working = 0;
 	usb_clock_exit();
 	irq_disable(AW_IRQ_USB_OTG);

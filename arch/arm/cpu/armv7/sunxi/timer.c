@@ -47,11 +47,11 @@ int timer_init(void)
 	timer_reg->tirqen  = 0;
 	timer_reg->tirqsta |= 0x043f;
 	/* start avs as counter */
-	ccm_reg->avs_clk_cfg |= (1 << 31);
+	//ccm_reg->avs_clk_cfg |= (1 << 31);
 	/* avs0 counted by ms */
 	timer_reg->avs.ctl  = 3;
-	timer_reg->avs.div  = 0xc2ee0;
-	timer_reg->avs.cnt0 = 0;
+	timer_reg->avs.div  |= 0xc0000;
+	//timer_reg->avs.cnt0 = 0;
 
 	return 0;
 }
@@ -357,3 +357,22 @@ void stick_printf(void)
 
 	return ;
 }
+
+void tick0_printf(char *s, int line)
+{	
+	uint time, time_sec, time_rest;	
+	
+	time = *(volatile unsigned int *)(0x01c20C00 + 0x84);	
+	time_sec = time/1000;	time_rest = time%1000;	
+	if(!s)	
+	{		
+		printf("[%8d.%3d] %s\n",time_sec, time_rest);	
+	}	
+	else	
+	{		
+		printf("[%8d.%3d] %s %d\n",time_sec, time_rest, s, line);	
+	}	
+	return ;
+}
+
+

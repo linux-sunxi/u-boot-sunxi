@@ -96,7 +96,7 @@ void disable_caches(void)
 
 int display_inner(void)
 {
-	printf("uboot inner version : %s\n", uboot_spare_head.boot_head.version);
+	tick_printf("version: %s\n", uboot_spare_head.boot_head.version);
 
 	return 0;
 }
@@ -135,7 +135,7 @@ int power_source_init(void)
 	}
 	pll1 = sunxi_clock_get_corepll();
 
-	printf("PMU: pll1 %d Mhz\n", pll1);
+	tick_printf("PMU: pll1 %d Mhz\n", pll1);
 
 	sunxi_clock_set_pll6();
 	sunxi_clock_set_mbus();
@@ -162,7 +162,7 @@ int check_update_key(void)
 	}
 
 	sunxi_key_read();
-	__msdelay(10);
+	__msdelay(5);
 
 	if(!fel_key_mode)
 	{

@@ -31,6 +31,7 @@
 #include <fdt_support.h>
 #include <fastboot.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/drv_display.h>
 #ifdef CONFIG_ALLWINNER
 #include <asm/arch/boot_type.h>
 #endif
@@ -86,7 +87,10 @@ void arch_lmb_reserve(struct lmb *lmb)
 
 static void announce_and_cleanup(void)
 {
-	printf("\nStarting kernel ...\n\n");
+	board_display_wait_lcd_open();		//add by jerry
+	board_display_set_exit_mode();
+	sunxi_flash_exit();
+	tick_printf("\nStarting kernel ...\n\n");
 
 #ifdef CONFIG_USB_DEVICE
 	{
@@ -179,7 +183,6 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 
 	initrd_start = hdr->ramdisk_addr;
 	initrd_end = initrd_start + hdr->ramdisk_size;
-
 #if defined (CONFIG_SETUP_MEMORY_TAGS) || \
     defined (CONFIG_CMDLINE_TAG) || \
     defined (CONFIG_INITRD_TAG) || \
@@ -211,7 +214,6 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 #endif
 	setup_end_tag (bd);
 #endif
-	sunxi_flash_exit();
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
 

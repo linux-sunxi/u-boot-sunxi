@@ -337,6 +337,7 @@ int sunxi_flash_handle_init(void)
     int workmode;
 	int storage_type;
 	int card_no;
+	long long flash_size;
 
 //	uboot_spare_head.boot_data.storage_type = 0;
 //	uboot_spare_head.boot_data.work_mode = WORK_MODE_BOOT;//WORK_MODE_CARD_PRODUCT;
@@ -392,16 +393,24 @@ int sunxi_flash_handle_init(void)
             script_parser_patch("nand_para", "nand_used", &nand_used, 1);
 		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
 
-		    puts("NAND:   ");
-		    nand_uboot_init(1);
-			debug("init ok\n");
+		    tick_printf("NAND:   ");
+		    if(nand_uboot_init(1))
+		    {
+		    	tick_printf("nand init fail\n");
 
+				return -1;
+		    }
+			flash_size = nand_uboot_get_flash_size();
+			flash_size <<= 9;
+			print_size(flash_size, "\n");
 			sunxi_flash_read_pt  = sunxi_flash_nand_read;
 			sunxi_flash_write_pt = sunxi_flash_nand_write;
 			sunxi_flash_size_pt  = sunxi_flash_nand_size;
 			sunxi_flash_exit_pt  = sunxi_flash_nand_exit;
 		}
 		sunxi_flash_init_uboot(0);
+
+		tick_printf("nand init ok\n");
 	}
 	else if(workmode & WORK_MODE_PRODUCT)		/* 量产模式 */
 	{

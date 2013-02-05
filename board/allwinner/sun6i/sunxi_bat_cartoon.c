@@ -63,20 +63,20 @@ int battery_charge_cartoon_init(void)
 		strcpy(filename, bat_pic_name[i]);
 	    if(do_fat_fsload(0, 0, 5, bmp_argv))
 		{
-		   printf("sunxi bmp info error : unable to open bmp file %s\n", bat_pic_name[i]);
+		   tick_printf("sunxi bmp info error : unable to open bmp file %s\n", bat_pic_name[i]);
 
 		   return -1;
 	    }
 		bat_bmp_store[i].buffer = malloc(1024 * 1024);
 		if(!bat_bmp_store[i].buffer)
 		{
-			printf("cartoon init fail: cant malloc memory for bat %d \n", i);
+			tick_printf("cartoon init fail: cant malloc memory for bat %d \n", i);
 
 			return -2;
 		}
 	    if(sunxi_bmp_decode(0x40000000, &bat_bmp_store[i]))
 	    {
-	    	printf("cartoon init fail: unable to decode %s\n", filename);
+	    	tick_printf("cartoon init fail: unable to decode %s\n", filename);
 
 	    	return -3;
 	    }
@@ -84,12 +84,12 @@ int battery_charge_cartoon_init(void)
 	//设置参数
 	if(board_display_framebuffer_set(bat_bmp_store[0].x, bat_bmp_store[0].y, bat_bmp_store[0].bit, (void *)bat_bmp_store[0].buffer))
 	{
-		printf("cartoon init fail: set frame buffer error\n");
+		tick_printf("cartoon init fail: set frame buffer error\n");
 
 		return -4;
 	}
 	//显示图片
-	board_display_show(0);
+	board_display_show_until_lcd_open(0);
 	bat_catoon_has_init = 1;
 
     return 0;

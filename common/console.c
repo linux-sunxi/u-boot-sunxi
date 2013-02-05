@@ -365,7 +365,7 @@ void puts(const char *s)
 	}
 }
 
-int sunxi_printf(const char *fmt, ...)
+int tick_printf(const char *fmt, ...)
 {
 	va_list args;
 	uint i,msecond;
@@ -378,11 +378,12 @@ int sunxi_printf(const char *fmt, ...)
 	 * anything we ever want to print.
 	 */
 	msecond=get_timer_masked();
-	i = vsprintf(printbuffer, fmt, args);
+	vsprintf(printbuffer, fmt, args);
 	i = sprintf(printbuffer_with_timestamp,"[%7lu.%03lu]%s",msecond/1000,msecond%1000,printbuffer);
 	va_end(args);
 	/* Print the string */
 	puts(printbuffer_with_timestamp);
+	
 	return i;
 
 }

@@ -134,7 +134,7 @@ static int init_baudrate(void)
 
 static int display_banner(void)
 {
-	printf("\n\n%s\n\n", version_string);
+	tick_printf("\n\n%s\n\n", version_string);
 	debug("U-Boot code: %08lX -> %08lX  BSS: -> %08lX\n",
 	       _TEXT_BASE,
 	       _bss_start_ofs + _TEXT_BASE, _bss_end_ofs + _TEXT_BASE);
@@ -174,7 +174,8 @@ static int display_dram_config(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		size += gd->bd->bi_dram[i].size;
 
-	puts("DRAM:  ");
+	tick_printf("DRAM:  ");
+	//puts("DRAM:  ");
 	print_size(size, "\n");
 #endif
 
@@ -184,9 +185,9 @@ static int display_dram_config(void)
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 static int init_func_i2c(void)
 {
-	puts("I2C:   ");
+	debug("I2C:   ");
 	i2c_init();
-	puts("ready\n");
+	debug("ready\n");
 	return (0);
 }
 #endif
@@ -195,7 +196,7 @@ static int init_func_p2wi(void)
 {
 	debug("p2wi:   ");
 	p2wi_init();
-	debug("ready\n");
+	tick_printf("p2wi ready\n");
 	return (0);
 }
 
@@ -445,6 +446,7 @@ void board_init_f(ulong bootflag)
 	memcpy((void *)addr, (void *)_TEXT_BASE, sizeof(struct spare_boot_head_t));
 	debug("from %x to %x, size %x\n", (void *)_TEXT_BASE, (void *)addr, sizeof(struct spare_boot_head_t));
 	memcpy(id, (void *)gd, sizeof(gd_t));
+
 	relocate_code(addr_sp, id, addr + sizeof(struct spare_boot_head_t));
 
 	/* NOTREACHED - relocate_code() does not return */
@@ -486,12 +488,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	/* Enable caches */
 	enable_caches();
 	debug("monitor flash len: %08lX\n", monitor_flash_len);
-	
 	board_init();	/* Setup chipselects */
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();
 #endif
-
 	debug("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
 
 #ifdef CONFIG_LOGBUFFER
@@ -505,6 +505,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN - sizeof(struct spare_boot_head_t);
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
+#if 0
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts("Flash: ");
 
@@ -532,11 +533,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		hang();
 	}
 #endif
+#endif
 	/* set up exceptions */
 	interrupt_init();
 	/* enable exceptions */
 	enable_interrupts();
-
 #ifdef CONFIG_ALLWINNER
 #ifdef DEBUG
     puts("ready to config storage\n");
@@ -573,25 +574,22 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	/* initialize environment */
 	env_relocate();
-
 #if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI)
 	arm_pci_init();
 #endif
 
+#ifdef BOARD_BOOT_RUN_NORMAL
 	/* IP Address */
 	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
-
+#endif
 	stdio_init();	/* get the devices list going. */
-
 	jumptable_init();
-
 #if defined(CONFIG_API)
 	/* Initialize API */
 	api_init();
 #endif
 
 	console_init_r();	/* fully init console as a device */
-
 #if defined(CONFIG_ARCH_MISC_INIT)
 	/* miscellaneous arch dependent initialisations */
 	arch_misc_init();
@@ -610,6 +608,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 #endif /* CONFIG_DRIVER_SMC91111 || CONFIG_DRIVER_LAN91C96 */
 
+#ifdef BOARD_BOOT_RUN_NORMAL
 	/* Initialize from environment */
 	s = getenv("loadaddr");
 	if (s != NULL)
@@ -619,11 +618,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	if (s != NULL)
 		copy_filename(BootFile, s, sizeof(BootFile));
 #endif
-
 #ifdef BOARD_LATE_INIT
 	board_late_init();
 #endif
-
 #ifdef CONFIG_BITBANGMII
 	bb_miiphy_init();
 #endif
@@ -635,6 +632,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #if defined(CONFIG_RESET_PHY_R)
 	debug("Reset Ethernet PHY\n");
 	reset_phy();
+#endif
 #endif
 #endif
 
@@ -679,7 +677,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #ifdef CONFIG_ALLWINNER
 		if(!ret)
 		{
-			board_status_probe();	
+			board_status_probe();
 			sunxi_bmp_display("bootlogo.bmp");
 		}
 #endif

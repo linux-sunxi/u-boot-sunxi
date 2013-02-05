@@ -56,12 +56,12 @@ static void power_int_irq(void *p_arg)
 #ifdef DEBUG
 	for(i=0;i<5;i++)
 	{
-		printf("int status %d %x\n", i, power_int_status[i]);
+		tick_printf("int status %d %x\n", i, power_int_status[i]);
 	}
 #endif
 	if(power_int_status[0] & 0x48)   //外部电源插入
 	{
-		printf("power insert\n");
+		tick_printf("power insert\n");
 		boot_standby_action &= ~0x10;
 		boot_standby_action |= 0x08;
 		usb_detect_enter();
@@ -71,7 +71,7 @@ static void power_int_irq(void *p_arg)
 		axp_power_get_dcin_battery_exist(&dc_exist, &bat_exist);
 		if(!dc_exist)
 		{
-			printf("power remove\n");
+			tick_printf("power remove\n");
 			boot_standby_action |= 0x10;
 			boot_standby_action &= ~0x08;
 			usb_detect_exit();
@@ -85,13 +85,13 @@ static void power_int_irq(void *p_arg)
 	}
 	if(power_int_status[2] & 0x2)	//短按键
 	{
-		printf("short key\n");
+		tick_printf("short key\n");
 		boot_standby_action |= 2;
 
 	}
 	if(power_int_status[2] & 0x1)	//长按键
 	{
-		printf("long key\n");
+		tick_printf("long key\n");
 		boot_standby_action |= 1;
 	}
 
@@ -123,7 +123,7 @@ void power_limit_detect_enter(void)
 	power_int_enable[4] = 0;
 	power_int_enable[5] = 0;
 
-	printf("power limit detect enter\n");
+	tick_printf("power limit detect enter\n");
 
 	axp_int_enable(power_int_enable);
 	irq_install_handler(AW_IRQ_NMI, power_int_irq, 0);
@@ -151,5 +151,5 @@ void power_limit_detect_exit(void)
 	axp_int_disable();
 	irq_disable(AW_IRQ_NMI);
 
-	printf("power limit detect exit\n");
+	tick_printf("power limit detect exit\n");
 }

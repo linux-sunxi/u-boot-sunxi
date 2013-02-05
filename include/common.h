@@ -650,6 +650,7 @@ unsigned long long get_ticks(void);
 void	wait_ticks    (unsigned long);
 
 /* arch/$(ARCH)/lib/time.c */
+void    __msdelay      (unsigned long);
 void	__udelay      (unsigned long);
 ulong	usec2ticks    (unsigned long usec);
 ulong	ticks2usec    (unsigned long ticks);
@@ -716,6 +717,7 @@ void	putc(const char c);
 void	puts(const char *s);
 int	printf(const char *fmt, ...)
 		__attribute__ ((format (__printf__, 1, 2)));
+int tick_printf(const char *fmt, ...);
 int	vprintf(const char *fmt, va_list args);
 
 /* stderr */

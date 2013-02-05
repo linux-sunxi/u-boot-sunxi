@@ -81,9 +81,13 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("moving kernel from %x to: %x, size 0x%x\n", kaddr, fb_hdr->kernel_addr, fb_hdr->kernel_size);
 	printf("moving ramdisk from %x to: %x, size 0x%x\n", raddr, fb_hdr->ramdisk_addr, fb_hdr->ramdisk_size);
 #endif
-	memmove((void*) fb_hdr->kernel_addr, (const void *)kaddr, fb_hdr->kernel_size);
-	memmove((void*) fb_hdr->ramdisk_addr, (const void *)raddr, fb_hdr->ramdisk_size);
+	//memmove((void*) fb_hdr->kernel_addr, (const void *)kaddr, fb_hdr->kernel_size);
+	//memmove((void*) fb_hdr->ramdisk_addr, (const void *)raddr, fb_hdr->ramdisk_size);
+	memcpy((void*) fb_hdr->kernel_addr, (const void *)kaddr, fb_hdr->kernel_size);
+	memcpy((void*) fb_hdr->ramdisk_addr, (const void *)raddr, fb_hdr->ramdisk_size);
 
+	tick_printf("ready to boot\n");
+	
 	do_boota_linux(fb_hdr);
 
 	puts("Boot linux failed, control return to monitor\n");

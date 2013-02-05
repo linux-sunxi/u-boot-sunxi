@@ -62,7 +62,7 @@ int print_boot_type(void)
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
-	puts("CPU:   SUNXI Family\n");
+	tick_printf("CPU:   SUNXI Family\n");
 	return 0;
 }
 #endif

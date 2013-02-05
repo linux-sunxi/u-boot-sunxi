@@ -131,11 +131,11 @@ int NAND_LogicExit(void)
     }
 
     //exit nand flash physical module
-    result = NAND_PhyExit();
-    if(result < 0)
-    {
-        return -2;
-    }
+    //result = NAND_PhyExit();
+    //if(result < 0)
+    //{
+    //    return -2;
+    //}
     return result;
 }
 

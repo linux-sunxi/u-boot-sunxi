@@ -47,6 +47,9 @@
 //#define FORCE_BOOT_STANDBY
 #undef FORCE_BOOT_STANDBY
 
+#define CONFIG_USE_ARCH_MEMCPY       (1)
+#define CONFIG_USE_ARCH_MEMSET       (1)
+
 #define BOOT_MOD_ENTER_STANDBY       (0)
 #define BOOT_MOD_EXIT_STANDBY        (1)
 
@@ -57,6 +60,8 @@
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
 #define BOARD_LATE_INIT				/* init the fastboot partitions */
+
+#define BOARD_BOOT_RUN_FASTER       (1)
 
 #define BOOT_STANDBY_MOD_ENTER_STANDBY				  0xf0
 #define BOOT_STANDBY_MOD_EXIT_STANDBY				  0xf1
@@ -71,8 +76,10 @@
 /*
  * Display CPU and Board information
  */
-#define CONFIG_DISPLAY_CPUINFO
-#define CONFIG_DISPLAY_BOARDINFO
+//#define CONFIG_DISPLAY_CPUINFO
+//#define CONFIG_DISPLAY_BOARDINFO
+#undef CONFIG_DISPLAY_CPUINFO
+#undef CONFIG_DISPLAY_BOARDINFO
 
 #define SUNXI_DISPLAY_FRAME_BUFFER_ADDR  0x46400000
 #define SUNXI_DISPLAY_FRAME_BUFFER_SIZE  0x01000000
@@ -155,7 +162,7 @@
  * Size of malloc() pool
  * 1MB = 0x100000, 0x100000 = 1024 * 1024
  */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (64 << 20))
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (32 << 20))
 
 #define CONFIG_FASTBOOT
 #define CONFIG_STORAGE_NAND

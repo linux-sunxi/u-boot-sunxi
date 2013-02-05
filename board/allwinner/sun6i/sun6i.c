@@ -35,6 +35,7 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sunxi_mbr.h>
 #include <asm/arch/boot_type.h>
+#include <asm/arch/sys_partition.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -93,7 +94,7 @@ void fastboot_flash_partition_init(void)
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
-	if((part_total <= 0) || (part_total > MBR_MAX_PART_COUNT))
+	if((part_total <= 0) || (part_total > SUNXI_MBR_MAX_PART_COUNT))
 	{
 		printf("mbr not exist\n");
 
@@ -102,7 +103,7 @@ void fastboot_flash_partition_init(void)
 	printf("-total partitions:%d-\n", part_total);
 	printf("%-12s  %-12s  %-12s\n", "-name-", "-start-", "-size-");
 
-	for(index = 0; index < part_total && index < MBR_MAX_PART_COUNT; index++) {
+	for(index = 0; index < part_total && index < SUNXI_MBR_MAX_PART_COUNT; index++) {
 		sunxi_partition_get_name(index, &fb_part.name[0]);
 		fb_part.start = sunxi_partition_get_offset(index) * 512;
 		fb_part.length = sunxi_partition_get_size(index) * 512;
@@ -115,7 +116,7 @@ void fastboot_flash_partition_init(void)
 #endif
 void fastboot_partition_init(void) {
 #ifdef DEBUG
-	printf("fastboot_partition_init storage type = %d\n", storage_type);
+	tick_printf("fastboot_partition_init storage type = %d\n", storage_type);
 #endif
 	fastboot_flash_partition_init();
 }
@@ -134,7 +135,7 @@ int android_misc_flash_check(void) {
 	}
 	memset(buffer, 0, 2048);
 #ifdef DEBUG
-	printf("misc_offset  : %d\n", (int )misc_offset);
+	tick_printf("misc_offset  : %d\n", (int )misc_offset);
 #endif
 	sunxi_flash_read(misc_offset, 2048/512, buffer);
 	memcpy(&misc_message, buffer, sizeof(misc_message));
@@ -304,7 +305,7 @@ int mmc_get_env_addr(struct mmc *mmc, u32 *env_addr) {
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void)
 {
-	puts("Board: SUN6I\n");
+	tick_printf("Board: SUN6I\n");
 	return 0;
 }
 #endif

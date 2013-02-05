@@ -60,7 +60,7 @@ static int sunxi_flash_read_all(u32 start, ulong buf, const char *part_name)
 
 	ret = sunxi_flash_read(start_block, rblock, addr);
 
-	printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes,
+	tick_printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes,
 		       ret ? "OK" : "ERROR");
 
 	return ret == 0 ? 1 : 0;
@@ -125,7 +125,7 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 #endif
 		ret = sunxi_flash_read(start_block, rblock, (void *)addr);
 
-		printf("sunxi flash read :offset %x, %d bytes %s\n", start_block<<9, rblock<<9,
+		tick_printf("sunxi flash read :offset %x, %d bytes %s\n", start_block<<9, rblock<<9,
 		       ret ? "OK" : "ERROR");
 
 		return ret == 0 ? 1 : 0;
