@@ -672,6 +672,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	workmode = uboot_spare_head.boot_data.work_mode;
 	debug("work mode %d\n", workmode);
 
+	sprite_cartoon_test();
 	if(workmode == WORK_MODE_BOOT)
     {
 #ifdef CONFIG_ALLWINNER
