@@ -1,7 +1,5 @@
 /*
- * (C) Copyright 2012 Henrik Nordstrom <henrk@henriknordstrom.net>
- *
- * (C) Copyright 2011
+ * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
