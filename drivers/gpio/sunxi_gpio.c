@@ -1,4 +1,8 @@
 /*
+ * (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
+ *
+ * Based on earlier arch/arm/cpu/armv7/sunxi/gpio.c:
+ *
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
