@@ -1,6 +1,4 @@
 /*
- * This is a copy of omap3/spl.h:
- *
  * (C) Copyright 2012
  * Texas Instruments, <www.ti.com>
  *
