@@ -1,5 +1,9 @@
 /*
- * (C) Copyright 2011-2012
+ * (C) Copyright 2012-2012 Henrik Nordstrom <henrik@henriknordstrom.net>
+ *
+ * Based on older sun4i config
+ *
+ * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
