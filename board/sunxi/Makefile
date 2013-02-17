@@ -38,3 +38,4 @@ obj-$(CONFIG_MELE_A3700)	+= dram_mele_a3700.o
 obj-$(CONFIG_MINI_X)		+= dram_mini_x.o
 obj-$(CONFIG_MK802)		+= dram_mk802.o
 obj-$(CONFIG_MK802II)		+= dram_mk802ii.o
+obj-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
