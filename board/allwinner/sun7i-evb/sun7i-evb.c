@@ -160,9 +160,9 @@ int android_misc_flash_check(void) {
 	sunxi_flash_read(misc_offset, 2048/512, buffer);
 	memcpy(&misc_message, buffer, sizeof(misc_message));
 #ifdef DEBUG
-	printf("misc.command  : %s\n", misc_message.command);
-	printf("misc.status   : %s\n", misc_message.status);
-	printf("misc.recovery : %s\n", misc_message.recovery);
+//	printf("misc.command  : %s\n", misc_message.command);
+//	printf("misc.status   : %s\n", misc_message.status);
+//	printf("misc.recovery : %s\n", misc_message.recovery);
 #endif
 	if(storage_type)
 	{
