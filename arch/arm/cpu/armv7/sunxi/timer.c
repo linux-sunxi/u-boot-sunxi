@@ -73,8 +73,11 @@ ulong get_timer_masked(void)
 
 	if (now >= gd->arch.lastinc)	/* normal (non rollover) */
 		gd->arch.tbl += (now - gd->arch.lastinc);
-	else			/* rollover */
-		gd->arch.tbl += (TICKS_TO_HZ(TIMER_LOAD_VAL) - gd->arch.lastinc) + now;
+	else {
+		/* rollover */
+		gd->arch.tbl += (TICKS_TO_HZ(TIMER_LOAD_VAL)
+				- gd->arch.lastinc) + now;
+	}
 	gd->arch.lastinc = now;
 
 	return gd->arch.tbl;

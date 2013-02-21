@@ -249,8 +249,7 @@ static int mmc_update_clk(struct mmc *mmc)
 
 	cmd = (1U << 31) | (1 << 21) | (1 << 13);
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & 0x80000000) && timeout--)
-		;
+	while ((readl(&mmchost->reg->cmd) & 0x80000000) && timeout--);
 	if (!timeout)
 		return -1;
 
@@ -338,8 +337,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout
-			       && (readl(&mmchost->reg->status) & (1 << 2)))
-				;
+			       && (readl(&mmchost->reg->status) & (1 << 2)));
 			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
@@ -349,8 +347,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout
-			       && (readl(&mmchost->reg->status) & (1 << 3)))
-				;
+				&& (readl(&mmchost->reg->status) & (1 << 3)));
 			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
@@ -438,9 +435,12 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	 * IDIE[1]      : IDMA receive interrupt flag
 	 */
 	rval = readl(&mmchost->reg->gctrl);
-	writel(rval | (1 << 5) | (1 << 2), &mmchost->reg->gctrl); /* dma enable */
-	writel((1 << 0), &mmchost->reg->dmac);	/* idma reset */
-	writel((1 << 1) | (1 << 7), &mmchost->reg->dmac);	/* idma on */
+	/* Enable DMA */
+	writel(rval | (1 << 5) | (1 << 2), &mmchost->reg->gctrl);
+	/* Reset iDMA */
+	writel((1 << 0), &mmchost->reg->dmac);
+	/* Enable iDMA */
+	writel((1 << 1) | (1 << 7), &mmchost->reg->dmac);
 	rval = readl(&mmchost->reg->idie) & (~3);
 	if (data->flags & MMC_DATA_WRITE)
 		rval |= (1 << 0);

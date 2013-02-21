@@ -38,10 +38,12 @@
 
 static void mctl_ddr3_reset(void)
 {
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
+	struct sunxi_dram_reg *dram =
+			(struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
 #ifdef CONFIG_SUN4I
-	struct sunxi_timer_reg *timer = (struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	struct sunxi_timer_reg *timer =
+			(struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	u32 reg_val;
 
 	writel(0, &timer->cpu_cfg);
@@ -221,9 +223,8 @@ static int dramc_scan_readpipe(void)
 	/* data training trigger */
 	setbits_le32(&dram->ccr, 0x1 << 30);
 
-	/* check whether data training process is end */
-	while (readl(&dram->ccr) & (0x1 << 30))
-		;
+	/* check whether data training process has completed */
+	while (readl(&dram->ccr) & (0x1 << 30));
 
 	/* check data training result */
 	reg_val = readl(&dram->csr);
@@ -246,9 +247,11 @@ static void dramc_clock_output_en(u32 on)
 #ifdef CONFIG_SUN4I
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	if (on)
-		setbits_le32(&ccm->dram_clk_cfg, 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
+		setbits_le32(&ccm->dram_clk_cfg,
+			 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 	else
-		clrbits_le32(&ccm->dram_clk_cfg, 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
+		clrbits_le32(&ccm->dram_clk_cfg,
+			0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 #endif
 }
 
@@ -372,8 +375,7 @@ int dramc_init(struct dram_para *para)
 
 	sdelay(0x10);
 
-	while (readl(&dram->ccr) & (0x1U << 31))
-		;
+	while (readl(&dram->ccr) & (0x1U << 31));
 
 	mctl_enable_dllx();
 
@@ -425,11 +427,10 @@ int dramc_init(struct dram_para *para)
 	/* set DQS window mode */
 	clrsetbits_le32(&dram->ccr, 0x1U << 17, 0x1U << 14);
 
-	/* initial external DRAM */
+	/* reset external DRAM */
 	setbits_le32(&dram->ccr, 0x1U << 31);
 
-	while (readl(&dram->ccr) & (0x1U << 31))
-		;
+	while (readl(&dram->ccr) & (0x1U << 31));
 
 	/* scan read pipe value */
 	mctl_itm_enable();

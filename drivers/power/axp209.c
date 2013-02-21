@@ -136,8 +136,7 @@ int axp209_set_ldo4(int mvolt)
 	u8 reg;
 
 	/* Translate mvolt to register cfg value, requested <= selected */
-	for (cfg = 0; mvolt < vindex[cfg] && cfg < 15; cfg++)
-		;
+	for (cfg = 0; mvolt < vindex[cfg] && cfg < 15; cfg++);
 
 	rc = axp209_read(AXP209_LDO24_VOLTAGE, &reg);
 	if (rc)

@@ -33,6 +33,8 @@ static struct i2c __attribute__ ((section(".data"))) *i2c_base =
 
 void i2c_init(int speed, int slaveaddr)
 {
+	int timeout = 0x2ff;
+
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), 2);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), 2);
 	clock_twi_onoff(0, 1);
@@ -44,8 +46,7 @@ void i2c_init(int speed, int slaveaddr)
 	writel(TWI_CLK_DIV(2, 1), &i2c_base->clkr);
 	writel(TWI_SRST_SRST, &i2c_base->reset);
 
-	while ((readl(&i2c_base->reset) & TWI_SRST_SRST))
-		;
+	while ((readl(&i2c_base->reset) & TWI_SRST_SRST) && timeout--);
 }
 
 int i2c_probe(uchar chip)
@@ -61,8 +62,7 @@ static int i2c_wait_ctl(int mask, int state)
 	debug("i2c_wait_ctl(%x == %x), ctl=%x, status=%x\n", mask, value,
 	      i2c_base->ctl, i2c_base->status);
 
-	while (((readl(&i2c_base->ctl) & mask) != value) && timeout-- > 0)
-		;
+	while (((readl(&i2c_base->ctl) & mask) != value) && timeout-- > 0);
 
 	debug("i2c_wait_ctl(), timeout=%d, ctl=%x, status=%x\n", timeout,
 	      i2c_base->ctl, i2c_base->status);
@@ -87,8 +87,7 @@ static int i2c_wait_status(int status)
 {
 	int timeout = 0x2ff;
 
-	while (readl(&i2c_base->status) != status && timeout-- > 0)
-		;
+	while (readl(&i2c_base->status) != status && timeout-- > 0);
 
 	if (timeout != 0)
 		return 0;
@@ -111,8 +110,7 @@ static int i2c_wait_bus_idle(void)
 {
 	int timeout = 0x2ff;
 
-	while (readl(&i2c_base->lctl) != 0x3a && timeout-- > 0)
-		;
+	while (readl(&i2c_base->lctl) != 0x3a && timeout-- > 0);
 
 	if (timeout != 0)
 		return 0;
