@@ -42,7 +42,7 @@ DECLARE_GLOBAL_DATA_PTR;
 static struct bootloader_message misc_message;
 
 #ifdef DEBUG
-void fastboot_partition_init(void)
+void fastboot_flash_partition_init(void)
 {
 	fastboot_ptentry fb_part;
 	int index, part_total;
@@ -115,9 +115,6 @@ void fastboot_flash_partition_init(void)
 }
 #endif
 void fastboot_partition_init(void) {
-#ifdef DEBUG
-	tick_printf("fastboot_partition_init storage type = %d\n", storage_type);
-#endif
 	fastboot_flash_partition_init();
 }
 static struct bootloader_message misc_message;

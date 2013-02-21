@@ -30,6 +30,7 @@
 #ifndef  __SFT_h
 #define  __SFT_h
 
+#include <common.h>
 
 #ifdef SFT_OS_WIN32
 	#define __PACKED__
@@ -38,8 +39,8 @@
 #endif
 
 
-#define MAGIC_SIZE            4
-#define VERSION_SIZE          4
+#define SFT_MAGIC_SIZE            4
+#define SFT_VERSION_SIZE          4
 
 #define SFT_MAGIC             "SFTT"
 #define VERSION               "2.OO"
@@ -92,8 +93,8 @@ typedef enum _sft_pixel_mode_e
 
 typedef struct
 {
-  __u16  x;
-  __u16  y;
+  unsigned short  x;
+  unsigned short  y;
 }
 __attribute__ ((packed)) SFT_Vector;
   /*************************************************************************/
@@ -138,13 +139,13 @@ __attribute__ ((packed)) SFT_Vector;
 
 typedef struct
 {
-    SFT_Vector  advance;
-    __s16       bitmap_left;
-    __s16       bitmap_top;
-    __u16       rows;
-    __u16       width;
-    __s16       pitch;
-    __s16       pixel_mode;
+    SFT_Vector  		 advance;
+    short       		 bitmap_left;
+    short       		 bitmap_top;
+    unsigned short       rows;
+    unsigned short       width;
+    short       		 pitch;
+    short       		 pixel_mode;
 }
 __attribute__ ((packed)) glyph_t;
 
@@ -156,29 +157,29 @@ __attribute__ ((packed)) glyph_t;
 
 typedef struct _size_info_t
 {
-	__u32  pixel_size;
-    __u32  ascender;    /* ascender in 26.6 frac. pixels               */
-    __u32  descender;   /* descender in 26.6 frac. pixels              */
-    __u32  height;
-    __u32  horiBearingY;
-    __u32  glyph_index_table_offset;
-    __u32  glyph_xadvance_table_offset;
+	unsigned int  pixel_size;
+    unsigned int  ascender;    /* ascender in 26.6 frac. pixels               */
+    unsigned int  descender;   /* descender in 26.6 frac. pixels              */
+    unsigned int  height;
+    unsigned int  horiBearingY;
+    unsigned int  glyph_index_table_offset;
+    unsigned int  glyph_xadvance_table_offset;
 }size_info_t;
 
 
 typedef struct _sft_file_head_t
 {
-	char   magic[MAGIC_SIZE];          // magic
-	char   version[VERSION_SIZE];      // version
-	__u32  file_head_size;             // the size of the SFT file head
-	__u32  char_nr;                    // the number of all characters contained in the file
-	__u32  pixel_size_nr;              // the number of all pixel sizes supported by the SFT file
-	__u32  pixel_size_tbl_offset;      // the offset of pixel size table off the start of the file.
-    __u32  units_per_EM;
-    __s32  ascender;
-    __s32  descender;
-    __u32  height;
-	__u32  reserved[4];                // reserved
+	char   		  magic[SFT_MAGIC_SIZE];          // magic
+	char   		  version[SFT_VERSION_SIZE];      // version
+	unsigned int  file_head_size;             // the size of the SFT file head
+	unsigned int  char_nr;                    // the number of all characters contained in the file
+	unsigned int  pixel_size_nr;              // the number of all pixel sizes supported by the SFT file
+	unsigned int  pixel_size_tbl_offset;      // the offset of pixel size table off the start of the file.
+    unsigned int  units_per_EM;
+    int           ascender;
+    int  		  descender;
+    unsigned int  height;
+	unsigned int  reserved[4];                // reserved
 }sft_file_head_t;
 
 

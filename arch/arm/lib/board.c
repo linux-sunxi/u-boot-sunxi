@@ -505,6 +505,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	malloc_start = dest_addr - TOTAL_MALLOC_LEN - sizeof(struct spare_boot_head_t);
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
+	uboot_spare_head.boot_data.work_mode = WORK_MODE_CARD_PRODUCT;
 #if 0
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts("Flash: ");
@@ -672,7 +673,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	workmode = uboot_spare_head.boot_data.work_mode;
 	debug("work mode %d\n", workmode);
 
-	sprite_cartoon_test();
+	//sprite_cartoon_test();
 	if(workmode == WORK_MODE_BOOT)
     {
 #ifdef CONFIG_ALLWINNER

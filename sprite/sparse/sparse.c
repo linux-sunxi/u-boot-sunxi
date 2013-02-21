@@ -150,14 +150,13 @@ int unsparse_probe(char *source, uint length, uint android_format_flash_start)
 *
 ************************************************************************************************************
 */
-int  unsparse_direct_write(void *pbuf, void *next_buf, uint sectors)
+int  unsparse_direct_write(void *pbuf, void *next_buf, uint length)
 {
 	int   unenough_length;
 	int   this_rest_size;
 	int   tmp_down_size;
 	char *tmp_buf, *tmp_dest_buf;
 	chunk_header_t   *chunk;
-	uint  length = sectors<<9;
     //首先计算传进的数据的校验和
 	android_format_checksum += add_sum(pbuf, length);
 

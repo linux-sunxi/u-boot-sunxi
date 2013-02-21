@@ -24,6 +24,7 @@
 #include "sparse/sparse.h"
 #include <asm/arch/queue.h>
 #include <asm/arch/sunxi_mbr.h>
+#include <asm/arch/sys_partition.h>
 #include "encrypt/encrypt.h"
 #include "sprite_queue.h"
 #include "sprite_download.h"
@@ -156,207 +157,11 @@ static uint decode_need(void * ibuf, uint len)
 	return (uint)ibuf;
 }
 
-static void *sunxi_sprite_decode_next_buffer(queue_data *qdata, void *buffer)
-{
-	return buffer;
-}
 
-static void *sunxi_sprite_nodecode_next_buffer(queue_data *qdata, void *buffer)
-{
-	return qdata->data;
-}
-#if 0
-//int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
-//{
-//	long long part_datasize;      //分区镜像的大小(字节单位)
-//	long long part_tmpsize;       //分区镜像的大小，用于递减，到零时表示处理完成
-//    int  i = 0;
-//    int  imgfile_start;
-//    int  data_format;                //格式
-//    uint base_part_start, part_flash_size;    //分区起始扇区和大小(扇区单位)
-//    queue_data  *qdata, *next_qdata; //用于取出一个buffer
-//    uint origin_verify, active_verify; //校验数据
-//    char  *base_buffer, *half_buffer;
-//    char  *decode_buffer;
-//    char  *next_buffer;
-//
-//	base_buffer = malloc(SPRITE_CARD_ONE_DATA_DEAL);
-//	if(!base_buffer)
-//	{
-//		printf("sunxi sprite: fail to malloc memory for post-treatment\n");
-//
-//		return -1;
-//	}
-//	half_buffer = base_buffer + 512 * 1024;
-//	qdata = next_qdata = NULL;
-//
-//    for(i=0;i<dl_map->download_count;i++)
-//    {
-//    	//任意一个分区，需要烧写的数据量
-//    	//清空所有buffer
-//    	//sunxi_queue_reset();
-//    	//USB量产，要求送入名为dl_filename的数据
-//    	base_part_start = dl_map->one_part_info[i].addrlo;
-//        part_flash_size = dl_map->one_part_info[i].lenlo;
-//        part_tmpsize    = (long long)part_flash_size * 9;
-//    	//卡量产，直接读取
-//    	//二者都将采用中断自动执行的方式，不停的填充buffer空间
-//    	//当填充完成，没有新buffer可用，则启动定时中断查询是否有新空间
-//		imgitemhd = Img_OpenItem(imghd, "RFSFAT16", (char *)dl_map->one_part_info[i].dl_filename);
-//		if(!imgitemhd)
-//		{
-//			printf("sprite error: open part %s failed\n", dl_map->one_part_info[i].dl_filename);
-//
-//			goto _card_download_error;
-//		}
-//    	part_datasize = Img_GetItemSize(imghd, imgitemhd);
-//        if(part_datasize > part_tmpsize)      //检查分区大小是否合法
-//        {
-//        	//data is larger than part size
-//        	printf("sunxi sprite: data size is larger than part %s size\n", dl_map->one_part_info[i].dl_filename);
-//
-//        	goto _card_download_error;
-//        }
-//        //开始获取分区数据
-//		imgfile_start = Img_GetItemStart(imghd, imgitemhd);
-//		if(!imgfile_start)
-//		{
-//			printf("sunxi sprite: cant get part data imgfile_start\n");
-//
-//			goto _card_download_error;
-//		}
-//		//通知卡驱动，现在准备从imgfile_start处连续读取part_datasize长度的数据
-//		//sunxi_sprite_card_read_sequence(imgfile_start, (uint)((part_datasize + 511)/512));
-//		//开始读取
-////		if(sunxi_sprite_card_read_sequence())
-////		{
-////		    printf("sunxi sprite: cant read data from sdcard\n");
-////
-////		    goto _card_download_error;
-////		}
-//		//开始循环处理所有数据
-//		part_tmpsize = part_datasize;
-//		if(dl_map->one_part_info[i].encrypt)
-//		{
-//			//需要解密
-//			sunxi_sprite_decode = decode;
-//			sunxi_sprite_next_buffer = sunxi_sprite_decode_next_buffer;
-//			init_code();
-//		}
-//		else
-//		{
-//			//不需要解密
-//			sunxi_sprite_decode = decode_null;
-//			sunxi_sprite_next_buffer = sunxi_sprite_nodecode_next_buffer;
-//		}
-//		//首先获取一个buffer的数据，用于判断数据格式
-//		while(sunxi_queue_isempty());       	//如果buffer队列是空的则等待，直到有buffer可用
-//		sunxi_outqueue_query(qdata, next_qdata);		//取出一个buffer
-//		decode_buffer = (char *)sunxi_sprite_decode((void *)qdata->data, (void *)half_buffer, qdata->len);
-//		data_format = unsparse_probe((char *)decode_buffer, qdata->len, base_part_start);		//判断数据格式
-//		if(data_format == ANDROID_FORMAT_DETECT)
-//		{
-//			sunxi_sprite_download_data = unsparse_direct_write;
-//		}
-//		else if(data_format == ANDROID_FORMAT_BAD)
-//		{
-//			sunxi_sprite_download_raw_init(base_part_start);
-//			sunxi_sprite_download_data = sunxi_sprite_download_raw;
-//		}
-//		//把第一笔数据写下去
-//		part_tmpsize -= qdata->len;
-//		//数据格式判断，如果是sparse格式
-//		next_buffer = sunxi_sprite_next_buffer(next_qdata, half_buffer);
-//		if(sunxi_sprite_download_data((void *)decode_buffer, (void *)next_buffer, qdata->len))
-//		{
-//			printf("sunxi sprite error: download data error\n");
-//
-//			goto _card_download_error;
-//		}
-//		sunxi_queue_out();
-//		while(part_tmpsize)
-//		{
-//			if(!sunxi_queue_isfull())     //如果buffer队列不是满的，则可以用于继续存放固件数据
-//			{
-//				if(0 == sunxi_sprite_card_sequence_status()) //如果卡处于idle状态，则可以读固件数据
-//				{
-//					//现在，卡处于idle状态，同时有buffer可用，则调用卡函数继续读取数据
-//					if(sunxi_sprite_card_read_sequence())         //如果卡无法读取数据，则返回失败
-//					{
-//				    	printf("sunxi sprite: cant read sdcard by sequence\n");
-//
-//				    	goto _card_download_error;
-//					}
-//				}
-//			}
-//			//现在处理已经完成的数据，准备解密和烧录
-//			if(!sunxi_outqueue_query(qdata, next_qdata))    //如果buffer队列中可以取出一个有效buffer
-//			{
-//				//首先执行解密函数,不论有没有加密，函数都需要调用
-//				//当需要解密时，real_dest_buffer指向half_buffer
-//				//当不需要解密时，real_dest_buffer指向qdata.data
-//				decode_buffer = (char *)sunxi_sprite_decode((void *)qdata->data, (void *)half_buffer, qdata->len);
-//				//数据格式判断，如果是sparse格式
-//				next_buffer = sunxi_sprite_next_buffer(next_qdata, half_buffer);
-//				if(sunxi_sprite_download_data((void *)decode_buffer, (void *)next_buffer, qdata->len))
-//				{
-//					printf("sunxi sprite error: download data error\n");
-//
-//					goto _card_download_error;
-//				}
-//				sunxi_queue_out();
-//			}
-//		}
-//		exit_code();
-//		Img_CloseItem(imghd, imgitemhd);
-//		//校验数据
-//        if(dl_map->one_part_info[i].vf_filename)
-//        {
-//        	imgitemhd = Img_OpenItem(imghd, "RFSFAT16", (char *)dl_map->one_part_info[i].vf_filename);
-//			if(!imgitemhd)
-//			{
-//				printf("sprite error: open part %s failed\n", dl_map->one_part_info[i].vf_filename);
-//				Img_CloseItem(imghd, imgitemhd);
-//
-//				continue;
-//			}
-//        	if(!Img_ReadItem(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
-//	        {
-//	            printf("sprite update warning: fail to read data from %s\n", dl_map->one_part_info[i].vf_filename);
-//				//Img_CloseItem(imghd, imgitemhd);
-//	            continue;
-//	        }
-//        	if(data_format == ANDROID_FORMAT_BAD)
-//        	{
-//                active_verify = sunxi_sprite_part_rawdata_verify(base_part_start, part_datasize);
-//            }
-//            else
-//            {
-//            	active_verify = sunxi_sprite_part_sparsedata_verify();
-//            }
-//            if(origin_verify != active_verify)
-//            {
-//            	printf("sunxi sprite: part %s verify error\n", dl_map->one_part_info[i].dl_filename);
-//            	printf("origin checksum=%x, active checksum=%x\n", origin_verify, active_verify);
-//            	Img_CloseItem(imghd, imgitemhd);
-//
-//            	return -1;
-//            }
-//            Img_CloseItem(imghd, imgitemhd);
-//        }
-//        else
-//        {
-//        	printf("sunxi sprite: part %s not need to verify\n", dl_map->one_part_info[i].dl_filename);
-//        }
-//    }
-//
-//    return 0;
-//_card_download_error:
-//	return -1;
-//}
-#else
 int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 {
+	long long item_original_size;  //需要烧写的数据字节数
+	uint item_rest_bytes;    // 剩余字节数
 	uint part_datasectors;   // 需要烧写的分区的扇区个数
 	uint part_tmpsectors;    // 递减值，为0时表示烧写完成
     int  i = 0;
@@ -368,6 +173,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
     char  *base_buffer = NULL, *half_buffer;
     char  *decode_buffer;
     int  ret = -1;
+    int  cartoon_rate, tmp_rate;
     char  verify_data[1024];
 
 	base_buffer = (char *)malloc(SPRITE_CARD_ONCE_DATA_DEAL * 2);
@@ -381,13 +187,16 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 	half_buffer = base_buffer + SPRITE_CARD_ONCE_DATA_DEAL;
 	//qdata = next_qdata = NULL;
 	debug("total download part %d\n", dl_map->download_count);
+	tmp_rate = 70/dl_map->download_count/2;
+	cartoon_rate = 10;
 
     for(i=0;i<dl_map->download_count;i++)
     {
     	//任意一个分区，需要烧写的数据量
     	//清空所有buffer
     	//sunxi_queue_reset();
-    	//USB量产，要求送入名为dl_filename的数据
+    	sprite_cartoon_upgrade(cartoon_rate);
+    	cartoon_rate += tmp_rate;
     	debug("download %d part %s\n", i, dl_map->one_part_info[i].dl_filename);
     	base_part_start = dl_map->one_part_info[i].addrlo;
         part_flash_size = dl_map->one_part_info[i].lenlo;
@@ -401,12 +210,25 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 
 			goto _card_download_error;
 		}
-		part_datasectors = Img_GetItemSize(imghd, imgitemhd)>>9;
-    	debug("part size=%d\n", part_flash_size);
-		debug("part data=%d\n", part_datasectors);
+		item_original_size = Img_GetItemSize(imghd, imgitemhd);
+		if(!item_original_size)
+	    {
+	        printf("sprite error: get part file %s size failed\n", dl_map->one_part_info[i].dl_filename);
+
+	        goto _card_download_error;
+	    }
+
+		part_datasectors = (uint)(item_original_size/512);
+	    item_rest_bytes = item_original_size & 0x1ff;
+	    if(item_rest_bytes)
+	    {
+	    	part_datasectors ++;
+	    }
+
+		debug("part size in sector=%d\n", part_flash_size);
+		debug("part data in sector=%d\n", part_datasectors);
         if(part_datasectors > part_flash_size)      //检查分区大小是否合法
         {
-        	//data is larger than part size
         	printf("sunxi sprite: data size is larger than part %s size\n", dl_map->one_part_info[i].dl_filename);
 
         	goto _card_download_error;
@@ -445,7 +267,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 			sunxi_sprite_decode = decode_null;
 //			sunxi_sprite_next_buffer = sunxi_sprite_nodecode_next_buffer;
 		}
-		if(part_tmpsectors >= SPRITE_CARD_ONCE_DATA_DEAL)
+		if(part_tmpsectors >= SPRITE_CARD_ONCE_SECTOR_DEAL)
 		{
 			read_one_sectors = SPRITE_CARD_ONCE_SECTOR_DEAL;
 		}
@@ -476,7 +298,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		tmp_file_start += read_one_sectors;
 		//数据格式判断，如果是sparse格式
 		debug("write first data\n");
-		if(sunxi_sprite_download_data((void *)decode_buffer, (void *)decode_buffer, read_one_sectors))
+		if(sunxi_sprite_download_data((void *)half_buffer, (void *)half_buffer, read_one_sectors * 512))
 		{
 			printf("sunxi sprite error: download data error\n");
 
@@ -484,19 +306,50 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		}
 		debug("first data write ok\n");
 		read_one_sectors = SPRITE_CARD_ONCE_SECTOR_DEAL;
-		while(part_tmpsectors >= SPRITE_CARD_ONCE_DATA_DEAL)
+		while(part_tmpsectors > SPRITE_CARD_ONCE_SECTOR_DEAL)
 		{
-			debug("rest part sectors=%d, once sectors=%d\n", part_tmpsectors, SPRITE_CARD_ONCE_DATA_DEAL);
-			if(sunxi_flash_read(tmp_file_start, read_one_sectors, half_buffer) != read_one_sectors)
+			debug("rest part sectors=%d, once sectors=%d\n", part_tmpsectors, SPRITE_CARD_ONCE_SECTOR_DEAL);
+			if(sunxi_flash_read(tmp_file_start, SPRITE_CARD_ONCE_SECTOR_DEAL, half_buffer) != SPRITE_CARD_ONCE_SECTOR_DEAL)
 			{
 				printf("sunxi sprite error : read sdcard block %d, total %d failed\n", tmp_file_start, read_one_sectors);
 
 				goto _card_download_error;
 			}
-			decode_buffer = (char *)sunxi_sprite_decode(half_buffer, read_one_sectors * 512);
+			sunxi_sprite_decode(half_buffer, SPRITE_CARD_ONCE_DATA_DEAL);
 			//现在处理已经完成的数据，准备解密和烧录
-				//数据格式判断，如果是sparse格式
-			if(sunxi_sprite_download_data((void *)decode_buffer, (void *)decode_buffer, read_one_sectors))
+			//数据格式判断，如果是sparse格式
+			if(sunxi_sprite_download_data((void *)half_buffer, (void *)half_buffer, SPRITE_CARD_ONCE_DATA_DEAL))
+			{
+				printf("sunxi sprite error: download data error\n");
+
+				goto _card_download_error;
+			}
+			part_tmpsectors -= SPRITE_CARD_ONCE_SECTOR_DEAL;
+			tmp_file_start += SPRITE_CARD_ONCE_SECTOR_DEAL;
+		}
+		if(part_tmpsectors)
+		{
+			uint rest_bytes;
+
+			debug("rest part sectors=%d\n", part_tmpsectors);
+			if(sunxi_flash_read(tmp_file_start, part_tmpsectors, half_buffer) != part_tmpsectors)
+			{
+				printf("sunxi sprite error : read sdcard block %d, total %d failed\n", tmp_file_start, part_tmpsectors);
+
+				goto _card_download_error;
+			}
+			sunxi_sprite_decode(half_buffer, part_tmpsectors * 512);
+			//现在处理已经完成的数据，准备解密和烧录
+			//数据格式判断，如果是sparse格式
+			if(item_rest_bytes)
+			{
+				rest_bytes = (part_tmpsectors - 1) * 512 + item_rest_bytes;
+			}
+			else
+			{
+				rest_bytes = part_tmpsectors * 512;
+			}
+			if(sunxi_sprite_download_data((void *)half_buffer, (void *)half_buffer, rest_bytes))
 			{
 				printf("sunxi sprite error: download data error\n");
 
@@ -509,6 +362,8 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 		//校验数据
 		debug("part data download finish\n");
 #if 1
+		sprite_cartoon_upgrade(cartoon_rate);
+    	cartoon_rate += tmp_rate;
         debug("try to read verify file %s\n", dl_map->one_part_info[i].vf_filename);
         if(dl_map->one_part_info[i].vf_filename)
         {
@@ -522,8 +377,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 				continue;
 			}
 			debug("img open ok\n");
-			//if(!Img_ReadItem(imghd, imgitemhd, (void *)&origin_verify, sizeof(int)))   //读出数据
-        	if(!Img_ReadItem(imghd, imgitemhd, (void *)verify_data, 1024))   //读出数据
+			if(!Img_ReadItem(imghd, imgitemhd, (void *)verify_data, 1024))   //读出数据
 	        {
 	            printf("sprite update warning: fail to read data from %s\n", dl_map->one_part_info[i].vf_filename);
 				Img_CloseItem(imghd, imgitemhd);
@@ -534,7 +388,7 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 	        debug("img data read ok\n");
         	if(data_format == ANDROID_FORMAT_BAD)
         	{
-                active_verify = sunxi_sprite_part_rawdata_verify(base_part_start, part_datasectors);
+                active_verify = sunxi_sprite_part_rawdata_verify(base_part_start, item_original_size);
             }
             else
             {
@@ -564,25 +418,19 @@ int sunxi_sprite_card_download_part(sunxi_download_info *dl_map)
 	ret = 0;
 
 _card_download_error:
-	//debug("%x\n", (uint)base_buffer);
 	if(base_buffer)
 	{
 		debug("%s %d\n", __FILE__, __LINE__);
-	//	free(base_buffer);
+		free(base_buffer);
 	}
-	//debug("%s %d\n", __FILE__, __LINE__);
-	//debug("%x\n", (uint)imgitemhd);
 	if(imgitemhd)
 	{
-		//debug("%s %d\n", __FILE__, __LINE__);
 		Img_CloseItem(imghd, imgitemhd);
 		imgitemhd = NULL;
 	}
-	//debug("%s %d\n", __FILE__, __LINE__);
 
 	return ret;
 }
-#endif
 /*
 ************************************************************************************************************
 *
@@ -687,6 +535,9 @@ int sunxi_sprite_deal_boot0(int production_media)
 	init_code();
 	decode(buffer, buffer + 32 * 1024, item_original_size);
 	exit_code();
+
+	while((*(volatile unsigned int *)0) != 0x1234);
+
     if(sunxi_sprite_download_boot0(buffer + 32 * 1024, production_media))
     {
     	printf("update error: fail to write boot0\n");

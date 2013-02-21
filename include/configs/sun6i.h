@@ -27,8 +27,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-//#define DEBUG    1
-#undef DEBUG
+#define DEBUG    1
+//#undef DEBUG
 
 #ifndef __KERNEL__
 #define __KERNEL__

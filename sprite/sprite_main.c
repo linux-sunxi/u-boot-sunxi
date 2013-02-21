@@ -56,6 +56,7 @@ int sunxi_sprite_download_init(int workmode)
 	{
 		//卡量产模式
 		//初始化卡量产中所需要用到的硬件，比如LED，CODEC
+		sprite_cartoon_create();
 		//;
 	}
 	else if(workmode == WORK_MODE_USB_PRODUCT)
@@ -99,9 +100,10 @@ int sunxi_sprite_download_init(int workmode)
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_erase_flash(int production_media)
+int sunxi_sprite_erase_flash(void)
 {
 	int need_erase_flag = 0;
+	int need_recovery = 0;
     char buf[1024 * 1024];
     char *tmp_buf;
     sunxi_mbr_t  *local_mbr;
@@ -110,64 +112,74 @@ int sunxi_sprite_erase_flash(int production_media)
     ret = script_parser_fetch("platform", "eraseflag", &need_erase_flag, 1);
     if((!ret) && (need_erase_flag))
     {
-    	//check if need to protect part data
-    	need_erase_flag = 1;
+    	printf("do need erase flash\n");
     }
-	//初始化flash，如果是量产卡去略过
-	//当初始化失败的时候，直接擦除，不处理私有数据
-	if(!production_media)  //量产nand
+    else
+    {
+    	printf("do not need erase flash\n");
+    	sunxi_sprite_init(0);
+    	return 0;
+    }
+	//当要求强制擦除，不处理私有数据
+	if(need_erase_flag == 0x11)
 	{
-		if(nand_uboot_init(1))
-		{
-			debug("nand pre init fail, we have to erase it\n");
-			nand_uboot_exit();
-			nand_uboot_erase(need_erase_flag);
-			nand_uboot_init(0);
+		sunxi_sprite_erase(1);
+		sunxi_sprite_init(0);
 
-			return 0;
-		}
-		debug("nand pre init ok\n");
-	}
-	else                   //量产sdcard
-	{
 		return 0;
 	}
-//	//读出量产介质上的MBR
-//	if(!sunxi_sprite_read(0, 1024 * 1024/512, buf))
-//	{
-//		printf("read local mbr fail\n");
-//
-//		return 0;
-//	}
-//	//校验MBR
-//	tmp_buf = buf;
-//	for(i=0;i<SUNXI_MBR_MAX_PART_COUNT;i++)
-//    {
-//    	local_mbr = (sunxi_mbr_t *)tmp_buf;
-//    	if(crc32(0, (const unsigned char *)(tmp_buf + 4), SUNXI_MBR_SIZE - 4) != local_mbr->crc32)
-//    	{
-//    		printf("bad mbr table\n");
-//    		tmp_buf += SUNXI_MBR_SIZE;
-//    	}
-//        else
-//        {
-//        	//sunxi_sprite_store_part_data(local_mbr);
-//            break;
-//        }
-//    }
-//
-	if(!production_media)
+	//当初始化失败的时候，直接擦除，不处理私有数据
+	if(sunxi_sprite_init(1))
 	{
-    	nand_uboot_exit();
-  		debug("need_erase_flag = %d\n", need_erase_flag);
-    	nand_uboot_erase(need_erase_flag);
-		nand_uboot_init(0);
+		debug("sunxi sprite pre init fail, we have to erase it\n");
+		sunxi_sprite_exit();
+		sunxi_sprite_erase(need_erase_flag);
+		sunxi_sprite_init(0);
+
+		return 0;
 	}
-//
-//    if(i < SUNXI_MBR_MAX_PART_COUNT)
-//    {
-//    	//sunxi_sprite_restore_part_data(local_mbr);
-//    }
+	debug("nand pre init ok\n");
+	//读出量产介质上的MBR
+	if(!sunxi_sprite_read(0, SUNXI_MBR_SIZE/512, buf))
+	{
+		printf("read local mbr on flash failed\n");
+
+		return 0;
+	}
+	//校验MBR
+	tmp_buf = buf;
+	for(i=0;i<SUNXI_MBR_MAX_PART_COUNT;i++)
+    {
+    	local_mbr = (sunxi_mbr_t *)tmp_buf;
+    	if(crc32(0, (const unsigned char *)(tmp_buf + 4), SUNXI_MBR_SIZE - 4) != local_mbr->crc32)
+    	{
+    		printf("%d mbr table is bad\n", i);
+    		tmp_buf += SUNXI_MBR_SIZE;
+    	}
+        else
+        {
+        	if(!sunxi_sprite_store_part_data(local_mbr))
+			{
+				need_recovery = 1;
+			}
+
+        	break;
+		}
+    }
+    if(i == SUNXI_MBR_MAX_PART_COUNT)
+    {
+    	printf("all mbr table is bad\n");
+    }
+
+	sunxi_sprite_exit();
+	debug("need_erase_flag = %d\n", need_erase_flag);
+	sunxi_sprite_erase(need_erase_flag);
+	sunxi_sprite_init(0);
+
+	if(need_recovery)
+	{
+    	sunxi_sprite_restore_part_data(local_mbr);
+	}
 
     return 0;
 }
@@ -199,7 +211,22 @@ void dump_dlmap(sunxi_download_info *dl_map)
 		printf("part download vfile=%s\n", dl_map->one_part_info[i].vf_filename);
 	}
 }
-
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
 int sunxi_sprite_mode(int workmode)
 {
 	int production_media;
@@ -213,8 +240,8 @@ int sunxi_sprite_mode(int workmode)
 		return -1;
 	}
 	debug("hardware init ok\n");
-	//擦除flash
-	sunxi_sprite_erase_flash(production_media);
+	//擦除flash，并保存私有数据
+	sunxi_sprite_erase_flash();
 	debug("erase ok\n");
 	//烧写分区数据
 	//这里区分量产模式，卡量产还是usb量产
@@ -222,6 +249,7 @@ int sunxi_sprite_mode(int workmode)
 	{
 		//测试卡上固件的合法性
 		debug("card burn\n");
+		sprite_cartoon_upgrade(5);
 		if(sprite_card_firmware_probe())
 	    {
 	    	printf("sunxi sprite firmware probe fail\n");
@@ -236,6 +264,7 @@ int sunxi_sprite_mode(int workmode)
 
 	    	return -1;
 	    }
+	    sprite_cartoon_upgrade(10);
 	    debug("dl map probe ok\n");
 #ifdef DEBUG
 		dump_dlmap(&dl_map);
@@ -246,7 +275,7 @@ int sunxi_sprite_mode(int workmode)
 
 	    	return -1;
 	    }
-
+		sprite_cartoon_upgrade(80);
 	    sunxi_sprite_exit();
 
 	    if(sunxi_sprite_deal_uboot(production_media))
@@ -255,15 +284,18 @@ int sunxi_sprite_mode(int workmode)
 
 	    	return -1;
 	    }
-	    if(sunxi_sprite_deal_boot0(production_media))
-	    {
-	    	printf("sunxi sprite error : download boot0 error\n");
-
-	    	return -1;
-	    }
+	    sprite_cartoon_upgrade(90);
+//	    if(sunxi_sprite_deal_boot0(production_media))
+//	    {
+//	    	printf("sunxi sprite error : download boot0 error\n");
+//
+//	    	return -1;
+//	    }
+	    sprite_cartoon_upgrade(100);
 	}
 	else if(workmode == WORK_MODE_USB_PRODUCT)
 	{
+		debug("it is not supported now\n");
 		//usb量产模式
 		//初始化USB硬件，此处弹开USB控制器，表示fel结束，然后开始接收数据
 //		if(sprite_usb_hardware_init())
@@ -282,6 +314,8 @@ int sunxi_sprite_mode(int workmode)
 	else
 	{
 		//其它模式，无视掉
+		debug("unknown work mode\n");
+
 		return -1;
 	}
 	//烧写结束

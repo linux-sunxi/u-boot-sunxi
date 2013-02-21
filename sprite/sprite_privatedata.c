@@ -22,7 +22,8 @@
 #include <common.h>
 #include <asm/arch/sunxi_mbr.h>
 
-#define  VERIFY_ONCE_DATA_LENGTH    (512 * 1024)
+#define  SUNXI_SPRITE_PROTECT_DATA_BASE   (0x41000000)
+#define  SUNXI_SPRITE_PROTECT_DATA_MAX    (16)
 
 struct sunxi_private_data_store
 {
@@ -32,7 +33,7 @@ struct sunxi_private_data_store
 	int    reserved[2];
 };
 
-static struct sunxi_private_data_store   pdata[16];
+static struct sunxi_private_data_store   pdata[SUNXI_SPRITE_PROTECT_DATA_MAX];
 static int  pdata_count = 0;
 /*
 ************************************************************************************************************
@@ -50,20 +51,19 @@ static int  pdata_count = 0;
 *
 ************************************************************************************************************
 */
-int sunx_sprite_store_part_data(sunxi_mbr_t  *mbr)
+int sunxi_sprite_store_part_data(sunxi_mbr_t  *mbr)
 {
 	int i,index;
 
 	index = 1;
-	memset(pdata, 0, 16 * sizeof(struct sunxi_private_data_store));
-	pdata[0].addr = (char *)VERIFY_ONCE_DATA_LENGTH;
+	memset(pdata, 0, SUNXI_SPRITE_PROTECT_DATA_MAX * sizeof(struct sunxi_private_data_store));
+	pdata[0].addr = (char *)SUNXI_SPRITE_PROTECT_DATA_BASE;
 
 	for(i=0;i<mbr->PartCount;i++)
 	{
-		if(mbr->array[i].ro)
+		if((mbr->array[i].ro) || (!strcmp((const char *)mbr->array[i].name, "private")))
 		{
-			pdata[index].addr = pdata[index -1].addr + pdata[index -1].sectors*512;
-			if(!sunxi_flash_read(mbr->array[i].addrlo, mbr->array[i].lenlo, pdata[index].addr))
+			if(!sunxi_sprite_read(mbr->array[i].addrlo, mbr->array[i].lenlo, pdata[index].addr))
 			{
 				printf("sunxi sprite error : read private data error\n");
 
@@ -72,15 +72,16 @@ int sunx_sprite_store_part_data(sunxi_mbr_t  *mbr)
 			strncpy(pdata[index].name, (const char *)mbr->array[i].name, 16);
 			pdata[index].sectors = mbr->array[i].lenlo;
 			index ++;
+			pdata[index].addr = pdata[index-1].addr + pdata[index-1].sectors*512;
 			if(index > 15)
 			{
-				printf("sunxi sprite error : too mauch private parts\n");
+				printf("sunxi sprite error : too mauch protect data. much than 15 parts\n");
 
 				return -1;
 			}
 		}
 	}
-	pdata_count = index - 1;
+	pdata_count = index;
 
 	return 0;
 }
@@ -100,7 +101,7 @@ int sunx_sprite_store_part_data(sunxi_mbr_t  *mbr)
 *
 ************************************************************************************************************
 */
-int sunx_sprite_restore_part_data(sunxi_mbr_t  *mbr)
+int sunxi_sprite_restore_part_data(sunxi_mbr_t  *mbr)
 {
 	int i,j;
 
@@ -112,7 +113,7 @@ int sunx_sprite_restore_part_data(sunxi_mbr_t  *mbr)
 	{
 		if(mbr->array[i].ro)
 		{
-			for(j=1;j<pdata_count + 1;j++)
+			for(j=0;j<pdata_count;j++)
 			{
 				if(!strcmp((const char*)pdata[j].name, (const char*)mbr->array[i].name))
 				{

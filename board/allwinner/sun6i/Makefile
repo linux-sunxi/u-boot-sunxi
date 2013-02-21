@@ -36,6 +36,9 @@ COBJS-y += sprite_cartoon/sprite_cartoon.o     					  \
 		   sprite_cartoon/sprite_progressbar/sprite_progressbar.o \
 		   sprite_cartoon/sprite_draw/sprite_draw.o
 
+COBJS-y += sprite_cartoon/sprite_char/sprite_char.o				  \
+		   sprite_cartoon/sprite_char/sfte/FontEngine.o				  \
+		   sprite_cartoon/sprite_char/sfte/sfte.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))

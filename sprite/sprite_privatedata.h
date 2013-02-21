@@ -23,9 +23,9 @@
 
 #include <asm/arch/partition.h>
 
-extern int sunx_sprite_store_part_data(sunxi_mbr_t  *mbr);
+extern int sunxi_sprite_store_part_data(sunxi_mbr_t  *mbr);
 
-extern int sunx_sprite_restore_part_data(sunxi_mbr_t  *mbr);
+extern int sunxi_sprite_restore_part_data(sunxi_mbr_t  *mbr);
 
 
 #endif

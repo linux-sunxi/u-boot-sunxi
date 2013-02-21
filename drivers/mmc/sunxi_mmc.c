@@ -242,7 +242,7 @@ static int mmc_config_clock(struct mmc *mmc, unsigned clk)
 		u32 pll6clk;
 		u32 n,m;
 
-		pll6clk = sunxi_clock_get_pll6();
+		pll6clk = sunxi_clock_get_pll6() * 1000000;
 		clkdiv = pll6clk / clk - 1;
 			if (clkdiv < 16) {
 			n = 0;

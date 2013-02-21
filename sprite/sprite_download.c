@@ -63,10 +63,16 @@ int sunxi_sprite_download_raw_init(uint flash_part_start)
 *
 ************************************************************************************************************
 */
-int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint sectors)
+int sunxi_sprite_download_raw(void *buffer, void *next_buffer, uint length)
 {
+	uint sectors = length/512;
+
+	if(length & 0x1ff)
+	{
+		sectors ++;
+	}
 	debug("write start %d, sector %d\n", flash_start, sectors);
-	if(sunxi_sprite_write(flash_start, sectors, buffer))
+	if(sunxi_sprite_write(flash_start, sectors, buffer) == sectors)
 	{
 		flash_start += sectors;
 		debug("raw write ok\n");

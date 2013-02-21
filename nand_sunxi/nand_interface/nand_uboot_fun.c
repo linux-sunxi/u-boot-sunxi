@@ -196,7 +196,7 @@ int mark_bad_block( uint chip_num, uint blk_num)
         msg("malloc memory for page buf fail\n");
         return -1;
     }
-	
+
 	page_with_bad_block = NAND_GetBadBlockFlagPos();
 	page_per_block = NAND_GetPageCntPerBlk();
 	page_index[0] = 0;
@@ -906,7 +906,7 @@ __s32  burn_boot0_lsb_mode(__u32 read_retry_type, __u32 Boot0_buf )
     __u32 page_size;
     struct boot_physical_param  para;
 
-     debug("burn boot0 lsb mode!\n");
+    debug("burn boot0 lsb mode!\n");
 
     for(i=0;i<32;i++)
         oob_buf[i] = 0xff;
@@ -945,7 +945,7 @@ __s32  burn_boot0_lsb_mode(__u32 read_retry_type, __u32 Boot0_buf )
 	/* burn boot0 */
     for( i = NAND_BOOT0_BLK_START;  i < (NAND_BOOT0_BLK_START + NAND_BOOT0_BLK_CNT);  i++ )
     {
-        debug("boot0 %x \n", i);
+        debug("down boot0 %x \n", i);
 
 		/* 擦除块 */
 		para.chip  = 0;
@@ -978,7 +978,7 @@ __s32  burn_boot0_lsb_mode(__u32 read_retry_type, __u32 Boot0_buf )
 		struct boot_physical_param  para;
 		__u32  k;
 
-        debug("boot0 %x \n", i);
+        debug("verify boot0 %x \n", i);
 
         /* 在块中烧写boot0备份, lsb mode下，每个块只能写前4个page */
 		for( k = 0;  k < 4;  k++ )
@@ -1036,7 +1036,7 @@ error:
 
 __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 {
-     __u32 i, j, k;
+    __u32 i, j, k;
     __u8  oob_buf[32];
     __u32 page_size, pages_per_block, pages_per_copy, page_index;
     struct boot_physical_param  para;
@@ -1049,6 +1049,7 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 
 	/* get nand driver version */
     NAND_GetVersion(oob_buf);
+    debug("0x%x\n", (uint *)oob_buf);
 	if((oob_buf[0]!=0xff)||(oob_buf[1]!= 0x00))
 	{
 		debug("get flash driver version error!");

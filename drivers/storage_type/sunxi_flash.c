@@ -60,6 +60,11 @@ sunxi_null_size(void){
 }
 
 static int
+sunxi_null_init(int flag){
+	return -1;
+}
+
+static int
 sunxi_null_exit(void){
 	return -1;
 }
@@ -78,13 +83,14 @@ sunxi_null_exit(void){
 ************************************************************************************************************
 */
 
-
+int (* sunxi_flash_init_pt)(int stage) = sunxi_null_init;
 int (* sunxi_flash_read_pt) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 //int (* sunxi_flash_read_sequence) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int (* sunxi_flash_write_pt)(uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 uint (* sunxi_flash_size_pt)(void) = sunxi_null_size;
 int (* sunxi_flash_exit_pt) (void) = sunxi_null_exit;
 
+int (* sunxi_sprite_init_pt)(int stage) = sunxi_null_init;
 int (* sunxi_sprite_read_pt) (uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int (* sunxi_sprite_write_pt)(uint start_block, uint nblock, void *buffer) = sunxi_null_op;
 int (* sunxi_sprite_erase_pt)(int erase) = sunxi_null_erase;
@@ -92,7 +98,6 @@ uint (* sunxi_sprite_size_pt)(void) = sunxi_null_size;
 int (* sunxi_sprite_exit_pt) (void) = sunxi_null_exit;
 
 static struct mmc *mmc_boot, *mmc_sprite;
-
 /*
 ************************************************************************************************************
 *
@@ -111,14 +116,14 @@ static struct mmc *mmc_boot, *mmc_sprite;
 static int
 sunxi_flash_nand_read(uint start_block, uint nblock, void *buffer)
 {
-//	debug("nand read %x, sectors %x\n", start_block, nblock);
+	debug("nand read %d, sectors %d\n", start_block, nblock);
 	return nand_uboot_read(start_block, nblock, buffer);
 }
 
 static int
 sunxi_flash_nand_write(uint start_block, uint nblock, void *buffer)
 {
-//	debug("nand write : start %d, sector %d\n", start_block, nblock);
+	debug("nand write : start %d, sector %d\n", start_block, nblock);
 	return nand_uboot_write(start_block, nblock, buffer);
 }
 
@@ -132,6 +137,12 @@ static uint
 sunxi_flash_nand_size(void)
 {
 	return nand_uboot_get_flash_size();
+}
+
+static int
+sunxi_flash_nand_init(int stage)
+{
+	return nand_uboot_init(stage);
 }
 
 static int
@@ -153,13 +164,12 @@ sunxi_flash_nand_exit(void)
 *
 ************************************************************************************************************
 */
-
 static int
 sunxi_flash_mmc_read(unsigned int start_block, unsigned int nblock, void *buffer){
 
 	int status;
 
-	debug("mmc read : start %d, sector %d\n", start_block + CONFIG_MMC_LOGICAL_OFFSET, nblock);
+	debug("mmc read : start %d, sector %d\n", start_block, nblock);
 	status = mmc_boot->block_dev.block_read(mmc_boot->block_dev.dev, start_block + CONFIG_MMC_LOGICAL_OFFSET,
 					nblock, buffer);
 	debug("mmc read status %d\n", status);
@@ -194,6 +204,11 @@ static uint
 sunxi_flash_mmc_size(void){
 
 	return mmc_boot->block_dev.lba;
+}
+
+static int
+sunxi_flash_mmc_init(int stage){
+	return 0;
 }
 
 static int
@@ -249,6 +264,11 @@ sunxi_sprite_mmc_size(void){
 }
 
 static int
+sunxi_sprite_mmc_init(int stage){
+	return 0;
+}
+
+static int
 sunxi_sprite_mmc_exit(void){
 	return 0;
 }
@@ -288,7 +308,10 @@ int sunxi_flash_exit(void)
 	return sunxi_flash_exit_pt();
 }
 
-
+int sunxi_sprite_init(int stage)
+{
+	return sunxi_sprite_init_pt(stage);
+}
 
 int sunxi_sprite_read (uint start_block, uint nblock, void *buffer)
 {
@@ -314,8 +337,6 @@ int sunxi_sprite_exit(void)
 {
 	return sunxi_sprite_exit_pt();
 }
-
-
 
 /*
 ************************************************************************************************************
@@ -343,7 +364,7 @@ int sunxi_flash_handle_init(void)
 //	uboot_spare_head.boot_data.work_mode = WORK_MODE_BOOT;//WORK_MODE_CARD_PRODUCT;
 
     workmode = uboot_spare_head.boot_data.work_mode;
-#ifdef DEBUG
+#if 1
     printf("workmode = %d\n", workmode);
     debug("storage type = %d\n", uboot_spare_head.boot_data.storage_type);
 #endif
@@ -393,7 +414,7 @@ int sunxi_flash_handle_init(void)
             script_parser_patch("nand_para", "nand_used", &nand_used, 1);
 		    script_parser_patch("mmc2_para", "sdc_used", &sdc_used, 1);
 
-		    tick_printf("NAND:   ");
+		    tick_printf("NAND: ");
 		    if(nand_uboot_init(1))
 		    {
 		    	tick_printf("nand init fail\n");
@@ -416,6 +437,8 @@ int sunxi_flash_handle_init(void)
 	{
 	    if(1)                  /* burn nand */
         {
+        	sunxi_sprite_init_pt  = sunxi_flash_nand_init;
+            sunxi_sprite_exit_pt  = sunxi_flash_nand_exit;
             sunxi_sprite_read_pt  = sunxi_flash_nand_read;
 			sunxi_sprite_write_pt = sunxi_flash_nand_write;
 			sunxi_sprite_erase_pt = sunxi_flash_nand_erase;
@@ -438,6 +461,8 @@ int sunxi_flash_handle_init(void)
 				puts("MMC init failed\n");
 				return  -1;
 			}
+			sunxi_sprite_init_pt  = sunxi_sprite_mmc_init;
+            sunxi_sprite_exit_pt  = sunxi_sprite_mmc_exit;
 			sunxi_sprite_read_pt  = sunxi_sprite_mmc_read;
 			sunxi_sprite_write_pt = sunxi_sprite_mmc_write;
 			sunxi_sprite_erase_pt = sunxi_sprite_mmc_erase;
@@ -463,6 +488,11 @@ int sunxi_flash_handle_init(void)
 				puts("MMC sprite init failed\n");
 				return  -1;
 			}
+			else
+			{
+				puts("mmc init ok\n");
+			}
+			sunxi_flash_init_pt  = sunxi_flash_mmc_init;
 			sunxi_flash_read_pt  = sunxi_flash_mmc_read;
 			sunxi_flash_write_pt = sunxi_flash_mmc_write;
 			sunxi_flash_size_pt  = sunxi_flash_mmc_size;

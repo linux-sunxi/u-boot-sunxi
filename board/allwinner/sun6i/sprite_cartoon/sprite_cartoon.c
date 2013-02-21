@@ -23,6 +23,8 @@
 #include <asm/arch/drv_display.h>
 
 sprite_cartoon_source  sprite_source;
+static uint  progressbar_hd;
+static int   last_rate;
 
 /*
 ************************************************************************************************************
@@ -48,6 +50,7 @@ int sprite_cartoon_screen_set(void)
 	sprite_source.screen_height = disp_ioctl(NULL, DISP_CMD_SCN_GET_HEIGHT, (void*)arg);
 	sprite_source.screen_size   = sprite_source.screen_width * sprite_source.screen_height * 4;
     sprite_source.screen_buf 	= malloc(sprite_source.screen_size);
+	sprite_source.color         = SPRITE_CARTOON_GUI_GREEN;
 
     if(!sprite_source.screen_buf)
     {
@@ -61,7 +64,22 @@ int sprite_cartoon_screen_set(void)
 }
 
 
-
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :	sprite_cartoon_screen_set
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
 int sprite_cartoon_test(void)
 {
 	int i;
@@ -92,20 +110,125 @@ int sprite_cartoon_test(void)
 	sprite_cartoon_progressbar_config(progressbar_hd, SPRITE_CARTOON_GUI_RED, SPRITE_CARTOON_GUI_GREEN, 2);
 	sprite_cartoon_progressbar_active(progressbar_hd);
 
+	sprite_uichar_init(24);
+	sprite_uichar_printf("this is for test\n");
+
+	sprite_uichar_printf("bar x1: %d y1: %d\n", x1, y1);
+	sprite_uichar_printf("bar x2: %d y2: %d\n", x2, y2);
+
 	do
 	{
-		for(i=0;i<100;i++)
+		for(i=0;i<100;i+=50)
+		{
+			sprite_cartoon_progressbar_upgrate(progressbar_hd, i);
+			__msdelay(500);
+			sprite_uichar_printf("here %d\n", i);
+		}
+
+		sprite_uichar_printf("up %d\n", i);
+		for(i=99;i>0;i-=50)
 		{
 			sprite_cartoon_progressbar_upgrate(progressbar_hd, i);
 			__msdelay(500);
 		}
-		for(i=99;i>0;i--)
-		{
-			sprite_cartoon_progressbar_upgrate(progressbar_hd, i);
-			__msdelay(500);
-		}
+		sprite_uichar_printf("down %d\n", i);
 	}
-	while(1);
+
+	while(0);
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :	sprite_cartoon_start
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+uint sprite_cartoon_create(void)
+{
+	int screen_width, screen_height;
+	uint arg[4] = { 0 };
+	int x1, x2, y1, y2;
 
+	sprite_cartoon_screen_set();
+	board_display_show_until_lcd_open(0);
 
+	screen_width  = disp_ioctl(NULL, DISP_CMD_SCN_GET_WIDTH, (void*)arg);
+	screen_height = disp_ioctl(NULL, DISP_CMD_SCN_GET_HEIGHT, (void*)arg);
+
+	printf("screen_width = %d\n", screen_width);
+    printf("screen_height = %d\n", screen_height);
+
+	x1 = screen_width/4;
+	x2 = x1 * 3;
+
+	y1 = screen_height/2 - 40;
+	y2 = screen_height/2 + 40;
+
+	printf("bar x1: %d y1: %d\n", x1, y1);
+	printf("bar x2: %d y2: %d\n", x2, y2);
+
+	progressbar_hd = sprite_cartoon_progressbar_create(x1, y1, x2, y2);
+	sprite_cartoon_progressbar_config(progressbar_hd, SPRITE_CARTOON_GUI_RED, SPRITE_CARTOON_GUI_GREEN, 2);
+	sprite_cartoon_progressbar_active(progressbar_hd);
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :	sprite_cartoon_start
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int sprite_cartoon_upgrade(int rate)
+{
+	if(last_rate == rate)
+	{
+		return 0;
+	}
+	last_rate = rate;
+
+	sprite_cartoon_progressbar_upgrate(progressbar_hd, rate);
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :	sprite_cartoon_start
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int sprite_cartoon_destroy(void)
+{
+	sprite_cartoon_progressbar_destroy(progressbar_hd);
+
+	return 0;
+}

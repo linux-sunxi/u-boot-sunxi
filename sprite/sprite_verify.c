@@ -22,7 +22,8 @@
 #include <common.h>
 #include "sparse/sparse.h"
 
-#define  VERIFY_ONCE_DATA_LENGTH    (512 * 1024)
+#define  VERIFY_ONCE_BYTES    (512 * 1024)
+#define  VERIFY_ONCE_SECTORS  (VERIFY_ONCE_BYTES/512)
 /*
 ************************************************************************************************************
 *
@@ -39,53 +40,101 @@
 *
 ************************************************************************************************************
 */
-uint sunxi_sprite_part_rawdata_verify(uint base_start, uint base_sectors)
+uint add_sum(void *buffer, uint length)
+{
+	unsigned int *buf;
+	unsigned int count;
+	unsigned int sum;
+
+	count = length >> 2;                         // 以 字（4bytes）为单位计数
+	sum = 0;
+	buf = (unsigned int *)buffer;
+	while(count--)
+	{
+		sum += *buf++;                         // 依次累加，求得校验和
+	};
+
+	switch(length & 0x03)
+	{
+		case 0:
+			return sum;
+		case 1:
+			sum += (*buf & 0x000000ff);
+			break;
+		case 2:
+			sum += (*buf & 0x0000ffff);
+			break;
+		case 3:
+			sum += (*buf & 0x00ffffff);
+			break;
+	}
+
+	return sum;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+uint sunxi_sprite_part_rawdata_verify(uint base_start, long long base_bytes)
 {
 	uint checksum;
-	uint sectors, start;
-	uint onetime_sectors;
-	char tmp_buf[VERIFY_ONCE_DATA_LENGTH];
-	uint *data;
-	int  tmp_length;
+	uint tail_bytes, last_time_bytes;
+	uint tmp_sectors, start;
+	char tmp_buf[VERIFY_ONCE_BYTES];
 
-    start  = base_start;
-    sectors = base_sectors;
-    onetime_sectors = VERIFY_ONCE_DATA_LENGTH/512;
-
-	debug("read total sectors %d\n", base_sectors);
-	debug("read each sectors %d\n", onetime_sectors);
-    checksum = 0;
-    while(sectors >= onetime_sectors)
+	tail_bytes  = base_bytes & 0x1ff;
+	tmp_sectors = base_bytes/512;
+    if(tail_bytes)
     {
-    	if(!sunxi_sprite_read(start, onetime_sectors, tmp_buf))
-    	{
-    		printf("sunxi sprite: read flash error when verify\n");
-
-    		return 0;
-    	}
-    	start  += onetime_sectors;
-    	sectors -= onetime_sectors;
-    	tmp_length = VERIFY_ONCE_DATA_LENGTH/4;
-    	data = (uint *)tmp_buf;
-    	while(tmp_length--)
-    	{
-    		checksum += *data++;
-    	}
+    	tmp_sectors ++;
     }
-    if(sectors)
+    start   = base_start;
+	debug("read total sectors %d\n", tmp_sectors);
+	debug("read part start %d\n", base_start);
+    checksum = 0;
+    while(tmp_sectors > VERIFY_ONCE_SECTORS)
     {
-    	if(!sunxi_sprite_read(start, sectors, tmp_buf))
+    	if(sunxi_sprite_read(start, VERIFY_ONCE_SECTORS, tmp_buf) != VERIFY_ONCE_SECTORS)
     	{
     		printf("sunxi sprite: read flash error when verify\n");
 
     		return 0;
     	}
-    	tmp_length = sectors * 512/4;
-    	data = (uint *)tmp_buf;
-    	while(tmp_length--)
+    	start       += VERIFY_ONCE_SECTORS;
+    	tmp_sectors -= VERIFY_ONCE_SECTORS;
+    	checksum    += add_sum(tmp_buf, VERIFY_ONCE_BYTES);
+    	debug("check sum = 0x%x\n", checksum);
+    }
+    if(tmp_sectors)
+    {
+    	if(sunxi_sprite_read(start, tmp_sectors, tmp_buf) != tmp_sectors)
     	{
-    		checksum += *data++;
+    		printf("sunxi sprite: read flash error when verify\n");
+
+    		return 0;
     	}
+    	if(tail_bytes)
+    	{
+    		last_time_bytes = (tmp_sectors - 1) * 512 + tail_bytes;
+    	}
+    	else
+    	{
+    		last_time_bytes = tmp_sectors * 512;
+    	}
+    	checksum += add_sum(tmp_buf, last_time_bytes);
+		debug("check sum = 0x%x\n", checksum);
     }
 
     return checksum;

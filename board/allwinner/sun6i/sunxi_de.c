@@ -344,7 +344,7 @@ int board_display_framebuffer_set(int width, int height, int bitcount, void *buf
 	layer_para->fb.trd_mode		= 0;
 	layer_para->ck_enable		= 0;
 	layer_para->mode            = DISP_LAYER_WORK_MODE_NORMAL;
-	layer_para->alpha_en 		= 1;
+	layer_para->alpha_en 		= 0;
 	layer_para->alpha_val		= 0xff;
 	layer_para->pipe 			= 0;
 	layer_para->src_win.x		= 0;
