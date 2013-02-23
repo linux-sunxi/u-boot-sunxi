@@ -58,7 +58,7 @@ typedef struct _boot0_private_head_t
 {
 	__u32                       prvt_head_size;
 	char                        prvt_head_vsn[4];       // the version of boot0_private_head_t
-	boot_dram_para_t            dram_para;              // DRAM patameters for initialising dram. Original values is arbitrary,
+	unsigned int                dram_para[32];;         // DRAM patameters for initialising dram. Original values is arbitrary,
 	__s32						uart_port;              // UART控制器编号
 	normal_gpio_cfg             uart_ctrl[2];           // UART控制器(调试打印口)数据信息
 	__s32                       enable_jtag;            // 1 : enable,  0 : disable

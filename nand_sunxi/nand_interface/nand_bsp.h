@@ -9,7 +9,7 @@ struct boot_physical_param{
 	__u32   chip; //chip no
 	__u32  block; // block no within chip
 	__u32  page; // apge no within block
-	__u64  sectorbitmap; //done't care
+	__u32  sectorbitmap; //done't care
 	void   *mainbuf; //data buf
 	void   *oobbuf; //oob buf
 };
@@ -71,13 +71,14 @@ extern __u32 NAND_GetBadBlockFlagPos(void);
 extern __u32 NAND_GetReadRetryType(void);
 extern __u32 NAND_GetDiskSize(void);
 extern __u32 NAND_SetParam(void *buffer, uint length);
-extern __u32 NAND_GetParam(void *buffer, __u32 length);
+extern __s32 NAND_GetParam(void *buffer, __u32 length);
 extern __u32 NAND_GetValidBlkRatio(void);
 extern __s32 NAND_SetValidBlkRatio(__u32 ValidBlkRatio);
 extern __u32 NAND_GetFrequencePar(void);
 extern __s32 NAND_SetFrequencePar(__u32 FrequencePar);
 extern __u32 NAND_GetVersion(__u8 *version);
 extern void  NAND_SetSrcClkName(__u32 pll_name);
+extern int   NAND_GetParam_store(void *buffer, uint length);
 
 
 #endif

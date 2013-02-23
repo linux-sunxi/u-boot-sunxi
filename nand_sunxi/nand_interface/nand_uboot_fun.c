@@ -9,6 +9,7 @@
 #define NAND_UBOOT_BLK_CNT		5
 #define NAND_BOOT0_PAGE_CNT_PER_COPY     64
 
+static char nand_para_store[256];
 
 int msg(const char * str, ...)
 {
@@ -24,7 +25,7 @@ int NAND_PhyInit(void)
 	ret = PHY_Init();
 	if (ret)
 	{
-		msg("NB1 : nand phy init fail\n");
+		printf("NB1 : nand phy init fail\n");
 		return ret;
 	}
 
@@ -32,13 +33,13 @@ int NAND_PhyInit(void)
 	ret = SCN_AnalyzeNandSystem();
 	if (ret)
 	{
-		msg("NB1 : nand scan fail\n");
+		printf("NB1 : nand scan fail\n");
 		return ret;
 	}
 	//modify ValidBlkRatio
     //NAND_SetValidBlkRatio(nand_good_blk_ratio);
 
-	msg("NB1 : nand phy init ok\n");
+	debug("NB1 : nand phy init ok\n");
 	return(PHY_ChangeMode(1));
 }
 
@@ -78,20 +79,20 @@ int NAND_LogicInit(void)
 {
 	int  result;
 
-	msg("NB1 : enter NFB_Init\n");
+	debug("NB1 : enter NFB_Init\n");
 
     //Format nand flash for logical access
     result = FMT_Init();
     if(result < 0)
     {
-    	msg("NB1 : format init fail\n");
+    	printf("NB1 : format init fail\n");
 		return -5;
     }
 
     result = FMT_FormatNand();
     if(result < 0)
     {
-    	msg("NB1 : format fail\n");
+    	printf("NB1 : format fail\n");
         return -6;
     }
 
@@ -193,7 +194,7 @@ int mark_bad_block( uint chip_num, uint blk_num)
     page_buf = (unsigned char*)malloc(32 * 1024);
     if(!page_buf)
     {
-        msg("malloc memory for page buf fail\n");
+        printf("malloc memory for page buf fail\n");
         return -1;
     }
 
@@ -299,7 +300,7 @@ int NAND_VersionCheck(void)
     //printf("%s %d boot0_readop addr: 0x%x, mainbuf: 0x%x\n", __FILE__, __LINE__, (__u32)boot0_readop, (__u32)boot0_readop->mainbuf);
     if(!boot0_readop->mainbuf)
     {
-        msg("malloc memory for boot0 read operation fail\n");
+        printf("malloc memory for boot0 read operation fail\n");
         return -1;
     }
 
@@ -323,7 +324,7 @@ int NAND_VersionCheck(void)
         //check the current block is a bad block
 		if(oob_buf[0] != 0xFF)
 	    {
-			msg("block %u is bad block.\n",block_index);
+			printf("block %u is bad block.\n",block_index);
 			continue;
 	    }
 
@@ -337,7 +338,7 @@ int NAND_VersionCheck(void)
 
 		if(cnt1 == 256)
 	    {
-			msg("block %u is cleared block.\n",block_index);
+			printf("block %u is cleared block.\n",block_index);
 			continue;
 	    }
 
@@ -346,13 +347,13 @@ int NAND_VersionCheck(void)
 	       printf("Media version is valid in block %u, version info is 0x%x \n", block_index, *((__u32 *)(oob_buf)));
 	       if(oob_buf[2] == nand_version[2])
 	       {
-	            msg("nand driver version match ok in block %u.\n",block_index);
+	            printf("nand driver version match ok in block %u.\n",block_index);
     		    version_match_flag = 0;
     		    break;
 	       }
 	       else
 	       {
-	            msg("nand driver version match fail in block %u.\n",block_index);
+	            printf("nand driver version match fail in block %u.\n",block_index);
     		    version_match_flag = 1;
     		    break;
 	       }
@@ -360,14 +361,14 @@ int NAND_VersionCheck(void)
 	    }
 	    else
 	    {
-	        msg("Media version is invalid in block %u version info is %x \n", block_index, *((__u32 *)(oob_buf)));
+	        printf("Media version is invalid in block %u version info is %x \n", block_index, *((__u32 *)(oob_buf)));
 	    }
 
 	}
 
     if(block_index == (1 + 1))
     {
-         msg("can't find valid version info in boot blocks. \n");
+         printf("can't find valid version info in boot blocks. \n");
          version_match_flag = -1;
     }
 
@@ -383,7 +384,7 @@ int  NAND_EraseBootBlocks(void)
 	int  i;
 	int  ret;
 
-	msg("Ready to erase boot blocks.\n");
+	printf("Ready to erase boot blocks.\n");
 
 	for( i = 0;  i < 7;  i++ )
 	{
@@ -391,10 +392,10 @@ int  NAND_EraseBootBlocks(void)
 		para.block = i;
 		ret = PHY_SimpleErase( &para ) ;
 		if(ret)
-		    msg("erasing block %u failed.\n", i );
+		    printf("erasing block %u failed.\n", i );
 	}
 
-    msg("has cleared the boot blocks.\n");
+    printf("has cleared the boot blocks.\n");
 
     return 0;
 
@@ -419,12 +420,12 @@ int  NAND_EraseChip(void)
     page_buf_read = (unsigned char*)malloc(32 * 1024);
     if(!page_buf_read)
     {
-        msg("malloc memory for page read fail\n");
+        printf("malloc memory for page read fail\n");
         return -1;
     }
-	msg("Ready to erase chip.\n");
+	printf("Ready to erase chip.\n");
 	// get nand info to cal
-	msg("nfb phy init ok.\n");
+	printf("nfb phy init ok.\n");
 
 
 	page_size = NAND_GetPageSize();
@@ -445,14 +446,14 @@ int  NAND_EraseChip(void)
 	{
 	    //select chip
 		chip = cal_real_chip( i, chip_connect );
-        debug("erase chip %u \n", chip);
+        printf("erase chip %u \n", chip);
 
         //scan for bad blocks, only erase good block, all 0x00 blocks is defined bad blocks
 		for( j = 0;  j < blk_cnt_per_chip;  j++ )
 		{
 
 			if(j%0x100==0)
-				debug("erase block %u\n", j);
+				printf("erase block %u\n", j);
 			para_read.chip = chip;
 			para_read.block = j;
 			para_read.mainbuf = page_buf_read;
@@ -490,7 +491,7 @@ int  NAND_EraseChip(void)
 				if((cnt0 == page_size)&&(cnt1 == 8))
 				{
 					bad_block_flag = 1;
-					debug("find a all 0x00 block %u\n", j);
+					printf("find a all 0x00 block %u\n", j);
 					break;
 				}
 
@@ -502,23 +503,23 @@ int  NAND_EraseChip(void)
 			ret = PHY_SimpleErase_2CH( &para_read );
 			if( ret != 0 )
 	    		{
-	    		    debug("erasing block %u failed.\n", j );
+	    		    printf("erasing block %u failed.\n", j );
 			    	mark_err_flag = mark_bad_block( i, j );
 	    		    if( mark_err_flag!= 0 )
 	    		        {
         					error_flag++;
-        					debug("error in marking bad block flag in chip %u, block %u, mark error flag %u.\n", i, j, mark_err_flag);
+        					printf("error in marking bad block flag in chip %u, block %u, mark error flag %u.\n", i, j, mark_err_flag);
         				}
 	    		}
 
     		}
 	}
 
-	debug("has cleared the chip.\n");
+	printf("has cleared the chip.\n");
 	if(error_flag)
-		debug("the nand is Bad.\n");
+		printf("the nand is Bad.\n");
 	else
-		debug("the nand is OK.\n");
+		printf("the nand is OK.\n");
 
     free(page_buf_read);
 
@@ -551,7 +552,7 @@ int NAND_BadBlockScan(void)
     page_buf = (unsigned char*)malloc(32 * 1024);
     if(!page_buf)
     {
-        debug("malloc memory for page buf fail\n");
+        printf("malloc memory for page buf fail\n");
         return -1;
     }
 
@@ -596,7 +597,7 @@ int NAND_BadBlockScan(void)
 	for( i = 0;  i < chip_cnt;  i++ ){
 
 		chip = cal_real_chip( i, chip_connect_mode );
-		debug("scan CE %u\n", chip);
+		printf("scan CE %u\n", chip);
 		bad_block_cnt[chip] = 0;
 
 		for( j = 0;  j < block_cnt_per_chip;  j++ )
@@ -617,7 +618,7 @@ int NAND_BadBlockScan(void)
 				// find bad blocks
 				if(oob_buf[0] != 0xff)
 				{
-				    debug("find defined bad block in chip %u, block %u.\n", i, j);
+				    printf("find defined bad block in chip %u, block %u.\n", i, j);
 					bad_block_cnt[chip]++;
                     break;
 				}
@@ -634,7 +635,7 @@ int NAND_BadBlockScan(void)
     	        }
     		else
     		    {
-    		        debug("chip connect parameter %x error \n", chip_connect_mode);
+    		        printf("chip connect parameter %x error \n", chip_connect_mode);
     		        free(page_buf);
 
         			return -1;
@@ -656,7 +657,7 @@ int NAND_BadBlockScan(void)
         		}
     		else
         		{
-        			debug("chip connect parameter %x error \n", chip_connect_mode);
+        			printf("chip connect parameter %x error \n", chip_connect_mode);
         			free(page_buf);
 
         			return -1;
@@ -674,7 +675,7 @@ int NAND_BadBlockScan(void)
     		    }
     		else
     		    {
-    			    debug("chip connect parameter %x error \n",chip_connect_mode);
+    			    printf("chip connect parameter %x error \n",chip_connect_mode);
     			    free(page_buf);
 
     			    return -1;
@@ -691,7 +692,7 @@ int NAND_BadBlockScan(void)
         		}
     		else
     		    {
-        			debug("chip connect parameter %x error \n",chip_connect_mode);
+        			printf("chip connect parameter %x error \n",chip_connect_mode);
         			free(page_buf);
 
         			return -1;
@@ -699,7 +700,7 @@ int NAND_BadBlockScan(void)
 	    }
 	else
 	    {
-	        debug("chip cnt parameter %x error \n",chip_connect_mode);
+	        printf("chip cnt parameter %x error \n",chip_connect_mode);
 	        free(page_buf);
 
         	return -1;
@@ -711,20 +712,20 @@ int NAND_BadBlockScan(void)
     for(i=0; i<chip_cnt; i++)
     {
 		chip = cal_real_chip( i, chip_connect_mode );
-		debug(" %d bad blocks in CE %u \n", bad_block_cnt[chip], chip);
+		printf(" %d bad blocks in CE %u \n", bad_block_cnt[chip], chip);
 	}
-	debug("cal bad block num is %u \n", bad_block_num);
-	debug("cal good block num is %u \n", good_block_num);
+	printf("cal bad block num is %u \n", bad_block_num);
+	printf("cal good block num is %u \n", good_block_num);
 
     //cal good block ratio
 	for(i=0; i<5; i++)
 	{
 		if(good_block_num >= (default_good_block_ratio - 32*i))
-		    {
-    			good_block_ratio = (default_good_block_ratio - 32*i);
-    			debug("good block ratio is %u \n",good_block_ratio);
-    			break;
-    		}
+	    {
+			good_block_ratio = (default_good_block_ratio - 32*i);
+			printf("good block ratio is %u \n",good_block_ratio);
+			break;
+		}
 	}
     free(page_buf);
 
@@ -755,7 +756,7 @@ int NAND_UbootInit(int boot_mode)
 				return -1;
 		    }
 	    }
-
+		NAND_GetParam(nand_para_store, 256);
 	}
 
     /* logic init */
@@ -1049,8 +1050,7 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 
 	/* get nand driver version */
     NAND_GetVersion(oob_buf);
-    debug("0x%x\n", (uint *)oob_buf);
-	if((oob_buf[0]!=0xff)||(oob_buf[1]!= 0x00))
+    if((oob_buf[0]!=0xff)||(oob_buf[1]!= 0x00))
 	{
 		debug("get flash driver version error!");
 		goto error;
@@ -1092,7 +1092,7 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
 
 	debug("pages_per_copy: 0x%x\n", pages_per_copy);
 
-
+	//while((*(volatile unsigned int *)0) != 0x1234);
 	/* burn uboot */
     for( i = NAND_UBOOT_BLK_START;  i < (NAND_UBOOT_BLK_START + NAND_UBOOT_BLK_CNT);  i++ )
     {
@@ -1122,6 +1122,30 @@ __s32 burn_uboot_in_one_blk(__u32 UBOOT_buf, __u32 length)
    			}
    		}
 
+    }
+
+	memset(oob_buf, 0, 32);
+    //check uboot
+    for( i = NAND_UBOOT_BLK_START;  i < (NAND_UBOOT_BLK_START + NAND_UBOOT_BLK_CNT);  i++ )
+    {
+	    debug("verify uboot blk %x \n", i);
+
+        /* 擦除块 */
+
+      	for( k = 0;  k < pages_per_copy;  k++ )
+		{
+			para.chip  = 0;
+			para.block = i;
+			para.page  = k;
+			para.mainbuf = (void *) (UBOOT_buf + k * page_size);
+			para.oobbuf = oob_buf;
+			//debug("burn uboot: block: 0x%x, page: 0x%x, mainbuf: 0x%x, maindata: 0x%x \n", para.block, para.page, (__u32)para.mainbuf, *((__u32 *)para.mainbuf));
+
+			if( PHY_SimpleRead( &para ) <0 )
+			{
+				debug("Warning. Fail in read page %d in block %d.\n", k, i );
+   			}
+   		}
     }
 
 	return 0;
@@ -1165,20 +1189,20 @@ __s32 burn_uboot_in_many_blks(__u32 UBOOT_buf, __u32 length)
 	pages_per_block = NAND_GetPageCntPerBlk();
 	if(pages_per_block%64)
 	{
-		debug("get page cnt per block error %x!", pages_per_block);
+		printf("get page cnt per block error %x!", pages_per_block);
 		goto error;
 	}
 
 	/* 计算每个备份所需page */
 	if(length%page_size)
 	{
-		debug("uboot length check error!\n");
+		printf("uboot length check error!\n");
 		goto error;
 	}
 	pages_per_copy = length/page_size;
 	if(pages_per_copy<=pages_per_block)
 	{
-		debug("pages_per_copy check error!\n");
+		printf("pages_per_copy check error!\n");
 		goto error;
 	}
 
@@ -1194,7 +1218,7 @@ __s32 burn_uboot_in_many_blks(__u32 UBOOT_buf, __u32 length)
 		para.block = i;
 		if( PHY_SimpleErase( &para ) <0 )
 		{
-		    debug("Fail in erasing block %d.\n", i );
+		    printf("Fail in erasing block %d.\n", i );
     		continue;
     	}
 
@@ -1208,7 +1232,7 @@ __s32 burn_uboot_in_many_blks(__u32 UBOOT_buf, __u32 length)
 			para.oobbuf = oob_buf;
 			if( PHY_SimpleWrite( &para ) <0 )
 			{
-				debug("Warning. Fail in writing page %d in block %d.\n", k, i );
+				printf("Warning. Fail in writing page %d in block %d.\n", k, i );
    			}
    			page_index++;
 
@@ -1242,7 +1266,7 @@ int NAND_BurnUboot(uint length, void *buffer)
 	{
 		if(page_size %1024)
 		{
-			debug("get flash page size error!\n");
+			printf("get flash page size error!\n");
 			goto error;
 		}
 	}
@@ -1251,26 +1275,24 @@ int NAND_BurnUboot(uint length, void *buffer)
 	pages_per_block = NAND_GetPageCntPerBlk();
 	if(pages_per_block%64)
 	{
-		debug("get page cnt per block error %x!\n", pages_per_block);
+		printf("get page cnt per block error %x!\n", pages_per_block);
 		goto error;
 	}
 
 	block_size = page_size*pages_per_block;
 	if(length%page_size)
 	{
-		debug(" uboot length check error!\n");
+		printf(" uboot length check error!\n");
 		goto error;
 	}
 
 	if(length<=block_size)
 	{
 		ret = burn_uboot_in_one_blk((__u32)buffer, length);
-		debug("%d %d\n", __LINE__, ret);
 	}
 	else
 	{
 		ret = burn_uboot_in_many_blks((__u32)buffer, length);
-		debug("%d %d\n", __LINE__, ret);
 	}
 
 	return ret;
@@ -1281,7 +1303,12 @@ error:
 }
 
 
+int NAND_GetParam_store(void *buffer, uint length)
+{
+	memcpy(buffer, nand_para_store, length);
 
+	return 0;
+}
 
 
 

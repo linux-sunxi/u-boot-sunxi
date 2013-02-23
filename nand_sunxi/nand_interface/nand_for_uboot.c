@@ -112,7 +112,7 @@ int nand_uboot_erase(int user_erase)
 
 uint nand_uboot_get_flash_info(void *buffer, uint length)
 {
-    return NAND_GetParam(buffer, length);
+    return NAND_GetParam_store(buffer, length);
 }
 
 uint nand_uboot_set_flash_info(void *buffer, uint length)

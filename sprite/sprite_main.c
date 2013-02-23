@@ -285,12 +285,12 @@ int sunxi_sprite_mode(int workmode)
 	    	return -1;
 	    }
 	    sprite_cartoon_upgrade(90);
-//	    if(sunxi_sprite_deal_boot0(production_media))
-//	    {
-//	    	printf("sunxi sprite error : download boot0 error\n");
-//
-//	    	return -1;
-//	    }
+	    if(sunxi_sprite_deal_boot0(production_media))
+	    {
+	    	printf("sunxi sprite error : download boot0 error\n");
+
+	    	return -1;
+	    }
 	    sprite_cartoon_upgrade(100);
 	}
 	else if(workmode == WORK_MODE_USB_PRODUCT)

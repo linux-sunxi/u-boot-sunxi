@@ -126,7 +126,6 @@ int sunxi_sprite_download_uboot(void *buffer, int production_media)
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		//memcpy((void *)uboot->boot_data.nand_spare_data, storage_info, sizeof(boot_nand_para_t));
 		nand_uboot_get_flash_info((void *)uboot->boot_data.nand_spare_data, STORAGE_BUFFER_SIZE);
 	}
 	/* regenerate check sum */
@@ -189,7 +188,6 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 	//野割FLASH佚連
 	if(!production_media)
 	{
-		//memcpy((void *)boot0->prvt_head.storage_data, storage_info, sizeof(boot_nand_para_t));
 		nand_uboot_get_flash_info((void *)boot0->prvt_head.storage_data, STORAGE_BUFFER_SIZE);
 	}
 //	memcpy((void *)&boot0->prvt_head.dram_para, (void *)&uboot_spare_head.boot_data.dram_para, sizeof(boot_dram_para_t));
@@ -213,4 +211,3 @@ int sunxi_sprite_download_boot0(void *buffer, int production_media)
 		return 0;
 	}
 }
-
