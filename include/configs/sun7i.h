@@ -34,7 +34,7 @@
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
 #define CONFIG_SUN7I				/* which is sun7i */
-#define CONFIG_FPGA					/* working with fpga board */
+//#define CONFIG_FPGA					/* working with fpga board */
 #define CONFIG_CMD_BOOTA
 #include <asm/arch/cpu.h>			/* get chip and board defs */
 
