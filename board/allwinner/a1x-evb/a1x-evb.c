@@ -45,7 +45,7 @@ void fastboot_flash_partition_init(void)
 	char partition_sets[256];
 	char part_name[16];
 	char *pa_index;
-	int  part_name_count;	
+	int  part_name_count;
 
 	printf("--------fastboot partitions--------\n");
 	part_total = sunxi_partition_get_total_num();
@@ -81,7 +81,7 @@ void fastboot_flash_partition_init(void)
 		strcpy(pa_index, part_name);
 		pa_index += strlen(part_name);
 		*pa_index = ':';
-		pa_index ++;			
+		pa_index ++;
 
 		if(!storage_type)
 		{
@@ -101,7 +101,7 @@ void fastboot_flash_partition_init(void)
 			if(part_name_count < 5)
 			{
 				part_name_count = 5;
-				part_name[8] = '5';	
+				part_name[8] = '5';
 			}
 			else if(part_name_count < 10)
 			{
@@ -130,7 +130,7 @@ void fastboot_flash_partition_init(void)
 	printf("-----------------------------------\n");
 
 	setenv("partitions", partition_sets);
-	
+
 }
 
 void fastboot_partition_init(void) {
@@ -151,7 +151,7 @@ int android_misc_flash_check(void) {
 	{
 		puts("no misc partition is found\n");
 		return 0;
-	}	
+	}
 	memset(buffer, 0, 2048);
 #ifdef DEBUG
 	printf("misc_offset  : %d\n", (int )misc_offset);
@@ -168,6 +168,13 @@ int android_misc_flash_check(void) {
 		if(!strcmp(misc_message.command, "boot-recovery")) {
 			/* there is a recovery command */
 			puts("find boot recovery\n");
+			setenv("bootcmd", "run setargs_mmc boot_recovery");
+			puts("Recovery detected, will boot recovery\n");
+			/* android recovery will clean the misc */
+		}
+		else if(!strcmp(misc_message.command, "usb-recovery")) {
+			/* there is a recovery command */
+			puts("find usb recovery\n");
 			setenv("bootcmd", "run setargs_mmc boot_recovery");
 			puts("Recovery detected, will boot recovery\n");
 			/* android recovery will clean the misc */
@@ -190,6 +197,13 @@ int android_misc_flash_check(void) {
 		if(!strcmp(misc_message.command, "boot-recovery")) {
 			/* there is a recovery command */
 			puts("find boot recovery\n");
+			setenv("bootcmd", "run setargs_nand boot_recovery");
+			puts("Recovery detected, will boot recovery\n");
+			/* android recovery will clean the misc */
+		}
+		else if(!strcmp(misc_message.command, "usb-recovery")) {
+			/* there is a recovery command */
+			puts("find usb recovery\n");
 			setenv("bootcmd", "run setargs_nand boot_recovery");
 			puts("Recovery detected, will boot recovery\n");
 			/* android recovery will clean the misc */
@@ -221,7 +235,7 @@ int check_android_misc(void){
 }
 
 void set_boot_type_arg(void){
-	
+
 	if(storage_type){
 		setenv("bootcmd", "run setargs_mmc boot_normal");
 	}
@@ -268,7 +282,7 @@ int dram_init(void)
 int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(mmc_card_no);
-	
+
 	return 0;
 }
 
