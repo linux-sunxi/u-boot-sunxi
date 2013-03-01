@@ -20,6 +20,7 @@ function build_uboot()
             make distclean CROSS_COMPILE=arm-linux-gnueabi-
             ;;
         *)
+            make distclean CROSS_COMPILE=arm-linux-gnueabi-
             make -j8 ${LICHEE_CHIP} CROSS_COMPILE=arm-linux-gnueabi-
             [ $? -ne 0 ] && exit 1
             cp -f u-boot.bin ../out/${LICHEE_PLATFORM}/common/
