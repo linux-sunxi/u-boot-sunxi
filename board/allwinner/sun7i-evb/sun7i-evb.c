@@ -255,8 +255,22 @@ int board_late_init(void)
 }
 void dram_init_banksize(void)
 {
+    /* We should init the Dram options, and kernel get it by tag. */
+    int dram_size;
+    int ret;
+
+    ret = script_parser_fetch("dram_para", "dram_size", &dram_size, 1);
+    if (!ret) {
+        if (dram_size) {
+            gd->bd->bi_dram[0].size = dram_size * 1024 * 1024;
+        } else {
+            gd->bd->bi_dram[0].size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+        }
+    } else {
+        gd->bd->bi_dram[0].size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+    }
+
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = PHYS_SDRAM_1_SIZE;
 }
 
 int dram_init(void)
