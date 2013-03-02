@@ -103,7 +103,7 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
-//#define CONFIG_MMC_SUNXI_USE_DMA
+#define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
 #define CONFIG_STORAGE_EMMC
