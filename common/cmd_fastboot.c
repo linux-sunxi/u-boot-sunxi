@@ -804,7 +804,7 @@ static int rx_handler (const unsigned char *buffer, unsigned int buffer_size)
 {
 	int ret = 1;
 #ifdef DEBUG
-	printf("fast boot rx handle storage_type is %d\n",storage_type);
+	//printf("fast boot rx handle storage_type is %d\n",storage_type);
 #endif
 	/* Use 65 instead of 64
 	   null gets dropped
