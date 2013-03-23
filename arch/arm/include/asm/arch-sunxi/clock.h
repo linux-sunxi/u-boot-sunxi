@@ -79,7 +79,7 @@
 #define AXI_DIV					1
 #define AHB_DIV					1
 #define APB0_DIV				1
-#ifdef SUN5I
+#ifdef CONFIG_SUN5I
 #define AHB_CLK_SRC_AXI			0
 #endif
 
