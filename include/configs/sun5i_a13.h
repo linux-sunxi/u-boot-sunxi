@@ -66,12 +66,11 @@
 #ifndef CONFIG_CONS_INDEX
 #ifdef CONFIG_UART0_PORT_F
 #define CONFIG_CONS_INDEX               1       /* UART0 on PORT_F (sdcard) */
+#define CONFIG_SD_UART
 #else
 #define CONFIG_CONS_INDEX               2       /* UART1 */
 #endif
 #endif
-
-#define CONFIG_CONS_INDEX			2			/* which serial channel for console */
 
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
