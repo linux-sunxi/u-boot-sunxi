@@ -209,7 +209,9 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 
 	/* we assume that the kernel is in place */
 	announce_and_cleanup();
+#ifndef CONFIG_SUN5I
 	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
+#endif
 
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);
 	/* does not return */
