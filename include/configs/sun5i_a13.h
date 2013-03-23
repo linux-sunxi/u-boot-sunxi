@@ -32,7 +32,7 @@
  */
 #define CONFIG_ALLWINNER			/* It's a Allwinner chip */
 #define	CONFIG_SUNXI				/* which is sunxi family */
-#define CONFIG_SUN4I				/* which is sun4i */
+#define CONFIG_SUN5I				/* which is sun5i */
 #define CONFIG_A12_EVB				/* working with A12-EVB board */
 #define CONFIG_MACH_TYPE                4138
 
