@@ -185,12 +185,7 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	setup_revision_tag (&params);
 #endif
 #ifdef CONFIG_SETUP_MEMORY_TAGS
-	/*----------------------------------------------------------------------
-	 * We don't need to set memory tags, since kernel will squash_mem_tags()
-	 * in arch/arm/kernel/setup.c. If we set memory tags, kernel will print
-	 * "Ignoring unrecognised tag 0x00000000" at boot time.
-	 *----------------------------------------------------------------------*/
-	/* setup_memory_tags (bd); */
+	setup_memory_tags (bd);
 #endif
 #ifdef CONFIG_CMDLINE_TAG
 	if(strlen((const char *)hdr->cmdline)) {
