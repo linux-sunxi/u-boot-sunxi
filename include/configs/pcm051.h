@@ -21,8 +21,7 @@
 
 #define CONFIG_AM33XX
 
-#include <asm/arch/cpu.h>
-#include <asm/arch/hardware.h>
+#include <asm/arch/omap.h>
 
 #define CONFIG_DMA_COHERENT
 #define CONFIG_DMA_COHERENT_SIZE	(1 << 20)
@@ -234,7 +233,7 @@
 #define CONFIG_SPL_SPI_CS		0
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 #define CONFIG_SYS_SPI_U_BOOT_SIZE	0x40000
-#define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/omap-common/u-boot-spl.lds"
+#define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/am33xx/u-boot-spl.lds"
 
 /*
  * 1MB into the SDRAM to allow for SPL's bss at the beginning of SDRAM

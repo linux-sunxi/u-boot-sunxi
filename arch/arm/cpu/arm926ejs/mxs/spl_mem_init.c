@@ -27,6 +27,7 @@
 #include <config.h>
 #include <asm/io.h>
 #include <asm/arch/imx-regs.h>
+#include <asm/arch/sys_proto.h>
 #include <linux/compiler.h>
 
 #include "mxs_init.h"
@@ -45,17 +46,17 @@ static uint32_t dram_vals[] = {
 	0x00000000, 0x00000000, 0x00010101, 0x01010101,
 	0x000f0f01, 0x0f02020a, 0x00000000, 0x00010101,
 	0x00000100, 0x00000100, 0x00000000, 0x00000002,
-	0x01010000, 0x05060302, 0x06005003, 0x0a0000c8,
-	0x02009c40, 0x0000030c, 0x0036a609, 0x031a0612,
+	0x01010000, 0x07080403, 0x06005003, 0x0a0000c8,
+	0x02009c40, 0x0002030c, 0x0036a609, 0x031a0612,
 	0x02030202, 0x00c8001c, 0x00000000, 0x00000000,
 	0x00012100, 0xffff0303, 0x00012100, 0xffff0303,
 	0x00012100, 0xffff0303, 0x00012100, 0xffff0303,
 	0x00000003, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000612, 0x01000F02,
-	0x06120612, 0x00000200, 0x00020007, 0xf5014b27,
-	0xf5014b27, 0xf5014b27, 0xf5014b27, 0x07000300,
-	0x07000300, 0x07000300, 0x07000300, 0x00000006,
+	0x06120612, 0x00000200, 0x00020007, 0xf4004a27,
+	0xf4004a27, 0xf4004a27, 0xf4004a27, 0x07000300,
+	0x07000300, 0x07400300, 0x07400300, 0x00000005,
 	0x00000000, 0x00000000, 0x01000000, 0x01020408,
 	0x08040201, 0x000f1133, 0x00000000, 0x00001f04,
 	0x00001f04, 0x00001f04, 0x00001f04, 0x00001f04,
@@ -76,14 +77,14 @@ static uint32_t dram_vals[] = {
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x00000000,
-	0x00000000, 0x00000000, 0x00010000, 0x00020304,
-	0x00000004, 0x00000000, 0x00000000, 0x00000000,
+	0x00000000, 0x00000000, 0x00010000, 0x00030404,
+	0x00000003, 0x00000000, 0x00000000, 0x00000000,
 	0x00000000, 0x00000000, 0x00000000, 0x01010000,
 	0x01000000, 0x03030000, 0x00010303, 0x01020202,
 	0x00000000, 0x02040303, 0x21002103, 0x00061200,
-	0x06120612, 0x04320432, 0x04320432, 0x00040004,
+	0x06120612, 0x04420442, 0x04420442, 0x00040004,
 	0x00040004, 0x00000000, 0x00000000, 0x00000000,
-	0x00000000, 0x00010001
+	0x00000000, 0xffffffff
 
 /*
  * i.MX23 DDR at 133MHz
@@ -119,6 +120,10 @@ static void initialize_dram_values(void)
 		writel(dram_vals[i], MXS_DRAM_BASE + (4 * i));
 
 #ifdef CONFIG_MX23
+	/*
+	 * Enable tRAS lockout in HW_DRAM_CTL08 ; it must be the last
+	 * element to be set
+	 */
 	writel((1 << 24), MXS_DRAM_BASE + (4 * 8));
 #endif
 }
@@ -229,7 +234,7 @@ static void mx23_mem_setup_vddmem(void)
 	struct mxs_power_regs *power_regs =
 		(struct mxs_power_regs *)MXS_POWER_BASE;
 
-	writel((0x12 << POWER_VDDMEMCTRL_TRG_OFFSET) |
+	writel((0x10 << POWER_VDDMEMCTRL_TRG_OFFSET) |
 		POWER_VDDMEMCTRL_ENABLE_ILIMIT |
 		POWER_VDDMEMCTRL_ENABLE_LINREG |
 		POWER_VDDMEMCTRL_PULLDOWN_ACTIVE,
@@ -237,13 +242,20 @@ static void mx23_mem_setup_vddmem(void)
 
 	early_delay(10000);
 
-	writel((0x12 << POWER_VDDMEMCTRL_TRG_OFFSET) |
+	writel((0x10 << POWER_VDDMEMCTRL_TRG_OFFSET) |
 		POWER_VDDMEMCTRL_ENABLE_LINREG,
 		&power_regs->hw_power_vddmemctrl);
 }
 
 static void mx23_mem_init(void)
 {
+	/*
+	 * Reset/ungate the EMI block. This is essential, otherwise the system
+	 * suffers from memory instability. This thing is mx23 specific and is
+	 * no longer present on mx28.
+	 */
+	mxs_reset_block((struct mxs_register_32 *)MXS_EMI_BASE);
+
 	mx23_mem_setup_vddmem();
 
 	/*

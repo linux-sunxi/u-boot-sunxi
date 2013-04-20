@@ -24,7 +24,7 @@
 #include <twl4030.h>
 #include <netdev.h>
 #include <asm/gpio.h>
-#include <asm/arch/omap_gpmc.h>
+#include <asm/omap_gpmc.h>
 #include <asm/io.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mmc_host_def.h>
@@ -150,8 +150,7 @@ static inline void setup_net_chip(void) {}
 #if defined(CONFIG_GENERIC_MMC) && !defined(CONFIG_SPL_BUILD)
 int board_mmc_init(bd_t *bis)
 {
-	omap_mmc_init(0, 0, 0);
-	return 0;
+	return omap_mmc_init(0, 0, 0, -1, -1);
 }
 #endif
 

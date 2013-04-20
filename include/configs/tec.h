@@ -73,24 +73,15 @@
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
 
-#define CONFIG_DOS_PARTITION
-#define CONFIG_EFI_PARTITION
-#define CONFIG_CMD_EXT2
-#define CONFIG_CMD_FAT
-
-#define CONFIG_FIT
-
-#define CONFIG_BOOTCOMMAND				\
-	"mmc rescan;"					\
-	"ext2load mmc 0 0x17000000 /boot/uImage;"	\
-	"bootm"
-
 /* LCD support */
 #define CONFIG_LCD
 #define CONFIG_PWM_TEGRA
 #define CONFIG_VIDEO_TEGRA
 #define LCD_BPP LCD_COLOR16
 #define CONFIG_SYS_WHITE_ON_BLACK
+
+/* support the new (FDT-based) image format */
+#define CONFIG_FIT
 
 #include "tegra-common-post.h"
 
