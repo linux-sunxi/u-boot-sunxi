@@ -36,6 +36,7 @@
 
 #include <asm/arch/cpu.h>
 #include <asm/arch/omap3.h>
+#include <asm/mach-types.h>
 
 /*
  * Display CPU and Board information
@@ -54,7 +55,8 @@
 #define CONFIG_INITRD_TAG		1
 #define CONFIG_REVISION_TAG		1
 
-#define CONFIG_OF_LIBFDT		1
+#define CONFIG_OF_LIBFDT
+#define CONFIG_CMD_BOOTZ
 
 /*
  * NS16550 Configuration
@@ -66,9 +68,6 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	(-4)
 #define CONFIG_SYS_NS16550_CLK		V_NS16550_CLK
-
-/* define to avoid U-Boot to hang while waiting for TEMT */
-#define CONFIG_SYS_NS16550_BROKEN_TEMT
 
 /* select serial console configuration */
 #define CONFIG_CONS_INDEX		3
@@ -86,7 +85,10 @@
 #define CONFIG_DOS_PARTITION		1
 
 /* define to enable boot progress via leds */
+#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
+    (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0030)
 #define CONFIG_SHOW_BOOT_PROGRESS
+#endif
 
 /* USB */
 #define CONFIG_MUSB_UDC			1
@@ -118,7 +120,8 @@
 #ifdef CONFIG_BOOT_NAND
 #define CONFIG_CMD_NAND
 #endif
-#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020)
+#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
+    (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0032)
 #define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 #endif
 #define CONFIG_CMD_DHCP

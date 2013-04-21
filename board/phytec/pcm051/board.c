@@ -61,7 +61,7 @@ static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 
 static void rtc32k_enable(void)
 {
-	struct rtc_regs *rtc = (struct rtc_regs *)AM335X_RTC_BASE;
+	struct rtc_regs *rtc = (struct rtc_regs *)RTC_BASE;
 
 	/*
 	 * Unlock the RTC's registers.  For more details please see the
@@ -104,7 +104,8 @@ static struct emif_regs ddr3_emif_reg_data = {
 	.sdram_tim2 = MT41J256M8HX15E_EMIF_TIM2,
 	.sdram_tim3 = MT41J256M8HX15E_EMIF_TIM3,
 	.zq_config = MT41J256M8HX15E_ZQ_CFG,
-	.emif_ddr_phy_ctlr_1 = MT41J256M8HX15E_EMIF_READ_LATENCY,
+	.emif_ddr_phy_ctlr_1 = MT41J256M8HX15E_EMIF_READ_LATENCY |
+				PHY_EN_DYN_PWRDN,
 };
 #endif
 
@@ -159,7 +160,7 @@ void s_init(void)
 	enable_board_pin_mux();
 
 	config_ddr(DDR_CLK_MHZ, MT41J256M8HX15E_IOCTRL_VALUE, &ddr3_data,
-			&ddr3_cmd_ctrl_data, &ddr3_emif_reg_data);
+			&ddr3_cmd_ctrl_data, &ddr3_emif_reg_data, 0);
 #endif
 }
 
@@ -199,8 +200,8 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 };
 
 static struct cpsw_platform_data cpsw_data = {
-	.mdio_base		= AM335X_CPSW_MDIO_BASE,
-	.cpsw_base		= AM335X_CPSW_BASE,
+	.mdio_base		= CPSW_MDIO_BASE,
+	.cpsw_base		= CPSW_BASE,
 	.mdio_div		= 0xff,
 	.channels		= 8,
 	.cpdma_reg_ofs		= 0x800,

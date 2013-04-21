@@ -40,7 +40,7 @@
 typedef struct global_data {
 	bd_t *bd;
 	unsigned long flags;
-	unsigned long baudrate;
+	unsigned int baudrate;
 	unsigned long cpu_clk;	/* CPU clock in Hz!		*/
 	unsigned long bus_clk;
 	/* We cannot bracket this with CONFIG_PCI due to mpc5xxx */
@@ -81,6 +81,8 @@ typedef struct global_data {
 	unsigned long reloc_off;
 	struct global_data *new_gd;	/* relocated global data */
 	const void *fdt_blob;	/* Our device tree, NULL if none */
+	void *new_fdt;		/* Relocated FDT */
+	unsigned long fdt_size;	/* Space reserved for relocated FDT */
 	void **jt;		/* jump table */
 	char env_buf[32];	/* buffer for getenv() before reloc. */
 	struct arch_global_data arch;	/* architecture-specific data */

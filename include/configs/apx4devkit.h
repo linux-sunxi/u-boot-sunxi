@@ -182,7 +182,8 @@
 #ifdef CONFIG_CMD_USB
 #define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_MXS
-#define CONFIG_EHCI_MXS_PORT		1
+#define CONFIG_EHCI_MXS_PORT1
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	1
 #define CONFIG_EHCI_IS_TDI
 #define CONFIG_USB_STORAGE
 #endif
@@ -222,7 +223,7 @@
 		"root=ubi0:rootfs rootfstype=ubifs ${mtdparts} rw\0" \
 	"bootcmd_nand=" \
 		"run bootargs_nand && ubi part root 2048 && " \
-		"ubifsmount rootfs && ubifsload 41000000 boot/uImage && " \
+		"ubifsmount ubi:rootfs && ubifsload 41000000 boot/uImage && " \
 		"bootm 41000000\0" \
 	"bootargs_mmc=" \
 		"setenv bootargs ${kernelargs} " \

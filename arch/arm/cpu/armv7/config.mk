@@ -40,5 +40,11 @@ PF_NO_UNALIGNED := $(call cc-option, -mno-unaligned-access,)
 PLATFORM_NO_UNALIGNED := $(PF_NO_UNALIGNED)
 
 ifneq ($(CONFIG_IMX_CONFIG),)
-ALL-y	+= $(OBJTREE)/u-boot.imx
+ifdef CONFIG_SPL
+ifdef CONFIG_SPL_BUILD
+ALL-y	+= $(OBJTREE)/SPL
+endif
+else
+ALL-y	+= $(obj)u-boot.imx
+endif
 endif
