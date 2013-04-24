@@ -376,4 +376,11 @@
 #endif
 #endif
 
+/* Define this to have serial channel 1 (UART0) redirected to SD port */
+/* #define CONFIG_UART0_PORT_F */
+
+#ifndef CONFIG_CONS_INDEX
+#define CONFIG_CONS_INDEX              1       /* UART0 */
+#endif
+
 #endif /* _SUNXI_COMMON_CONFIG_H */

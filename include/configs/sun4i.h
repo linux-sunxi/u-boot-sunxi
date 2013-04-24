@@ -39,11 +39,6 @@
 #define CONFIG_SYS_PROMPT		"sun4i#"
 #define CONFIG_MACH_TYPE		4104
 
-/* Define this to have console redirected to SD port */
-/* #define CONFIG_UART0_PORT_F */
-
-#define CONFIG_CONS_INDEX		1	/* UART0 */
-
 /* Ethernet support on A10 */
 #define CONFIG_SUNXI_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
