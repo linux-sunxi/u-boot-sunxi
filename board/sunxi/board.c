@@ -30,7 +30,12 @@
 #include <asm/arch/dram.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/mmc.h>
+#ifdef CONFIG_AXP152_POWER
+#include <axp152.h>
+#endif
+#ifdef CONFIG_AXP209_POWER
 #include <axp209.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -90,6 +95,13 @@ void sunxi_board_init(void)
 	if (!ramsize)
 		hang();
 
+#ifdef CONFIG_AXP152_POWER
+	power_failed = axp152_init();
+	power_failed |= axp152_set_dcdc2(1200); //was 1400
+	power_failed |= axp152_set_dcdc3(1500);
+	power_failed |= axp152_set_dcdc4(1200);
+	power_failed |= axp152_set_ldo2(3000);
+#endif
 #ifdef CONFIG_AXP209_POWER
 	power_failed |= axp209_init();
 	power_failed |= axp209_set_dcdc2(1400);

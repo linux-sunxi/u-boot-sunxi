@@ -25,6 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	:= $(obj)libpower.o
 
+COBJS-$(CONFIG_AXP152_POWER)	+= axp152.o
 COBJS-$(CONFIG_AXP209_POWER)	+= axp209.o
 COBJS-$(CONFIG_EXYNOS_TMU)	+= exynos-tmu.o
 COBJS-$(CONFIG_FTPMU010_POWER)	+= ftpmu010.o
