@@ -28,8 +28,6 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
-SOBJS	+= reset.o
-
 COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
@@ -42,7 +40,9 @@ endif
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
+ifdef CONFIG_CMD_WATCHDOG
 COBJS   += cmd_watchdog.o
+endif
 endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)

@@ -32,7 +32,6 @@ COBJS-y += imx_watchdog.o
 endif
 COBJS-$(CONFIG_TNETV107X_WATCHDOG) += tnetv107x_wdt.o
 COBJS-$(CONFIG_S5P)               += s5p_wdt.o
-COBJS-$(CONFIG_SUNXI_WATCHDOG)    += sunxi_watchdog.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

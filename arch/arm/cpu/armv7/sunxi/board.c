@@ -84,12 +84,48 @@ int gpio_init(void)
 	return 0;
 }
 
+/* watchdog is also used for reset_cpu() and always needed */
+void watchdog_reset(void)
+{
+	static struct sunxi_wdog *const wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+
+	/* a little magic to reload the watchdog */
+	writel(0xA57 << 1 | 1 << 0, &wdog->ctl);
+}
+
+static void watchdog_set(int interval)
+{
+	static struct sunxi_wdog *const wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+
+	/* Set timeout, reset & enable */
+	if (interval)
+		writel((interval-1) << 2 | 1 << 1 | 1 << 0, &wdog->mode);
+	else
+		writel(0 << 2 | 0 << 1 | 1 << 0, &wdog->mode);
+	watchdog_reset();
+}
+
+static void watchdog_init(void)
+{
+#ifdef CONFIG_WATCHDOG
+	watchdog_set(24);	/* max possible timeout */
+#else
+	watchdog_set(0);	/* no timeout */
+#endif
+}
+
+void reset_cpu(ulong addr)
+{
+	watchdog_set(1);
+	while(1);
+}
+
 /* do some early init */
 void s_init(void)
 {
-#if defined(CONFIG_WATCHDOG) && defined(CONFIG_SUNXI_WATCHDOG)
-	watchdog_set(23);	/* max possible timeout */
-#endif
+	watchdog_init();
 	clock_init();
 	gpio_init();
 
@@ -105,11 +141,6 @@ void s_init(void)
 	sunxi_board_init();
 #endif
 
-}
-
-void reset_cpu(ulong addr)
-{
-	sunxi_reset();
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
@@ -132,3 +163,4 @@ int cpu_eth_init(bd_t *bis)
 	return 0;
 }
 #endif
+
