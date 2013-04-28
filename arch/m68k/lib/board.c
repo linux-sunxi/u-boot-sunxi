@@ -77,9 +77,10 @@ static char *failed = "*** failed ***\n";
 #include <environment.h>
 
 extern ulong __init_end;
-extern ulong __bss_end__;
+extern ulong __bss_end;
 
 #if defined(CONFIG_WATCHDOG)
+# undef INIT_FUNC_WATCHDOG_INIT
 # define INIT_FUNC_WATCHDOG_INIT	watchdog_init,
 # define WATCHDOG_DISABLE		watchdog_disable
 
@@ -244,7 +245,7 @@ board_init_f (ulong bootflag)
 	 *	- monitor code
 	 *	- board info struct
 	 */
-	len = (ulong)&__bss_end__ - CONFIG_SYS_MONITOR_BASE;
+	len = (ulong)&__bss_end - CONFIG_SYS_MONITOR_BASE;
 
 	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
 

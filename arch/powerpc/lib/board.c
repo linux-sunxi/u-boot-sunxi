@@ -123,7 +123,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #endif
 
 extern ulong __init_end;
-extern ulong __bss_end__;
+extern ulong __bss_end;
 ulong monitor_flash_len;
 
 #if defined(CONFIG_CMD_BEDBUG)
@@ -237,25 +237,18 @@ static int init_func_spi(void)
 /***********************************************************************/
 
 #if defined(CONFIG_WATCHDOG)
-static int init_func_watchdog_init(void)
+int init_func_watchdog_init(void)
 {
 	puts("       Watchdog enabled\n");
 	WATCHDOG_RESET();
 	return 0;
 }
 
-#define INIT_FUNC_WATCHDOG_INIT	init_func_watchdog_init,
-
-static int init_func_watchdog_reset(void)
+int init_func_watchdog_reset(void)
 {
 	WATCHDOG_RESET();
 	return 0;
 }
-
-#define INIT_FUNC_WATCHDOG_RESET	init_func_watchdog_reset,
-#else
-#define INIT_FUNC_WATCHDOG_INIT		/* undef */
-#define INIT_FUNC_WATCHDOG_RESET	/* undef */
 #endif /* CONFIG_WATCHDOG */
 
 /*
@@ -326,7 +319,8 @@ static init_fnc_t *init_sequence[] = {
 #ifdef CONFIG_POST
 	post_init_f,
 #endif
-	INIT_FUNC_WATCHDOG_RESET init_func_ram,
+	INIT_FUNC_WATCHDOG_RESET
+	init_func_ram,
 #if defined(CONFIG_SYS_DRAM_TEST)
 	testdram,
 #endif /* CONFIG_SYS_DRAM_TEST */
@@ -419,7 +413,7 @@ void board_init_f(ulong bootflag)
 	 *  - monitor code
 	 *  - board info struct
 	 */
-	len = (ulong)&__bss_end__ - CONFIG_SYS_MONITOR_BASE;
+	len = (ulong)&__bss_end - CONFIG_SYS_MONITOR_BASE;
 
 	/*
 	 * Subtract specified amount of memory to hide so that it won't

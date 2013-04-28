@@ -19,6 +19,9 @@
 
 #define CONFIG_MX6
 #define CONFIG_MX6Q
+
+#include "mx6_common.h"
+
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
@@ -33,6 +36,7 @@
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_MXC_GPIO
 
 #define CONFIG_MXC_UART
@@ -72,6 +76,7 @@
 /* Command definition */
 #include <config_cmd_default.h>
 
+#define CONFIG_CMD_BMODE
 #define CONFIG_CMD_BOOTZ
 #undef CONFIG_CMD_IMLS
 
@@ -143,7 +148,7 @@
 
 #define CONFIG_BOOTCOMMAND \
 	"mmc dev ${mmcdev};" \
-	"if mmc rescan ${mmcdev}; then " \
+	"if mmc rescan; then " \
 		"if run loadbootscript; then " \
 		"run bootscript; " \
 		"else " \
@@ -171,6 +176,7 @@
 
 #define CONFIG_SYS_MEMTEST_START       0x10000000
 #define CONFIG_SYS_MEMTEST_END         0x10010000
+#define CONFIG_SYS_MEMTEST_SCRATCH     0x10800000
 
 #define CONFIG_SYS_LOAD_ADDR           CONFIG_LOADADDR
 #define CONFIG_SYS_HZ                  1000

@@ -26,6 +26,13 @@
 #include "tegra-common.h"
 
 /*
+ * Errata configuration
+ */
+#define CONFIG_ARM_ERRATA_716044
+#define CONFIG_ARM_ERRATA_742230
+#define CONFIG_ARM_ERRATA_751472
+
+/*
  * NS16550 Configuration
  */
 #define V_NS16550_CLK		216000000	/* 216MHz (pllp_out0) */
@@ -108,13 +115,7 @@
 /* Total I2C ports on Tegra20 */
 #define TEGRA_I2C_NUM_CONTROLLERS	4
 
-#define CONFIG_PARTITION_UUIDS
-#define CONFIG_CMD_PART
-
 #define CONFIG_SYS_NAND_SELF_INIT
 #define CONFIG_SYS_NAND_ONFI_DETECTION
-
-/* Misc utility code */
-#define CONFIG_BOUNCE_BUFFER
 
 #endif /* _TEGRA20_COMMON_H_ */

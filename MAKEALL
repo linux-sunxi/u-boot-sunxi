@@ -104,9 +104,9 @@ while true ; do
 	-s|--soc)
 		# echo "Option SoC: argument \`$2'"
 		if [ "$opt_s" ] ; then
-			opt_s="${opt_s%)} || \$6 == \"$2\")"
+			opt_s="${opt_s%)} || \$6 == \"$2\" || \$6 ~ /$2/)"
 		else
-			opt_s="(\$6 == \"$2\")"
+			opt_s="(\$6 == \"$2\" || \$6 ~ /$2/)"
 		fi
 		SELECTED='y'
 		shift 2 ;;
@@ -664,7 +664,7 @@ build_target() {
 	export BUILD_DIR="${output_dir}"
 
 	target_arch=$(get_target_arch ${target})
-	eval cross_toolchain=\$CROSS_COMPILE_${target_arch^^}
+	eval cross_toolchain=\$CROSS_COMPILE_`echo $target_arch | tr '[:lower:]' '[:upper:]'`
 	if [ "${cross_toolchain}" ] ; then
 	    MAKE="make CROSS_COMPILE=${cross_toolchain}"
 	elif [ "${CROSS_COMPILE}" ] ; then
@@ -802,8 +802,20 @@ build_targets() {
 #-----------------------------------------------------------------------
 
 kill_children() {
-	local pgid=`ps -p $$ --no-headers -o "%r" | tr -d ' '`
-	local children=`pgrep -g $pgid | grep -v $$ | grep -v $pgid`
+	local OS=$(uname -s)
+	local children=""
+	case "${OS}" in
+		"Darwin")
+			# Mac OS X is known to have BSD style ps
+			local pgid=$(ps -p $$ -o pgid | sed -e "/PGID/d")
+			children=$(ps -g $pgid -o pid | sed -e "/PID\|$$\|$pgid/d")
+			;;
+		*)
+			# everything else tries the GNU style
+			local pgid=$(ps -p $$ --no-headers -o "%r" | tr -d ' ')
+			children=$(pgrep -g $pgid | sed -e "/$$\|$pgid/d")
+			;;
+	esac
 
 	kill $children 2> /dev/null
 	wait $children 2> /dev/null
