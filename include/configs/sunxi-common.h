@@ -204,7 +204,7 @@
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 #define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
-#define CONFIG_SPL_MAX_SIZE		0x8000		/* 32 KB */
+#define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KB */
 
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
