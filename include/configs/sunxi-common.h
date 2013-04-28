@@ -164,6 +164,12 @@
 	"fi;" \
 	"run setargs boot_mmc;" \
 
+#ifdef CONFIG_CMD_WATCHDOG
+#define	RESET_WATCHDOG " watchdog 0 &&"
+#else
+#define RESET_WATCHDOG ""
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
 	"root=/dev/mmcblk0p2 rootwait\0" \
@@ -184,7 +190,8 @@
 		" ext2load mmc 0 $scriptaddr boot/${bootenv}\0" \
 	"boot_mmc=fatload mmc 0 0x43000000 script.bin &&" \
 		" fatload mmc 0 0x48000000 ${kernel} &&" \
-		" watchdog 0 && bootm 0x48000000\0"
+		RESET_WATCHDOG \
+		" && bootm 0x48000000\0"
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
