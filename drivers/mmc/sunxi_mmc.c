@@ -112,7 +112,6 @@ struct sunxi_mmc_host {
 	unsigned fatal_err;
 	unsigned mod_clk;
 	struct sunxi_mmc *reg;
-	struct sunxi_mmc_des *pdes;
 };
 
 /* support 4 mmc hosts */
@@ -365,22 +364,18 @@ out:
 static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
-	struct sunxi_mmc_des *pdes = mmchost->pdes;
 	unsigned byte_cnt = data->blocksize * data->blocks;
 	unsigned char *buff;
 	unsigned des_idx = 0;
-	unsigned buff_frag_num = 0;
+	unsigned buff_frag_num = (byte_cnt + SDXC_DES_BUFFER_MAX_LEN - 1) >> SDXC_DES_NUM_SHIFT;
 	unsigned remain;
 	unsigned i, rval;
+	ALLOC_CACHE_ALIGN_BUFFER(struct sunxi_mmc_des, pdes, buff_frag_num);
 
 	buff = data->flags & MMC_DATA_READ ?
 	    (unsigned char *)data->dest : (unsigned char *)data->src;
-	buff_frag_num = byte_cnt >> SDXC_DES_NUM_SHIFT;
-
 	remain = byte_cnt & (SDXC_DES_BUFFER_MAX_LEN - 1);
-	if (remain)
-		buff_frag_num++;
-	else
+	if (!remain)
 		remain = SDXC_DES_BUFFER_MAX_LEN;
 
 	flush_cache((unsigned long)buff, (unsigned long)byte_cnt);
@@ -655,7 +650,6 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->f_min = 400000;
 	mmc->f_max = 52000000;
 
-	mmc_host[sdc_no].pdes = (struct sunxi_mmc_des *)0x50000000;
 	mmc_resource_init(sdc_no);
 	mmc_clk_io_on(sdc_no);
 
