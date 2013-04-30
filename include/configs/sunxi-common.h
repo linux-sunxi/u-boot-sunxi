@@ -162,36 +162,83 @@
 		"echo Jumping to ${bootscr};" \
 		"source ${scriptaddr};" \
 	"fi;" \
-	"run setargs boot_mmc;" \
+	"run boot_mmc;" \
+	""
 
 #ifdef CONFIG_CMD_WATCHDOG
-#define	RESET_WATCHDOG " watchdog 0 &&"
+#define	RESET_WATCHDOG "watchdog 0"
 #else
-#define RESET_WATCHDOG ""
+#define RESET_WATCHDOG "true"
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
-	"root=/dev/mmcblk0p2 rootwait\0" \
+	"root=auto\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
 	"loglevel=8\0" \
 	"scriptaddr=0x44000000\0" \
-	"setargs=setenv bootargs console=${console} root=${root}" \
-		" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
+	"setargs=" \
+		"if test \"$root\" = \"auto\"; then"\
+			" setenv root;"\
+			" if test \"$bootpath\" = \"boot/\"; then"\
+				" root=\"/dev/mmcblk0p1 rootwait\";"\
+			" else" \
+				" root=\"/dev/mmcblk0p2 rootwait\";"\
+			" fi;"\
+		" fi;"\
+		" setenv bootargs console=${console} root=${root}" \
+			" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
 	"kernel=uImage\0" \
 	"bootenv=uEnv.txt\0" \
 	"bootscr=boot.scr\0" \
-	"loadbootscr=fatload mmc 0 $scriptaddr ${bootscr} ||" \
-		" ext2load mmc 0 $scriptaddr ${bootscr} ||" \
-		" ext2load mmc 0 $scriptaddr boot/${bootscr}\0" \
-	"loadbootenv=fatload mmc 0 $scriptaddr ${bootenv} ||" \
-		" ext2load mmc 0 $scriptaddr ${bootenv} ||" \
-		" ext2load mmc 0 $scriptaddr boot/${bootenv}\0" \
-	"boot_mmc=fatload mmc 0 0x43000000 script.bin &&" \
-		" fatload mmc 0 0x48000000 ${kernel} &&" \
+	"loadbootscr=" \
+		"fatload mmc 0 $scriptaddr ${bootscr}" \
+		" || " \
+		"ext2load mmc 0 $scriptaddr boot/${bootscr}" \
+		" ||" \
+		"ext2load mmc 0 $scriptaddr ${bootscr}" \
+		"\0" \
+	"loadbootenv=" \
+		"fatload mmc 0 $scriptaddr ${bootenv}" \
+		" || " \
+		"ext2load mmc 0 $scriptaddr boot/${bootenv}" \
+		" || " \
+		"ext2load mmc 0 $scriptaddr ${bootenv}" \
+		"\0" \
+	"loadkernel=" \
+		"if "\
+			"bootpath=" \
+			" && " \
+			"fatload mmc 0 0x43000000 script.bin" \
+			" && " \
+			"fatload mmc 0 0x48000000 ${kernel}" \
+		";then true; elif " \
+			"bootpath=boot/" \
+			" && " \
+			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
+			" && " \
+			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
+		";then true; elif " \
+			"bootpath=" \
+			" && " \
+			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
+			" && " \
+			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
+		";then true; else "\
+			"false" \
+		";fi" \
+		"\0" \
+	"boot_mmc=" \
+		"run loadkernel" \
+		" && " \
+		"run setargs" \
+		" && " \
 		RESET_WATCHDOG \
-		" && bootm 0x48000000\0"
+		" && " \
+		"bootm 0x48000000" \
+		"\0" \
+	""
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
