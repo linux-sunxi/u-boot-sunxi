@@ -144,6 +144,7 @@
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
 
 #define CONFIG_BOOTCOMMAND \
+	"run boot_ram;" \
 	"if run loadbootenv; then " \
 		"echo Loaded environment from ${bootenv};" \
 		"env import -t ${scriptaddr} ${filesize};" \
@@ -223,6 +224,15 @@
 		"run setargs" \
 		" && " \
 		"bootm 0x48000000" \
+		"\0" \
+	"boot_ram=" \
+		"saved_stdout=$stdout;setenv stdout nc;"\
+		"if iminfo 0x41000000; then" \
+		" setenv stdout $saved_stdout;" \
+		" source 0x41000000;" \
+		"else" \
+		" setenv stdout $saved_stdout;" \
+		"fi" \
 		"\0" \
 	""
 
