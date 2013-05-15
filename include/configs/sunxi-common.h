@@ -163,6 +163,7 @@
 		"source ${scriptaddr};" \
 	"fi;" \
 	"run autoboot;" \
+	"run boot_ram;" \
 	""
 
 #ifdef CONFIG_CMD_WATCHDOG
@@ -237,6 +238,17 @@
 		RESET_WATCHDOG \
 		" && " \
 		"bootm 0x48000000" \
+		"\0" \
+	"boot_ram=" \
+		"saved_stdout=$stdout;setenv stdout nc;"\
+		"ramdisk=;"\
+		"if iminfo 0x44000000; then" \
+		" if iminfo 0x4c000000; then ramdisk=0x4c000000; fi"\
+		" setenv stdout $saved_stdout;" \
+		" setenv bootargs console=ttyS0,115200 rdinit=/sbin/init panic=10;" \
+		RESET_WATCHDOG ";"\
+		" bootm 0x44000000 $ramdisk;" \
+		"fi"
 		"\0" \
 	""
 
