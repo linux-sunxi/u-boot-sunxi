@@ -43,6 +43,7 @@ COBJS-$(CONFIG_MK802)		+= dram_mk802.o
 COBJS-$(CONFIG_MK802II)		+= dram_mk802ii.o
 COBJS-$(CONFIG_MELE_A3700)	+= dram_mele_a3700.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
+COBJS-$(CONFIG_EOMA68)		+= dram_eoma68.o
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)

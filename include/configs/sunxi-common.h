@@ -93,7 +93,9 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_MMC_SUNXI
+#ifndef CONFIG_MMC_SUNXI_SLOT
 #define CONFIG_MMC_SUNXI_SLOT		0
+#endif
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT
@@ -248,7 +250,7 @@
 		" setenv bootargs console=ttyS0,115200 rdinit=/sbin/init panic=10;" \
 		RESET_WATCHDOG ";"\
 		" bootm 0x44000000 $ramdisk;" \
-		"fi"
+		"fi" \
 		"\0" \
 	""
 
