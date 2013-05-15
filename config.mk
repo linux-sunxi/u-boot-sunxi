@@ -233,8 +233,8 @@ endif
 # Does this architecture support generic board init?
 ifeq ($(__HAVE_ARCH_GENERIC_BOARD),)
 ifneq ($(CONFIG_SYS_GENERIC_BOARD),)
-$(error Your architecture does not support generic board. Please undefined \
-CONFIG_SYS_GENERIC_BOARD in your board config file)
+CHECK_GENERIC_BOARD = $(error Your architecture does not support generic board. \
+Please undefined CONFIG_SYS_GENERIC_BOARD in your board config file)
 endif
 endif
 
@@ -250,11 +250,10 @@ CPPFLAGS += -I$(TOPDIR)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-ifdef BUILD_TAG
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
-	-DBUILD_TAG='"$(BUILD_TAG)"'
-else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
+
+ifdef BUILD_TAG
+CFLAGS += -DBUILD_TAG='"$(BUILD_TAG)"'
 endif
 
 CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
