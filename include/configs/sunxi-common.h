@@ -162,7 +162,7 @@
 		"echo Jumping to ${bootscr};" \
 		"source ${scriptaddr};" \
 	"fi;" \
-	"run boot_mmc;" \
+	"run autoboot;" \
 	""
 
 #ifdef CONFIG_CMD_WATCHDOG
@@ -173,14 +173,14 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"console=ttyS0,115200\0" \
-	"root=auto\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
 	"loglevel=8\0" \
 	"scriptaddr=0x44000000\0" \
+	"device=mmc\0" \
+	"partition=0:1\0" \
 	"setargs=" \
-		"if test \"$root\" = \"auto\"; then"\
-			" setenv root;"\
+		"if test -n \"$root\"; then true; else"\
 			" if test \"$bootpath\" = \"boot/\"; then"\
 				" root=\"/dev/mmcblk0p1 rootwait\";"\
 			" else" \
@@ -193,43 +193,43 @@
 	"bootenv=uEnv.txt\0" \
 	"bootscr=boot.scr\0" \
 	"loadbootscr=" \
-		"fatload mmc 0 $scriptaddr ${bootscr}" \
+		"fatload $device $partition $scriptaddr ${bootscr}" \
 		" || " \
-		"ext2load mmc 0 $scriptaddr boot/${bootscr}" \
+		"ext2load $device $partition $scriptaddr boot/${bootscr}" \
 		" ||" \
-		"ext2load mmc 0 $scriptaddr ${bootscr}" \
+		"ext2load $device $partition $scriptaddr ${bootscr}" \
 		"\0" \
 	"loadbootenv=" \
-		"fatload mmc 0 $scriptaddr ${bootenv}" \
+		"fatload $device $partition $scriptaddr ${bootenv}" \
 		" || " \
-		"ext2load mmc 0 $scriptaddr boot/${bootenv}" \
+		"ext2load $device $partition $scriptaddr boot/${bootenv}" \
 		" || " \
-		"ext2load mmc 0 $scriptaddr ${bootenv}" \
+		"ext2load $device $partition $scriptaddr ${bootenv}" \
 		"\0" \
 	"loadkernel=" \
 		"if "\
-			"bootpath=" \
+			"bootpath=/boot/" \
 			" && " \
-			"fatload mmc 0 0x43000000 script.bin" \
+			"ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
 			" && " \
-			"fatload mmc 0 0x48000000 ${kernel}" \
+			"ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
 		";then true; elif " \
-			"bootpath=boot/" \
+			"bootpath=/" \
 			" && " \
-			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
+			"fatload $device $partition 0x43000000 script.bin" \
 			" && " \
-			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
+			"fatload $device $partition 0x48000000 ${kernel}" \
 		";then true; elif " \
-			"bootpath=" \
+			"bootpath=/" \
 			" && " \
-			"ext2load mmc 0 0x43000000 ${bootpath}script.bin" \
+			"ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
 			" && " \
-			"ext2load mmc 0 0x48000000 ${bootpath}${kernel}" \
+			"ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
 		";then true; else "\
 			"false" \
 		";fi" \
 		"\0" \
-	"boot_mmc=" \
+	"autoboot=" \
 		"run loadkernel" \
 		" && " \
 		"run setargs" \
