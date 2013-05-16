@@ -156,7 +156,7 @@
 		"echo Loaded environment from ${bootenv};" \
 		"env import -t ${scriptaddr} ${filesize};" \
 	"fi;" \
-	"if test -n ${uenvcmd}; then " \
+	"if test -n \\\"${uenvcmd}\\\"; then " \
 		"echo Running uenvcmd ...;" \
 		"run uenvcmd;" \
 	"fi;" \
@@ -183,8 +183,8 @@
 	"device=mmc\0" \
 	"partition=0:1\0" \
 	"setargs=" \
-		"if test -n \"$root\"; then true; else"\
-			" if test \"$bootpath\" = \"boot/\"; then"\
+		"if test -z \\\"$root\\\"; then"\
+			" if test \\\"$bootpath\\\" = \"boot/\"; then"\
 				" root=\"/dev/mmcblk0p1 rootwait\";"\
 			" else" \
 				" root=\"/dev/mmcblk0p2 rootwait\";"\
