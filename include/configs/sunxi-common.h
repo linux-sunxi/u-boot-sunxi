@@ -245,7 +245,7 @@
 		"saved_stdout=$stdout;setenv stdout nc;"\
 		"ramdisk=;"\
 		"if iminfo 0x44000000; then" \
-		" if iminfo 0x4c000000; then ramdisk=0x4c000000; fi"\
+		" if iminfo 0x4c000000; then ramdisk=0x4c000000; fi;"\
 		" setenv stdout $saved_stdout;" \
 		" setenv bootargs console=ttyS0,115200 rdinit=/sbin/init panic=10;" \
 		RESET_WATCHDOG ";"\
