@@ -35,8 +35,8 @@ COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
+COBJS-$(CONFIG_EOMA68_A10)	+= dram_eoma68_a10.o
 COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
-COBJS-$(CONFIG_A10_EOMA68)	+= dram_a10_eoma68.o
 COBJS-$(CONFIG_MELE_A1000)	+= dram_mele_a1000.o
 COBJS-$(CONFIG_MINI_X)		+= dram_mini_x.o
 COBJS-$(CONFIG_A7HD)		+= dram_hyundai_a7hd.o
@@ -44,7 +44,6 @@ COBJS-$(CONFIG_MK802)		+= dram_mk802.o
 COBJS-$(CONFIG_MK802II)		+= dram_mk802ii.o
 COBJS-$(CONFIG_MELE_A3700)	+= dram_mele_a3700.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
-COBJS-$(CONFIG_EOMA68)		+= dram_eoma68.o
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)
