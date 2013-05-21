@@ -152,6 +152,7 @@
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
 
 #define CONFIG_BOOTCOMMAND \
+	"run boot_ram;" \
 	"if run loadbootenv; then " \
 		"echo Loaded environment from ${bootenv};" \
 		"env import -t ${scriptaddr} ${filesize};" \
@@ -165,7 +166,6 @@
 		"source ${scriptaddr};" \
 	"fi;" \
 	"run autoboot;" \
-	"run boot_ram;" \
 	""
 
 #ifdef CONFIG_CMD_WATCHDOG
@@ -243,13 +243,12 @@
 		"\0" \
 	"boot_ram=" \
 		"saved_stdout=$stdout;setenv stdout nc;"\
-		"ramdisk=;"\
-		"if iminfo 0x44000000; then" \
-		" if iminfo 0x4c000000; then ramdisk=0x4c000000; fi;"\
+		"if iminfo 0x41000000; then" \
+		" " RESET_WATCHDOG ";"\
 		" setenv stdout $saved_stdout;" \
-		" setenv bootargs console=ttyS0,115200 rdinit=/sbin/init panic=10;" \
-		RESET_WATCHDOG ";"\
-		" bootm 0x44000000 $ramdisk;" \
+		" source 0x41000000;" \
+		"else" \
+		" setenv stdout $saved_stdout;" \
 		"fi" \
 		"\0" \
 	""
