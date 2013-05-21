@@ -294,7 +294,7 @@ static void mmc_set_ios(struct mmc *mmc)
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int clkdiv = 0;
 
-	debug("set ios: bus_width: %x, clock: %d, mod_clk\n", mmc->bus_width,
+	debug("set ios: bus_width: %x, clock: %d, mod_clk: %d\n", mmc->bus_width,
 	       mmc->clock, mmchost->mod_clk);
 
 	/* Change clock first */
