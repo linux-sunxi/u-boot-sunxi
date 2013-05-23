@@ -259,6 +259,10 @@
 
 #include <config_cmd_default.h>
 
+/* Accept zimage + raw ramdisk without mkimage headers */
+#define CONFIG_CMD_BOOTZ
+#define CONFIG_SUPPORT_RAW_INITRD
+
 #define CONFIG_DOS_PARTITION
 #define CONFIG_CMD_FAT		/* with this we can access fat bootfs */
 #define CONFIG_FAT_WRITE	/* enable write access */
