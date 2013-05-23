@@ -27,21 +27,27 @@
 #ifndef _SUNXI_EARLY_PRINT_H
 #define _SUNXI_EARLY_PRINT_H
 
-#include <asm/arch/clock.h>
+#include <asm/arch/cpu.h>
 
-#define UART0_RBR (SUNXI_UART0_BASE + 0x0)    /* receive buffer register */
-#define UART0_THR (SUNXI_UART0_BASE + 0x0)    /* transmit holding register */
-#define UART0_DLL (SUNXI_UART0_BASE + 0x0)    /* divisor latch low register */
+#define SUNXI_UART_BASE SUNXI_UART0_BASE
 
-#define UART0_DLH (SUNXI_UART0_BASE + 0x4)    /* divisor latch high register */
-#define UART0_IER (SUNXI_UART0_BASE + 0x4)    /* interrupt enable reigster */
+#define UART_RBR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* receive buffer register */
+#define UART_THR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* transmit holding register */
+#define UART_DLL(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* divisor latch low register */
 
-#define UART0_IIR (SUNXI_UART0_BASE + 0x8)    /* interrupt identity register */
-#define UART0_FCR (SUNXI_UART0_BASE + 0x8)    /* fifo control register */
+#define UART_DLH(n) (SUNXI_UART_BASE + (n)*0x400 + 0x4)    /* divisor latch high register */
+#define UART_IER(n) (SUNXI_UART_BASE + (n)*0x400 + 0x4)    /* interrupt enable reigster */
 
-#define UART0_LCR (SUNXI_UART0_BASE + 0xc)    /* line control register */
+#define UART_IIR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x8)    /* interrupt identity register */
+#define UART_FCR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x8)    /* fifo control register */
 
-#define UART0_LSR (SUNXI_UART0_BASE + 0x14)   /* line status register */
+#define UART_LCR(n) (SUNXI_UART_BASE + (n)*0x400 + 0xc)    /* line control register */
+
+#define UART_LSR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x14)   /* line status register */
+#define UART_RBR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* receive buffer register */
+#define UART_THR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* transmit holding register */
+#define UART_DLL(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)    /* divisor latch low register */
+
 
 #define BAUD_115200    (0xD) /* 24 * 1000 * 1000 / 16 / 115200 = 13 */
 #define NO_PARITY      (0)
@@ -50,9 +56,9 @@
 #define LC_8_N_1          (NO_PARITY << 3 | ONE_STOP_BIT << 2 | DAT_LEN_8_BITS)
 
 #ifndef __ASSEMBLY__
-int uart0_init(void);
-void uart0_putc(char c);
-void uart0_puts(const char *s);
+void uart_init(void);
+void uart_putc(char c);
+void uart_puts(const char *s);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _SUNXI_EARLY_PRINT_H */
