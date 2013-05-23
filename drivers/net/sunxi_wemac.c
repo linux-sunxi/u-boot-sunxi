@@ -327,9 +327,6 @@ static int sunxi_wemac_eth_init(struct eth_device *dev, bd_t *bd)
 	/* Soft reset MAC */
 	clrbits_le32(&regs->mac_ctl0, 1 << 15);
 
-	/* Set MII clock */
-	clrsetbits_le32(&regs->mac_mcfg, 0xf << 2, 0xd << 2);
-
 	/* Clear RX counter */
 	writel(0x0, &regs->rx_fbc);
 	udelay(1);
@@ -490,6 +487,8 @@ int sunxi_wemac_initialize(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	struct sunxi_sramc_regs *sram =
 		(struct sunxi_sramc_regs *)SUNXI_SRAMC_BASE;
+	struct wemac_regs *regs =
+		(struct wemac_regs *)SUNXI_EMAC_BASE;
 	struct eth_device *dev;
 	struct wemac_eth_dev *priv;
 	int pin;
@@ -517,7 +516,10 @@ int sunxi_wemac_initialize(void)
 	/* Set up clock gating */
 	setbits_le32(&ccm->ahb_gate0, 1 << AHB_GATE_OFFSET_EMAC);
 
-	dev->iobase = SUNXI_EMAC_BASE;
+	/* Set MII clock */
+	clrsetbits_le32(&regs->mac_mcfg, 0xf << 2, 0xd << 2);
+
+	dev->iobase = regs;
 	dev->priv = priv;
 	dev->init = sunxi_wemac_eth_init;
 	dev->halt = sunxi_wemac_eth_halt;
