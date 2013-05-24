@@ -244,28 +244,41 @@
 #define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
 
 #define CONFIG_SPL_FRAMEWORK
+#define CONFIG_SPL_LIBCOMMON_SUPPORT
+#define CONFIG_SPL_SERIAL_SUPPORT
+#define CONFIG_SPL_LIBGENERIC_SUPPORT
+#define CONFIG_SPL_DISPLAY_PRINT
+
+#ifdef CONFIG_SPL_FEL
+
+#define CONFIG_SPL
+#define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl-fel.lds"
+#define CONFIG_SPL_START_S_PATH "arch/arm/cpu/armv7/sunxi"
+#define CONFIG_SPL_TEXT_BASE		0x2000
+#define CONFIG_SPL_MAX_SIZE		0x4000		/* 24 KB */
+
+#else /* CONFIG_SPL */
+
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 #define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
 #define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KB */
 
-#define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
-#define CONFIG_SPL_SERIAL_SUPPORT
-#define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
-#define CONFIG_SPL_DISPLAY_PRINT
 
-/* end of 24KB in sram */
-#define LOW_LEVEL_SRAM_STACK		0x00006000
-#define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
 /* 32KB offset */
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	64
 /* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
 #define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
+
+#endif /* CONFIG_SPL */
+/* end of 24KB in sram */
+#define LOW_LEVEL_SRAM_STACK		0x00006000
+#define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 
 #undef CONFIG_CMD_FPGA
 #undef CONFIG_CMD_NET

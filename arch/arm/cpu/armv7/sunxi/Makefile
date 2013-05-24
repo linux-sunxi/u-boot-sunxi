@@ -28,6 +28,8 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
+TARGETS =  $(obj).depend $(LIB)
+
 COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
@@ -35,10 +37,16 @@ COBJS	+= clock.o
 COBJS	+= pinmux.o
 COBJS	+= watchdog.o
 
+ifdef CONFIG_SPL_BUILD
+ifdef CONFIG_SPL_FEL
+TARGETS	+= $(obj)start.o
+endif
+endif
+
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
 
-all:	 $(obj).depend $(LIB)
+all:	$(TARGETS)
 
 $(LIB):	$(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
