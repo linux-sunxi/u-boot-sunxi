@@ -146,6 +146,8 @@ void clock_set_pll1(int hz)
 	ahb = RDIV(hz/axi, 204000000);		/* Max 250MHz */
 	apb0 = 2;				/* Max 150MHz */
 
+	printf("CPU: %dHz, AXI/AHB/APB: %d/%d/%d\n", hz, axi, ahb, apb0);
+
 	/* Map divisors to register values */
 	axi = axi - 1;
 	if (ahb > 4)

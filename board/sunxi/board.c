@@ -105,6 +105,8 @@ void sunxi_board_init(void)
 	 */
 	if (!power_failed)
 		clock_set_pll1(1008000000);
+	else
+		printf("Failed to set core voltage!. Can't set CPU frequency\n");
 }
 
 #ifdef CONFIG_SPL_DISPLAY_PRINT
