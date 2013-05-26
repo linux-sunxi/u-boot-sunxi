@@ -29,13 +29,14 @@
 #ifdef CONFIG_RAMBOOT_PBL
 #define CONFIG_RAMBOOT_TEXT_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_RESET_VECTOR_ADDRESS	0xfffffffc
+#define CONFIG_PBLPBI_CONFIG $(SRCTREE)/board/freescale/t4qds/t4_pbi.cfg
+#define CONFIG_PBLRCW_CONFIG $(SRCTREE)/board/freescale/t4qds/t4_rcw.cfg
 #endif
 
 #define CONFIG_CMD_REGINFO
 
 /* High Level Configuration Options */
 #define CONFIG_BOOKE
-#define CONFIG_E6500
 #define CONFIG_E500			/* BOOKE e500 family */
 #define CONFIG_E500MC			/* BOOKE e500mc family */
 #define CONFIG_SYS_BOOK3E_HV		/* Category E.HV supported */

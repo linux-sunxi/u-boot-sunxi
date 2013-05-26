@@ -734,7 +734,8 @@ enable_l2_cluster_l2:
 	isync
 	and.	r1, r0, r4
 	bne	1b
-	lis	r4, L2CSR0_L2E@h
+	lis	r4, (L2CSR0_L2E|L2CSR0_L2PE)@h
+	ori	r4, r4, (L2CSR0_L2REP_MODE)@l
 	sync
 	stw	r4, 0(r3)	/* enable L2 */
 delete_ccsr_l2_tlb:
@@ -1905,6 +1906,7 @@ unlock_ram_in_cache:
 	slwi	r4,r4,(10 - 1 - L1_CACHE_SHIFT)
 	mtctr	r4
 1:	dcbi	r0,r3
+	dcblc	r0,r3
 	addi	r3,r3,CONFIG_SYS_CACHELINE_SIZE
 	bdnz	1b
 	sync
