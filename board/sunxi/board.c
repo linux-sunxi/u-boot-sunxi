@@ -1,5 +1,6 @@
 /*
  * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
+ * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
  *
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
@@ -116,7 +117,11 @@ void sunxi_board_init(void)
 	 * assured it's being powered with suitable core voltage
 	 */
 	if (!power_failed)
+#ifdef CONFIG_SUN7I
+		clock_set_pll1(912000000);
+#else
 		clock_set_pll1(1008000000);
+#endif
 	else
 		printf("Failed to set core voltage!. Can't set CPU frequency\n");
 }
