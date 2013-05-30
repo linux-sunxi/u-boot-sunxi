@@ -65,7 +65,7 @@ u32 spl_boot_mode(void)
 int gpio_init(void)
 {
 #if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
-#ifdef CONFIG_SUN4I
+#if defined(CONFIG_SUN4I) || defined(CONFIG_SUN7I)
 	/* disable GPB22,23 as uart0 tx,rx to avoid conflict */
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPIO_INPUT);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPIO_INPUT);
@@ -73,7 +73,7 @@ int gpio_init(void)
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
 	sunxi_gpio_set_pull(SUNXI_GPF(4), 1);
-#elif CONFIG_CONS_INDEX == 1 && defined(CONFIG_SUN4I)
+#elif CONFIG_CONS_INDEX == 1 && (defined(CONFIG_SUN4I) || defined(CONFIG_SUN7I))
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUN4I_GPB22_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUN4I_GPB23_UART0_RX);
 	sunxi_gpio_set_pull(SUNXI_GPB(23), 1);
