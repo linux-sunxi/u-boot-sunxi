@@ -154,14 +154,14 @@ void enable_caches(void)
 }
 #endif
 
-#if defined(CONFIG_SUNXI_WEMAC)
+#if defined(CONFIG_SUNXI_EMAC)
 /*
  * Initializes on-chip ethernet controllers.
  * to override, implement board_eth_init()
  */
 int cpu_eth_init(bd_t *bis)
 {
-	sunxi_wemac_initialize(bis);
+	sunxi_emac_initialize(bis);
 
 	return 0;
 }

@@ -45,7 +45,7 @@
 #define CONFIG_CONS_INDEX		1	/* UART0 */
 
 /* Ethernet support on A10 */
-#define CONFIG_SUNXI_WEMAC
+#define CONFIG_SUNXI_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
