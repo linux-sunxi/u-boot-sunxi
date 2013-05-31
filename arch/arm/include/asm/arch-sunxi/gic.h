@@ -1,10 +1,27 @@
-/**
- * gic.h - definition for registers of generic interrupt controller
- * date:    2012/2/12 22:34:41
- * author:  Aaron<leafy.myeh@allwinnertech.com>
- * history: V0.1
- *          2012-3-21 9:13:43 remapping fpga irq: gpu, rtc domain etc.
+/*
+ * (C) Copyright 2007-2012
+ * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
+ * Jerry Wang <wangflord@allwinnertech.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
+
 #ifndef __GIC_H
 #define __GIC_H
 
@@ -155,11 +172,11 @@
 #define GIC_IRQ_MOD_CFG0	GIC_IRQ_MOD_CFG(0)		// 0xc00 - SGI
 #define GIC_IRQ_MOD_CFG1	GIC_IRQ_MOD_CFG(1)  	// 0xc04 - PPI
 #define GIC_IRQ_MOD_CFG2	GIC_IRQ_MOD_CFG(2)  	// 0xc08 - SPI0 ~ 15
-#define GIC_IRQ_MOD_CFG3	GIC_IRQ_MOD_CFG(3)  	// 0xc0C - SPI16 ~ 31 
-#define GIC_IRQ_MOD_CFG4	GIC_IRQ_MOD_CFG(4)  	// 0xc10 - SPI32 ~ 47 
-#define GIC_IRQ_MOD_CFG5	GIC_IRQ_MOD_CFG(5)  	// 0xc14 - SPI48 ~ 63 
-#define GIC_IRQ_MOD_CFG6	GIC_IRQ_MOD_CFG(6)  	// 0xc18 - SPI64 ~ 79 
-#define GIC_IRQ_MOD_CFG7	GIC_IRQ_MOD_CFG(7)  	// 0xc1C - SPI80 ~ 95 
+#define GIC_IRQ_MOD_CFG3	GIC_IRQ_MOD_CFG(3)  	// 0xc0C - SPI16 ~ 31
+#define GIC_IRQ_MOD_CFG4	GIC_IRQ_MOD_CFG(4)  	// 0xc10 - SPI32 ~ 47
+#define GIC_IRQ_MOD_CFG5	GIC_IRQ_MOD_CFG(5)  	// 0xc14 - SPI48 ~ 63
+#define GIC_IRQ_MOD_CFG6	GIC_IRQ_MOD_CFG(6)  	// 0xc18 - SPI64 ~ 79
+#define GIC_IRQ_MOD_CFG7	GIC_IRQ_MOD_CFG(7)  	// 0xc1C - SPI80 ~ 95
 #define GIC_IRQ_MOD_CFG8	GIC_IRQ_MOD_CFG(8)  	// 0xc20 - SPI96 ~ 111
 #define GIC_IRQ_MOD_CFG9	GIC_IRQ_MOD_CFG(9)  	// 0xc24 - SPI112 ~ 127
 
@@ -281,8 +298,8 @@
 //#define GIC_SRC_		GIC_SRC_SPI(51 ) // (83)
 #define GIC_SRC_PATA		GIC_SRC_SPI(52 ) // (84)
 #define GIC_SRC_VE		GIC_SRC_SPI(53 ) // (85)
-#define GIC_SRC_SS		GIC_SRC_SPI(54 ) // (86)  
-#define GIC_SRC_EMAC		GIC_SRC_SPI(55 ) // (87)  
+#define GIC_SRC_SS		GIC_SRC_SPI(54 ) // (86)
+#define GIC_SRC_EMAC		GIC_SRC_SPI(55 ) // (87)
 #define GIC_SRC_SATA		GIC_SRC_SPI(56 ) // (88)
 #define GIC_SRC_GPS		GIC_SRC_SPI(57 ) // (89)
 #define GIC_SRC_HDMI		GIC_SRC_SPI(58 ) // (90)
@@ -383,9 +400,9 @@
 #define GIC_SRC_TIMER5		GIC_SRC_SPI(6)  // (38)	not exist in fpga, just for compiling
 #define GIC_SRC_DMA		GIC_SRC_SPI(7)  // (38)
 #define GIC_SRC_TP		GIC_SRC_SPI(8)  // (40)
-#define GIC_SRC_CODEC		GIC_SRC_SPI(8)  // (40)	
-#define GIC_SRC_LRADC		GIC_SRC_SPI(8)  // (40)	
-#define GIC_SRC_MMC0		GIC_SRC_SPI(9)  // (41)	
+#define GIC_SRC_CODEC		GIC_SRC_SPI(8)  // (40)
+#define GIC_SRC_LRADC		GIC_SRC_SPI(8)  // (40)
+#define GIC_SRC_MMC0		GIC_SRC_SPI(9)  // (41)
 #define GIC_SRC_MMC1		GIC_SRC_SPI(9)  // (41) not exist in fpga, just for compiling
 #define GIC_SRC_MMC2		GIC_SRC_SPI(10) // (42)
 #define GIC_SRC_MMC3		GIC_SRC_SPI(10) // (42) not exist in fpga, just for compiling
