@@ -389,14 +389,15 @@
 #ifdef CONFIG_SUNXI_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_CMD_MII
+#define CONFIG_CMD_NET
 #endif
 
 #ifdef CONFIG_CMD_NET
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_SNTP
+#define CONFIG_TIMESTAMP		/* Needed by SNTP */
 #define CONFIG_CMD_DNS
 #define CONFIG_NETCONSOLE
 #define CONFIG_BOOTP_SUBNETMASK
