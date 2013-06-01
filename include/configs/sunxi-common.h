@@ -89,6 +89,8 @@
 #define CONFIG_CMDLINE_EDITING
 
 /* mmc config */
+/* Can't use MMC slot 0 if the UART is directed there */
+#if !defined CONFIG_UART0_PORT_F || CONFIG_MMC_SUNXI_SLOT != 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_MMC
@@ -99,6 +101,7 @@
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		CONFIG_MMC_SUNXI_SLOT
+#endif
 
 /*
  * Size of malloc() pool
@@ -414,6 +417,10 @@
 #define CONFIG_BOOTP_MAY_FAIL
 #define CONFIG_BOOTP_SERVERIP
 #define CONFIG_BOOTP_DHCP_REQUEST_DELAY		50000
+#endif
+
+#if !defined CONFIG_ENV_IS_IN_MMC && !defined CONFIG_ENV_IS_IN_NAND && !defined CONFIG_ENV_IS_IN_FAT && !defined CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_IS_NOWHERE
 #endif
 
 #endif /* _SUNXI_COMMON_CONFIG_H */
