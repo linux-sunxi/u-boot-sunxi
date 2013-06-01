@@ -45,6 +45,7 @@ COBJS-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_MINI_X)		+= dram_sun4i_360_512.o
 COBJS-$(CONFIG_MK802)		+= dram_sun4i_360_512.o
 COBJS-$(CONFIG_MK802_1GB)	+= dram_sun4i_360_1024_iow16.o
+COBJS-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 COBJS-$(CONFIG_MK802II)		+= dram_mk802ii.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
 COBJS-$(CONFIG_UHOST_U1A)	+= dram_sun4i_360_1024_iow16.o
