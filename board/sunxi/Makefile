@@ -41,6 +41,7 @@ obj-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MINI_X)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_MK802)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_MK802_1GB)		+= dram_sun4i_360_1024_iow16.o
+obj-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 obj-$(CONFIG_MK802II)		+= dram_mk802ii.o
 obj-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
 obj-$(CONFIG_UHOST_U1A)		+= dram_sun4i_360_1024_iow16.o
