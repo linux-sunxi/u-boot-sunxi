@@ -22,57 +22,57 @@
 #define   	MBR_MAGIC			"softw311"
 #define     MBR_START_ADDRESS	0x00000000
 #define     MBR_MAX_PART_COUNT	15
-#define     MBR_COPY_NUM        4    //mbrµÄ±¸·İÊıÁ¿
-#define     MBR_RESERVED        (MBR_SIZE - 20 - (MBR_MAX_PART_COUNT * sizeof(PARTITION)))   //mbr±£ÁôµÄ¿Õ¼ä
+#define     MBR_COPY_NUM        4    //mbrçš„å¤‡ä»½æ•°é‡
+#define     MBR_RESERVED        (MBR_SIZE - 20 - (MBR_MAX_PART_COUNT * sizeof(PARTITION)))   //mbrä¿ç•™çš„ç©ºé—´
 
-//·ÖÇøĞÅÏ¢, 64byte
+//åˆ†åŒºä¿¡æ¯, 64byte
 typedef struct tag_PARTITION
 {
-	unsigned  int       addrhi;				//ÆğÊ¼µØÖ·, ÒÔÉÈÇøÎªµ¥Î»
+	unsigned  int       addrhi;				//èµ·å§‹åœ°å€, ä»¥æ‰‡åŒºä¸ºå•ä½
 	unsigned  int       addrlo;				//
-	unsigned  int       lenhi;				//³¤¶È
+	unsigned  int       lenhi;				//é•¿åº¦
 	unsigned  int       lenlo;				//
-	unsigned  char      classname[12];		//´ÎÉè±¸Ãû
-	unsigned  char      name[12];			//Ö÷Éè±¸Ãû
-	unsigned  int       user_type;          //ÓÃ»§ÀàĞÍ
-	unsigned  int       ro;                 //¶ÁĞ´ÊôĞÔ
-	unsigned  char      res[16];			//±£Áô
+	unsigned  char      classname[12];		//æ¬¡è®¾å¤‡å
+	unsigned  char      name[12];			//ä¸»è®¾å¤‡å
+	unsigned  int       user_type;          //ç”¨æˆ·ç±»å‹
+	unsigned  int       ro;                 //è¯»å†™å±æ€§
+	unsigned  char      res[16];			//ä¿ç•™
 } __attribute__ ((packed))PARTITION;
-//MBRĞÅÏ¢
+//MBRä¿¡æ¯
 typedef struct tag_MBR
 {
 	unsigned  int       crc32;				        // crc 1k - 4
-	unsigned  int       version;			        // °æ±¾ĞÅÏ¢£¬ 0x00000100
+	unsigned  int       version;			        // ç‰ˆæœ¬ä¿¡æ¯ï¼Œ 0x00000100
 	unsigned  char 	    magic[8];			        //"softw311"
-	unsigned  char 	    copy;				        //·ÖÊı
-	unsigned  char 	    index;				        //µÚ¼¸¸öMBR±¸·İ
-	unsigned  short     PartCount;			        //·ÖÇø¸öÊı
+	unsigned  char 	    copy;				        //åˆ†æ•°
+	unsigned  char 	    index;				        //ç¬¬å‡ ä¸ªMBRå¤‡ä»½
+	unsigned  short     PartCount;			        //åˆ†åŒºä¸ªæ•°
 	PARTITION           array[MBR_MAX_PART_COUNT];	//
 	unsigned  char      res[MBR_RESERVED];
 }__attribute__ ((packed)) MBR;
 
 typedef struct tag_one_part_info
 {
-	unsigned  char      classname[12];      //ËùÉÕĞ´·ÖÇøµÄ´ÎÉè±¸Ãû
-	unsigned  char      name[12];           //ËùÉÕĞ´·ÖÇøµÄÖ÷Éè±¸Ãû
-	unsigned  int       addrhi;             //ËùÉÕĞ´·ÖÇøµÄ¸ßµØÖ·£¬ÉÈÇøµ¥Î»
-	unsigned  int       addrlo;             //ËùÉÕĞ´·ÖÇøµÄµÍµØÖ·£¬ÉÈÇøµ¥Î»
-	unsigned  int       lenhi;				//ËùÉÕĞ´·ÖÇøµÄ³¤¶È£¬¸ß32Î»£¬ÉÈÇøµ¥Î»
-	unsigned  int       lenlo;				//ËùÉÕĞ´·ÖÇøµÄ³¤¶È£¬µÍ32Î»£¬ÉÈÇøµ¥Î»
-	unsigned  char      part_name[12];      //ËùÉÕĞ´·ÖÇøµÄÃû³Æ£¬ºÍMBRÖĞµÄ·ÖÇø classname ¶ÔÓ¦
-	unsigned  char      dl_filename[16];    //ËùÉÕĞ´·ÖÇøµÄÎÄ¼şÃû³Æ£¬³¤¶È¹Ì¶¨16×Ö½Ú
-	unsigned  char      vf_filename[16];    //ËùÉÕĞ´·ÖÇøµÄĞ£ÑéÎÄ¼şÃû³Æ£¬³¤¶È¹Ì¶¨16×Ö½Ú
-	unsigned  int       encrypt;            //ËùÉÕĞ´·ÖÇøµÄÊı¾İÊÇ·ñ½øĞĞ¼ÓÃÜ 0:¼ÓÃÜ   1£º²»¼ÓÃÜ
+	unsigned  char      classname[12];      //æ‰€çƒ§å†™åˆ†åŒºçš„æ¬¡è®¾å¤‡å
+	unsigned  char      name[12];           //æ‰€çƒ§å†™åˆ†åŒºçš„ä¸»è®¾å¤‡å
+	unsigned  int       addrhi;             //æ‰€çƒ§å†™åˆ†åŒºçš„é«˜åœ°å€ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       addrlo;             //æ‰€çƒ§å†™åˆ†åŒºçš„ä½åœ°å€ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       lenhi;				//æ‰€çƒ§å†™åˆ†åŒºçš„é•¿åº¦ï¼Œé«˜32ä½ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       lenlo;				//æ‰€çƒ§å†™åˆ†åŒºçš„é•¿åº¦ï¼Œä½32ä½ï¼Œæ‰‡åŒºå•ä½
+	unsigned  char      part_name[12];      //æ‰€çƒ§å†™åˆ†åŒºçš„åç§°ï¼Œå’ŒMBRä¸­çš„åˆ†åŒº classname å¯¹åº”
+	unsigned  char      dl_filename[16];    //æ‰€çƒ§å†™åˆ†åŒºçš„æ–‡ä»¶åç§°ï¼Œé•¿åº¦å›ºå®š16å­—èŠ‚
+	unsigned  char      vf_filename[16];    //æ‰€çƒ§å†™åˆ†åŒºçš„æ ¡éªŒæ–‡ä»¶åç§°ï¼Œé•¿åº¦å›ºå®š16å­—èŠ‚
+	unsigned  int       encrypt;            //æ‰€çƒ§å†™åˆ†åŒºçš„æ•°æ®æ˜¯å¦è¿›è¡ŒåŠ å¯† 0:åŠ å¯†   1ï¼šä¸åŠ å¯†
 }
 dl_one_part_info;
-//·ÖÇøÉÕĞ´ĞÅÏ¢
+//åˆ†åŒºçƒ§å†™ä¿¡æ¯
 typedef struct tag_download_info
 {
 	unsigned  int       crc32;				        		//crc
-	unsigned  int       version;                            //°æ±¾ºÅ  0x00000101
+	unsigned  int       version;                            //ç‰ˆæœ¬å·  0x00000101
 	unsigned  char 	    magic[8];			        		//"softw311"
-	unsigned  int       download_count;             		//ĞèÒªÉÕĞ´µÄ·ÖÇø¸öÊı
-	dl_one_part_info	one_part_info[MBR_MAX_PART_COUNT];	//ÉÕĞ´·ÖÇøµÄĞÅÏ¢
+	unsigned  int       download_count;             		//éœ€è¦çƒ§å†™çš„åˆ†åŒºä¸ªæ•°
+	dl_one_part_info	one_part_info[MBR_MAX_PART_COUNT];	//çƒ§å†™åˆ†åŒºçš„ä¿¡æ¯
 }
 download_info;
 

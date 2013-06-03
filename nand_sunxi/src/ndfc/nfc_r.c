@@ -389,7 +389,7 @@ __s32 _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 d
 *								NFC_Read
 *
 * Description 	: read some sectors data from flash in single plane mode.
-* Arguments	: *rcmd	-- the read command sequence list head¡£
+* Arguments	: *rcmd	-- the read command sequence list headã€‚
 *			  *mainbuf	-- point to data buffer address, 	it must be four bytes align.
 *                     *sparebuf	-- point to spare buffer address.
 *                     dma_wait_mode	-- how to deal when dma start, 0 = wait till dma finish,
@@ -398,8 +398,8 @@ __s32 _read_in_page_mode(NFC_CMD_LIST  *rcmd,void *mainbuf,void *sparebuf,__u8 d
 * Returns		: 0 = success.
 			  1 = success & ecc limit.
 			  -1 = too much ecc err.
-* Notes		:  if align page data required£¬page command mode is used., if the commands do
-			   not fetch data£¬ecc is not neccesary.
+* Notes		:  if align page data requiredï¼Œpage command mode is used., if the commands do
+			   not fetch dataï¼Œecc is not neccesary.
 ********************************************************************************/
 __s32 NFC_Read(NFC_CMD_LIST  *rcmd, void *mainbuf, void *sparebuf, __u8 dma_wait_mode,__u8 page_mode )
 {

@@ -13,7 +13,7 @@
 *
 * Date 			: 2009.09.21
 *
-* Description 	: ÊÊÓÃÓÚsuniiÆ½Ì¨£¬USB¼Ä´æÆ÷Ô­×Ó²Ù×÷
+* Description 	: é€‚ç”¨äºsuniiå¹³å°ï¼ŒUSBå¯„å­˜å™¨åŸå­æ“ä½œ
 *
 * History 		:
 *
@@ -26,29 +26,29 @@
 /*
  ***************************************************************************
  *
- * Ñ¡Ôñ usb host µÄËÙ¶ÈÀàĞÍ¡£Èç ¸ßËÙ¡¢È«ËÙ¡¢µÍËÙ¡£
+ * é€‰æ‹© usb host çš„é€Ÿåº¦ç±»å‹ã€‚å¦‚ é«˜é€Ÿã€å…¨é€Ÿã€ä½é€Ÿã€‚
  *
  ***************************************************************************
  */
-/* ²»ÅäÖÃËÙ¶ÈÀàĞÍ */
+/* ä¸é…ç½®é€Ÿåº¦ç±»å‹ */
 static void __USBC_Host_TsMode_Default(__u32 usbc_base_addr)
 {
     USBC_REG_clear_bit_b(USBC_BP_POWER_H_HIGH_SPEED_EN, USBC_REG_PCTL(usbc_base_addr));
 }
 
-/* ÅäÖÃ high speed */
+/* é…ç½® high speed */
 static void __USBC_Host_TsMode_Hs(__u32 usbc_base_addr)
 {
     USBC_REG_set_bit_b(USBC_BP_POWER_H_HIGH_SPEED_EN, USBC_REG_PCTL(usbc_base_addr));
 }
 
-/* ÅäÖÃ full speed */
+/* é…ç½® full speed */
 static void __USBC_Host_TsMode_Fs(__u32 usbc_base_addr)
 {
     USBC_REG_clear_bit_b(USBC_BP_POWER_H_HIGH_SPEED_EN, USBC_REG_PCTL(usbc_base_addr));
 }
 
-/* ÅäÖÃ low speed */
+/* é…ç½® low speed */
 static void __USBC_Host_TsMode_Ls(__u32 usbc_base_addr)
 {
     USBC_REG_clear_bit_b(USBC_BP_POWER_H_HIGH_SPEED_EN, USBC_REG_PCTL(usbc_base_addr));
@@ -282,7 +282,7 @@ static void __USBC_Host_Tx_FlushFifo(__u32 usbc_base_addr)
 
 static void __USBC_Host_Tx_ConfigEp_Default(__u32 usbc_base_addr)
 {
-	//--<1>--config tx_csr, ÏÈË¢fifo, ÓĞÈ«²¿ÇåÁã
+	//--<1>--config tx_csr, å…ˆåˆ·fifo, æœ‰å…¨éƒ¨æ¸…é›¶
     USBC_Writew((1 << USBC_BP_TXCSR_H_CLEAR_DATA_TOGGLE) | (1 << USBC_BP_TXCSR_H_FLUSH_FIFO),
                 USBC_REG_TXCSR(usbc_base_addr));
 
@@ -350,7 +350,7 @@ static void __USBC_Host_Tx_ClearEpDma(__u32 usbc_base_addr)
 	ep_csr &= ~((1 << USBC_BP_TXCSR_H_DMA_REQ_EN) >> 8);
 	USBC_Writeb(ep_csr, (USBC_REG_TXCSR(usbc_base_addr) + 1));
 
-	//DMA_REQ_ENºÍDMA_REQ_MODE²»ÄÜÔÚÍ¬Ò»¸öcycleÖĞÇå³ı
+	//DMA_REQ_ENå’ŒDMA_REQ_MODEä¸èƒ½åœ¨åŒä¸€ä¸ªcycleä¸­æ¸…é™¤
 	ep_csr = USBC_Readb(USBC_REG_TXCSR(usbc_base_addr) + 1);
 	ep_csr &= ~((1 << USBC_BP_TXCSR_H_DMA_REQ_MODE) >> 8);
 	USBC_Writeb(ep_csr, (USBC_REG_TXCSR(usbc_base_addr) + 1));
@@ -468,7 +468,7 @@ static void __USBC_Host_Rx_FlushFifo(__u32 usbc_base_addr)
 
 static void __USBC_Host_Rx_ConfigEp_Default(__u32 usbc_base_addr)
 {
-	//--<1>--config rx_csr, ÏÈË¢fifo, ÓĞÈ«²¿ÇåÁã
+	//--<1>--config rx_csr, å…ˆåˆ·fifo, æœ‰å…¨éƒ¨æ¸…é›¶
     USBC_Writew((1 << USBC_BP_RXCSR_H_CLEAR_DATA_TOGGLE) | (1 << USBC_BP_RXCSR_H_FLUSH_FIFO),
                 USBC_REG_RXCSR(usbc_base_addr));
 
@@ -515,7 +515,7 @@ static void __USBC_Host_Rx_ConfigEpDma(__u32 usbc_base_addr)
 {
     __u16 ep_csr = 0;
 
-    //ÅäÖÃdma, auto_clear, dma_rx_en, mode1,
+    //é…ç½®dma, auto_clear, dma_rx_en, mode1,
 	ep_csr = USBC_Readb(USBC_REG_RXCSR(usbc_base_addr) + 1);
 	ep_csr |= (1 << USBC_BP_RXCSR_H_AUTO_CLEAR) >> 8;
 	ep_csr |= (1 << USBC_BP_RXCSR_H_AUTO_REQ) >> 8;
@@ -779,7 +779,7 @@ void USBC_Host_ConfigTransferMode(__hdle hUSB, __u32 speed_mode)
 		return ;
 	}
 
-	//Ñ¡Ôñ´«ÊäËÙ¶È
+	//é€‰æ‹©ä¼ è¾“é€Ÿåº¦
     switch(speed_mode){
 		case USBC_TS_MODE_HS:
 			__USBC_Host_TsMode_Hs(usbc_otg->base_addr);
@@ -793,12 +793,12 @@ void USBC_Host_ConfigTransferMode(__hdle hUSB, __u32 speed_mode)
 			__USBC_Host_TsMode_Ls(usbc_otg->base_addr);
 		break;
 
-		default:  //Ä¬ÈÏhs
+		default:  //é»˜è®¤hs
 			__USBC_Host_TsMode_Default(usbc_otg->base_addr);
 	}
 }
 
-/* reset usb ¶Ë¿ÚÉÏµÄÉè±¸, ½¨ÒéresetÊ±¼äÎª100ms */
+/* reset usb ç«¯å£ä¸Šçš„è®¾å¤‡, å»ºè®®resetæ—¶é—´ä¸º100ms */
 void USBC_Host_ResetPort(__hdle hUSB)
 {
     __usbc_otg_t *usbc_otg = (__usbc_otg_t *)hUSB;
@@ -810,7 +810,7 @@ void USBC_Host_ResetPort(__hdle hUSB)
     USBC_REG_set_bit_b(USBC_BP_POWER_H_RESET, USBC_REG_PCTL(usbc_otg->base_addr));
 }
 
-/* USBC_Host_ResetPortºÍUSBC_Host_ClearResetPortFlagÓ¦¸ÃºÏ²¢µÄ, µ«ÊÇÔÚbsp²ãÑÓÊ±»áÓ°ÏìĞ§ÂÊ */
+/* USBC_Host_ResetPortå’ŒUSBC_Host_ClearResetPortFlagåº”è¯¥åˆå¹¶çš„, ä½†æ˜¯åœ¨bspå±‚å»¶æ—¶ä¼šå½±å“æ•ˆç‡ */
 void USBC_Host_ClearResetPortFlag(__hdle hUSB)
 {
     __usbc_otg_t *usbc_otg = (__usbc_otg_t *)hUSB;
@@ -822,7 +822,7 @@ void USBC_Host_ClearResetPortFlag(__hdle hUSB)
     USBC_REG_clear_bit_b(USBC_BP_POWER_H_RESET, USBC_REG_PCTL(usbc_otg->base_addr));
 }
 
-/* resume usb ¶Ë¿ÚÉÏµÄÉè±¸, ½¨ÒéresumeÊ±¼äÎª10ms */
+/* resume usb ç«¯å£ä¸Šçš„è®¾å¤‡, å»ºè®®resumeæ—¶é—´ä¸º10ms */
 void USBC_Host_RusumePort(__hdle hUSB)
 {
     __usbc_otg_t *usbc_otg = (__usbc_otg_t *)hUSB;
@@ -834,7 +834,7 @@ void USBC_Host_RusumePort(__hdle hUSB)
     USBC_REG_set_bit_b(USBC_BP_POWER_H_RESUME, USBC_REG_PCTL(usbc_otg->base_addr));
 }
 
-/* USBC_Host_RusumePortºÍUSBC_Host_ClearRusumePortFlagÓ¦¸ÃºÏ²¢µÄ, µ«ÊÇÔÚbsp²ãÑÓÊ±»áÓ°ÏìĞ§ÂÊ */
+/* USBC_Host_RusumePortå’ŒUSBC_Host_ClearRusumePortFlagåº”è¯¥åˆå¹¶çš„, ä½†æ˜¯åœ¨bspå±‚å»¶æ—¶ä¼šå½±å“æ•ˆç‡ */
 void USBC_Host_ClearRusumePortFlag(__hdle hUSB)
 {
     __usbc_otg_t *usbc_otg = (__usbc_otg_t *)hUSB;
@@ -846,7 +846,7 @@ void USBC_Host_ClearRusumePortFlag(__hdle hUSB)
     USBC_REG_clear_bit_b(USBC_BP_POWER_H_RESUME, USBC_REG_PCTL(usbc_otg->base_addr));
 }
 
-/* usb ¶Ë¿Úsuspend */
+/* usb ç«¯å£suspend */
 void USBC_Host_SuspendPort(__hdle hUSB)
 {
     __usbc_otg_t *usbc_otg = (__usbc_otg_t *)hUSB;
@@ -897,16 +897,16 @@ void USBC_Host_EndSession(__hdle hUSB)
 *                     USBC_Host_PeripheralType
 *
 * Description:
-*    Íâ²¿Éè±¸µÄËÙ¶ÈÀàĞÍ
+*    å¤–éƒ¨è®¾å¤‡çš„é€Ÿåº¦ç±»å‹
 *
 * Arguments:
-*    hUSB  :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
+*    hUSB  :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
 *
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -960,16 +960,16 @@ void USBC_Host_FlushFifo(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ConfigEp_Default
 *
 * Description:
-*    ÊÍ·ÅepËùÓĞµÄ×ÊÔ´, ÖĞ¶Ï³ıÍâ
+*    é‡Šæ”¾epæ‰€æœ‰çš„èµ„æº, ä¸­æ–­é™¤å¤–
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
 *
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1004,22 +1004,22 @@ void USBC_Host_ConfigEp_Default(__hdle hUSB, __u32 ep_type)
 *                     USBC_Dev_ConfigEp
 *
 * Description:
-*    ÅäÖÃep, °üÀ¨Ë«FIFO¡¢×î´ó´«Êä°üµÈ
+*    é…ç½®ep, åŒ…æ‹¬åŒFIFOã€æœ€å¤§ä¼ è¾“åŒ…ç­‰
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  epÀàĞÍ
-*    ep_index       :  input.  Ä¿±êÉè±¸µÄepºÅ
-*    ts_type        :  input.  ´«ÊäÀàĞÍ
-*    is_double_fifo :  input.  ËÙ¶ÈÄ£Ê½
-*    ep_MaxPkt      :  input.  ×î´ó°ü
-*    interval       :  input.  Ê±¼ä¼ä¸ô
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  epç±»å‹
+*    ep_index       :  input.  ç›®æ ‡è®¾å¤‡çš„epå·
+*    ts_type        :  input.  ä¼ è¾“ç±»å‹
+*    is_double_fifo :  input.  é€Ÿåº¦æ¨¡å¼
+*    ep_MaxPkt      :  input.  æœ€å¤§åŒ…
+*    interval       :  input.  æ—¶é—´é—´éš”
 *
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1054,16 +1054,16 @@ void USBC_Host_ConfigEp(__hdle hUSB, __u32 ep_type, __u32 ep_index, __u32 ts_mod
 *                     USBC_Host_ConfigEpDma
 *
 * Description:
-*    ÅäÖÃepµÄdmaÉèÖÃ
+*    é…ç½®epçš„dmaè®¾ç½®
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1098,16 +1098,16 @@ void USBC_Host_ConfigEpDma(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ClearEpDma
 *
 * Description:
-*    Çå³ıepµÄdmaÉèÖÃ
+*    æ¸…é™¤epçš„dmaè®¾ç½®
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1142,17 +1142,17 @@ void USBC_Host_ClearEpDma(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_IsEpNakTimeOut
 *
 * Description:
-*    ²éÑ¯epÊÇ·ñerror
+*    æŸ¥è¯¢epæ˜¯å¦error
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *    0  :  NAK not timeout
 *    1  :  NAK timeout
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1186,16 +1186,16 @@ __u32 USBC_Host_IsEpNakTimeOut(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ClearEpNakTimeOut
 *
 * Description:
-*    Çå³ıepµÄerror×´Ì¬
+*    æ¸…é™¤epçš„errorçŠ¶æ€
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1230,17 +1230,17 @@ void USBC_Host_ClearEpNakTimeOut(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_IsEpError
 *
 * Description:
-*    ²éÑ¯epÊÇ·ñerror
+*    æŸ¥è¯¢epæ˜¯å¦error
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *    0  :  ep is not error
 *    1  :  ep is error
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1274,16 +1274,16 @@ __u32 USBC_Host_IsEpError(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ClearEpError
 *
 * Description:
-*    Çå³ıepµÄerror×´Ì¬
+*    æ¸…é™¤epçš„errorçŠ¶æ€
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1318,17 +1318,17 @@ void USBC_Host_ClearEpError(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_IsEpStall
 *
 * Description:
-*    ²éÑ¯epÊÇ·ñstall
+*    æŸ¥è¯¢epæ˜¯å¦stall
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *    0  :  ep is not stall
 *    1  :  ep is stall
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1362,16 +1362,16 @@ __u32 USBC_Host_IsEpStall(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ClearEpStall
 *
 * Description:
-*    Çå³ıepµÄstall×´Ì¬
+*    æ¸…é™¤epçš„stallçŠ¶æ€
 *
 * Arguments:
-*    hUSB           :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type        :  input.  ´«ÊäÀàĞÍ
+*    hUSB           :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type        :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1520,16 +1520,16 @@ static __s32 __USBC_Host_WriteDataComplete(__u32 usbc_base_addr, __u32 ep_type)
 *                     USBC_Host_IsReadDataReady
 *
 * Description:
-*    ²éÑ¯usb×¼±¸¶ÁÈ¡µÄÊı¾İÊÇ·ñ×¼±¸ºÃÁË
+*    æŸ¥è¯¢usbå‡†å¤‡è¯»å–çš„æ•°æ®æ˜¯å¦å‡†å¤‡å¥½äº†
 *
 * Arguments:
-*    hUSB     :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type  :  input.  ´«ÊäÀàĞÍ
+*    hUSB     :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type  :  input.  ä¼ è¾“ç±»å‹
 *
 * Returns:
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1564,16 +1564,16 @@ __u32 USBC_Host_IsReadDataReady(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_IsWriteDataReady
 *
 * Description:
-*    ²éÑ¯fifoÊÇ·ñÎª¿Õ
+*    æŸ¥è¯¢fifoæ˜¯å¦ä¸ºç©º
 *
 * Arguments:
-*    hUSB    :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type :  input.  ´«ÊäÀàĞÍ
+*    hUSB    :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type :  input.  ä¼ è¾“ç±»å‹
 *
 * Returns:
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1608,18 +1608,18 @@ __u32 USBC_Host_IsWriteDataReady(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_ReadDataStatus
 *
 * Description:
-*    Ğ´Êı¾İµÄ×´¿ö, ÊÇĞ´ÁËÒ»²¿·Ö, »¹ÊÇÍêÈ«Ğ´ÍêÁË
+*    å†™æ•°æ®çš„çŠ¶å†µ, æ˜¯å†™äº†ä¸€éƒ¨åˆ†, è¿˜æ˜¯å®Œå…¨å†™å®Œäº†
 *
 * Arguments:
-*    hUSB      :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type   :  input.  ´«ÊäÀàĞÍ
-*    complete  :  input.  ÊÇ·ñËùÓĞµÄÊı¾İ¶¼Ğ´ÍêÁË
+*    hUSB      :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type   :  input.  ä¼ è¾“ç±»å‹
+*    complete  :  input.  æ˜¯å¦æ‰€æœ‰çš„æ•°æ®éƒ½å†™å®Œäº†
 * Returns:
-*    0  :  ³É¹¦
-*   !0  :  Ê§°Ü
+*    0  :  æˆåŠŸ
+*   !0  :  å¤±è´¥
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1645,18 +1645,18 @@ __s32 USBC_Host_ReadDataStatus(__hdle hUSB, __u32 ep_type, __u32 complete)
 *                     USBC_Host_WriteDataStatus
 *
 * Description:
-*    Ğ´Êı¾İµÄ×´¿ö, ÊÇĞ´ÁËÒ»²¿·Ö, »¹ÊÇÍêÈ«Ğ´ÍêÁË
+*    å†™æ•°æ®çš„çŠ¶å†µ, æ˜¯å†™äº†ä¸€éƒ¨åˆ†, è¿˜æ˜¯å®Œå…¨å†™å®Œäº†
 *
 * Arguments:
-*    hUSB      :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type   :  input.  ´«ÊäÀàĞÍ
-*    complete  :  input.  ÊÇ·ñËùÓĞµÄÊı¾İ¶¼Ğ´ÍêÁË
+*    hUSB      :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type   :  input.  ä¼ è¾“ç±»å‹
+*    complete  :  input.  æ˜¯å¦æ‰€æœ‰çš„æ•°æ®éƒ½å†™å®Œäº†
 * Returns:
-*    0  :  ³É¹¦
-*   !0  :  Ê§°Ü
+*    0  :  æˆåŠŸ
+*   !0  :  å¤±è´¥
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1680,17 +1680,17 @@ __s32 USBC_Host_WriteDataStatus(__hdle hUSB, __u32 ep_type, __u32 complete)
 *                     USBC_Host_IsReqPktSet
 *
 * Description:
-*    ReqPktÎ»ÊÇ·ñ±»ÉèÖÃ
+*    ReqPktä½æ˜¯å¦è¢«è®¾ç½®
 *
 * Arguments:
-*    hUSB      :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type   :  input.  ´«ÊäÀàĞÍ
+*    hUSB      :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type   :  input.  ä¼ è¾“ç±»å‹
 * Returns:
-*    0  :  ³É¹¦
-*   !0  :  Ê§°Ü
+*    0  :  æˆåŠŸ
+*   !0  :  å¤±è´¥
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1727,16 +1727,16 @@ __u32 USBC_Host_IsReqPktSet(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_StartInToken
 *
 * Description:
-*    ÏòÉè±¸·¢in token
+*    å‘è®¾å¤‡å‘in token
 *
 * Arguments:
-*    hUSB      :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type   :  input.  ´«ÊäÀàĞÍ
+*    hUSB      :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type   :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */
@@ -1771,16 +1771,16 @@ void USBC_Host_StartInToken(__hdle hUSB, __u32 ep_type)
 *                     USBC_Host_StopInToken
 *
 * Description:
-*    Í£Ö¹ÏòÉè±¸·¢in token
+*    åœæ­¢å‘è®¾å¤‡å‘in token
 *
 * Arguments:
-*    hUSB      :  input.  USBC_open_otg»ñµÃµÄ¾ä±ú, ¼ÇÂ¼ÁËUSBCËùĞèÒªµÄÒ»Ğ©¹Ø¼üÊı¾İ
-*    ep_type   :  input.  ´«ÊäÀàĞÍ
+*    hUSB      :  input.  USBC_open_otgè·å¾—çš„å¥æŸ„, è®°å½•äº†USBCæ‰€éœ€è¦çš„ä¸€äº›å…³é”®æ•°æ®
+*    ep_type   :  input.  ä¼ è¾“ç±»å‹
 * Returns:
 *
 *
 * note:
-*    ÎŞ
+*    æ— 
 *
 ***********************************************************************************
 */

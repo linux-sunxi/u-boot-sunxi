@@ -500,14 +500,14 @@ static int _cal_real_chip(uint global_bank, uint chip_connect_info)
 }
 
 /*******************************************************************************
-*º¯ÊıÃû³Æ: mark_bad_block
-*º¯ÊıÔ­ĞÍ£ºmark_bad_block( uint chip_num, uint blk_num )
-*º¯Êı¹¦ÄÜ: ±ê¼Çblk_numÖ¸¶¨µÄ¿éÎª»µ¿é¡£
-*Èë¿Ú²ÎÊı: chip_num           chip number
-           blk_num            ¿éºÅ
-*·µ »Ø Öµ: 0              ±à³Ì²Ù×÷³É¹¦
-*          other          ±à³Ì²Ù×÷Ê§°Ü
-*±¸    ×¢:
+*å‡½æ•°åç§°: mark_bad_block
+*å‡½æ•°åŸå‹ï¼šmark_bad_block( uint chip_num, uint blk_num )
+*å‡½æ•°åŠŸèƒ½: æ ‡è®°blk_numæŒ‡å®šçš„å—ä¸ºåå—ã€‚
+*å…¥å£å‚æ•°: chip_num           chip number
+           blk_num            å—å·
+*è¿” å› å€¼: 0              ç¼–ç¨‹æ“ä½œæˆåŠŸ
+*          other          ç¼–ç¨‹æ“ä½œå¤±è´¥
+*å¤‡    æ³¨:
 *******************************************************************************/
 static int mark_bad_block( uint chip_num, uint blk_num)
 {
@@ -950,13 +950,13 @@ int  NAND_EraseChip( const boot_nand_para_t *nand_param)
 }
 
 /*******************************************************************************
-*º¯ÊıÃû³Æ: NAND_BadBlockScan
-*º¯ÊıÔ­ĞÍ£ºbad_blcok_scan(const boot_nand_para_t *nand_param)
-*º¯Êı¹¦ÄÜ: ±ê¼Çblk_numÖ¸¶¨µÄ¿éÎª»µ¿é¡£
-*Èë¿Ú²ÎÊı: nand_param
-*·µ »Ø Öµ: >0              ±à³Ì²Ù×÷³É¹¦
-*          -1              ±à³Ì²Ù×÷Ê§°Ü
-*±¸    ×¢:
+*å‡½æ•°åç§°: NAND_BadBlockScan
+*å‡½æ•°åŸå‹ï¼šbad_blcok_scan(const boot_nand_para_t *nand_param)
+*å‡½æ•°åŠŸèƒ½: æ ‡è®°blk_numæŒ‡å®šçš„å—ä¸ºåå—ã€‚
+*å…¥å£å‚æ•°: nand_param
+*è¿” å› å€¼: >0              ç¼–ç¨‹æ“ä½œæˆåŠŸ
+*          -1              ç¼–ç¨‹æ“ä½œå¤±è´¥
+*å¤‡    æ³¨:
 *******************************************************************************/
 int NAND_BadBlockScan(const boot_nand_para_t *nand_param)
 {

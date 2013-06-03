@@ -71,7 +71,7 @@ void _wait_twb(void)
 *								NFC_Write
 *
 * Description 	: write one page data into flash in single plane mode.
-* Arguments	: *wcmd	-- the write command sequence list head¡£
+* Arguments	: *wcmd	-- the write command sequence list headã€‚
 *			  *mainbuf	-- point to data buffer address, 	it must be four bytes align.
 *                     *sparebuf	-- point to spare buffer address.
 *                     dma_wait_mode	-- how to deal when dma start, 0 = wait till dma finish,

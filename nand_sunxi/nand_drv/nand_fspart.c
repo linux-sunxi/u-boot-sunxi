@@ -25,8 +25,8 @@
 
 typedef struct tag_CRC32_DATA
 {
-	unsigned int CRC;				//intµÄ´óĞ¡ÊÇ32Î»
-	unsigned int CRC_32_Tbl[256];	//ÓÃÀ´±£´æÂë±í
+	unsigned int CRC;				//intçš„å¤§å°æ˜¯32ä½
+	unsigned int CRC_32_Tbl[256];	//ç”¨æ¥ä¿å­˜ç è¡¨
 }CRC32_DATA_t;
 
 char BOOTFSMBR_buf[1024];
@@ -35,25 +35,25 @@ static __u32 _calc_crc32(void * buffer, __u32 length)
 {
 	__u32 i, j;
 	CRC32_DATA_t crc32;		//
-	__u32 CRC32 = 0xffffffff; //ÉèÖÃ³õÊ¼Öµ
+	__u32 CRC32 = 0xffffffff; //è®¾ç½®åˆå§‹å€¼
 
 	crc32.CRC = 0;
 
-	for( i = 0; i < 256; ++i)//ÓÃ++iÒÔÌá¸ßĞ§ÂÊ
+	for( i = 0; i < 256; ++i)//ç”¨++iä»¥æé«˜æ•ˆç‡
 	{
 		crc32.CRC = i;
 		for( j = 0; j < 8 ; ++j)
 		{
-			//Õâ¸öÑ­»·Êµ¼ÊÉÏ¾ÍÊÇÓÃ"¼ÆËã·¨"À´ÇóÈ¡CRCµÄĞ£ÑéÂë
+			//è¿™ä¸ªå¾ªç¯å®é™…ä¸Šå°±æ˜¯ç”¨"è®¡ç®—æ³•"æ¥æ±‚å–CRCçš„æ ¡éªŒç 
 			if(crc32.CRC & 1)
 				crc32.CRC = (crc32.CRC >> 1) ^ 0xEDB88320;
-			else //0xEDB88320¾ÍÊÇCRC-32¶àÏî±í´ïÊ½µÄÖµ
+			else //0xEDB88320å°±æ˜¯CRC-32å¤šé¡¹è¡¨è¾¾å¼çš„å€¼
 				crc32.CRC >>= 1;
 		}
 		crc32.CRC_32_Tbl[i] = crc32.CRC;
 	}
 
-	CRC32 = 0xffffffff; //ÉèÖÃ³õÊ¼Öµ
+	CRC32 = 0xffffffff; //è®¾ç½®åˆå§‹å€¼
     for( i = 0; i < length; ++i)
     {
         CRC32 = crc32.CRC_32_Tbl[(CRC32^((unsigned char*)buffer)[i]) & 0xff] ^ (CRC32>>8);

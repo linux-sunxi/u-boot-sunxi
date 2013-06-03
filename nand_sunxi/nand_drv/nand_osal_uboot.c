@@ -147,12 +147,12 @@ int NAND_StartDMA(unsigned int hDMA, unsigned int saddr, unsigned int daddr, uns
 {
     if((saddr & 0x01c03000) == 0x01c03000)
     {
-        //ÕâÊÇ¶Á²Ù×÷£¬¶ÁµÄÊ±ºòË¢ĞÂÄ¿µÄµØÖ·£¬Ô­Ôò¾ÍÊÇË¢ĞÂDRAM(SRAM)
+        //è¿™æ˜¯è¯»æ“ä½œï¼Œè¯»çš„æ—¶å€™åˆ·æ–°ç›®çš„åœ°å€ï¼ŒåŸåˆ™å°±æ˜¯åˆ·æ–°DRAM(SRAM)
         flush_cache(daddr, bytes);
     }
     else
     {
-    	//ÕâÊÇĞ´²Ù×÷£¬Ğ´µÄÊ±ºòË¢ĞÂÔ´µØÖ·£¬Ô­Ôò¾ÍÊÇË¢ĞÂDRAM(SRAM)
+    	//è¿™æ˜¯å†™æ“ä½œï¼Œå†™çš„æ—¶å€™åˆ·æ–°æºåœ°å€ï¼ŒåŸåˆ™å°±æ˜¯åˆ·æ–°DRAM(SRAM)
         flush_cache(saddr, bytes);
     }
     return DMA_Start(hDMA, saddr, daddr, bytes);
@@ -386,7 +386,7 @@ void *OSAL_io_remap(unsigned int base_addr, unsigned int size)
 *
 *             OSAL_printf
 *
-*  Description:  ÓÃ»§¿ÉÒÔ×ÔĞĞÉè¶¨ÊÇ·ñĞèÒª´òÓ¡
+*  Description:  ç”¨æˆ·å¯ä»¥è‡ªè¡Œè®¾å®šæ˜¯å¦éœ€è¦æ‰“å°
 *
 *
 *  Parameters:
