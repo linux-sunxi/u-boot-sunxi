@@ -40,19 +40,19 @@ static u32 calc_crc32(void * buffer, u32 length)
 {
 	u32 i, j;
 	crc32_data_t crc32;
-	u32 result = 0xffffffff; //ÉèÖÃ³õÊ¼Öµ
+	u32 result = 0xffffffff; //è®¾ç½®åˆå§‹å€¼
 
 	crc32.crc = 0;
 
-	for( i = 0; i < 256; ++i)//ÓÃ++iÒÔÌá¸ßĞ§ÂÊ
+	for( i = 0; i < 256; ++i)//ç”¨++iä»¥æé«˜æ•ˆç‡
 	{
 		crc32.crc = i;
 		for( j = 0; j < 8 ; ++j)
 		{
-			//Õâ¸öÑ­»·Êµ¼ÊÉÏ¾ÍÊÇÓÃ"¼ÆËã·¨"À´ÇóÈ¡crcµÄĞ£ÑéÂë
+			//è¿™ä¸ªå¾ªç¯å®é™…ä¸Šå°±æ˜¯ç”¨"è®¡ç®—æ³•"æ¥æ±‚å–crcçš„æ ¡éªŒç 
 			if(crc32.crc & 1)
 				crc32.crc = (crc32.crc >> 1) ^ 0xEDB88320;
-			else //0xEDB88320¾ÍÊÇcrc-32¶àÏî±í´ïÊ½µÄÖµ
+			else //0xEDB88320å°±æ˜¯crc-32å¤šé¡¹è¡¨è¾¾å¼çš„å€¼
 				crc32.crc >>= 1;
 		}
 		crc32.table[i] = crc32.crc;

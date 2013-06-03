@@ -35,7 +35,7 @@
 #include  "usb/usb_bsp.h"
 
 //-----------------------------------------------------------------------------
-//   ºê¶¨Òå
+//   å®å®šä¹‰
 //-----------------------------------------------------------------------------
 
 /* debug */
@@ -48,14 +48,14 @@
     #define DMSG_DEBUG(...)
 #endif
 
-/* ÆÕÍ¨ĞÅÏ¢´òÓ¡ */
+/* æ™®é€šä¿¡æ¯æ‰“å° */
 #if  0
     #define DMSG_INFO         			DMSG_PRINT
 #else
     #define DMSG_INFO(...)
 #endif
 
-/* ÑÏÖØ¾¯¸æ */
+/* ä¸¥é‡è­¦å‘Š */
 #if	0
     #define DMSG_PANIC        			DMSG_ERR
 #else
@@ -72,9 +72,9 @@
 #define	DEVICE_PRODUCT_ID 					0x0FFF  //0x1010
 #define	DEVICE_BCD        					0x0200
 
-#define DEVICE_MANUFACTURER		            "USB Developer"  		/* ³§ÉÌĞÅÏ¢ 	*/
-#define DEVICE_PRODUCT				        "Android Fastboot"  	/* ²úÆ·ĞÅÏ¢ 	*/
-#define DEVICE_SERIAL_NUMBER			    "20080411"  			/* ²úÆ·ĞòÁĞºÅ 	*/
+#define DEVICE_MANUFACTURER		            "USB Developer"  		/* å‚å•†ä¿¡æ¯ 	*/
+#define DEVICE_PRODUCT				        "Android Fastboot"  	/* äº§å“ä¿¡æ¯ 	*/
+#define DEVICE_SERIAL_NUMBER			    "20080411"  			/* äº§å“åºåˆ—å· 	*/
 #define DEVICE_CONFIG                       "Android Fastboot"
 #define DEVICE_INTERFACE                    "Android Bootloader Interface"
 
@@ -149,7 +149,7 @@
 
 
 //-----------------------------------------------------------------------------
-//   Êı¾İ½á¹¹
+//   æ•°æ®ç»“æ„
 //-----------------------------------------------------------------------------
 struct sw_udc{
     u32 usb_base;
@@ -175,7 +175,7 @@ enum usb_device_speed {
 };
 
 //-----------------------------------------------------------------------------
-//  Ô¤¶¨Òå
+//  é¢„å®šä¹‰
 //-----------------------------------------------------------------------------
 
 static char *device_strings[DEVICE_STRING_MANUFACTURER_INDEX + 1];
@@ -186,7 +186,7 @@ static u8 fastboot_fifo_ep0[EP0_FIFOSIZE];
 static u8 fastboot_fifo_bulk_ep[BULK_FIFOSIZE];
 
 static unsigned int set_address = 0;
-static unsigned int deferred_rx = 0;    /* rx ´«ÊäÑÓÊ± */
+static unsigned int deferred_rx = 0;    /* rx ä¼ è¾“å»¶æ—¶ */
 
 //-----------------------------------------------------------------------------
 //
@@ -314,13 +314,13 @@ static void fastboot_bulk_endpoint_reset (void)
 	/* tx */
 	USBC_SelectActiveEp(udc.bsp, BULK_IN_EP_INDEX);
     USBC_Dev_ConfigEp(udc.bsp, USBC_TS_TYPE_BULK, USBC_EP_TYPE_TX, 1, udc.bulk_ep_size & 0x7ff);
-	USBC_ConfigFifo(udc.bsp, USBC_EP_TYPE_TX, 1, udc.fifo_size, 1024);		//1k¿ªÊ¼, Ã¿¸öep·ÖÅä1KµÄ¿Õ¼ä
+	USBC_ConfigFifo(udc.bsp, USBC_EP_TYPE_TX, 1, udc.fifo_size, 1024);		//1kå¼€å§‹, æ¯ä¸ªepåˆ†é…1Kçš„ç©ºé—´
 	USBC_INT_EnableEp(udc.bsp, USBC_EP_TYPE_TX, BULK_IN_EP_INDEX);
 
 	/* rx */
 	USBC_SelectActiveEp(udc.bsp, BULK_OUT_EP_INDEX);
 	USBC_Dev_ConfigEp(udc.bsp, USBC_TS_TYPE_BULK, USBC_EP_TYPE_RX, 1, udc.bulk_ep_size & 0x7ff);
-	USBC_ConfigFifo(udc.bsp, USBC_EP_TYPE_RX, 1, udc.fifo_size, 2048);		//2k¿ªÊ¼, Ã¿¸öep·ÖÅä1KµÄ¿Õ¼ä
+	USBC_ConfigFifo(udc.bsp, USBC_EP_TYPE_RX, 1, udc.fifo_size, 2048);		//2kå¼€å§‹, æ¯ä¸ªepåˆ†é…1Kçš„ç©ºé—´
 	USBC_INT_EnableEp(udc.bsp, USBC_EP_TYPE_RX, BULK_OUT_EP_INDEX);
 
 	USBC_SelectActiveEp(udc.bsp, old_ep_index);
@@ -378,7 +378,7 @@ static void fastboot_reset(void)
     USBC_INT_DisableEpAll(udc.bsp, USBC_EP_TYPE_RX);
     USBC_INT_DisableEpAll(udc.bsp, USBC_EP_TYPE_TX);
 
-    /* ¿ªÆôsession end, reset¡¢resume¡¢suspendÖĞ¶Ï */
+    /* å¼€å¯session end, resetã€resumeã€suspendä¸­æ–­ */
 	USBC_INT_EnableUsbMiscUint(udc.bsp, USBC_BP_INTUSB_SOF);
 	USBC_INT_EnableUsbMiscUint(udc.bsp, USBC_BP_INTUSB_SUSPEND);
 	USBC_INT_EnableUsbMiscUint(udc.bsp, USBC_BP_INTUSB_RESUME);
@@ -1150,7 +1150,7 @@ static int fastboot_suspend(void)
 *                     filtrate_irq_misc
 *
 * Description:
-*    ¹ıÂËÃ»ÓÃµÄÖĞ¶Ï, ±£Áô disconect, reset, resume, suspend
+*    è¿‡æ»¤æ²¡ç”¨çš„ä¸­æ–­, ä¿ç•™ disconect, reset, resume, suspend
 *
 * Parameters:
 *    void
@@ -1665,22 +1665,22 @@ u32 close_usb_clock(u32 ccmu_base)
 
     DMSG_INFO("close_usb_clock\n");
 
-    //¿ªusb ahbÊ±ÖÓ
+    //å¼€usb ahbæ—¶é’Ÿ
 	reg_value = readl(ccmu_base + 0x60);
 	x_clear_bit(reg_value, 0);	/* AHB clock gate usb0 */
 	writel(reg_value, (ccmu_base + 0x60));
 
-    //µÈsieµÄÊ±ÖÓ±äÎÈ
+    //ç­‰sieçš„æ—¶é’Ÿå˜ç¨³
 	reg_value = 10000;
 	while(reg_value--);
 
-	//¿ªUSB phyÊ±ÖÓ
+	//å¼€USB phyæ—¶é’Ÿ
 	reg_value = readl((ccmu_base + 0xcc));
 	x_clear_bit(reg_value, 0);
 	x_clear_bit(reg_value, 8);
 	writel(reg_value, (ccmu_base + 0xcc));
 
-	//ÑÓÊ±
+	//å»¶æ—¶
 	reg_value = 10000;
 	while(reg_value--);
 

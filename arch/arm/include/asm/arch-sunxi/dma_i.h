@@ -63,65 +63,65 @@
 
 struct sw_dma
 {
-    volatile unsigned int config;           /* DMAÅäÖÃ²ÎÊı              */
-    volatile unsigned int src_addr;         /* DMA´«ÊäÔ´µØÖ·            */
-    volatile unsigned int dst_addr;         /* DMA´«ÊäÄ¿µÄµØÖ·          */
-    volatile unsigned int bytes;            /* DMA´«Êä×Ö½ÚÊı            */
+    volatile unsigned int config;           /* DMAé…ç½®å‚æ•°              */
+    volatile unsigned int src_addr;         /* DMAä¼ è¾“æºåœ°å€            */
+    volatile unsigned int dst_addr;         /* DMAä¼ è¾“ç›®çš„åœ°å€          */
+    volatile unsigned int bytes;            /* DMAä¼ è¾“å­—èŠ‚æ•°            */
 };
 
 typedef volatile struct sw_dma *sw_dma_t;
 
 struct sw_dma_other
 {
-    volatile unsigned int page_size;        /* DMA´«ÊäPAGE SIZE         */
-    volatile unsigned int page_step;        /* DMA´«ÊäPAGE STEP         */
-    volatile unsigned int comity_counter;   /* DMA´«Êäcomity counter    */
+    volatile unsigned int page_size;        /* DMAä¼ è¾“PAGE SIZE         */
+    volatile unsigned int page_step;        /* DMAä¼ è¾“PAGE STEP         */
+    volatile unsigned int comity_counter;   /* DMAä¼ è¾“comity counter    */
 };
 
 typedef volatile struct sw_dma_other *sw_dma_other_t;
 
 typedef struct sw_dma_channal_set
 {
-    unsigned int            used;           /* DMAÊÇ·ñ±»Ê¹ÓÃ            */
-      signed int            channalNo;      /* DMAÍ¨µÀ±àºÅ              */
-    sw_dma_t                channal;        /* DMAÍ¨µÀ                  */
-    sw_dma_other_t          other;          /* DMAÆäËüÉèÖÃ              */
+    unsigned int            used;           /* DMAæ˜¯å¦è¢«ä½¿ç”¨            */
+      signed int            channalNo;      /* DMAé€šé“ç¼–å·              */
+    sw_dma_t                channal;        /* DMAé€šé“                  */
+    sw_dma_other_t          other;          /* DMAå…¶å®ƒè®¾ç½®              */
 }
 sw_dma_channal_set_t;
 
 
 typedef struct __ndma_config_set
 {
-    unsigned int      src_drq_type     : 5;            //Ô´µØÖ·´æ´¢ÀàĞÍ£¬ÈçDRAM, SPI,NANDµÈ£¬²Î¼û  __ndma_drq_type_t
-    unsigned int      src_addr_type    : 1;            //Ô­µØÖ·ÀàĞÍ£¬ÈçµİÔö£¬»òÕß²»±ä  0:µİÔöÄ£Ê½  1:±£³Ö²»±ä
+    unsigned int      src_drq_type     : 5;            //æºåœ°å€å­˜å‚¨ç±»å‹ï¼Œå¦‚DRAM, SPI,NANDç­‰ï¼Œå‚è§  __ndma_drq_type_t
+    unsigned int      src_addr_type    : 1;            //åŸåœ°å€ç±»å‹ï¼Œå¦‚é€’å¢ï¼Œæˆ–è€…ä¸å˜  0:é€’å¢æ¨¡å¼  1:ä¿æŒä¸å˜
     unsigned int      src_secure       : 1;            //source secure  0:secure  1:not secure
-    unsigned int      src_burst_length : 2;            //·¢ÆğÒ»´Îburst¿í¶È 0:1   1:4   2:8
-    unsigned int      src_data_width   : 2;            //Êı¾İ´«Êä¿í¶È£¬0:Ò»´Î´«Êä8bit£¬1:Ò»´Î´«Êä16bit£¬2:Ò»´Î´«Êä32bit£¬3:±£Áô
+    unsigned int      src_burst_length : 2;            //å‘èµ·ä¸€æ¬¡burstå®½åº¦ 0:1   1:4   2:8
+    unsigned int      src_data_width   : 2;            //æ•°æ®ä¼ è¾“å®½åº¦ï¼Œ0:ä¸€æ¬¡ä¼ è¾“8bitï¼Œ1:ä¸€æ¬¡ä¼ è¾“16bitï¼Œ2:ä¸€æ¬¡ä¼ è¾“32bitï¼Œ3:ä¿ç•™
     unsigned int      reserved0        : 5;
-    unsigned int      dst_drq_type     : 5;            //Ä¿µÄµØÖ·´æ´¢ÀàĞÍ£¬ÈçDRAM, SPI,NANDµÈ
-    unsigned int      dst_addr_type    : 1;            //Ä¿µÄµØÖ·ÀàĞÍ£¬ÈçµİÔö£¬»òÕß²»±ä  0:µİÔöÄ£Ê½  1:±£³Ö²»±ä
+    unsigned int      dst_drq_type     : 5;            //ç›®çš„åœ°å€å­˜å‚¨ç±»å‹ï¼Œå¦‚DRAM, SPI,NANDç­‰
+    unsigned int      dst_addr_type    : 1;            //ç›®çš„åœ°å€ç±»å‹ï¼Œå¦‚é€’å¢ï¼Œæˆ–è€…ä¸å˜  0:é€’å¢æ¨¡å¼  1:ä¿æŒä¸å˜
     unsigned int      dst_secure       : 1;            //dest secure  0:secure  1:not secure
-    unsigned int      dst_burst_length : 2;            //·¢ÆğÒ»´Îburst¿í¶È Ìî0¶ÔÓ¦ÓÚ1£¬Ìî1¶ÔÓ¦ÓÚ4,
-    unsigned int      dst_data_width   : 2;            //Êı¾İ´«Êä¿í¶È£¬0:Ò»´Î´«Êä8bit£¬1:Ò»´Î´«Êä16bit£¬2:Ò»´Î´«Êä32bit£¬3:±£Áô
-    unsigned int      wait_state       : 3;            //µÈ´ıÊ±ÖÓ¸öÊı Ñ¡Ôñ·¶Î§´Ó0-7
-    unsigned int      continuous_mode  : 1;            //Ñ¡ÔñÁ¬Ğø¹¤×÷Ä£Ê½ 0:´«ÊäÒ»´Î¼´½áÊø 1:·´¸´´«Êä£¬µ±Ò»´ÎDMA´«Êä½áÊøºó£¬ÖØĞÂ¿ªÊ¼´«Êä
+    unsigned int      dst_burst_length : 2;            //å‘èµ·ä¸€æ¬¡burstå®½åº¦ å¡«0å¯¹åº”äº1ï¼Œå¡«1å¯¹åº”äº4,
+    unsigned int      dst_data_width   : 2;            //æ•°æ®ä¼ è¾“å®½åº¦ï¼Œ0:ä¸€æ¬¡ä¼ è¾“8bitï¼Œ1:ä¸€æ¬¡ä¼ è¾“16bitï¼Œ2:ä¸€æ¬¡ä¼ è¾“32bitï¼Œ3:ä¿ç•™
+    unsigned int      wait_state       : 3;            //ç­‰å¾…æ—¶é’Ÿä¸ªæ•° é€‰æ‹©èŒƒå›´ä»0-7
+    unsigned int      continuous_mode  : 1;            //é€‰æ‹©è¿ç»­å·¥ä½œæ¨¡å¼ 0:ä¼ è¾“ä¸€æ¬¡å³ç»“æŸ 1:åå¤ä¼ è¾“ï¼Œå½“ä¸€æ¬¡DMAä¼ è¾“ç»“æŸåï¼Œé‡æ–°å¼€å§‹ä¼ è¾“
     unsigned int      reserved1        : 1;
 }
 __ndma_config_t;
 
 typedef struct __ddma_config_set
 {
-    unsigned int      src_drq_type     : 5;            //Ô´µØÖ·´æ´¢ÀàĞÍ£¬ÈçDRAM, SPI,NANDµÈ£¬²Î¼û  __ddma_src_type_t
-    unsigned int      src_addr_type    : 2;            //Ô­µØÖ·ÀàĞÍ£¬ÈçµİÔö£¬»òÕß²»±ä  0:µİÔöÄ£Ê½  1:±£³Ö²»±ä  2:HÄ£Ê½  3:VÄ£Ê½
-    unsigned int      src_burst_length : 2;            //·¢ÆğÒ»´Îburst¿í¶È Ìî0¶ÔÓ¦ÓÚ1£¬Ìî1¶ÔÓ¦ÓÚ4,
-    unsigned int      src_data_width   : 2;            //Êı¾İ´«Êä¿í¶È£¬0:Ò»´Î´«Êä8bit£¬1:Ò»´Î´«Êä16bit£¬2:Ò»´Î´«Êä32bit£¬3:±£Áô
+    unsigned int      src_drq_type     : 5;            //æºåœ°å€å­˜å‚¨ç±»å‹ï¼Œå¦‚DRAM, SPI,NANDç­‰ï¼Œå‚è§  __ddma_src_type_t
+    unsigned int      src_addr_type    : 2;            //åŸåœ°å€ç±»å‹ï¼Œå¦‚é€’å¢ï¼Œæˆ–è€…ä¸å˜  0:é€’å¢æ¨¡å¼  1:ä¿æŒä¸å˜  2:Hæ¨¡å¼  3:Væ¨¡å¼
+    unsigned int      src_burst_length : 2;            //å‘èµ·ä¸€æ¬¡burstå®½åº¦ å¡«0å¯¹åº”äº1ï¼Œå¡«1å¯¹åº”äº4,
+    unsigned int      src_data_width   : 2;            //æ•°æ®ä¼ è¾“å®½åº¦ï¼Œ0:ä¸€æ¬¡ä¼ è¾“8bitï¼Œ1:ä¸€æ¬¡ä¼ è¾“16bitï¼Œ2:ä¸€æ¬¡ä¼ è¾“32bitï¼Œ3:ä¿ç•™
     unsigned int      reserved0        : 5;
-    unsigned int      dst_drq_type     : 5;            //Ä¿µÄµØÖ·´æ´¢ÀàĞÍ£¬ÈçDRAM, SPI,NANDµÈ, ²Î¼û  __ddma_dst_type_t
-    unsigned int      dst_addr_type    : 2;            //Ä¿µÄµØÖ·ÀàĞÍ£¬ÈçµİÔö£¬»òÕß²»±ä 0:µİÔöÄ£Ê½  1:±£³Ö²»±ä  2:HÄ£Ê½  3:VÄ£Ê½
-    unsigned int      dst_burst_length : 2;            //·¢ÆğÒ»´Îburst¿í¶È Ìî0¶ÔÓ¦ÓÚ1£¬Ìî1¶ÔÓ¦ÓÚ4,
-    unsigned int      dst_data_width   : 2;            //Êı¾İ´«Êä¿í¶È£¬0:Ò»´Î´«Êä8bit£¬1:Ò»´Î´«Êä16bit£¬2:Ò»´Î´«Êä32bit£¬3:±£Áô
+    unsigned int      dst_drq_type     : 5;            //ç›®çš„åœ°å€å­˜å‚¨ç±»å‹ï¼Œå¦‚DRAM, SPI,NANDç­‰, å‚è§  __ddma_dst_type_t
+    unsigned int      dst_addr_type    : 2;            //ç›®çš„åœ°å€ç±»å‹ï¼Œå¦‚é€’å¢ï¼Œæˆ–è€…ä¸å˜ 0:é€’å¢æ¨¡å¼  1:ä¿æŒä¸å˜  2:Hæ¨¡å¼  3:Væ¨¡å¼
+    unsigned int      dst_burst_length : 2;            //å‘èµ·ä¸€æ¬¡burstå®½åº¦ å¡«0å¯¹åº”äº1ï¼Œå¡«1å¯¹åº”äº4,
+    unsigned int      dst_data_width   : 2;            //æ•°æ®ä¼ è¾“å®½åº¦ï¼Œ0:ä¸€æ¬¡ä¼ è¾“8bitï¼Œ1:ä¸€æ¬¡ä¼ è¾“16bitï¼Œ2:ä¸€æ¬¡ä¼ è¾“32bitï¼Œ3:ä¿ç•™
     unsigned int      reserved1        : 3;
-    unsigned int      continuous_mode  : 1;            //Ñ¡ÔñÁ¬Ğø¹¤×÷Ä£Ê½ 0:´«ÊäÒ»´Î¼´½áÊø 1:·´¸´´«Êä£¬µ±Ò»´ÎDMA´«Êä½áÊøºó£¬ÖØĞÂ¿ªÊ¼´«Êä
+    unsigned int      continuous_mode  : 1;            //é€‰æ‹©è¿ç»­å·¥ä½œæ¨¡å¼ 0:ä¼ è¾“ä¸€æ¬¡å³ç»“æŸ 1:åå¤ä¼ è¾“ï¼Œå½“ä¸€æ¬¡DMAä¼ è¾“ç»“æŸåï¼Œé‡æ–°å¼€å§‹ä¼ è¾“
     unsigned int      reserved2        : 1;
 }
 __ddma_config_t;

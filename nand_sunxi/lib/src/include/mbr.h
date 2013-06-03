@@ -54,27 +54,27 @@ struct nand_disk{
 
 /* part info */
 typedef struct nand_tag_PARTITION{
-	unsigned  int       addrhi;				//ÆğÊ¼µØÖ·, ÒÔÉÈÇøÎªµ¥Î»	
+	unsigned  int       addrhi;				//èµ·å§‹åœ°å€, ä»¥æ‰‡åŒºä¸ºå•ä½	
 	unsigned  int       addrlo;				//	
-	unsigned  int       lenhi;				//³¤¶È	
+	unsigned  int       lenhi;				//é•¿åº¦	
 	unsigned  int       lenlo;				//	
-	unsigned  char      classname[16];		//´ÎÉè±¸Ãû	
-	unsigned  char      name[16];			//Ö÷Éè±¸Ãû	
-	unsigned  int       user_type;          //ÓÃ»§ÀàĞÍ	
-	unsigned  int       keydata;            //¹Ø¼üÊı¾İ£¬ÒªÇóÁ¿²ú²»¶ªÊ§	
-	unsigned  int       ro;                 //¶ÁĞ´ÊôĞÔ	
-	unsigned  char      reserved[68];		//±£ÁôÊı¾İ£¬Æ¥Åä·ÖÇøĞÅÏ¢128×Ö½Ú
+	unsigned  char      classname[16];		//æ¬¡è®¾å¤‡å	
+	unsigned  char      name[16];			//ä¸»è®¾å¤‡å	
+	unsigned  int       user_type;          //ç”¨æˆ·ç±»å‹	
+	unsigned  int       keydata;            //å…³é”®æ•°æ®ï¼Œè¦æ±‚é‡äº§ä¸ä¸¢å¤±	
+	unsigned  int       ro;                 //è¯»å†™å±æ€§	
+	unsigned  char      reserved[68];		//ä¿ç•™æ•°æ®ï¼ŒåŒ¹é…åˆ†åŒºä¿¡æ¯128å­—èŠ‚
 }__attribute__ ((packed))ND_PARTITION;
 
 /* mbr info */
 typedef struct nand_tag_MBR{
         unsigned  int       crc32;                      // crc 1k - 4
-        unsigned  int       version;                    // °æ±¾ĞÅÏ¢£¬ 0x00000100
+        unsigned  int       version;                    // ç‰ˆæœ¬ä¿¡æ¯ï¼Œ 0x00000100
         unsigned  char      magic[8];                   //"softw411"
-        unsigned  int       copy;                       //·ÖÊı
-        unsigned  int       index;                      //µÚ¼¸¸öMBR±¸·İ
-        unsigned  int       PartCount;                  //·ÖÇø¸öÊı
-        unsigned  int       stamp[1];                   //¶ÔÆë
+        unsigned  int       copy;                       //åˆ†æ•°
+        unsigned  int       index;                      //ç¬¬å‡ ä¸ªMBRå¤‡ä»½
+        unsigned  int       PartCount;                  //åˆ†åŒºä¸ªæ•°
+        unsigned  int       stamp[1];                   //å¯¹é½
         ND_PARTITION        array[ND_MAX_PART_COUNT];  //
         unsigned  char      res[ND_MBR_RESERVED];
 }__attribute__ ((packed)) ND_MBR;

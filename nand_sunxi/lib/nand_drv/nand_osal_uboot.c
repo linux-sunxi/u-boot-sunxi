@@ -31,14 +31,14 @@ unsigned int hDMA;
 
 #define   CCMU_REGS_BASE    0x01c20000
 
-/* DMA ª˘¥°≈‰÷√  */
+/* DMA Âü∫Á°ÄÈÖçÁΩÆ  */
 #define  CSP_DMAC_DMATYPE_NORMAL         			0
 #define  CSP_DMAC_DMATYPE_DEDICATED      			1
 
 #define CSP_DMAC_CFG_CONTINUOUS_ENABLE              (0x01)	//(0x01<<29)
 #define CSP_DMAC_CFG_CONTINUOUS_DISABLE             (0x00)	//(0x01<<29)
 
-//* DMA µ»¥˝ ±÷” */
+//* DMA Á≠âÂæÖÊó∂Èíü */
 #define	CSP_DMAC_CFG_WAIT_1_DMA_CLOCK				(0x00)	//(0x00<<26)
 #define	CSP_DMAC_CFG_WAIT_2_DMA_CLOCK				(0x01)	//(0x01<<26)
 #define	CSP_DMAC_CFG_WAIT_3_DMA_CLOCK				(0x02)	//(0x02<<26)
@@ -48,46 +48,46 @@ unsigned int hDMA;
 #define	CSP_DMAC_CFG_WAIT_7_DMA_CLOCK				(0x06)	//(0x06<<26)
 #define	CSP_DMAC_CFG_WAIT_8_DMA_CLOCK				(0x07)	//(0x07<<26)
 
-/* DMA ¥´ ‰‘¥∂À ≈‰÷√ */
-/* DMA ƒøµƒ∂À ¥´ ‰øÌ∂» */
+/* DMA ‰º†ËæìÊ∫êÁ´Ø ÈÖçÁΩÆ */
+/* DMA ÁõÆÁöÑÁ´Ø ‰º†ËæìÂÆΩÂ∫¶ */
 #define	CSP_DMAC_CFG_DEST_DATA_WIDTH_8BIT			(0x00)	//(0x00<<24)
 #define	CSP_DMAC_CFG_DEST_DATA_WIDTH_16BIT			(0x01)	//(0x01<<24)
 #define	CSP_DMAC_CFG_DEST_DATA_WIDTH_32BIT			(0x02)	//(0x02<<24)
 
-/* DMA ƒøµƒ∂À Õª∑¢¥´ ‰ƒ£ Ω */
+/* DMA ÁõÆÁöÑÁ´Ø Á™ÅÂèë‰º†ËæìÊ®°Âºè */
 #define	CSP_DMAC_CFG_DEST_1_BURST       			(0x00)	//(0x00<<23)
 #define	CSP_DMAC_CFG_DEST_4_BURST		    		(0x01)	//(0x01<<23)
 
-/* DMA ƒøµƒ∂À µÿ÷∑±‰ªØƒ£ Ω */
+/* DMA ÁõÆÁöÑÁ´Ø Âú∞ÂùÄÂèòÂåñÊ®°Âºè */
 #define	CSP_DMAC_CFG_DEST_ADDR_TYPE_LINEAR_MODE		(0x00)	//(0x00<<21)
 #define	CSP_DMAC_CFG_DEST_ADDR_TYPE_IO_MODE 		(0x01)	//(0x01<<21)
 #define	CSP_DMAC_CFG_DEST_ADDR_TYPE_HPAGE_MODE 		(0x02)	//(0x02<<21)
 #define	CSP_DMAC_CFG_DEST_ADDR_TYPE_VPAGE_MODE 		(0x03)	//(0x03<<21)
 
 
-/* DMA ¥´ ‰‘¥∂À ≈‰÷√ */
-/* DMA ‘¥∂À ¥´ ‰øÌ∂» */
+/* DMA ‰º†ËæìÊ∫êÁ´Ø ÈÖçÁΩÆ */
+/* DMA Ê∫êÁ´Ø ‰º†ËæìÂÆΩÂ∫¶ */
 #define	CSP_DMAC_CFG_SRC_DATA_WIDTH_8BIT			(0x00)	//(0x00<<8)
 #define	CSP_DMAC_CFG_SRC_DATA_WIDTH_16BIT			(0x01)	//(0x01<<8)
 #define	CSP_DMAC_CFG_SRC_DATA_WIDTH_32BIT			(0x02)	//(0x02<<8)
 
-/* DMA ‘¥∂À Õª∑¢¥´ ‰ƒ£ Ω */
+/* DMA Ê∫êÁ´Ø Á™ÅÂèë‰º†ËæìÊ®°Âºè */
 #define	CSP_DMAC_CFG_SRC_1_BURST       				(0x00)	//(0x00<<7)
 #define	CSP_DMAC_CFG_SRC_4_BURST		    		(0x01)	//(0x01<<7)
 
-/* DMA ‘¥∂À µÿ÷∑±‰ªØƒ£ Ω */
+/* DMA Ê∫êÁ´Ø Âú∞ÂùÄÂèòÂåñÊ®°Âºè */
 #define	CSP_DMAC_CFG_SRC_ADDR_TYPE_LINEAR_MODE		(0x00)	//(0x00<<5)
 #define	CSP_DMAC_CFG_SRC_ADDR_TYPE_IO_MODE 			(0x01)	//(0x01<<5)
 #define	CSP_DMAC_CFG_SRC_ADDR_TYPE_HPAGE_MODE 		(0x02)	//(0x02<<5)
 #define	CSP_DMAC_CFG_SRC_ADDR_TYPE_VPAGE_MODE 		(0x03)	//(0x03<<5)
 
-/* DMA ¥´ ‰ƒøµƒ∂À D–ÕDMA ƒøµƒ—°‘Ò */
+/* DMA ‰º†ËæìÁõÆÁöÑÁ´Ø DÂûãDMA ÁõÆÁöÑÈÄâÊã© */
 #define	CSP_DMAC_CFG_DEST_TYPE_D_SRAM 				(0x00)	//(0x00<<16)
 #define	CSP_DMAC_CFG_DEST_TYPE_D_SDRAM				(0x01)	//(0x01<<16)
 #define	CSP_DMAC_CFG_DEST_TYPE_TCON0				(0x02)	//(0x02<<16)
 #define	CSP_DMAC_CFG_DEST_TYPE_NFC  		    	(0x03)	//(0x03<<16)
 
-/* DMA ¥´ ‰‘¥∂À D–ÕDMA ƒøµƒ—°‘Ò */
+/* DMA ‰º†ËæìÊ∫êÁ´Ø DÂûãDMA ÁõÆÁöÑÈÄâÊã© */
 #define	CSP_DMAC_CFG_SRC_TYPE_D_SRAM 				(0x00)	//(0x00<<0)
 #define	CSP_DMAC_CFG_SRC_TYPE_D_SDRAM				(0x01)	//(0x01<<0)
 #define	CSP_DMAC_CFG_SRC_TYPE_TCON0				    (0x02)	//(0x02<<0)
@@ -95,18 +95,18 @@ unsigned int hDMA;
 
 typedef struct  CSP_dma_config
 {
-    unsigned int      src_drq_type     ; //‘¥µÿ÷∑¥Ê¥¢¿‡–Õ£¨»ÁDRAM, SPI,NANDµ»£¨∏˘æ›—°‘ÒNDMAªÚ’ﬂDDMA, —°‘Ò __ndma_drq_type_tªÚ’ﬂ __ddma_src_type_t
-    unsigned int      src_addr_type    ; //‘≠µÿ÷∑¿‡–Õ NDMAœ¬ 0:µ›‘ˆƒ£ Ω  1:±£≥÷≤ª±‰  DDMAœ¬ 0:µ›‘ˆƒ£ Ω  1:±£≥÷≤ª±‰  2:Hƒ£ Ω  3:Vƒ£ Ω
-    unsigned int      src_burst_length ; //∑¢∆“ª¥ŒburstøÌ∂» ÃÓ0∂‘”¶”⁄1£¨ÃÓ1∂‘”¶”⁄4,
-    unsigned int      src_data_width   ; // ˝æ›¥´ ‰øÌ∂»£¨0:“ª¥Œ¥´ ‰8bit£¨1:“ª¥Œ¥´ ‰16bit£¨2:“ª¥Œ¥´ ‰32bit£¨3:±£¡Ù
-    unsigned int      dst_drq_type     ; //‘¥µÿ÷∑¥Ê¥¢¿‡–Õ£¨»ÁDRAM, SPI,NANDµ»£¨∏˘æ›—°‘ÒNDMAªÚ’ﬂDDMA, —°‘Ò __ndma_drq_type_tªÚ’ﬂ __ddma_dst_type_t
-    unsigned int      dst_addr_type    ; //‘≠µÿ÷∑¿‡–Õ NDMAœ¬ 0:µ›‘ˆƒ£ Ω  1:±£≥÷≤ª±‰  DDMAœ¬ 0:µ›‘ˆƒ£ Ω  1:±£≥÷≤ª±‰  2:Hƒ£ Ω  3:Vƒ£ Ω
-    unsigned int      dst_burst_length ; //∑¢∆“ª¥ŒburstøÌ∂» ÃÓ0∂‘”¶”⁄1£¨ÃÓ1∂‘”¶”⁄4,
-    unsigned int      dst_data_width   ; // ˝æ›¥´ ‰øÌ∂»£¨0:“ª¥Œ¥´ ‰8bit£¨1:“ª¥Œ¥´ ‰16bit£¨2:“ª¥Œ¥´ ‰32bit£¨3:±£¡Ù
-    unsigned int      wait_state       ; //µ»¥˝ ±÷”∏ˆ ˝ —°‘Ò∑∂Œß¥”0-7£¨÷ª∂‘NDMA”––ß
-    unsigned int      continuous_mode  ; //—°‘Ò¡¨–¯π§◊˜ƒ£ Ω 0:¥´ ‰“ª¥Œº¥Ω· ¯ 1:∑¥∏¥¥´ ‰£¨µ±“ª¥ŒDMA¥´ ‰Ω· ¯∫Û£¨÷ÿ–¬ø™ º¥´ ‰
+    unsigned int      src_drq_type     ; //Ê∫êÂú∞ÂùÄÂ≠òÂÇ®Á±ªÂûãÔºåÂ¶ÇDRAM, SPI,NANDÁ≠âÔºåÊ†πÊçÆÈÄâÊã©NDMAÊàñËÄÖDDMA, ÈÄâÊã© __ndma_drq_type_tÊàñËÄÖ __ddma_src_type_t
+    unsigned int      src_addr_type    ; //ÂéüÂú∞ÂùÄÁ±ªÂûã NDMA‰∏ã 0:ÈÄíÂ¢ûÊ®°Âºè  1:‰øùÊåÅ‰∏çÂèò  DDMA‰∏ã 0:ÈÄíÂ¢ûÊ®°Âºè  1:‰øùÊåÅ‰∏çÂèò  2:HÊ®°Âºè  3:VÊ®°Âºè
+    unsigned int      src_burst_length ; //ÂèëËµ∑‰∏ÄÊ¨°burstÂÆΩÂ∫¶ Â°´0ÂØπÂ∫î‰∫é1ÔºåÂ°´1ÂØπÂ∫î‰∫é4,
+    unsigned int      src_data_width   ; //Êï∞ÊçÆ‰º†ËæìÂÆΩÂ∫¶Ôºå0:‰∏ÄÊ¨°‰º†Ëæì8bitÔºå1:‰∏ÄÊ¨°‰º†Ëæì16bitÔºå2:‰∏ÄÊ¨°‰º†Ëæì32bitÔºå3:‰øùÁïô
+    unsigned int      dst_drq_type     ; //Ê∫êÂú∞ÂùÄÂ≠òÂÇ®Á±ªÂûãÔºåÂ¶ÇDRAM, SPI,NANDÁ≠âÔºåÊ†πÊçÆÈÄâÊã©NDMAÊàñËÄÖDDMA, ÈÄâÊã© __ndma_drq_type_tÊàñËÄÖ __ddma_dst_type_t
+    unsigned int      dst_addr_type    ; //ÂéüÂú∞ÂùÄÁ±ªÂûã NDMA‰∏ã 0:ÈÄíÂ¢ûÊ®°Âºè  1:‰øùÊåÅ‰∏çÂèò  DDMA‰∏ã 0:ÈÄíÂ¢ûÊ®°Âºè  1:‰øùÊåÅ‰∏çÂèò  2:HÊ®°Âºè  3:VÊ®°Âºè
+    unsigned int      dst_burst_length ; //ÂèëËµ∑‰∏ÄÊ¨°burstÂÆΩÂ∫¶ Â°´0ÂØπÂ∫î‰∫é1ÔºåÂ°´1ÂØπÂ∫î‰∫é4,
+    unsigned int      dst_data_width   ; //Êï∞ÊçÆ‰º†ËæìÂÆΩÂ∫¶Ôºå0:‰∏ÄÊ¨°‰º†Ëæì8bitÔºå1:‰∏ÄÊ¨°‰º†Ëæì16bitÔºå2:‰∏ÄÊ¨°‰º†Ëæì32bitÔºå3:‰øùÁïô
+    unsigned int      wait_state       ; //Á≠âÂæÖÊó∂Èíü‰∏™Êï∞ ÈÄâÊã©ËåÉÂõ¥‰ªé0-7ÔºåÂè™ÂØπNDMAÊúâÊïà
+    unsigned int      continuous_mode  ; //ÈÄâÊã©ËøûÁª≠Â∑•‰ΩúÊ®°Âºè 0:‰º†Ëæì‰∏ÄÊ¨°Âç≥ÁªìÊùü 1:ÂèçÂ§ç‰º†ËæìÔºåÂΩì‰∏ÄÊ¨°DMA‰º†ËæìÁªìÊùüÂêéÔºåÈáçÊñ∞ÂºÄÂßã‰º†Ëæì
 
-    unsigned int      cmt_blk_cnt	   ; //DMA¥´ ‰comity counter
+    unsigned int      cmt_blk_cnt	   ; //DMA‰º†Ëæìcomity counter
 }CSP_dma_config_t;
 
 
@@ -469,7 +469,7 @@ void *NAND_IORemap(unsigned int base_addr, unsigned int size)
 *
 *             OSAL_printf
 *
-*  Description:  ”√ªßø…“‘◊‘––…Ë∂® «∑Ò–Ë“™¥Ú”°
+*  Description:  Áî®Êà∑ÂèØ‰ª•Ëá™Ë°åËÆæÂÆöÊòØÂê¶ÈúÄË¶ÅÊâìÂç∞
 *
 *
 *  Parameters:

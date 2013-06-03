@@ -65,7 +65,7 @@ s32 irq_enable(u32 irq_no)
 		return -1;
 	}
 
-	base_os = irq_no >> 5; // ³ý32
+	base_os = irq_no >> 5; // é™¤32
 	base = GIC_SET_EN(base_os);
 	bit_os = irq_no & 0x1f; // %32
 	sr32_aw(base, bit_os, 1, 1);
@@ -84,7 +84,7 @@ s32 irq_disable(u32 irq_no)
 		return -1;
 	}
 
-	base_os = irq_no >> 5; // ³ý32
+	base_os = irq_no >> 5; // é™¤32
 	base = GIC_CLR_EN(base_os);
 	bit_os = irq_no & 0x1f; // %32
 	sr32_aw(base, bit_os, 1, 1);
@@ -115,7 +115,7 @@ void gic_clear_pending(u32 id)
 	u32 base_os;
 	u32 bit_os;
 
-	base_os = id >> 5; // ³ý32
+	base_os = id >> 5; // é™¤32
 	base = GIC_PEND_CLR(base_os);
 	bit_os = id & 0x1f; // %32
 	writel(1<<bit_os, base);
@@ -166,21 +166,21 @@ static void gic_distributor_init(void)
 
 	/* set trigger type to be level-triggered, active low */
 	for (i=GIC_SRC_SPI(0); i<GIC_IRQ_NUM; i+=16)
-		writel(0, GIC_IRQ_MOD_CFG(i>>4));				//³ý16
+		writel(0, GIC_IRQ_MOD_CFG(i>>4));				//é™¤16
 	/* set priority */
 	for (i=GIC_SRC_SPI(0); i<GIC_IRQ_NUM; i+=4)
-		writel(0xa0a0a0a0, GIC_SPI_PRIO((i-32)>>2));	//³ý4
+		writel(0xa0a0a0a0, GIC_SPI_PRIO((i-32)>>2));	//é™¤4
 	/* set processor target */
 	for (i=GIC_SRC_SPI(0); i<GIC_IRQ_NUM; i+=4)
-		writel(cpumask, GIC_SPI_PROC_TARG((i-32)>>2));	//³ý4
+		writel(cpumask, GIC_SPI_PROC_TARG((i-32)>>2));	//é™¤4
 
 	/* disable all interrupts */
 	for (i=GIC_SRC_SPI(0); i<GIC_IRQ_NUM; i+=32)
-		writel(0xffffffff, GIC_CLR_EN(i>>5));	//³ý32
+		writel(0xffffffff, GIC_CLR_EN(i>>5));	//é™¤32
 
 	/* clear all interrupt active state */
 	for (i=GIC_SRC_SPI(0); i<GIC_IRQ_NUM; i+=32)
-		writel(0xffffffff, GIC_ACT_CLR(i>>5));	//³ý32
+		writel(0xffffffff, GIC_ACT_CLR(i>>5));	//é™¤32
 
 
 	writel(1, GIC_DIST_CON);

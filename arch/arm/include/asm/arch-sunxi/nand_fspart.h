@@ -31,60 +31,60 @@
 #define   	MBR_MAGIC			"softw411"
 #define     MBR_START_ADDRESS	0x00000000
 #define     MBR_MAX_PART_COUNT	120
-#define     MBR_COPY_NUM        4    //mbrµÄ±¸·İÊıÁ¿
-#define     MBR_RESERVED          	(MBR_SIZE - 32 - (MBR_MAX_PART_COUNT * sizeof(PARTITION)))   //mbr±£ÁôµÄ¿Õ¼ä
+#define     MBR_COPY_NUM        4    //mbrçš„å¤‡ä»½æ•°é‡
+#define     MBR_RESERVED          	(MBR_SIZE - 32 - (MBR_MAX_PART_COUNT * sizeof(PARTITION)))   //mbrä¿ç•™çš„ç©ºé—´
 #define     DL_RESERVED           	(DL_SIZE - 32 - (MBR_MAX_PART_COUNT * sizeof(dl_one_part_info)))
 
-//·ÖÇøĞÅÏ¢, 64byte
+//åˆ†åŒºä¿¡æ¯, 64byte
 typedef struct tag_PARTITION
 {
-	unsigned  int       addrhi;				//ÆğÊ¼µØÖ·, ÒÔÉÈÇøÎªµ¥Î»
+	unsigned  int       addrhi;				//èµ·å§‹åœ°å€, ä»¥æ‰‡åŒºä¸ºå•ä½
 	unsigned  int       addrlo;				//
-	unsigned  int       lenhi;				//³¤¶È
+	unsigned  int       lenhi;				//é•¿åº¦
 	unsigned  int       lenlo;				//
-	unsigned  char      classname[16];		//´ÎÉè±¸Ãû
-	unsigned  char      name[16];			//Ö÷Éè±¸Ãû
-	unsigned  int       user_type;          //ÓÃ»§ÀàĞÍ
-	unsigned  int       keydata;            //¹Ø¼üÊı¾İ£¬ÒªÇóÁ¿²ú²»¶ªÊ§
-	unsigned  int       ro;                 //¶ÁĞ´ÊôĞÔ
-	unsigned  char      reserved[68];		//±£ÁôÊı¾İ£¬Æ¥Åä·ÖÇøĞÅÏ¢128×Ö½Ú
+	unsigned  char      classname[16];		//æ¬¡è®¾å¤‡å
+	unsigned  char      name[16];			//ä¸»è®¾å¤‡å
+	unsigned  int       user_type;          //ç”¨æˆ·ç±»å‹
+	unsigned  int       keydata;            //å…³é”®æ•°æ®ï¼Œè¦æ±‚é‡äº§ä¸ä¸¢å¤±
+	unsigned  int       ro;                 //è¯»å†™å±æ€§
+	unsigned  char      reserved[68];		//ä¿ç•™æ•°æ®ï¼ŒåŒ¹é…åˆ†åŒºä¿¡æ¯128å­—èŠ‚
 } __attribute__ ((packed))PARTITION;
-//MBRĞÅÏ¢
+//MBRä¿¡æ¯
 typedef struct tag_MBR
 {
 	unsigned  int       crc32;				        // crc 1k - 4
-	unsigned  int       version;			        // °æ±¾ĞÅÏ¢£¬ 0x00000100
+	unsigned  int       version;			        // ç‰ˆæœ¬ä¿¡æ¯ï¼Œ 0x00000100
 	unsigned  char 	    magic[8];			        //"softw411"
-	unsigned  int 	    copy;				        //·ÖÊı
-	unsigned  int 	    index;				        //µÚ¼¸¸öMBR±¸·İ
-	unsigned  int       PartCount;			        //·ÖÇø¸öÊı
-	unsigned  int       stamp[1];					//¶ÔÆë
+	unsigned  int 	    copy;				        //åˆ†æ•°
+	unsigned  int 	    index;				        //ç¬¬å‡ ä¸ªMBRå¤‡ä»½
+	unsigned  int       PartCount;			        //åˆ†åŒºä¸ªæ•°
+	unsigned  int       stamp[1];					//å¯¹é½
 	PARTITION           array[MBR_MAX_PART_COUNT];	//
 	unsigned  char      res[MBR_RESERVED];
 }__attribute__ ((packed)) MBR;
 
 typedef struct tag_one_part_info
 {
-	unsigned  char      name[16];           //ËùÉÕĞ´·ÖÇøµÄÖ÷Éè±¸Ãû
-	unsigned  int       addrhi;             //ËùÉÕĞ´·ÖÇøµÄ¸ßµØÖ·£¬ÉÈÇøµ¥Î»
-	unsigned  int       addrlo;             //ËùÉÕĞ´·ÖÇøµÄµÍµØÖ·£¬ÉÈÇøµ¥Î»
-	unsigned  int       lenhi;				//ËùÉÕĞ´·ÖÇøµÄ³¤¶È£¬¸ß32Î»£¬ÉÈÇøµ¥Î»
-	unsigned  int       lenlo;				//ËùÉÕĞ´·ÖÇøµÄ³¤¶È£¬µÍ32Î»£¬ÉÈÇøµ¥Î»
-	unsigned  char      dl_filename[16];    //ËùÉÕĞ´·ÖÇøµÄÎÄ¼şÃû³Æ£¬³¤¶È¹Ì¶¨16×Ö½Ú
-	unsigned  char      vf_filename[16];    //ËùÉÕĞ´·ÖÇøµÄĞ£ÑéÎÄ¼şÃû³Æ£¬³¤¶È¹Ì¶¨16×Ö½Ú
-	unsigned  int       encrypt;            //ËùÉÕĞ´·ÖÇøµÄÊı¾İÊÇ·ñ½øĞĞ¼ÓÃÜ 0:¼ÓÃÜ   1£º²»¼ÓÃÜ
-	unsigned  int       verify;             //ËùÉÕĞ´·ÖÇøµÄÊı¾İÊÇ·ñ½øĞĞĞ£Ñé 0:²»Ğ£Ñé 1£ºĞ£Ñé
+	unsigned  char      name[16];           //æ‰€çƒ§å†™åˆ†åŒºçš„ä¸»è®¾å¤‡å
+	unsigned  int       addrhi;             //æ‰€çƒ§å†™åˆ†åŒºçš„é«˜åœ°å€ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       addrlo;             //æ‰€çƒ§å†™åˆ†åŒºçš„ä½åœ°å€ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       lenhi;				//æ‰€çƒ§å†™åˆ†åŒºçš„é•¿åº¦ï¼Œé«˜32ä½ï¼Œæ‰‡åŒºå•ä½
+	unsigned  int       lenlo;				//æ‰€çƒ§å†™åˆ†åŒºçš„é•¿åº¦ï¼Œä½32ä½ï¼Œæ‰‡åŒºå•ä½
+	unsigned  char      dl_filename[16];    //æ‰€çƒ§å†™åˆ†åŒºçš„æ–‡ä»¶åç§°ï¼Œé•¿åº¦å›ºå®š16å­—èŠ‚
+	unsigned  char      vf_filename[16];    //æ‰€çƒ§å†™åˆ†åŒºçš„æ ¡éªŒæ–‡ä»¶åç§°ï¼Œé•¿åº¦å›ºå®š16å­—èŠ‚
+	unsigned  int       encrypt;            //æ‰€çƒ§å†™åˆ†åŒºçš„æ•°æ®æ˜¯å¦è¿›è¡ŒåŠ å¯† 0:åŠ å¯†   1ï¼šä¸åŠ å¯†
+	unsigned  int       verify;             //æ‰€çƒ§å†™åˆ†åŒºçš„æ•°æ®æ˜¯å¦è¿›è¡Œæ ¡éªŒ 0:ä¸æ ¡éªŒ 1ï¼šæ ¡éªŒ
 }
 dl_one_part_info;
-//·ÖÇøÉÕĞ´ĞÅÏ¢
+//åˆ†åŒºçƒ§å†™ä¿¡æ¯
 typedef struct tag_download_info
 {
 	unsigned  int       crc32;				        		        //crc
-	unsigned  int       version;                                    //°æ±¾ºÅ  0x00000101
+	unsigned  int       version;                                    //ç‰ˆæœ¬å·  0x00000101
 	unsigned  char 	    magic[8];			        		        //"softw311"
-	unsigned  int       download_count;             		        //ĞèÒªÉÕĞ´µÄ·ÖÇø¸öÊı
-	unsigned  int       stamp[3];									//¶ÔÆë
-	dl_one_part_info	one_part_info[MBR_MAX_PART_COUNT];	//ÉÕĞ´·ÖÇøµÄĞÅÏ¢
+	unsigned  int       download_count;             		        //éœ€è¦çƒ§å†™çš„åˆ†åŒºä¸ªæ•°
+	unsigned  int       stamp[3];									//å¯¹é½
+	dl_one_part_info	one_part_info[MBR_MAX_PART_COUNT];	//çƒ§å†™åˆ†åŒºçš„ä¿¡æ¯
 	unsigned  char      res[DL_RESERVED];
 }
 download_info;
