@@ -49,6 +49,8 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (argc < 2)
 		return cmd_usage(cmdtp);
 
+	tick_printf(__FILE__, __LINE__);
+
 	addr = simple_strtoul(argv[1], NULL, 16);
 
 	struct fastboot_boot_img_hdr *fb_hdr = (struct fastboot_boot_img_hdr *)addr;
@@ -80,10 +82,26 @@ int do_boota (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("moving kernel from %x to: %x, size 0x%x\n", kaddr, fb_hdr->kernel_addr, fb_hdr->kernel_size);
 	printf("moving ramdisk from %x to: %x, size 0x%x\n", raddr, fb_hdr->ramdisk_addr, fb_hdr->ramdisk_size);
 #endif
-	memmove((void*) fb_hdr->kernel_addr, (const void *)kaddr, fb_hdr->kernel_size);
-	memmove((void*) fb_hdr->ramdisk_addr, (const void *)raddr, fb_hdr->ramdisk_size);
+    tick_printf(__FILE__, __LINE__);
+    if((fb_hdr->unused[0] == 0x55) &&(fb_hdr->unused[1] == 0xaa))
+    {
+        #ifdef DEBUG
+        printf("bootimg load in boot1!\n");
+        #endif
+        do_boota_linux(fb_hdr);
+        tick_printf(__FILE__, __LINE__);
+    }else
+    {
+        #ifdef DEBUG
+        printf("memmove bootimg!\n");
+        #endif
+        memmove((void*) fb_hdr->kernel_addr, (const void *)kaddr, fb_hdr->kernel_size);
+        tick_printf(__FILE__, __LINE__);
+    	memmove((void*) fb_hdr->ramdisk_addr, (const void *)raddr, fb_hdr->ramdisk_size);
+    	tick_printf(__FILE__, __LINE__);
+    	do_boota_linux(fb_hdr);
+    }
 
-	do_boota_linux(fb_hdr);
 
 	puts("Boot linux failed, control return to monitor\n");
 

@@ -34,7 +34,6 @@
 #include <mmc.h>
 
 #undef SUNXI_MMCDBG
-#define SUNXI_MMCDBG
 #ifdef SUNXI_MMCDBG
 #define MMCDBG(fmt...)	printf("[mmc]: "fmt)
 
@@ -167,8 +166,8 @@ s32 smc_set_card_clk(u32 smc_no, u32 cclk,u32 bus_width)
 	
 	
 	if (cclk > 400000) {
-		src = 2;//change to you select source:0->LOSC24M;1->PLL6;2->PLL5.
-		sclk = ccm_get_pll5_dev_clk();	//change to you select source clock
+		src = 1;//change to you select source:0->LOSC24M;1->PLL6;2->PLL5.
+		sclk = ccm_get_pll6_dev_clk();	//change to you select source clock
 		outclk_pha = 0;
 		samclk_pha = 0;			
 	}else{
@@ -297,7 +296,7 @@ static int mmc_clk_io_on(int sdc_no)
             /* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
             writel(0x222222, &gpio_f->cfg[0]);
             writel(0x555, &gpio_f->pull[0]);
-            writel(0xaaa, &gpio_f->drv[0]);
+            writel(0xfff, &gpio_f->drv[0]);
             break;
 
         case 1:
@@ -308,7 +307,7 @@ static int mmc_clk_io_on(int sdc_no)
             writel(0x33<<24, &gpio_c->cfg[0]);
             writel(0x3333, &gpio_c->cfg[1]);
             writel(0x555<<12, &gpio_c->pull[0]);
-            writel(0xaaa<<12, &gpio_c->drv[0]);
+            writel(0xfff<<12, &gpio_c->drv[0]);
             break;
 
         case 3:

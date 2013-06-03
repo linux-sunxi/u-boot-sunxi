@@ -75,7 +75,7 @@ void fastboot_flash_partition_init(void)
 		fb_part.start = sunxi_partition_get_offset(index) * 512;
 		fb_part.length = sunxi_partition_get_size(index) * 512;
 		fb_part.flags = 0;
-		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start, fb_part.length);
+		printf("%-12s: %-12x  %-12x\n", fb_part.name, fb_part.start>>9, fb_part.length>>9);
 		fastboot_flash_add_ptn(&fb_part);
 
 		strcpy(pa_index, fb_part.name);

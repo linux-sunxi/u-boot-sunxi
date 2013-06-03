@@ -286,6 +286,8 @@ void board_init_f(ulong bootflag)
 		}
 	}
 
+	tick_printf(__FILE__, __LINE__);
+
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
 	 * Ram is setup, size stored in gd !!
@@ -421,6 +423,7 @@ void board_init_f(ulong bootflag)
 	gd->reloc_off = addr - _TEXT_BASE;
 	debug("relocation Offset is: %08lx\n", gd->reloc_off);
 	memcpy(id, (void *)gd, sizeof(gd_t));
+	tick_printf(__FILE__, __LINE__);
 
 	relocate_code(addr_sp, id, addr);
 
@@ -453,6 +456,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	gd = id;
 	bd = gd->bd;
+
+	tick_printf(__FILE__, __LINE__);
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
@@ -547,7 +552,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
         mmc_initialize(bd);
 	}
 	sunxi_flash_handle_init();
+	tick_printf(__FILE__, __LINE__);
 	sunxi_partition_init();
+	tick_printf(__FILE__, __LINE__);
 #else
 #if defined(CONFIG_CMD_NAND)
 	if(!storage_type){
@@ -576,8 +583,9 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 	/* initialize environment */
+	tick_printf(__FILE__, __LINE__);
 	env_relocate();
-
+	tick_printf(__FILE__, __LINE__);
 #if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI)
 	arm_pci_init();
 #endif
@@ -586,16 +594,16 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
 
 	stdio_init();	/* get the devices list going. */
-
+	tick_printf(__FILE__, __LINE__);
 	jumptable_init();
-
+	tick_printf(__FILE__, __LINE__);
 #if defined(CONFIG_API)
 	/* Initialize API */
 	api_init();
 #endif
 
 	console_init_r();	/* fully init console as a device */
-
+	tick_printf(__FILE__, __LINE__);
 #if defined(CONFIG_ARCH_MISC_INIT)
 	/* miscellaneous arch dependent initialisations */
 	arch_misc_init();
@@ -609,7 +617,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	interrupt_init();
 	/* enable exceptions */
 	enable_interrupts();
-
+	tick_printf(__FILE__, __LINE__);
 	/* Perform network card initialisation if necessary */
 #if defined(CONFIG_DRIVER_SMC91111) || defined (CONFIG_DRIVER_LAN91C96)
 	/* XXX: this needs to be moved to board init */
@@ -629,11 +637,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	if (s != NULL)
 		copy_filename(BootFile, s, sizeof(BootFile));
 #endif
-
+	tick_printf(__FILE__, __LINE__);
 #ifdef BOARD_LATE_INIT
 	board_late_init();
 #endif
-
+	tick_printf(__FILE__, __LINE__);
 #ifdef CONFIG_BITBANGMII
 	bb_miiphy_init();
 #endif
@@ -681,6 +689,8 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		setenv("mem", (char *)memsz);
 	}
 #endif
+
+	tick_printf(__FILE__, __LINE__);
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {

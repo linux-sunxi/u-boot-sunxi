@@ -64,6 +64,8 @@ static int sunxi_flash_read_all(u32 start, ulong buf)
 	printf("sunxi flash read :offset %x, %d bytes %s\n", start<<9, rbytes - 511,
 		       ret ? "ERROR" : "OK");
 
+	tick_printf(__FILE__, __LINE__);
+
 	return ret == 0 ? 0 : 1;
 	
 }
@@ -78,6 +80,8 @@ int do_sunxi_flash(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	/* at least four arguments please */
 	if ((argc != 4) && (argc != 5))
 		goto usage;
+
+	tick_printf(__FILE__, __LINE__);
 
 	cmd = argv[1];
 	part_name = argv[3];

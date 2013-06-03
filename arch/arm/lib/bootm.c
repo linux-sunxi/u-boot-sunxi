@@ -219,6 +219,12 @@ int do_boota_linux (struct fastboot_boot_img_hdr *hdr)
 	sr32(SUNXI_CCM_APB1_GATING, 16, 1, 0);
 #endif
 
+   *(volatile unsigned int *)(0x01c20C00 + 0x84 )  = 0;
+   *(volatile unsigned int *)(0x01c20C00 + 0x8C )  = 0x05DB05DB;
+   *(volatile unsigned int *)(0x01c20C00 + 0x80 )  = 0;
+   *(volatile unsigned int *)(0x01c20000 + 0x144) &= ~(1U << 31);
+
+
 	kernel_entry(0, bd->bi_arch_number, bd->bi_boot_params);
 	/* does not return */
 
