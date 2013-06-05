@@ -30,6 +30,7 @@ include $(TOPDIR)/config.mk
 LIB	:= $(obj)lib$(BOARD).o
 
 COBJS-y	:= board.o
+COBJS-$(CONFIG_A10_MID_1GB)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
