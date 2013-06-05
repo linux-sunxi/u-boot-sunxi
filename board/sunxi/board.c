@@ -97,9 +97,9 @@ void sunxi_board_init(void)
 
 #ifdef CONFIG_AXP152_POWER
 	power_failed = axp152_init();
-	power_failed |= axp152_set_dcdc2(1200); //was 1400
+	power_failed |= axp152_set_dcdc2(1400);
 	power_failed |= axp152_set_dcdc3(1500);
-	power_failed |= axp152_set_dcdc4(1200);
+	power_failed |= axp152_set_dcdc4(1250);
 	power_failed |= axp152_set_ldo2(3000);
 #endif
 #ifdef CONFIG_AXP209_POWER
