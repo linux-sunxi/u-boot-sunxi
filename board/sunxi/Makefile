@@ -39,6 +39,7 @@ COBJS-$(CONFIG_BA10_TV_BOX)	+= dram_ba10_tv_box.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
 COBJS-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
+COBJS-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
 COBJS-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
