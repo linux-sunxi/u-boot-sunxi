@@ -37,6 +37,7 @@ COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
 COBJS-$(CONFIG_BA10_TV_BOX)	+= dram_ba10_tv_box.o
 COBJS-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
+COBJS-$(CONFIG_COBY_MID8042)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
 COBJS-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
