@@ -37,6 +37,7 @@ obj-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
 obj-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
 obj-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
+obj-$(CONFIG_MELE_A1000G)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MINI_X)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_MK802)		+= dram_sun4i_360_512.o
