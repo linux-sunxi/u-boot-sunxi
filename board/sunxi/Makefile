@@ -56,6 +56,7 @@ COBJS-$(CONFIG_MK802)		+= dram_sun4i_360_512.o
 COBJS-$(CONFIG_MK802_1GB)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 COBJS-$(CONFIG_MK802II)		+= dram_sun4i_408_1024_iow16.o
+COBJS-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
 COBJS-$(CONFIG_POV_PROTAB2)	+= dram_pov_protab2.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
 COBJS-$(CONFIG_SANEI_N90)	+= dram_sanei_n90.o
