@@ -59,3 +59,20 @@ int sunxi_gpio_get_cfgpin(u32 pin)
 	return cfg & 0xf;
 }
 
+int sunxi_gpio_set_pull(u32 pin, u32 val)
+{
+	u32 pull;
+	u32 bank = GPIO_BANK(pin);
+	u32 index = GPIO_PULL_INDEX(pin);
+	u32 offset = GPIO_PULL_OFFSET(pin);
+	struct sunxi_gpio *pio =
+	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank];
+
+	pull = readl(&pio->pull[0] + index);
+	pull &= ~(0xf << offset);
+	pull |= val << offset;
+
+	writel(pull, &pio->pull[0] + index);
+
+	return 0;
+}
