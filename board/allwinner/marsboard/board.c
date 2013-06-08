@@ -25,11 +25,22 @@
  */
 
 #include <common.h>
+#include <asm/io.h>
+#include <asm/arch/gpio.h>
 
 #ifdef CONFIG_DISPLAY_BOARDINFO
 int checkboard(void) {
 
 	puts("Board: Marsboard 1GB\n");
+	/* set LED */
+	gpio_direction_output(SUNXI_GPB(5),0);
+	gpio_direction_output(SUNXI_GPB(6),1);
+	gpio_direction_output(SUNXI_GPB(7),1);
+	gpio_direction_output(SUNXI_GPB(8),1);
+
+	/* Set pull-up resistor PB23 */
+	writel(0x40004000,(SUNXI_PIO_BASE + 0x44));
+
 	return 0;
 }
 #endif
