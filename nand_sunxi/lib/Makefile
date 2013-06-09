@@ -53,9 +53,8 @@ all:	$(LIB)
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
-	arm-none-linux-gnueabi-ar cvr libnand $(OBJS)
-
-	cp libnand ./..
+	$(CROSS_COMPILE)ar cvr $(obj)libnand $(OBJS)
+	cp $(obj)libnand $(obj)./..
 
 #########################################################################
 
