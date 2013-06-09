@@ -1,6 +1,5 @@
 /*
- * (C) Copyright 2012
- * Henrik Nordstrom <henrik@henriknordstrom.net>
+ * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
  *
  * Configuration settings for the Allwinner A13 (sun5i) CPU
  *
