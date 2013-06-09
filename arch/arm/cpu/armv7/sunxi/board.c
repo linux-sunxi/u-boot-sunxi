@@ -115,6 +115,9 @@ void s_init(void)
 #endif
 
 	sunxi_board_init();
+#ifdef DEBUG_PRINT_CCM
+	debug_print_ccm();
+#endif
 #endif
 }
 

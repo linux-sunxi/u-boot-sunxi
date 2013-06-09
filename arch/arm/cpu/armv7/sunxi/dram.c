@@ -308,6 +308,103 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 }
 #endif /* SUN5I */
 
+#ifdef DEBUG_DRAM_SETTINGS
+static void debug_dram_settings()
+{
+	struct sunxi_dram_reg *r = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
+	int i;
+
+	/* 0x04 dram configuration register */
+	printf("dcr = 0x%x\n", readl(&r->dcr));
+	/* 0x08 i/o configuration register */
+	printf("iocr = 0x%x\n", readl(&r->iocr));
+	/* 0x0c controller status register */
+	printf("csr = 0x%x\n", readl(&r->csr));
+	/* 0x10 dram refresh register */
+	printf("drr = 0x%x\n", readl(&r->drr));
+	/* 0x14 dram timing parameters register 0 */
+	printf("tpr0 = 0x%x\n", readl(&r->tpr0));
+	/* 0x18 dram timing parameters register 1 */
+	printf("tpr1 = 0x%x\n", readl(&r->tpr1));
+	/* 0x1c dram timing parameters register 2 */
+	printf("tpr2 = 0x%x\n", readl(&r->tpr2));
+	/* 0x20 global dll control register */
+	printf("gdllcr = 0x%x\n", readl(&r->gdllcr));
+	/* Reserved: u8 res0[0x28];*/
+	/* 0x4c rank system latency register */
+	printf("rslr0 = 0x%x\n", readl(&r->rslr0));
+	/* 0x50 rank system latency register */
+	printf("rslr1 = 0x%x\n", readl(&r->rslr1));
+	/* Reserved: u8 res1[0x8];*/
+	/* 0x5c rank dqs gating register */
+	printf("rdgr0 = 0x%x\n", readl(&r->rdgr0));
+	/* 0x60 rank dqs gating register */
+	printf("rdgr1 = 0x%x\n", readl(&r->rdgr1));
+	/* Reserved: u8 res2[0x34];*/
+	/* 0x98 odt configuration register */
+	printf("odtcr = 0x%x\n", readl(&r->odtcr));
+	/* 0x9c data training register 0 */
+	printf("dtr0 = 0x%x\n", readl(&r->dtr0));
+	/* 0xa0 data training register 1 */
+	printf("dtr1 = 0x%x\n", readl(&r->dtr1));
+	/* 0xa4 data training address register */
+	printf("dtar = 0x%x\n", readl(&r->dtar));
+	/* 0xa8 zq control register 0 */
+	printf("zqcr0 = 0x%x\n", readl(&r->zqcr0));
+	/* 0xac zq control register 1 */
+	printf("zqcr1 = 0x%x\n", readl(&r->zqcr1));
+	/* 0xb0 zq status register */
+	printf("zqsr = 0x%x\n", readl(&r->zqsr));
+	/* 0xb4 initializaton delay configure reg */
+	printf("idcr = 0x%x\n", readl(&r->idcr));
+	/* Reserved: u8 res3[0x138];*/
+	/* 0x1f0 mode register */
+	printf("mr = 0x%x\n", readl(&r->mr));
+	/* 0x1f4 extended mode register */
+	printf("emr = 0x%x\n", readl(&r->emr));
+	/* 0x1f8 extended mode register */
+	printf("emr2 = 0x%x\n", readl(&r->emr2));
+	/* 0x1fc extended mode register */
+	printf("emr3 = 0x%x\n", readl(&r->emr3));
+	/* 0x200 dll control register */
+	printf("dllctr = 0x%x\n", readl(&r->dllctr));
+	/* 0x204 dll control register 0(byte 0) */
+	/* 0x208 dll control register 1(byte 1) */
+	/* 0x20c dll control register 2(byte 2) */
+	/* 0x210 dll control register 3(byte 3) */
+	/* 0x214 dll control register 4(byte 4) */
+	for (i = 0; i < 5; i++)
+		printf("dllcr[%d] = 0x%x\n", i, readl(&r->dllcr[i]));
+	/* 0x218 dq timing register */
+	printf("dqtr0 = 0x%x\n", readl(&r->dqtr0));
+	/* 0x21c dq timing register */
+	printf("dqtr1 = 0x%x\n", readl(&r->dqtr1));
+	/* 0x220 dq timing register */
+	printf("dqtr2 = 0x%x\n", readl(&r->dqtr2));
+	/* 0x224 dq timing register */
+	printf("dqtr3 = 0x%x\n", readl(&r->dqtr3));
+	/* 0x228 dqs timing register */
+	printf("dqstr = 0x%x\n", readl(&r->dqstr));
+	/* 0x22c dqsb timing register */
+	printf("dqsbtr = 0x%x\n", readl(&r->dqsbtr));
+	/* 0x230 mode configure register */
+	printf("mcr = 0x%x\n", readl(&r->mcr));
+	/* Reserved: u8 res[0x8]; */
+	/* 0x23c register description unknown!!! */
+	printf("ppwrsctl = 0x%x\n", readl(&r->ppwrsctl));
+	/* 0x240 arbiter period register */
+	printf("apr = 0x%x\n", readl(&r->apr));
+	/* 0x244 priority level data threshold reg */
+	printf("pldtr = 0x%x\n", readl(&r->pldtr));
+	/*printf(" = 0x%x\n", readl(&r->res5[0x8]));*/
+	/* 0x250 host port configure register times 32 */
+	for (i = 0; i < 32; i++)
+		printf("hpcr[%d] = 0x%x\n", i, readl(&r->hpcr[i]));
+	/* 0x2e0 controller select register */
+	printf("csel = 0x%x\n", readl(&r->csel));
+}
+#endif
+
 int dramc_init(struct dram_para *para)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
@@ -317,6 +414,10 @@ int dramc_init(struct dram_para *para)
 	/* check input dram parameter structure */
 	if (!para)
 		return -1;
+
+#ifdef DEBUG_DRAM_SETTINGS
+	debug_dram_settings();
+#endif
 
 	/* setup DRAM relative clock */
 	mctl_setup_dram_clock(para->clock);

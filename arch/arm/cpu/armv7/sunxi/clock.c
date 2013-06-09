@@ -28,6 +28,72 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
 
+#ifdef DEBUG_PRINT_CCM
+void debug_print_ccm(void)
+{
+	struct sunxi_ccm_reg * const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	/* 0x00 pll1 control */
+	printf("pll1_cfg  = 0x%x\n", readl(&ccm->pll1_cfg));
+	/* 0x04 pll1 tuning */
+	printf("pll1_tun  = 0x%x\n", readl(&ccm->pll1_tun));
+	/* 0x08 pll2 control */
+	printf("pll2_cfg  = 0x%x\n", readl(&ccm->pll2_cfg));
+	/* 0x0c pll2 tuning */
+	printf("pll2_tun  = 0x%x\n", readl(&ccm->pll2_tun));
+	/* 0x10 pll3 control */
+	printf("pll3_cfg  = 0x%x\n", readl(&ccm->pll3_cfg));
+	/* Reserved: u8 res0[0x4]; */
+	/* 0x18 pll4 control */
+	printf("pll4_cfg  = 0x%x\n", readl(&ccm->pll4_cfg));
+	/* Reserved: u8 res1[0x4]; */
+	/* 0x20 pll5 control */
+	printf("pll5_cfg  = 0x%x\n", readl(&ccm->pll5_cfg));
+	/* 0x24 pll5 tuning */
+	printf("pll5_tun  = 0x%x\n", readl(&ccm->pll5_tun));
+	/* 0x28 pll6 control */
+	printf("pll6_cfg  = 0x%x\n", readl(&ccm->pll6_cfg));
+	/* 0x2c pll6 tuning */
+	printf("pll6_tun  = 0x%x\n", readl(&ccm->pll6_tun));
+	/* 0x30 pll7 control */
+	printf("pll7_cfg  = 0x%x\n", readl(&ccm->pll7_cfg));
+	/* 0x34 pll5 tuning2 */
+	printf("pll1_tun2  = 0x%x\n", readl(&ccm->pll1_tun2));
+	/* Reserved: u8 res2[0x4]; */
+	/* 0x3c pll5 tuning2 */
+	printf("pll5_tun2  = 0x%x\n", readl(&ccm->pll5_tun2));
+	/* Reserved: u8 res3[0xc]; */
+	/* 0x4c pll lock time debug */
+	printf("pll_lock_dbg  = 0x%x\n", readl(&ccm->pll_lock_dbg));
+	/* 0x50 osc24m control */
+	printf("osc24m_cfg  = 0x%x\n", readl(&ccm->osc24m_cfg));
+	/* 0x54 cpu,ahb and apb0 divide ratio */
+	printf("cpu_ahb_apb0_cfg  = 0x%x\n", readl(&ccm->cpu_ahb_apb0_cfg));
+	/* 0x58 apb1 clock dividor */
+	printf("apb1_clk_div_cfg  = 0x%x\n", readl(&ccm->apb1_clk_div_cfg));
+	/* 0x5c axi module clock gating */
+	printf("axi_gate  = 0x%x\n", readl(&ccm->axi_gate));
+	/* 0x60 ahb module clock gating 0 */
+	printf("ahb_gate0  = 0x%x\n", readl(&ccm->ahb_gate0));
+	/* 0x64 ahb module clock gating 1 */
+	printf("ahb_gate1  = 0x%x\n", readl(&ccm->ahb_gate1));
+	/* 0x68 apb0 module clock gating */
+	printf("apb0_gate  = 0x%x\n", readl(&ccm->apb0_gate));
+	/* 0x6c apb1 module clock gating */
+	printf("apb1_gate  = 0x%x\n", readl(&ccm->apb1_gate));
+	/* Reserved: u8 res4[0x10]; */
+	/* 0x80 nand sub clock control */
+	printf("nand_sclk_cfg  = 0x%x\n", readl(&ccm->nand_sclk_cfg));
+	/* 0x84 memory stick sub clock control */
+	printf("ms_sclk_cfg  = 0x%x\n", readl(&ccm->ms_sclk_cfg));
+	/* 0x88 sd0 clock control */
+	printf("sd0_clk_cfg  = 0x%x\n", readl(&ccm->sd0_clk_cfg));
+	/* 0x8c sd1 clock control */
+	printf("sd1_clk_cfg  = 0x%x\n", readl(&ccm->sd1_clk_cfg));
+}
+#endif
+
 #ifdef CONFIG_SPL_BUILD
 static void clock_init_safe(void)
 {
