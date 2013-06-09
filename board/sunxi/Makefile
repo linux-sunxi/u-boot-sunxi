@@ -31,6 +31,7 @@ obj-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 obj-$(CONFIG_A13_MID)		+= dram_a13_mid.o
 obj-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 obj-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
+obj-$(CONFIG_A20_OLINUXINO_M)	+= dram_a20_olinuxino_m.o
 obj-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_BA10_TV_BOX)	+= dram_sun4i_384_1024_iow8.o
 obj-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
