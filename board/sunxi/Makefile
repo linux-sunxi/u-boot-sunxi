@@ -35,6 +35,7 @@ COBJS-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
+COBJS-$(CONFIG_A20_OLINUXINO_M)	+= dram_a20_olinuxino_m.o
 COBJS-$(CONFIG_AUXTEK_T003)	+= dram_auxtek_t003.o
 # This is not a typo, uses the same mem settings as the a10s-olinuxino-m
 COBJS-$(CONFIG_AUXTEK_T004)	+= dram_a10s_olinuxino_m.o
