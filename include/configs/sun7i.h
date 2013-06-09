@@ -107,7 +107,10 @@
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT		2		/* which mmc slot to use, could be 0,1,2,3 */
 #define CONFIG_MMC_SUNXI_USE_DMA
+#if 0
+/* Set in boards.cfg */
 #define CONFIG_ENV_IS_IN_MMC
+#endif
 #define CONFIG_SYS_MMC_ENV_DEV		mmc_card_no
 #define CONFIG_STORAGE_EMMC
 #define CONFIG_FASTBOOT_MMC_NO		mmc_card_no
@@ -169,7 +172,9 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
+#ifndef CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
+#endif
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
 
 /*------------------------------------------------------------------------
