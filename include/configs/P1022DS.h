@@ -316,7 +316,6 @@
 #define CONFIG_SYS_HUSH_PARSER
 
 /* Video */
-#define CONFIG_FSL_DIU_FB
 
 #ifdef CONFIG_FSL_DIU_FB
 #define CONFIG_SYS_DIU_ADDR	(CONFIG_SYS_CCSRBAR + 0x10000)
@@ -336,7 +335,6 @@
 #endif
 
 #ifndef CONFIG_FSL_DIU_FB
-#define CONFIG_ATI
 #endif
 
 #ifdef CONFIG_ATI
@@ -458,6 +456,7 @@
 #define CONFIG_SYS_PCIE3_IO_SIZE	0x00010000	/* 64k */
 
 #ifdef CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 #define CONFIG_E1000			/* Define e1000 pci Ethernet card */

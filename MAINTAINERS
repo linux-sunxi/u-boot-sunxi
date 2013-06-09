@@ -620,6 +620,7 @@ Enric Balletbo i Serra <eballetbo@iseebcn.com>
 	igep0020	ARM ARMV7 (OMAP3xx SoC)
 	igep0030	ARM ARMV7 (OMAP3xx SoC)
 	igep0032	ARM ARMV7 (OMAP3xx SoC)
+	igep0033	ARM ARMV7 (AM33xx Soc)
 
 Eric Benard <eric@eukrea.com>
 
@@ -677,6 +678,7 @@ Fabio Estevam <fabio.estevam@freescale.com>
 	mx6qsabresd	i.MX6Q
 	mx6qsabreauto	i.MX6Q
 	wandboard	i.MX6DL/S
+	mx6slevk	i.MX6SL
 
 Daniel Gorsulowski <daniel.gorsulowski@esd.eu>
 
@@ -696,7 +698,7 @@ Simon Guinot <simon.guinot@sequanux.org>
 
 Igor Grinberg <grinberg@compulab.co.il>
 
-	cm-t35		ARM ARMV7 (OMAP3xx Soc)
+	cm_t35		ARM ARMV7 (OMAP3xx Soc)
 
 Stefan Herbrechtsmeier <stefan@code.herbrechtsmeier.net>
 
@@ -861,6 +863,10 @@ Sricharan R <r.sricharan@ti.com>
 	omap4_sdp4430	ARM ARMV7 (OMAP4xx SoC)
 	omap5_evm	ARM ARMV7 (OMAP5xx Soc)
 
+Suriyan Ramasami <suriyan.r@gmail.com>
+
+	goflexhome	ARM926EJS (Kirkwood SoC)
+
 Thierry Reding <thierry.reding@avionic-design.de>
 
 	plutux		Tegra20 (ARM7 & A9 Dual Core)
@@ -889,6 +895,8 @@ John Rigby <jcrigby@gmail.com>
 Stefan Roese <sr@denx.de>
 
 	x600		ARM926EJS (spear600 Soc)
+
+	titanium	i.MX6Q
 
 	pdnb3		xscale/ixp
 	scpu		xscale/ixp
@@ -927,6 +935,7 @@ Matt Sealey <matt@genesi-usa.com>
 
 Bo Shen <voice.shen@atmel.com>
 	at91sam9x5ek		ARM926EJS (AT91SAM9G15,G25,G35,X25,X35 SoC)
+	sama5d3xek		ARMV7 (SAMA5D31, D33, D34, D35 SoC)
 
 Rajeshwari Shinde <rajeshwari.s@samsung.com>
 
@@ -967,6 +976,7 @@ Marek Vasut <marek.vasut@gmail.com>
 	mx23_olinuxino	i.MX23
 	m28evk		i.MX28
 	sc_sps_1	i.MX28
+	m53evk		i.MX53
 
 Hugo Villeneuve <hugo.villeneuve@lyrtech.com>
 
@@ -974,7 +984,8 @@ Hugo Villeneuve <hugo.villeneuve@lyrtech.com>
 
 Matt Waddel <matt.waddel@linaro.org>
 
-	ca9x4_ct_vxp	ARM ARMV7 (Quad Core)
+	vexpress_ca9x4	ARM ARMV7 (Quad Core)
+	vexpress_ca5x2	ARM ARMV7 (Dual Core)
 
 Otavio Salvador <otavio@ossystems.com.br>
 
@@ -1030,6 +1041,9 @@ Matthias Weisser <weisserm@arcor.de>
 Richard Woodruff <r-woodruff2@ti.com>
 
 	omap2420h4	ARM1136EJS
+
+Josh Wu <josh.wu@atmel.com>
+	at91sam9n12ek	ARM926EJS (AT91SAM9N12 SoC)
 
 Ilya Yanok <yanok@emcraft.com>
 

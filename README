@@ -843,6 +843,7 @@ The following options need to be configured:
 		CONFIG_CMD_FDOS		* Dos diskette Support
 		CONFIG_CMD_FLASH	  flinfo, erase, protect
 		CONFIG_CMD_FPGA		  FPGA device initialization support
+		CONFIG_CMD_FUSE		  Device fuse support
 		CONFIG_CMD_GETTIME	* Get time since boot
 		CONFIG_CMD_GO		* the 'go' command (exec code)
 		CONFIG_CMD_GREPENV	* search environment
@@ -1208,7 +1209,23 @@ The following options need to be configured:
 			If this option is set, the driver enables cache flush.
 
 - TPM Support:
-		CONFIG_GENERIC_LPC_TPM
+		CONFIG_TPM
+		Support TPM devices.
+
+		CONFIG_TPM_TIS_I2C
+		Support for i2c bus TPM devices. Only one device
+		per system is supported at this time.
+
+			CONFIG_TPM_TIS_I2C_BUS_NUMBER
+			Define the the i2c bus number for the TPM device
+
+			CONFIG_TPM_TIS_I2C_SLAVE_ADDRESS
+			Define the TPM's address on the i2c bus
+
+			CONFIG_TPM_TIS_I2C_BURST_LIMITATION
+			Define the burst count bytes upper limit
+
+		CONFIG_TPM_TIS_LPC
 		Support for generic parallel port TPM devices. Only one device
 		per system is supported at this time.
 
@@ -2915,11 +2932,29 @@ FIT uImage format:
 		Address, size and partition on the MMC to load U-Boot from
 		when the MMC is being used in raw mode.
 
+		CONFIG_SYS_MMCSD_RAW_MODE_KERNEL_SECTOR
+		Sector to load kernel uImage from when MMC is being
+		used in raw mode (for Falcon mode)
+
+		CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTOR,
+		CONFIG_SYS_MMCSD_RAW_MODE_ARGS_SECTORS
+		Sector and number of sectors to load kernel argument
+		parameters from when MMC is being used in raw mode
+		(for falcon mode)
+
 		CONFIG_SPL_FAT_SUPPORT
 		Support for fs/fat/libfat.o in SPL binary
 
 		CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME
 		Filename to read to load U-Boot when reading from FAT
+
+		CONFIG_SPL_FAT_LOAD_KERNEL_NAME
+		Filename to read to load kernel uImage when reading
+		from FAT (for Falcon mode)
+
+		CONFIG_SPL_FAT_LOAD_ARGS_NAME
+		Filename to read to load kernel argument parameters
+		when reading from FAT (for Falcon mode)
 
 		CONFIG_SPL_MPC83XX_WAIT_FOR_NAND
 		Set this for NAND SPL on PPC mpc83xx targets, so that
@@ -3345,6 +3380,10 @@ Configuration Settings:
 	offset _bss_start_ofs from CONFIG_SYS_TEXT_BASE, rather than
 	directly. You should not need to touch this setting.
 
+- CONFIG_OMAP_PLATFORM_RESET_TIME_MAX_USEC (OMAP only)
+	This is set by OMAP boards for the max time that reset should
+	be asserted. See doc/README.omap-reset-time for details on how
+	the value can be calulated on a given board.
 
 The following definitions that deal with the placement and management
 of environment data (variable area); in general, we support the
@@ -3858,6 +3897,9 @@ Low Level (hardware related) configuration options:
 		something has already done it, and we don't need to do it
 		a second time.	Useful for platforms that are pre-booted
 		by coreboot or similar.
+
+- CONFIG_PCI_INDIRECT_BRIDGE:
+		Enable support for indirect PCI bridges.
 
 - CONFIG_SYS_SRIO:
 		Chip has SRIO or not
