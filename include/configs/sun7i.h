@@ -172,7 +172,7 @@
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 KiB */
 #define CONFIG_IDENT_STRING			" Allwinner Technology "
 
-#ifndef CONFIG_ENV_IS_IN_MMC
+#if !defined(CONFIG_ENV_IS_IN_MMC) && !defined(CONFIG_ENV_IS_NOWHERE)
 #define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
 #endif
 #define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */

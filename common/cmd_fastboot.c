@@ -75,7 +75,11 @@ extern int do_mmcops (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 extern env_t *env_ptr;
 
 /* Use do_setenv and do_env_save to permenantly save data */
+#ifndef CONFIG_ENV_IS_NOWHERE
 extern int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+#else
+static int do_env_save (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]) { return 0; }
+#endif
 extern int do_env_set ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 /* Use do_bootm and do_go for fastboot's 'boot' command */
 #ifdef CONFIG_CMD_BOOTM
