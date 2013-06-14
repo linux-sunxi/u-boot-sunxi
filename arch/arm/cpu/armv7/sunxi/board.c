@@ -35,6 +35,7 @@
 #include <asm/arch/timer.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/watchdog.h>
 #include <netdev.h>
 #ifdef CONFIG_SPL_BUILD
 #include <spl.h>
@@ -91,41 +92,9 @@ int gpio_init(void)
 	return 0;
 }
 
-/* watchdog is also used for reset_cpu() and always needed */
-void watchdog_reset(void)
-{
-	static struct sunxi_wdog *const wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-
-	/* a little magic to reload the watchdog */
-	writel(0xa57 << 1 | 1 << 0, &wdog->ctl);
-}
-
-static void watchdog_set(int interval)
-{
-	static struct sunxi_wdog *const wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-
-	/* Set timeout, reset & enable */
-	if (interval)
-		writel((interval-1) << 2 | 1 << 1 | 1 << 0, &wdog->mode);
-	else
-		writel(0 << 2 | 0 << 1 | 1 << 0, &wdog->mode);
-	watchdog_reset();
-}
-
-static void watchdog_init(void)
-{
-#ifdef CONFIG_WATCHDOG
-	watchdog_set(24);	/* max possible timeout */
-#else
-	watchdog_set(0);	/* no timeout */
-#endif
-}
-
 void reset_cpu(ulong addr)
 {
-	watchdog_set(1);
+	watchdog_set(0);
 	while (1);
 }
 

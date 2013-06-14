@@ -35,6 +35,7 @@ COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= pinmux.o
+COBJS   += watchdog.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif

@@ -18,37 +18,25 @@
  */
 
 #include <common.h>
-#include <asm/arch/timer.h>
-#include <asm/armv7.h>
+#include <asm/arch/watchdog.h>
 #include <asm/io.h>
 
-int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, const char *argv[])
 {
-	struct sunxi_wdog *wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
-	long interval;
+	unsigned long interval;
 
 	if (argc < 2) {
-		int i;
-		u32 *wd = (void *)wdog;
 		printf("usage: watchdog seconds\n");
-		printf("0 to disable watchdog\n");
-		for (i = 0; i < 4; i++)
-			printf("%p: %08x\n", &wd[i], wd[i]);
-		return 1;
+		printf("over %d to disable watchdog\n", WDT_MAX_TIMEOUT);
 	}
 	interval = simple_strtoul(argv[1], NULL, 10);
-	if (interval > (1 << 6) - 1)
-		interval = (1 << 6) - 1;
-	writel(0, &wdog->mode); /* make sure bit 0 is 0 to reset counter */
-	CP15DMB;
-	if (interval)
-		writel(interval << 2 | 1 << 1 | 1 << 0, &wdog->mode);
+	watchdog_set((unsigned int)interval);
+
 	return 0;
 }
 
 U_BOOT_CMD(
 	watchdog, 2, 1, do_sunxi_watchdog,
-	"Set watchdog. 0 disables",
+	"Set watchdog [0 - 16]. [17+} disables",
 	""
 );
