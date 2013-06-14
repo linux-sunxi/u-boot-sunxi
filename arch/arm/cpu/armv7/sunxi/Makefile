@@ -35,7 +35,7 @@ COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
 COBJS	+= pinmux.o
-COBJS   += watchdog.o
+COBJS	+= watchdog.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif
@@ -44,7 +44,7 @@ ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
 ifdef CONFIG_CMD_WATCHDOG
-COBJS   += cmd_watchdog.o
+COBJS	+= cmd_watchdog.o
 endif
 endif
 
