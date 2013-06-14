@@ -15,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -51,14 +51,14 @@ void uart_init(void) {
 
 void uart_putc(char c) {
 
-	while(!TX_READY)
+	while (!TX_READY)
 		;
 	writel(c, UART_THR(UART));
 }
 
 void uart_puts(const char *s) {
 
-	while(*s)
+	while (*s)
 		uart_putc(*s++);
 }
 

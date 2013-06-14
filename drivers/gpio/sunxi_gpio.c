@@ -17,7 +17,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -40,9 +40,9 @@ static int sunxi_gpio_output(u32 pin, u32 val)
 
 	dat = readl(&pio->dat);
 	if (val)
-		dat |= 1 << num;
+		dat |= 0x1 << num;
 	else
-		dat &= ~(1 << num);
+		dat &= ~(0x1 << num);
 
 	writel(dat, &pio->dat);
 

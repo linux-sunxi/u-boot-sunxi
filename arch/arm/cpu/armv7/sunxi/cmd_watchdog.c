@@ -34,7 +34,7 @@ int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("usage: watchdog seconds\n");
 		printf("0 to disable watchdog\n");
 		for (i = 0; i < 4; i++)
-			printf("%p: %08x\n", &wd[i],wd[i]);
+			printf("%p: %08x\n", &wd[i], wd[i]);
 		return 1;
 	}
 	interval = simple_strtoul(argv[1], NULL, 10);

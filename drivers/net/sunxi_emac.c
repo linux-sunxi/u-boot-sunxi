@@ -35,7 +35,7 @@ struct emac_regs {
 	u32 tx_pl1;	/* 0x1c */
 	u32 tx_sta;	/* 0x20 */
 	u32 tx_io_data;	/* 0x24 */
-	u32 tx_io_data1; /* 0x28 */
+	u32 tx_io_data1;/* 0x28 */
 	u32 tx_tsvl0;	/* 0x2c */
 	u32 tx_tsvh0;	/* 0x30 */
 	u32 tx_tsvl1;	/* 0x34 */
@@ -149,17 +149,17 @@ struct sunxi_sramc_regs {
 
 #define EMAC_MAC_IPGT		0x15
 
-#define EMAC_MAC_NBTB_IPG1	0xC
+#define EMAC_MAC_NBTB_IPG1	0xc
 #define EMAC_MAC_NBTB_IPG2	0x12
 
 #define EMAC_MAC_CW		0x37
-#define EMAC_MAC_RM		0xF
+#define EMAC_MAC_RM		0xf
 
 #define EMAC_MAC_MFL		0x0600
 
 /* Receive status */
-#define EMAC_CRCERR		(1 << 4)
-#define EMAC_LENERR		(3 << 5)
+#define EMAC_CRCERR		(0x1 << 4)
+#define EMAC_LENERR		(0x3 << 5)
 
 #define DMA_CPU_TRRESHOLD	2000
 
@@ -202,9 +202,7 @@ static void emac_outblk_32bit(void *reg, void *data, int count)
 	}
 }
 
-/*
- * Read a word from phyxcer
- */
+/* Read a word from phyxcer */
 static int emac_phy_read(const char *devname, unsigned char addr,
 			  unsigned char reg, unsigned short *value)
 {
@@ -229,9 +227,7 @@ static int emac_phy_read(const char *devname, unsigned char addr,
 	return 0;
 }
 
-/*
- * Write a word to phyxcer
- */
+/* Write a word to phyxcer */
 static int emac_phy_write(const char *devname, unsigned char addr,
 			   unsigned char reg, unsigned short value)
 {
@@ -325,7 +321,7 @@ static int sunxi_emac_eth_init(struct eth_device *dev, bd_t *bd)
 	/* Init MAC */
 
 	/* Soft reset MAC */
-	clrbits_le32(&regs->mac_ctl0, 1 << 15);
+	clrbits_le32(&regs->mac_ctl0, 0x1 << 15);
 
 	/* Clear RX counter */
 	writel(0x0, &regs->rx_fbc);
@@ -345,7 +341,7 @@ static int sunxi_emac_eth_init(struct eth_device *dev, bd_t *bd)
 
 	/* PHY POWER UP */
 	emac_phy_read(dev->name, 1, 0, &phy_reg);
-	emac_phy_write(dev->name, 1, 0, phy_reg & (~(1 << 11)));
+	emac_phy_write(dev->name, 1, 0, phy_reg & (~(0x1 << 11)));
 	mdelay(1);
 
 	emac_phy_read(dev->name, 1, 0, &phy_reg);
@@ -362,11 +358,11 @@ static int sunxi_emac_eth_init(struct eth_device *dev, bd_t *bd)
 
 	/* Set EMAC SPEED depend on PHY */
 	clrsetbits_le32(&regs->mac_supp, 1 << 8,
-			((phy_reg & (1 << 13)) >> 13) << 8);
+			((phy_reg & (0x1 << 13)) >> 13) << 8);
 
 	/* Set duplex depend on phy */
 	clrsetbits_le32(&regs->mac_ctl1, 1 << 0,
-			((phy_reg & (1 << 8)) >> 8) << 0);
+			((phy_reg & (0x1 << 8)) >> 8) << 0);
 
 	/* Enable RX/TX */
 	setbits_le32(&regs->ctl, 0x7);
@@ -391,8 +387,7 @@ static int sunxi_emac_eth_recv(struct eth_device *dev)
 
 	/* Check packet ready or not */
 
-	/*
-	 * Race warning: The first packet might arrive with
+	/* Race warning: The first packet might arrive with
 	 * the interrupts disabled, but the second will fix
 	 */
 	rxcount = readl(&regs->rx_fbc);
@@ -406,21 +401,20 @@ static int sunxi_emac_eth_recv(struct eth_device *dev)
 	reg_val = readl(&regs->rx_io_data);
 	if (reg_val != 0x0143414d) {
 		/* Disable RX */
-		clrbits_le32(&regs->ctl, 1 << 2);
+		clrbits_le32(&regs->ctl, 0x1 << 2);
 
 		/* Flush RX FIFO */
-		setbits_le32(&regs->rx_ctl, 1 << 3);
-		while (readl(&regs->rx_ctl) & (1 << 3))
+		setbits_le32(&regs->rx_ctl, 0x1 << 3);
+		while (readl(&regs->rx_ctl) & (0x1 << 3))
 			;
 
 		/* Enable RX */
-		setbits_le32(&regs->ctl, 1 << 2);
+		setbits_le32(&regs->ctl, 0x1 << 2);
 
 		return 0;
 	}
 
-	/*
-	 * A packet ready now
+	/* A packet ready now
 	 * Get status/length
 	 */
 	good_packet = 1;
@@ -451,7 +445,7 @@ static int sunxi_emac_eth_recv(struct eth_device *dev)
 			printf("Received packet is too big (len=%d)\n", rx_len);
 		} else {
 			emac_inblk_32bit((void *)&regs->rx_io_data,
-					  NetRxPackets[0], rx_len);
+					 NetRxPackets[0], rx_len);
 
 			/* Pass to upper layer */
 			NetReceive(NetRxPackets[0], rx_len);
@@ -514,7 +508,7 @@ int sunxi_emac_initialize(void)
 		sunxi_gpio_set_cfgpin(pin, 2);
 
 	/* Set up clock gating */
-	setbits_le32(&ccm->ahb_gate0, 1 << AHB_GATE_OFFSET_EMAC);
+	setbits_le32(&ccm->ahb_gate0, 0x1 << AHB_GATE_OFFSET_EMAC);
 
 	/* Set MII clock */
 	clrsetbits_le32(&regs->mac_mcfg, 0xf << 2, 0xd << 2);

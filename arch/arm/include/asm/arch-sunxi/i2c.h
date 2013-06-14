@@ -33,7 +33,7 @@ struct i2c {
 	u32 xsaddr;	/*  31:8bit res,7-0bit for second addr in 10bit addr */
 	u32 data;	/*  31:8bit res, 7-0bit send or receive data byte */
 	u32 ctl;	/*  INT_EN,BUS_EN,M_STA,INT_FLAG,A_ACK */
-	u32 status;	/*  28 interrupt types + 0xF8 normal type = 29  */
+	u32 status;	/*  28 interrupt types + 0xf8 normal type = 29  */
 	u32 clkr;	/*  31:7bit res,6-3bit,CLK_M,2-0bit CLK_N */
 	u32 reset;	/*  31:1bit res;0bit,write 1 to clear 0. */
 	u32 efr;	/*  31:2bit res,1:0 bit data byte follow read comand */
@@ -69,9 +69,9 @@ struct i2c {
  * Foscl is clock SCL;standard mode:100KHz or fast mode:400KHz
  */
 
-#define TWI_CLK_DIV_M		(0xF << 3)	/* 6:3bit  */
+#define TWI_CLK_DIV_M		(0xf << 3)	/* 6:3bit  */
 #define TWI_CLK_DIV_N		(0x7 << 0)	/* 2:0bit */
-#define TWI_CLK_DIV(N, M)	((((N) & 0xF) << 3) | (((M) & 0x7) << 0))
+#define TWI_CLK_DIV(N, M)	((((N) & 0xf) << 3) | (((M) & 0x7) << 0))
 
 /* TWI Soft Reset Register Bit Fields & Masks  */
 /* write 1 to clear 0, when complete soft reset clear 0 */
@@ -104,7 +104,7 @@ struct i2c {
 
 /* TWI Status Register Bit Fields & Masks  */
 #define TWI_STAT_MASK		0xff
-/* 7:0 bits use only,default is 0xF8 */
+/* 7:0 bits use only,default is 0xf8 */
 #define TWI_STAT_BUS_ERR	0x00	/* BUS ERROR */
 
 /* Master mode use only */
@@ -126,9 +126,9 @@ struct i2c {
 /* Address+Read bit transmitted, ACK not received */
 #define TWI_STAT_TX_AR_NAK	0x48
 /* Second Address byte + Write bit transmitted, ACK received */
-#define TWI_STAT_TX_2AW_ACK	0xD0
+#define TWI_STAT_TX_2AW_ACK	0xd0
 /* Second Address byte + Write bit transmitted, ACK received */
-#define TWI_STAT_TX_2AW_NAK	0xD8
+#define TWI_STAT_TX_2AW_NAK	0xd8
 /* data byte received in master mode ,ack transmitted */
 #define TWI_STAT_RXD_ACK	0x50
 /* date byte received in master mode,not ack transmitted */
@@ -158,28 +158,28 @@ struct i2c {
 /* Data byte received after General Call received, not ACK transmitted */
 #define TWI_STAT_RXDGCAS_NAK	0x98
 /* STOP or repeated START condition received in slave  */
-#define TWI_STAT_RXSTPS_RXRESTAS 0xA0
+#define TWI_STAT_RXSTPS_RXRESTAS 0xa0
 /* Slave address + Read bit received, ACK transmitted */
-#define TWI_STAT_RXRS_ACK	0xA8
+#define TWI_STAT_RXRS_ACK	0xa8
 /*
  * Arbitration lost in address as master, slave address + Read bit received,
  * ACK transmitted
  */
-#define TWI_STAT_ARBLOST_SLAR_ACK 0xB0
+#define TWI_STAT_ARBLOST_SLAR_ACK 0xb0
 /* Data byte transmitted in slave mode, ACK received */
-#define TWI_STAT_TXDS_ACK	0xB8
+#define TWI_STAT_TXDS_ACK	0xb8
 /* Data byte transmitted in slave mode, ACK not received */
-#define TWI_STAT_TXDS_NAK	0xC0
+#define TWI_STAT_TXDS_NAK	0xc0
 /* Last byte transmitted in slave mode, ACK received */
-#define TWI_STAT_TXDSL_ACK	0xC8
+#define TWI_STAT_TXDSL_ACK	0xc8
 
 /* 10bit Address, second part of address */
 /* Second Address byte+Write bit transmitted,ACK received */
-#define TWI_STAT_TX_SAW_ACK	0xD0
+#define TWI_STAT_TX_SAW_ACK	0xd0
 /* Second Address byte+Write bit transmitted,ACK not received */
-#define TWI_STAT_TX_SAW_NAK	0xD8
+#define TWI_STAT_TX_SAW_NAK	0xd8
 
 /* No relevant status infomation,INT_FLAG = 0 */
-#define TWI_STAT_IDLE		0xF8
+#define TWI_STAT_IDLE		0xf8
 
 #endif

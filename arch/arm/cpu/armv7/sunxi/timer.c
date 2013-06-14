@@ -13,7 +13,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -28,11 +28,11 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define TIMER_MODE   (0 << 7)	/* continuous mode */
-#define TIMER_DIV    (0 << 4)	/* pre scale 1 */
-#define TIMER_SRC    (1 << 2)	/* osc24m */
-#define TIMER_RELOAD (1 << 1)	/* reload internal value */
-#define TIMER_EN     (1 << 0)	/* enable timer */
+#define TIMER_MODE   (0x0 << 7)	/* continuous mode */
+#define TIMER_DIV    (0x0 << 4)	/* pre scale 1 */
+#define TIMER_SRC    (0x1 << 2)	/* osc24m */
+#define TIMER_RELOAD (0x1 << 1)	/* reload internal value */
+#define TIMER_EN     (0x1 << 0)	/* enable timer */
 
 #define TIMER_CLOCK		(24 * 1000 * 1000)
 #define COUNT_TO_USEC(x)	((x) / 24)

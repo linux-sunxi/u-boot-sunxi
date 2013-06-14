@@ -17,7 +17,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -98,7 +98,7 @@ void watchdog_reset(void)
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 
 	/* a little magic to reload the watchdog */
-	writel(0xA57 << 1 | 1 << 0, &wdog->ctl);
+	writel(0xa57 << 1 | 1 << 0, &wdog->ctl);
 }
 
 static void watchdog_set(int interval)
@@ -126,7 +126,7 @@ static void watchdog_init(void)
 void reset_cpu(ulong addr)
 {
 	watchdog_set(1);
-	while(1);
+	while (1);
 }
 
 /* do some early init */
@@ -147,7 +147,6 @@ void s_init(void)
 
 	sunxi_board_init();
 #endif
-
 }
 
 #ifndef CONFIG_SYS_DCACHE_OFF
@@ -170,4 +169,3 @@ int cpu_eth_init(bd_t *bis)
 	return 0;
 }
 #endif
-

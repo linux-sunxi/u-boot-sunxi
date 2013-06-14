@@ -20,7 +20,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -68,7 +68,7 @@ static void mctl_set_drive(void)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
-	clrsetbits_le32(&dram->mcr, 0x3, (0x6 << 12) | 0xFFC);
+	clrsetbits_le32(&dram->mcr, 0x3, (0x6 << 12) | 0xffc);
 }
 
 static void mctl_itm_disable(void)
@@ -89,13 +89,13 @@ static void mctl_enable_dll0(void)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
-	clrsetbits_le32(&dram->dllcr[0], 0x40000000, 0x80000000);
+	clrsetbits_le32(&dram->dllcr[0], 0x1 << 30, 0x1 << 31);
 	sdelay(0x100);
 
-	clrbits_le32(&dram->dllcr[0], 0xC0000000);
+	clrbits_le32(&dram->dllcr[0], 0x3 << 30);
 	sdelay(0x1000);
 
-	clrsetbits_le32(&dram->dllcr[0], 0x80000000, 0x40000000);
+	clrsetbits_le32(&dram->dllcr[0], 0x1 << 31, 0x1 << 30);
 	sdelay(0x1000);
 }
 
@@ -116,16 +116,17 @@ static void mctl_enable_dllx(void)
 	else
 		n = 3;
 
-	for (i = 1; i < n; i++)
-		clrsetbits_le32(&dram->dllcr[i], 0x40000000, 0x80000000);
+	for (i = 1; i < n; i++) {
+		clrsetbits_le32(&dram->dllcr[i], 0x1 << 30, 0x1 << 31);
+	}
 	sdelay(0x100);
 
 	for (i = 1; i < n; i++)
-		clrbits_le32(&dram->dllcr[i], 0xC0000000);
+		clrbits_le32(&dram->dllcr[i], 0x3 << 30);
 	sdelay(0x1000);
 
 	for (i = 1; i < n; i++)
-		clrsetbits_le32(&dram->dllcr[i], 0x80000000, 0x40000000);
+		clrsetbits_le32(&dram->dllcr[i], 0x1 << 31, 0x1 << 30);
 	sdelay(0x1000);
 }
 
@@ -248,10 +249,10 @@ static void dramc_clock_output_en(u32 on)
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 	if (on)
 		setbits_le32(&ccm->dram_clk_cfg,
-			 0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
+			     0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 	else
 		clrbits_le32(&ccm->dram_clk_cfg,
-			0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
+			     0x1 << SUN4I_CCM_SDRAM_DCLK_OUT_OFFSET);
 #endif
 }
 
@@ -289,7 +290,7 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
 	u32 tmp_val;
-	reg_val = 131;
+	reg_val = 0x83;
 
 	tmp_val = (7987 * clk) >> 10;
 	tmp_val = tmp_val * 9 - 200;
@@ -375,7 +376,7 @@ int dramc_init(struct dram_para *para)
 
 	sdelay(0x10);
 
-	while (readl(&dram->ccr) & (0x1U << 31));
+	while (readl(&dram->ccr) & (0x1 << 31));
 
 	mctl_enable_dllx();
 
@@ -425,12 +426,12 @@ int dramc_init(struct dram_para *para)
 	writel(para->emr3, &dram->emr3);
 
 	/* set DQS window mode */
-	clrsetbits_le32(&dram->ccr, 0x1U << 17, 0x1U << 14);
+	clrsetbits_le32(&dram->ccr, 0x1 << 17, 0x1 << 14);
 
 	/* reset external DRAM */
-	setbits_le32(&dram->ccr, 0x1U << 31);
+	setbits_le32(&dram->ccr, 0x1 << 31);
 
-	while (readl(&dram->ccr) & (0x1U << 31));
+	while (readl(&dram->ccr) & (0x1 << 31));
 
 	/* scan read pipe value */
 	mctl_itm_enable();

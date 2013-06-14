@@ -13,7 +13,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -64,13 +64,13 @@ struct sunxi_gpio_reg {
 };
 
 #define GPIO_BANK(pin)		((pin) >> 5)
-#define GPIO_NUM(pin)		((pin) & 0x1F)
+#define GPIO_NUM(pin)		((pin) & 0x1f)
 
-#define GPIO_CFG_INDEX(pin)	(((pin) & 0x1F) >> 3)
-#define GPIO_CFG_OFFSET(pin)	((((pin) & 0x1F) & 0x7) << 2)
+#define GPIO_CFG_INDEX(pin)	(((pin) & 0x1f) >> 3)
+#define GPIO_CFG_OFFSET(pin)	((((pin) & 0x1f) & 0x7) << 2)
 
-#define GPIO_PULL_INDEX(pin)	(((pin) & 0x1F) >> 4)
-#define GPIO_PULL_OFFSET(pin)	((((pin) & 0x1F) & 0xf) << 1)
+#define GPIO_PULL_INDEX(pin)	(((pin) & 0x1f) >> 4)
+#define GPIO_PULL_OFFSET(pin)	((((pin) & 0x1f) & 0xf) << 1)
 
 /* GPIO bank sizes */
 #define SUNXI_GPIO_A_NR		32

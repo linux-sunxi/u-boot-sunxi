@@ -161,8 +161,8 @@ static int i2c_start(int status)
 	debug("i2c_start(%x), ctl=%x, status=%x\n", status, i2c_base->ctl,
 	      i2c_base->status);
 	/* Check that the controller is idle */
-	if (status == TWI_STAT_TX_STA
-	    && readl(&i2c_base->status) != TWI_STAT_IDLE) {
+	if (status == TWI_STAT_TX_STA &&
+	    readl(&i2c_base->status) != TWI_STAT_IDLE) {
 		return -1;
 	}
 

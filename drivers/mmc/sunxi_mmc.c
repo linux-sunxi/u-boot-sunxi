@@ -15,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -229,7 +229,7 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 4;
 	else
 		divider = 3;
-	writel((1U << 31) | (2U << 24) | divider, mmchost->mclkreg);
+	writel((0x1 << 31) | (0x2 << 24) | divider, mmchost->mclkreg);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
 
 	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);
@@ -246,9 +246,9 @@ static int mmc_update_clk(struct mmc *mmc)
 	unsigned int cmd;
 	unsigned timeout = 0xfffff;
 
-	cmd = (1U << 31) | (1 << 21) | (1 << 13);
+	cmd = (0x1 << 31) | (0x1 << 21) | (0x1 << 13);
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & 0x80000000) && timeout--);
+	while ((readl(&mmchost->reg->cmd) & (0x1 << 31)) && timeout--);
 	if (!timeout)
 		return -1;
 
@@ -268,19 +268,19 @@ static int mmc_config_clock(struct mmc *mmc, unsigned div)
 	 * CLKCREG[17]:  power save
 	 */
 	/* Disable Clock */
-	rval &= ~(1 << 16);
+	rval &= ~(0x1 << 16);
 	writel(rval, &mmchost->reg->clkcr);
 	if (mmc_update_clk(mmc))
 		return -1;
 
 	/* Change Divider Factor */
-	rval &= ~(0xFF);
+	rval &= ~(0xff);
 	rval |= div;
 	writel(rval, &mmchost->reg->clkcr);
 	if (mmc_update_clk(mmc))
 		return -1;
 	/* Re-enable Clock */
-	rval |= (1 << 16);
+	rval |= (0x1 << 16);
 	writel(rval, &mmchost->reg->clkcr);
 
 	if (mmc_update_clk(mmc))
@@ -294,8 +294,8 @@ static void mmc_set_ios(struct mmc *mmc)
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int clkdiv = 0;
 
-	debug("set ios: bus_width: %x, clock: %d, mod_clk: %d\n", mmc->bus_width,
-	       mmc->clock, mmchost->mod_clk);
+	debug("set ios: bus_width: %x, clock: %d, mod_clk: %d\n",
+	      mmc->bus_width, mmc->clock, mmchost->mod_clk);
 
 	/* Change clock first */
 	clkdiv = (mmchost->mod_clk + (mmc->clock >> 1)) / mmc->clock / 2;
@@ -307,11 +307,11 @@ static void mmc_set_ios(struct mmc *mmc)
 
 	/* Change bus width */
 	if (mmc->bus_width == 8)
-		writel(2, &mmchost->reg->width);
+		writel(0x2, &mmchost->reg->width);
 	else if (mmc->bus_width == 4)
-		writel(1, &mmchost->reg->width);
+		writel(0x1, &mmchost->reg->width);
 	else
-		writel(0, &mmchost->reg->width);
+		writel(0x0, &mmchost->reg->width);
 }
 
 static int mmc_core_init(struct mmc *mmc)
@@ -335,8 +335,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 	if (data->flags & MMC_DATA_READ) {
 		buff = (unsigned int *)data->dest;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
-			while (--timeout
-			       && (readl(&mmchost->reg->status) & (1 << 2)));
+			while (--timeout &&
+				 (readl(&mmchost->reg->status) & (0x1 << 2)));
 			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
@@ -345,8 +345,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 	} else {
 		buff = (unsigned int *)data->src;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
-			while (--timeout
-				&& (readl(&mmchost->reg->status) & (1 << 3)));
+			while (--timeout &&
+				 (readl(&mmchost->reg->status) & (0x1 << 3)));
 			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
@@ -367,7 +367,8 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	unsigned byte_cnt = data->blocksize * data->blocks;
 	unsigned char *buff;
 	unsigned des_idx = 0;
-	unsigned buff_frag_num = (byte_cnt + SDXC_DES_BUFFER_MAX_LEN - 1) >> SDXC_DES_NUM_SHIFT;
+	unsigned buff_frag_num =
+		(byte_cnt + SDXC_DES_BUFFER_MAX_LEN - 1) >> SDXC_DES_NUM_SHIFT;
 	unsigned remain;
 	unsigned i, rval;
 	ALLOC_CACHE_ALIGN_BUFFER(struct sunxi_mmc_des, pdes, buff_frag_num);
@@ -404,13 +405,13 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		} else {
 			pdes[des_idx].buf_addr_ptr2 = (u32)&pdes[des_idx + 1];
 		}
-		debug("frag %d, remain %d, des[%d](%08x): "
-			"[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
-			i, remain, des_idx, (u32)&pdes[des_idx],
-			(u32)((u32 *)&pdes[des_idx])[0],
-			(u32)((u32 *)&pdes[des_idx])[1],
-			(u32)((u32 *)&pdes[des_idx])[2],
-			(u32)((u32 *)&pdes[des_idx])[3]);
+		debug("frag %d, remain %d, des[%d](%08x): ",
+		      i, remain, des_idx, (u32)&pdes[des_idx]);
+		debug("[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
+		      (u32)((u32 *)&pdes[des_idx])[0],
+		      (u32)((u32 *)&pdes[des_idx])[1],
+		      (u32)((u32 *)&pdes[des_idx])[2],
+		      (u32)((u32 *)&pdes[des_idx])[3]);
 	}
 	flush_cache((unsigned long)pdes,
 		    sizeof(struct sunxi_mmc_des) * (des_idx + 1));
@@ -431,19 +432,20 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	 */
 	rval = readl(&mmchost->reg->gctrl);
 	/* Enable DMA */
-	writel(rval | (1 << 5) | (1 << 2), &mmchost->reg->gctrl);
+	writel(rval | (0x1 << 5) | (0x1 << 2), &mmchost->reg->gctrl);
 	/* Reset iDMA */
-	writel((1 << 0), &mmchost->reg->dmac);
+	writel((0x1 << 0), &mmchost->reg->dmac);
 	/* Enable iDMA */
-	writel((1 << 1) | (1 << 7), &mmchost->reg->dmac);
+	writel((0x1 << 1) | (1 << 7), &mmchost->reg->dmac);
 	rval = readl(&mmchost->reg->idie) & (~3);
 	if (data->flags & MMC_DATA_WRITE)
-		rval |= (1 << 0);
+		rval |= (0x1 << 0);
 	else
-		rval |= (1 << 1);
+		rval |= (0x1 << 1);
 	writel(rval, &mmchost->reg->idie);
 	writel((u32) pdes, &mmchost->reg->dlba);
-	writel((2U << 28) | (7 << 16) | 8, &mmchost->reg->ftrglevel);
+	writel((0x2 << 28) | (0x7 << 16) | (0x01 << 3),
+	       &mmchost->reg->ftrglevel);
 
 	return 0;
 }
@@ -483,13 +485,13 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	 * CMD[31]      : Load cmd
 	 */
 	if (!cmd->cmdidx)
-		cmdval |= (1 << 15);
+		cmdval |= (0x1 << 15);
 	if (cmd->resp_type & MMC_RSP_PRESENT)
-		cmdval |= (1 << 6);
+		cmdval |= (0x1 << 6);
 	if (cmd->resp_type & MMC_RSP_136)
-		cmdval |= (1 << 7);
+		cmdval |= (0x1 << 7);
 	if (cmd->resp_type & MMC_RSP_CRC)
-		cmdval |= (1 << 8);
+		cmdval |= (0x1 << 8);
 
 	if (data) {
 		if ((u32) data->dest & 0x3) {
@@ -497,17 +499,17 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			goto out;
 		}
 
-		cmdval |= (1 << 9) | (1 << 13);
+		cmdval |= (0x1 << 9) | (0x1 << 13);
 		if (data->flags & MMC_DATA_WRITE)
-			cmdval |= (1 << 10);
+			cmdval |= (0x1 << 10);
 		if (data->blocks > 1)
-			cmdval |= (1 << 12);
+			cmdval |= (0x1 << 12);
 		writel(data->blocksize, &mmchost->reg->blksz);
 		writel(data->blocks * data->blocksize, &mmchost->reg->bytecnt);
 	}
 
 	debug("mmc %d, cmd %d(0x%08x), arg 0x%08x\n", mmchost->mmc_no,
-	       cmd->cmdidx, cmdval | cmd->cmdidx, cmd->cmdarg);
+	      cmd->cmdidx, cmdval | cmd->cmdidx, cmd->cmdarg);
 	writel(cmd->cmdarg, &mmchost->reg->arg);
 
 	if (!data)
@@ -529,12 +531,12 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		if (0) {
 #endif
 			usedma = 1;
-			writel(readl(&mmchost->reg->gctrl) & (~0x80000000),
+			writel(readl(&mmchost->reg->gctrl) & ~(0x1 << 31),
 			       &mmchost->reg->gctrl);
 			ret = mmc_trans_data_by_dma(mmc, data);
 			writel(cmdval | cmd->cmdidx, &mmchost->reg->cmd);
 		} else {
-			writel(readl(&mmchost->reg->gctrl) | 0x80000000,
+			writel(readl(&mmchost->reg->gctrl) | 0x1 << 31,
 			       &mmchost->reg->gctrl);
 			writel(cmdval | cmd->cmdidx, &mmchost->reg->cmd);
 			ret = mmc_trans_data_by_cpu(mmc, data);
@@ -567,9 +569,9 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 				goto out;
 			}
 			if (data->blocks > 1)
-				done = status & (1 << 14);
+				done = status & (0x1 << 14);
 			else
-				done = status & (1 << 3);
+				done = status & (0x1 << 3);
 		} while (!done);
 	}
 
@@ -591,8 +593,8 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		cmd->response[2] = readl(&mmchost->reg->resp1);
 		cmd->response[3] = readl(&mmchost->reg->resp0);
 		debug("mmc resp 0x%08x 0x%08x 0x%08x 0x%08x\n",
-		       cmd->response[3], cmd->response[2],
-		       cmd->response[1], cmd->response[0]);
+		      cmd->response[3], cmd->response[2],
+		      cmd->response[1], cmd->response[0]);
 	} else {
 		cmd->response[0] = readl(&mmchost->reg->resp0);
 		debug("mmc resp 0x%08x\n", cmd->response[0]);
@@ -612,7 +614,7 @@ out:
 		writel(status, &mmchost->reg->idst);
 		writel(0, &mmchost->reg->idie);
 		writel(0, &mmchost->reg->dmac);
-		writel(readl(&mmchost->reg->gctrl) & (~(1 << 5)),
+		writel(readl(&mmchost->reg->gctrl) & ~(0x1 << 5),
 		       &mmchost->reg->gctrl);
 	}
 	if (error) {
