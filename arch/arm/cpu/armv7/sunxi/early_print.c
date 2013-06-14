@@ -37,7 +37,7 @@ static int uart_initialized = 0;
 void uart_init(void) {
 
 	/* select dll dlh */
-	writel(0x80, UART_LCR(UART));
+	writel(UART_LCR_DLAB, UART_LCR(UART));
 	/* set baudrate */
 	writel(0, UART_DLH(UART));
 	writel(BAUD_115200, UART_DLL(UART));
@@ -47,7 +47,7 @@ void uart_init(void) {
 	uart_initialized = 1;
 }
 
-#define TX_READY (readl(UART_LSR(UART)) & (1 << 6))
+#define TX_READY (readl(UART_LSR(UART)) & UART_LSR_TEMT)
 
 void uart_putc(char c) {
 

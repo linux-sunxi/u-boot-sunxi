@@ -50,9 +50,11 @@
 
 /* line control register */
 #define UART_LCR(n) (SUNXI_UART_BASE + (n)*0x400 + 0xc)
+#define UART_LCR_DLAB (0x1 << 7)
 
 /* line status register */
 #define UART_LSR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x14)
+#define UART_LSR_TEMT (0x1 << 6)
 /* receive buffer register */
 #define UART_RBR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
 /* transmit holding register */
