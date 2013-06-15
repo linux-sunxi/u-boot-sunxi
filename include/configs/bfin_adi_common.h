@@ -10,7 +10,7 @@
  */
 #ifndef _CONFIG_CMD_DEFAULT_H
 # include <config_cmd_default.h>
-# if ADI_CMDS_NETWORK
+# ifdef ADI_CMDS_NETWORK
 #  define CONFIG_CMD_DHCP
 #  define CONFIG_BOOTP_SUBNETMASK
 #  define CONFIG_BOOTP_GATEWAY
@@ -58,7 +58,7 @@
 # endif
 # ifdef CONFIG_RTC_BFIN
 #  define CONFIG_CMD_DATE
-#  if ADI_CMDS_NETWORK
+#  ifdef ADI_CMDS_NETWORK
 #   define CONFIG_CMD_SNTP
 #  endif
 # endif
@@ -111,9 +111,8 @@
 #ifndef CONFIG_BAUDRATE
 # define CONFIG_BAUDRATE	57600
 #endif
-#ifndef CONFIG_DEBUG_EARLY_SERIAL
-# define CONFIG_SERIAL_MULTI
-# define CONFIG_SYS_BFIN_UART
+#ifdef CONFIG_UART_CONSOLE
+# define CONFIG_BFIN_SERIAL
 #endif
 
 /*
@@ -150,13 +149,14 @@
 #endif
 #define CONFIG_BOOTARGS	\
 	"root=" CONFIG_BOOTARGS_ROOT " " \
-	"clkin_hz=" MK_STR(CONFIG_CLKIN_HZ) " " \
+	"clkin_hz=" __stringify(CONFIG_CLKIN_HZ) " " \
 	"earlyprintk=" \
 		"serial," \
-		"uart" MK_STR(CONFIG_UART_CONSOLE) "," \
-		MK_STR(CONFIG_BAUDRATE) " " \
+		"uart" __stringify(CONFIG_UART_CONSOLE) "," \
+		__stringify(CONFIG_BAUDRATE) " " \
 	CONFIG_BOOTARGS_VIDEO \
-	"console=ttyBF" MK_STR(CONFIG_UART_CONSOLE) "," MK_STR(CONFIG_BAUDRATE)
+	"console=ttyBF" __stringify(CONFIG_UART_CONSOLE) "," \
+			__stringify(CONFIG_BAUDRATE)
 #if defined(CONFIG_CMD_NAND)
 # define NAND_ENV_SETTINGS \
 	"nandargs=set bootargs " CONFIG_BOOTARGS "\0" \
@@ -183,8 +183,8 @@
 #    define CONFIG_BFIN_SPI_IMG_SIZE 0x40000
 #   endif
 #   define UBOOT_ENV_UPDATE \
-		"sf probe " MK_STR(BFIN_BOOT_SPI_SSEL) ";" \
-		"sf erase 0 " MK_STR(CONFIG_BFIN_SPI_IMG_SIZE) ";" \
+		"sf probe " __stringify(BFIN_BOOT_SPI_SSEL) ";" \
+		"sf erase 0 " __stringify(CONFIG_BFIN_SPI_IMG_SIZE) ";" \
 		"sf write $(loadaddr) 0 $(filesize)"
 #  endif
 # elif (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_NAND)
@@ -193,10 +193,12 @@
 		"nand erase 0 0x40000;" \
 		"nand write $(loadaddr) 0 0x40000"
 # else
-#  define UBOOT_ENV_UPDATE \
+#  ifndef UBOOT_ENV_UPDATE
+#   define UBOOT_ENV_UPDATE \
 		"protect off 0x20000000 +$(filesize);" \
 		"erase 0x20000000 +$(filesize);" \
 		"cp.b $(loadaddr) 0x20000000 $(filesize)"
+#  endif
 # endif
 # ifdef CONFIG_NETCONSOLE
 #  define NETCONSOLE_ENV \
@@ -315,5 +317,13 @@
 #define CONFIG_BFIN_SPI_GPIO_CS /* Only matters if BFIN_SPI is enabled */
 #define CONFIG_LZMA
 #define CONFIG_MONITOR_IS_IN_RAM
-
+#ifdef CONFIG_HW_WATCHDOG
+# define CONFIG_BFIN_WATCHDOG
+# ifndef CONFIG_WATCHDOG_TIMEOUT_MSECS
+#  define CONFIG_WATCHDOG_TIMEOUT_MSECS 5000
+# endif
+#endif
+#ifndef CONFIG_ADI_GPIO2
+# define CONFIG_ADI_GPIO1
+#endif
 #endif

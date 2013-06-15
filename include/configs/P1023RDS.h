@@ -73,6 +73,7 @@
 #define CONFIG_PCIE2		/* PCIE controler 2 (slot 2) */
 #define CONFIG_PCIE3		/* PCIE controler 3 (slot 3) */
 #define CONFIG_FSL_PCI_INIT	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_FSL_PCIE_RESET	/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT	/* enable 64-bit PCI resources */
 #define CONFIG_FSL_LAW		/* Use common FSL init code */
@@ -524,7 +525,7 @@ extern unsigned long get_clock_freq(void);
 /* Default address of microcode for the Linux Fman driver */
 /* QE microcode/firmware address */
 #define CONFIG_SYS_QE_FMAN_FW_IN_NOR
-#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xEF000000
+#define CONFIG_SYS_QE_FMAN_FW_ADDR	0xEFF40000
 #else
 #define CONFIG_SYS_QE_FMAN_FW_IN_NAND
 #define CONFIG_SYS_QE_FMAN_FW_ADDR	0x1f00000

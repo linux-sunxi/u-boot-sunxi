@@ -1,4 +1,6 @@
 /*
+ * This is a copy of omap3/spl.h:
+ *
  * (C) Copyright 2012
  * Texas Instruments, <www.ti.com>
  *
@@ -12,7 +14,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -30,5 +32,5 @@
 #define BOOT_DEVICE_MMC2	5 /*emmc*/
 #define BOOT_DEVICE_MMC1	6
 #define BOOT_DEVICE_XIPWAIT	7
-#define BOOT_DEVICE_MMC2_2      0xFF
+#define BOOT_DEVICE_MMC2_2      0xff
 #endif

@@ -27,22 +27,14 @@
 #include <asm/processor.h>
 #include <asm/leon.h>
 #include <ambapp.h>
+#include <serial.h>
+#include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-/* Force cache miss each time a serial controller reg is read */
-#define CACHE_BYPASS 1
-
-#ifdef CACHE_BYPASS
-#define READ_BYTE(var)  SPARC_NOCACHE_READ_BYTE((unsigned int)&(var))
-#define READ_HWORD(var) SPARC_NOCACHE_READ_HWORD((unsigned int)&(var))
-#define READ_WORD(var)  SPARC_NOCACHE_READ((unsigned int)&(var))
-#define READ_DWORD(var) SPARC_NOCACHE_READ_DWORD((unsigned int)&(var))
-#endif
-
 ambapp_dev_apbuart *leon3_apbuart = NULL;
 
-int serial_init(void)
+static int leon3_serial_init(void)
 {
 	ambapp_apbdev apbdev;
 	unsigned int tmp;
@@ -72,15 +64,7 @@ int serial_init(void)
 	return -1;		/* didn't find hardware */
 }
 
-void serial_putc(const char c)
-{
-	if (c == '\n')
-		serial_putc_raw('\r');
-
-	serial_putc_raw(c);
-}
-
-void serial_putc_raw(const char c)
+static void leon3_serial_putc_raw(const char c)
 {
 	if (!leon3_apbuart)
 		return;
@@ -97,14 +81,15 @@ void serial_putc_raw(const char c)
 #endif
 }
 
-void serial_puts(const char *s)
+static void leon3_serial_putc(const char c)
 {
-	while (*s) {
-		serial_putc(*s++);
-	}
+	if (c == '\n')
+		leon3_serial_putc_raw('\r');
+
+	leon3_serial_putc_raw(c);
 }
 
-int serial_getc(void)
+static int leon3_serial_getc(void)
 {
 	if (!leon3_apbuart)
 		return 0;
@@ -116,7 +101,7 @@ int serial_getc(void)
 	return READ_WORD(leon3_apbuart->data);
 }
 
-int serial_tstc(void)
+static int leon3_serial_tstc(void)
 {
 	if (leon3_apbuart)
 		return (READ_WORD(leon3_apbuart->status) &
@@ -125,7 +110,7 @@ int serial_tstc(void)
 }
 
 /* set baud rate for uart */
-void serial_setbrg(void)
+static void leon3_serial_setbrg(void)
 {
 	/* update baud rate settings, read it from gd->baudrate */
 	unsigned int scaler;
@@ -136,4 +121,25 @@ void serial_setbrg(void)
 		leon3_apbuart->scaler = scaler;
 	}
 	return;
+}
+
+static struct serial_device leon3_serial_drv = {
+	.name	= "leon3_serial",
+	.start	= leon3_serial_init,
+	.stop	= NULL,
+	.setbrg	= leon3_serial_setbrg,
+	.putc	= leon3_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= leon3_serial_getc,
+	.tstc	= leon3_serial_tstc,
+};
+
+void leon3_serial_initialize(void)
+{
+	serial_register(&leon3_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &leon3_serial_drv;
 }

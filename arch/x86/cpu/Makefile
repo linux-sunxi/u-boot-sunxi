@@ -28,12 +28,13 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(CPU).o
 
-START	= start.o start16.o resetvec.o
+START-y	= start.o
+START-$(CONFIG_X86_RESET_VECTOR) += resetvec.o start16.o
 COBJS	= interrupts.o cpu.o
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
-START	:= $(addprefix $(obj),$(START))
+START	:= $(addprefix $(obj),$(START-y))
 
 all:	$(obj).depend $(START) $(LIB)
 

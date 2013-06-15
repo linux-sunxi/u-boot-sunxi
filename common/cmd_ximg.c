@@ -42,7 +42,7 @@
 #define CONFIG_SYS_XIMG_LEN	0x800000
 #endif
 
-int
+static int
 do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong		addr = load_addr;
@@ -50,7 +50,6 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	ulong		data, len, count;
 	int		verify;
 	int		part = 0;
-	char		pbuf[10];
 	image_header_t	*hdr;
 #if defined(CONFIG_FIT)
 	const char	*uname = NULL;
@@ -59,7 +58,9 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	const void	*fit_data;
 	size_t		fit_len;
 #endif
+#ifdef CONFIG_GZIP
 	uint		unc_len = CONFIG_SYS_XIMG_LEN;
+#endif
 	uint8_t		comp;
 
 	verify = getenv_yesno("verify");
@@ -161,7 +162,7 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 		/* verify integrity */
 		if (verify) {
-			if (!fit_image_check_hashes(fit_hdr, noffset)) {
+			if (!fit_image_verify(fit_hdr, noffset)) {
 				puts("Bad Data Hash\n");
 				return 1;
 			}
@@ -256,17 +257,14 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		puts("OK\n");
 	}
 
-	sprintf(pbuf, "%8lx", data);
-	setenv("fileaddr", pbuf);
-	sprintf(pbuf, "%8lx", len);
-	setenv("filesize", pbuf);
+	setenv_hex("fileaddr", data);
+	setenv_hex("filesize", len);
 
 	return 0;
 }
 
-U_BOOT_CMD(
-	imxtract, 4, 1, do_imgextract,
-	"extract a part of a multi-image",
+#ifdef CONFIG_SYS_LONGHELP
+static char imgextract_help_text[] =
 	"addr part [dest]\n"
 	"    - extract <part> from legacy image at <addr> and copy to <dest>"
 #if defined(CONFIG_FIT)
@@ -274,4 +272,10 @@ U_BOOT_CMD(
 	"addr uname [dest]\n"
 	"    - extract <uname> subimage from FIT image at <addr> and copy to <dest>"
 #endif
+	"";
+#endif
+
+U_BOOT_CMD(
+	imxtract, 4, 1, do_imgextract,
+	"extract a part of a multi-image", imgextract_help_text
 );

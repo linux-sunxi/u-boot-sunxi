@@ -158,7 +158,6 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
-#define CONFIG_SERIAL_MULTI   1
 #define CONFIG_BAUDRATE	      9600
 
 #define CONFIG_SYS_BAUDRATE_TABLE  \
@@ -334,6 +333,7 @@
  *----------------------------------------------------------------------*/
 /* General PCI */
 #define CONFIG_PCI			     /* include pci support	*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP			     /* do pci plug-and-play	*/
 #define CONFIG_PCI_SCAN_SHOW		     /* show pci devices	*/
 #define CONFIG_SYS_PCI_TARGBASE      (CONFIG_SYS_PCI_MEMBASE)

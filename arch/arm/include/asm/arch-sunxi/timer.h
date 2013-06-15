@@ -15,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -23,7 +23,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-
 
 #ifndef _SUNXI_TIMER_H_
 #define _SUNXI_TIMER_H_
@@ -35,7 +34,7 @@ struct sunxi_timer {
 	u32 ctl;
 	u32 inter;
 	u32 val;
-	u8  res[4];	
+	u8 res[4];
 };
 
 /* Audio video sync*/
@@ -68,7 +67,7 @@ struct sunxi_rtc {
 
 /* Alarm */
 struct sunxi_alarm {
-	u32 ddhhmmss;	/* 0x10c */
+	u32 ddhhmmss;		/* 0x10c */
 	u32 hhmmss;		/* 0x110 */
 	u32 en;			/* 0x114 */
 	u32 irqen;		/* 0x118 */
@@ -82,20 +81,21 @@ struct sunxi_tgp {
 
 struct sunxi_timer_reg {
 	u32 tirqen;		/* 0x00 */
-	u32 tirqsta;	/* 0x04 */
-	u8  res1[8];
+	u32 tirqsta;		/* 0x04 */
+	u8 res1[8];
 	struct sunxi_timer timer[6];	/* We have 6 timers */
-	u8  res2[16];
+	u8 res2[16];
 	struct sunxi_avs avs;
 	struct sunxi_wdog wdog;
-	u8  res3[8];
+	u8 res3[8];
 	struct sunxi_64cnt cnt64;
-	u8  res4[0x5c];
+	u8 res4[0x58];
 	struct sunxi_rtc rtc;
 	struct sunxi_alarm alarm;
 	struct sunxi_tgp tgp[4];
+	u8 res5[8];
+	u32 cpu_cfg;
 };
-
 
 #endif /* __ASSEMBLY__ */
 

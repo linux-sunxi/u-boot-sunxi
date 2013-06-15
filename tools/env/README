@@ -8,7 +8,7 @@ In order to cross-compile fw_printenv, run
 in the root directory of the U-Boot distribution. For example,
     make HOSTCC=arm-linux-gcc env
 
-For the run-time utiltity configuration uncomment the line
+For the run-time utility configuration uncomment the line
 #define CONFIG_FILE  "/etc/fw_env.config"
 in fw_env.h.
 
@@ -34,7 +34,7 @@ following lines are relevant:
 #define DEVICE2_ESIZE     0x4000
 #define DEVICE2_ENVSECTORS     2
 
-Un-define HAVE_REDUND, if you want to use the utlities on a system
+Un-define HAVE_REDUND, if you want to use the utilities on a system
 that does not have support for redundant environment enabled.
 If HAVE_REDUND is undefined, DEVICE2_NAME is ignored,
 as is ENV2_SIZE and DEVICE2_ESIZE.
@@ -55,3 +55,7 @@ partition where the environment resides.
 DEVICEx_ENVSECTORS defines the number of sectors that may be used for
 this environment instance. On NAND this is used to limit the range
 within which bad blocks are skipped, on NOR it is not used.
+
+To prevent losing changes to the environment and to prevent confusing the MTD
+drivers, a lock file at /var/lock/fw_printenv.lock is used to serialize access
+to the environment.

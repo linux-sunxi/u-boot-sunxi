@@ -164,7 +164,7 @@ int checkboard(void)
 {
 	struct cpu_type *cpu;
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 	printf("Board: %sRDB\n", cpu->name);
 
 	return 0;
@@ -178,7 +178,7 @@ int board_eth_init(bd_t *bis)
 	struct cpu_type *cpu;
 	int num = 0;
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 
 #ifdef CONFIG_TSEC1
 	SET_STD_TSEC_INFO(tsec_info[num], 1);
@@ -217,7 +217,7 @@ void fdt_del_flexcan(void *blob)
 	int nodeoff = 0;
 
 	while ((nodeoff = fdt_node_offset_by_compatible(blob, 0,
-				"fsl,flexcan-v1.0")) >= 0) {
+				"fsl,p1010-flexcan")) >= 0) {
 		fdt_del_node(blob, nodeoff);
 	}
 }
@@ -283,7 +283,7 @@ void ft_board_setup(void *blob, bd_t *bd)
 	phys_size_t size;
 	struct cpu_type *cpu;
 
-	cpu = gd->cpu;
+	cpu = gd->arch.cpu;
 
 	ft_cpu_setup(blob, bd);
 

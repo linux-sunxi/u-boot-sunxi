@@ -1,31 +1,18 @@
 /dts-v1/;
 
-/include/ ARCH_CPU_DTS
+#include "tegra20-tamonten.dtsi"
 
 / {
 	model = "Avionic Design Plutux";
-	compatible = "avionic-design,plutux", "nvidia,tegra20";
+	compatible = "ad,plutux", "nvidia,tegra20";
 
 	aliases {
 		usb0 = "/usb@c5008000";
+		sdhci0 = "/sdhci@c8000600";
 	};
 
 	memory {
 		reg = <0x00000000 0x20000000>;
-	};
-
-	clocks {
-		clk_32k: clk_32k {
-			clock-frequency = <32000>;
-		};
-
-		osc {
-			clock-frequency = <12000000>;
-		};
-	};
-
-	clock@60006000 {
-		clocks = <&clk_32k &osc>;
 	};
 
 	serial@70006300 {

@@ -112,11 +112,9 @@ SECTIONS
 		CONSTRUCTORS
 	} >ram_data
 
-	.u_boot_cmd :
-	{
-		___u_boot_cmd_start = .;
-		*(.u_boot_cmd)
-		___u_boot_cmd_end = .;
+
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	} >ram_data
 
 	.text_l1 :

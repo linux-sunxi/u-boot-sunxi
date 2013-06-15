@@ -39,9 +39,10 @@ typedef volatile unsigned char	vu_char;
 #include <linux/bitops.h>
 #include <linux/types.h>
 #include <linux/string.h>
+#include <linux/stringify.h>
 #include <asm/ptrace.h>
 #include <stdarg.h>
-#if defined(CONFIG_PCI) && (defined(CONFIG_4xx) && !defined(CONFIG_AP1000))
+#if defined(CONFIG_PCI) && defined(CONFIG_4xx)
 #include <pci.h>
 #endif
 #if defined(CONFIG_8xx)
@@ -70,8 +71,6 @@ typedef volatile unsigned char	vu_char;
 #include <mpc5xxx.h>
 #elif defined(CONFIG_MPC512X)
 #include <asm/immap_512x.h>
-#elif defined(CONFIG_MPC8220)
-#include <asm/immap_8220.h>
 #elif defined(CONFIG_8260)
 #if   defined(CONFIG_MPC8247) \
    || defined(CONFIG_MPC8248) \
@@ -194,33 +193,38 @@ typedef void (interrupt_handler_t)(void *);
 # endif
 #endif
 
-#ifndef CONFIG_SERIAL_MULTI
-
-#if defined(CONFIG_8xx_CONS_SMC1) || defined(CONFIG_8xx_CONS_SMC2) \
- || defined(CONFIG_8xx_CONS_SCC1) || defined(CONFIG_8xx_CONS_SCC2) \
- || defined(CONFIG_8xx_CONS_SCC3) || defined(CONFIG_8xx_CONS_SCC4)
-
-#define CONFIG_SERIAL_MULTI	1
-
-#endif
-
-#endif /* CONFIG_SERIAL_MULTI */
-
 /*
  * General Purpose Utilities
  */
 #define min(X, Y)				\
-	({ typeof (X) __x = (X);		\
-		typeof (Y) __y = (Y);		\
+	({ typeof(X) __x = (X);			\
+		typeof(Y) __y = (Y);		\
 		(__x < __y) ? __x : __y; })
 
 #define max(X, Y)				\
-	({ typeof (X) __x = (X);		\
-		typeof (Y) __y = (Y);		\
+	({ typeof(X) __x = (X);			\
+		typeof(Y) __y = (Y);		\
 		(__x > __y) ? __x : __y; })
 
 #define MIN(x, y)  min(x, y)
 #define MAX(x, y)  max(x, y)
+
+#define min3(X, Y, Z)				\
+	({ typeof(X) __x = (X);			\
+		typeof(Y) __y = (Y);		\
+		typeof(Z) __z = (Z);		\
+		__x < __y ? (__x < __z ? __x : __z) :	\
+		(__y < __z ? __y : __z); })
+
+#define max3(X, Y, Z)				\
+	({ typeof(X) __x = (X);			\
+		typeof(Y) __y = (Y);		\
+		typeof(Z) __z = (Z);		\
+		__x > __y ? (__x > __z ? __x : __z) :	\
+		(__y > __z ? __y : __z); })
+
+#define MIN3(x, y, z)  min3(x, y, z)
+#define MAX3(x, y, z)  max3(x, y, z)
 
 /*
  * Return the absolute value of a number.
@@ -281,7 +285,8 @@ int	cpu_init(void);
 phys_size_t initdram (int);
 int	display_options (void);
 void	print_size(unsigned long long, const char *);
-int	print_buffer (ulong addr, void* data, uint width, uint count, uint linelen);
+int print_buffer(ulong addr, const void *data, uint width, uint count,
+		 uint linelen);
 
 /* common/main.c */
 void	main_loop	(void);
@@ -305,13 +310,10 @@ int	readline_into_buffer(const char *const prompt, char *buffer,
 int	parse_line (char *, char *[]);
 void	init_cmd_timeout(void);
 void	reset_cmd_timeout(void);
-#ifdef CONFIG_MENU
-int	abortboot(int bootdelay);
-#endif
 extern char console_buffer[];
 
 /* arch/$(ARCH)/lib/board.c */
-void	board_init_f  (ulong) __attribute__ ((noreturn));
+void	board_init_f(ulong);
 void	board_init_r  (gd_t *, ulong) __attribute__ ((noreturn));
 int	checkboard    (void);
 int	checkflash    (void);
@@ -321,6 +323,27 @@ extern ulong monitor_flash_len;
 int mac_read_from_eeprom(void);
 extern u8 _binary_dt_dtb_start[];	/* embedded device tree blob */
 int set_cpu_clk_info(void);
+int print_cpuinfo(void);
+int update_flash_size(int flash_size);
+
+/**
+ * Show the DRAM size in a board-specific way
+ *
+ * This is used by boards to display DRAM information in their own way.
+ *
+ * @param size	Size of DRAM (which should be displayed along with other info)
+ */
+void board_show_dram(ulong size);
+
+/**
+ * arch_fixup_memory_node() - Write arch-specific memory information to fdt
+ *
+ * Defined in arch/$(ARCH)/lib/bootm.c
+ *
+ * @blob:	FDT blob to write to
+ * @return 0 if ok, or -ve FDT_ERR_... on failure
+ */
+int arch_fixup_memory_node(void *blob);
 
 /* common/flash.c */
 void flash_perror (int);
@@ -351,14 +374,40 @@ int	envmatch     (uchar *, int);
 char	*getenv	     (const char *);
 int	getenv_f     (const char *name, char *buf, unsigned len);
 ulong getenv_ulong(const char *name, int base, ulong default_val);
+
+/**
+ * getenv_hex() - Return an environment variable as a hex value
+ *
+ * Decode an environment as a hex number (it may or may not have a 0x
+ * prefix). If the environment variable cannot be found, or does not start
+ * with hex digits, the default value is returned.
+ *
+ * @varname:		Variable to decode
+ * @default_val:	Value to return on error
+ */
+ulong getenv_hex(const char *varname, ulong default_val);
+
+/*
+ * Read an environment variable as a boolean
+ * Return -1 if variable does not exist (default to true)
+ */
+int getenv_yesno(const char *var);
 int	saveenv	     (void);
-#ifdef CONFIG_PPC		/* ARM version to be fixed! */
-int inline setenv    (const char *, const char *);
-#else
 int	setenv	     (const char *, const char *);
 int setenv_ulong(const char *varname, ulong value);
-int setenv_addr(const char *varname, const void *addr);
-#endif /* CONFIG_PPC */
+int setenv_hex(const char *varname, ulong value);
+/**
+ * setenv_addr - Set an environment variable to an address in hex
+ *
+ * @varname:	Environmet variable to set
+ * @addr:	Value to set it to
+ * @return 0 if ok, 1 on error
+ */
+static inline int setenv_addr(const char *varname, const void *addr)
+{
+	return setenv_hex(varname, (ulong)addr);
+}
+
 #ifdef CONFIG_ARM
 # include <asm/mach-types.h>
 # include <asm/setup.h>
@@ -387,7 +436,7 @@ void	pci_init      (void);
 void	pci_init_board(void);
 void	pciinfo	      (int, int);
 
-#if defined(CONFIG_PCI) && (defined(CONFIG_4xx) && !defined(CONFIG_AP1000))
+#if defined(CONFIG_PCI) && defined(CONFIG_4xx)
     int	   pci_pre_init	       (struct pci_controller *);
     int	   is_pci_host	       (struct pci_controller *);
 #endif
@@ -516,7 +565,11 @@ int	dcache_status (void);
 void	dcache_enable (void);
 void	dcache_disable(void);
 void	mmu_disable(void);
-void	relocate_code (ulong, gd_t *, ulong) __attribute__ ((noreturn));
+#if defined(CONFIG_ARM)
+void	relocate_code(ulong);
+#else
+void	relocate_code(ulong, gd_t *, ulong) __attribute__ ((noreturn));
+#endif
 ulong	get_endaddr   (void);
 void	trap_init     (ulong);
 #if defined (CONFIG_4xx)	|| \
@@ -525,7 +578,6 @@ void	trap_init     (ulong);
     defined (CONFIG_74x)	|| \
     defined (CONFIG_75x)	|| \
     defined (CONFIG_74xx)	|| \
-    defined (CONFIG_MPC8220)	|| \
     defined (CONFIG_MPC85xx)	|| \
     defined (CONFIG_MPC86xx)	|| \
     defined (CONFIG_MPC83xx)
@@ -617,19 +669,12 @@ int	prt_8260_clks (void);
 #elif defined(CONFIG_MPC5xxx)
 int	prt_mpc5xxx_clks (void);
 #endif
-#if defined(CONFIG_MPC512X)
-int	prt_mpc512xxx_clks (void);
-#endif
-#if defined(CONFIG_MPC8220)
-int	prt_mpc8220_clks (void);
-#endif
 #ifdef CONFIG_4xx
 ulong	get_OPB_freq (void);
 ulong	get_PCI_freq (void);
 #endif
 #if defined(CONFIG_S3C24X0) || \
     defined(CONFIG_LH7A40X) || \
-    defined(CONFIG_S3C6400) || \
     defined(CONFIG_EP93XX)
 ulong	get_FCLK (void);
 ulong	get_HCLK (void);
@@ -670,7 +715,7 @@ static inline ulong get_ddr_freq(ulong dummy)
 }
 #endif
 
-#if defined(CONFIG_4xx) || defined(CONFIG_IOP480)
+#if defined(CONFIG_4xx)
 #  if defined(CONFIG_440)
 #	if defined(CONFIG_440SPE)
 	 unsigned long determine_sysper(void);
@@ -870,6 +915,23 @@ int cpu_disable(int nr);
 int cpu_release(int nr, int argc, char * const argv[]);
 #endif
 
+/* Define a null map_sysmem() if the architecture doesn't use it */
+# ifndef CONFIG_ARCH_MAP_SYSMEM
+static inline void *map_sysmem(phys_addr_t paddr, unsigned long len)
+{
+	return (void *)(uintptr_t)paddr;
+}
+
+static inline void unmap_sysmem(const void *vaddr)
+{
+}
+
+static inline phys_addr_t map_to_sysmem(void *ptr)
+{
+	return (phys_addr_t)(uintptr_t)ptr;
+}
+# endif
+
 #endif /* __ASSEMBLY__ */
 
 #ifdef CONFIG_PPC
@@ -964,10 +1026,17 @@ int cpu_release(int nr, int argc, char * const argv[]);
  * of a function scoped static buffer.  It can not be used to create a cache
  * line aligned global buffer.
  */
-#define ALLOC_ALIGN_BUFFER(type, name, size, align)			\
-	char __##name[ROUND(size * sizeof(type), align) + (align - 1)];	\
+#define PAD_COUNT(s, pad) ((s - 1) / pad + 1)
+#define PAD_SIZE(s, pad) (PAD_COUNT(s, pad) * pad)
+#define ALLOC_ALIGN_BUFFER_PAD(type, name, size, align, pad)		\
+	char __##name[ROUND(PAD_SIZE(size * sizeof(type), pad), align)  \
+		      + (align - 1)];					\
 									\
 	type *name = (type *) ALIGN((uintptr_t)__##name, align)
+#define ALLOC_ALIGN_BUFFER(type, name, size, align)		\
+	ALLOC_ALIGN_BUFFER_PAD(type, name, size, align, 1)
+#define ALLOC_CACHE_ALIGN_BUFFER_PAD(type, name, size, pad)		\
+	ALLOC_ALIGN_BUFFER_PAD(type, name, size, ARCH_DMA_MINALIGN, pad)
 #define ALLOC_CACHE_ALIGN_BUFFER(type, name, size)			\
 	ALLOC_ALIGN_BUFFER(type, name, size, ARCH_DMA_MINALIGN)
 
@@ -978,7 +1047,7 @@ int cpu_release(int nr, int argc, char * const argv[]);
  */
 #define DEFINE_ALIGN_BUFFER(type, name, size, align)			\
 	static char __##name[roundup(size * sizeof(type), align)]	\
-			__attribute__((aligned(align)));				\
+			__aligned(align);				\
 									\
 	static type *name = (type *)__##name
 #define DEFINE_CACHE_ALIGN_BUFFER(type, name, size)			\

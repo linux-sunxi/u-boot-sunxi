@@ -83,7 +83,8 @@ int s5p_sdhci_init(u32 regbase, int index, int bus_width)
 	host->ioaddr = (void *)regbase;
 
 	host->quirks = SDHCI_QUIRK_NO_HISPD_BIT | SDHCI_QUIRK_BROKEN_VOLTAGE |
-		SDHCI_QUIRK_BROKEN_R1B | SDHCI_QUIRK_32BIT_DMA_ADDR;
+		SDHCI_QUIRK_BROKEN_R1B | SDHCI_QUIRK_32BIT_DMA_ADDR |
+		SDHCI_QUIRK_WAIT_SEND_CMD;
 	host->voltages = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_VDD_165_195;
 	host->version = sdhci_readw(host, SDHCI_HOST_VERSION);
 
@@ -93,6 +94,5 @@ int s5p_sdhci_init(u32 regbase, int index, int bus_width)
 
 	host->host_caps = MMC_MODE_HC;
 
-	add_sdhci(host, 52000000, 400000);
-	return 0;
+	return add_sdhci(host, 52000000, 400000);
 }

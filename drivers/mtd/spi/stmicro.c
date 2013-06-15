@@ -93,6 +93,30 @@ static const struct stmicro_spi_flash_params stmicro_spi_flash_table[] = {
 		.name = "M25P128",
 	},
 	{
+		.id = 0xba16,
+		.pages_per_sector = 256,
+		.nr_sectors = 64,
+		.name = "N25Q32",
+	},
+	{
+		.id = 0xbb16,
+		.pages_per_sector = 256,
+		.nr_sectors = 64,
+		.name = "N25Q32A",
+	},
+	{
+		.id = 0xba17,
+		.pages_per_sector = 256,
+		.nr_sectors = 128,
+		.name = "N25Q064",
+	},
+	{
+		.id = 0xbb17,
+		.pages_per_sector = 256,
+		.nr_sectors = 128,
+		.name = "N25Q64A",
+	},
+	{
 		.id = 0xba18,
 		.pages_per_sector = 256,
 		.nr_sectors = 256,
@@ -109,6 +133,12 @@ static const struct stmicro_spi_flash_params stmicro_spi_flash_table[] = {
 		.pages_per_sector = 256,
 		.nr_sectors = 512,
 		.name = "N25Q256",
+	},
+	{
+		.id = 0xbb19,
+		.pages_per_sector = 256,
+		.nr_sectors = 512,
+		.name = "N25Q256A",
 	},
 };
 
@@ -146,18 +176,12 @@ struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 		return NULL;
 	}
 
-	flash = malloc(sizeof(*flash));
+	flash = spi_flash_alloc_base(spi, params->name);
 	if (!flash) {
 		debug("SF: Failed to allocate memory\n");
 		return NULL;
 	}
 
-	flash->spi = spi;
-	flash->name = params->name;
-
-	flash->write = spi_flash_cmd_write_multi;
-	flash->erase = spi_flash_cmd_erase;
-	flash->read = spi_flash_cmd_read_fast;
 	flash->page_size = 256;
 	flash->sector_size = 256 * params->pages_per_sector;
 	flash->size = flash->sector_size * params->nr_sectors;

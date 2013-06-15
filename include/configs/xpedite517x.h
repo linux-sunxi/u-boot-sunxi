@@ -49,6 +49,7 @@
 #define CONFIG_PCIE1		1	/* PCIE controler 1 */
 #define CONFIG_PCIE2		1	/* PCIE controler 2 */
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
@@ -615,12 +616,12 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  * f6f00000 - f7efffff	Sec OS image (16MB)
  * f0000000 - f6efffff	Sec OS Use/Filesystem (111MB)
  */
-#define CONFIG_UBOOT1_ENV_ADDR	MK_STR(0xfff00000)
-#define CONFIG_UBOOT2_ENV_ADDR	MK_STR(0xf7f00000)
-#define CONFIG_FDT1_ENV_ADDR	MK_STR(0xfffc0000)
-#define CONFIG_FDT2_ENV_ADDR	MK_STR(0xf7fc0000)
-#define CONFIG_OS1_ENV_ADDR	MK_STR(0xfef00000)
-#define CONFIG_OS2_ENV_ADDR	MK_STR(0xf6f00000)
+#define CONFIG_UBOOT1_ENV_ADDR	__stringify(0xfff00000)
+#define CONFIG_UBOOT2_ENV_ADDR	__stringify(0xf7f00000)
+#define CONFIG_FDT1_ENV_ADDR	__stringify(0xfffc0000)
+#define CONFIG_FDT2_ENV_ADDR	__stringify(0xf7fc0000)
+#define CONFIG_OS1_ENV_ADDR	__stringify(0xfef00000)
+#define CONFIG_OS2_ENV_ADDR	__stringify(0xf6f00000)
 
 #define CONFIG_PROG_UBOOT1						\
 	"$download_cmd $loadaddr $ubootfile; "				\

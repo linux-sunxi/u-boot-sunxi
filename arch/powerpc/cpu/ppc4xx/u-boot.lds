@@ -78,9 +78,11 @@ SECTIONS
   PROVIDE (edata = .);
 
   . = .;
-  __u_boot_cmd_start = .;
-  .u_boot_cmd : { *(.u_boot_cmd) }
-  __u_boot_cmd_end = .;
+
+  . = ALIGN(4);
+  .u_boot_list : {
+	KEEP(*(SORT(.u_boot_list*)));
+  }
 
   . = .;
   __start___ex_table = .;
@@ -94,6 +96,7 @@ SECTIONS
   . = ALIGN(256);
   __init_end = .;
 
+#ifndef CONFIG_SPL
 #ifdef CONFIG_440
   .bootpg RESET_VECTOR_ADDRESS - 0xffc :
   {
@@ -130,6 +133,7 @@ SECTIONS
 #if (RESET_VECTOR_ADDRESS == 0xfffffffc)
   . |= 0x10;
 #endif
+#endif /* CONFIG_SPL */
 
   __bss_start = .;
   .bss (NOLOAD)       :
@@ -140,6 +144,6 @@ SECTIONS
   } :bss
 
   . = ALIGN(4);
-  __bss_end__ = . ;
+  __bss_end = . ;
   PROVIDE (end = .);
 }

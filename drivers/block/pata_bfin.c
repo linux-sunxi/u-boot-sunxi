@@ -17,6 +17,7 @@
 #include <asm/portmux.h>
 #include <asm/mach-common/bits/pata.h>
 #include <ata.h>
+#include <sata.h>
 #include <libata.h>
 #include "pata_bfin.h"
 
@@ -896,6 +897,8 @@ static void bfin_ata_identify(struct ata_port *ap, int dev)
 	/* assuming HD */
 	sata_dev_desc[ap->port_no].type = DEV_TYPE_HARDDISK;
 	sata_dev_desc[ap->port_no].blksz = ATA_SECT_SIZE;
+	sata_dev_desc[ap->port_no].log2blksz =
+		LOG2(sata_dev_desc[ap->port_no].blksz);
 	sata_dev_desc[ap->port_no].lun = 0;	/* just to fill something in... */
 
 	printf("PATA device#%d %s is found on ata port#%d.\n",
@@ -1079,7 +1082,7 @@ static u8 do_one_read(struct ata_port *ap, u64 blknr, u8 blkcnt, u16 *buffer,
 	return sr;
 }
 
-ulong sata_read(int dev, ulong block, ulong blkcnt, void *buff)
+ulong sata_read(int dev, ulong block, lbaint_t blkcnt, void *buff)
 {
 	struct ata_port *ap = &port[dev];
 	ulong n = 0, sread;
@@ -1121,7 +1124,7 @@ ulong sata_read(int dev, ulong block, ulong blkcnt, void *buff)
 	return n;
 }
 
-ulong sata_write(int dev, ulong block, ulong blkcnt, const void *buff)
+ulong sata_write(int dev, ulong block, lbaint_t blkcnt, const void *buff)
 {
 	struct ata_port *ap = &port[dev];
 	void __iomem *base = (void __iomem *)ap->ioaddr.ctl_addr;

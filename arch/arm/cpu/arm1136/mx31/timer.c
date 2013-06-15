@@ -115,13 +115,13 @@ unsigned long long get_ticks(void)
 {
 	ulong now = GPTCNT; /* current tick value */
 
-	if (now >= gd->lastinc)	/* normal mode (non roll) */
+	if (now >= gd->arch.lastinc)	/* normal mode (non roll) */
 		/* move stamp forward with absolut diff ticks */
-		gd->tbl += (now - gd->lastinc);
+		gd->arch.tbl += (now - gd->arch.lastinc);
 	else			/* we have rollover of incrementer */
-		gd->tbl += (0xFFFFFFFF - gd->lastinc) + now;
-	gd->lastinc = now;
-	return gd->tbl;
+		gd->arch.tbl += (0xFFFFFFFF - gd->arch.lastinc) + now;
+	gd->arch.lastinc = now;
+	return gd->arch.tbl;
 }
 
 ulong get_timer_masked(void)
@@ -161,42 +161,3 @@ ulong get_tbclk(void)
 {
 	return MXC_CLK32;
 }
-
-void reset_cpu(ulong addr)
-{
-	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
-	wdog->wcr = WDOG_ENABLE;
-	while (1)
-		;
-}
-
-#ifdef CONFIG_HW_WATCHDOG
-void mxc_hw_watchdog_enable(void)
-{
-	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
-	u16 secs;
-
-	/*
-	 * The timer watchdog can be set between
-	 * 0.5 and 128 Seconds. If not defined
-	 * in configuration file, sets 64 Seconds
-	 */
-#ifdef CONFIG_SYS_WD_TIMER_SECS
-	secs = (CONFIG_SYS_WD_TIMER_SECS << 1) & 0xFF;
-	if (!secs) secs = 1;
-#else
-	secs = 64;
-#endif
-	setbits_le16(&wdog->wcr, (secs << WDOG_WT_SHIFT) | WDOG_ENABLE
-							 | WDOG_WDZST);
-}
-
-
-void mxc_hw_watchdog_reset(void)
-{
-	struct wdog_regs *wdog = (struct wdog_regs *)WDOG_BASE;
-
-	writew(0x5555, &wdog->wsr);
-	writew(0xAAAA, &wdog->wsr);
-}
-#endif

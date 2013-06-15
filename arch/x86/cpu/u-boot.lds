@@ -33,19 +33,17 @@ SECTIONS
 	.text  : { *(.text*); }
 
 	. = ALIGN(4);
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
+
 	. = ALIGN(4);
-	__u_boot_cmd_end = .;
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
+	}
 
 	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
 	. = ALIGN(4);
 	.data : { *(.data*) }
-
-	. = ALIGN(4);
-	.dynsym : { *(.dynsym*) }
 
 	. = ALIGN(4);
 	.hash : { *(.hash*) }
@@ -55,17 +53,25 @@ SECTIONS
 
 	. = ALIGN(4);
 	__data_end = .;
+	__init_end = .;
 
 	. = ALIGN(4);
-	__bss_start = ABSOLUTE(.);
-	.bss (NOLOAD) : { *(.bss) }
-	. = ALIGN(4);
-	__bss_end = ABSOLUTE(.);
+	.dynsym : { *(.dynsym*) }
 
 	. = ALIGN(4);
 	__rel_dyn_start = .;
 	.rel.dyn : { *(.rel.dyn) }
 	__rel_dyn_end = .;
+	. = ALIGN(4);
+	_end = .;
+
+	.bss __rel_dyn_start (OVERLAY) : {
+		__bss_start = .;
+		*(.bss)
+		*(COM*)
+		. = ALIGN(4);
+		__bss_end = .;
+	}
 
 	/DISCARD/ : { *(.dynstr*) }
 	/DISCARD/ : { *(.dynamic*) }
@@ -73,17 +79,7 @@ SECTIONS
 	/DISCARD/ : { *(.interp*) }
 	/DISCARD/ : { *(.gnu*) }
 
-	/* 16bit realmode trampoline code */
-	.realmode REALMODE_BASE : AT ( LOADADDR(.rel.dyn) + SIZEOF(.rel.dyn) ) { KEEP(*(.realmode)) }
-
-	__realmode_start = LOADADDR(.realmode);
-	__realmode_size = SIZEOF(.realmode);
-
-	/* 16bit BIOS emulation code (just enough to boot Linux) */
-	.bios 0 : AT ( LOADADDR(.realmode) + SIZEOF(.realmode) ) { KEEP(*(.bios)) }
-
-	__bios_start = LOADADDR(.bios);
-	__bios_size = SIZEOF(.bios);
+#ifdef CONFIG_X86_RESET_VECTOR
 
 	/*
 	 * The following expressions place the 16-bit Real-Mode code and
@@ -94,4 +90,5 @@ SECTIONS
 
 	. = RESET_VEC_LOC;
 	.resetvec : AT (CONFIG_SYS_TEXT_BASE + (CONFIG_SYS_MONITOR_LEN - RESET_SEG_SIZE + RESET_VEC_LOC)) { KEEP(*(.resetvec)); }
+#endif
 }

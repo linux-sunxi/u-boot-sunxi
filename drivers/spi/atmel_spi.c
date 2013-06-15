@@ -30,6 +30,15 @@
 
 #include "atmel_spi.h"
 
+static int spi_has_wdrbt(struct atmel_spi_slave *slave)
+{
+	unsigned int ver;
+
+	ver = spi_readl(slave, VERSION);
+
+	return (ATMEL_SPI_VERSION_REV(ver) >= 0x210);
+}
+
 void spi_init()
 {
 
@@ -84,18 +93,16 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	if (mode & SPI_CPOL)
 		csrx |= ATMEL_SPI_CSRx_CPOL;
 
-	as = malloc(sizeof(struct atmel_spi_slave));
+	as = spi_alloc_slave(struct atmel_spi_slave, bus, cs);
 	if (!as)
 		return NULL;
 
-	as->slave.bus = bus;
-	as->slave.cs = cs;
 	as->regs = regs;
 	as->mr = ATMEL_SPI_MR_MSTR | ATMEL_SPI_MR_MODFDIS
-#if defined(CONFIG_AT91SAM9X5)
-			| ATMEL_SPI_MR_WDRBT
-#endif
 			| ATMEL_SPI_MR_PCS(~(1 << cs) & 0xf);
+	if (spi_has_wdrbt(as))
+		as->mr |= ATMEL_SPI_MR_WDRBT;
+
 	spi_writel(as, CSR(cs), csrx);
 
 	return &as->slave;

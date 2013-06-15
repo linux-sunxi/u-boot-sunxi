@@ -21,6 +21,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <asm/arch/imx-regs.h>
 
 /*
  * KARO TX25 board - SoC Configuration
@@ -31,8 +32,15 @@
 
 #define	CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* 256 kB for U-Boot */
 
-/* NAND BOOT is the only boot method */
-#define CONFIG_NAND_U_BOOT
+#define CONFIG_SPL
+#define CONFIG_SPL_TARGET		"u-boot-with-spl.bin"
+#define CONFIG_SPL_LDSCRIPT		"arch/$(ARCH)/cpu/u-boot-spl.lds"
+#define CONFIG_SPL_MAX_SIZE		2048
+#define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_LIBGENERIC_SUPPORT
+
+#define CONFIG_SPL_TEXT_BASE		0x810c0000
+#define CONFIG_SYS_TEXT_BASE		0x81200000
 
 #ifndef MACH_TYPE_TX25
 #define MACH_TYPE_TX25	2177
@@ -40,16 +48,16 @@
 
 #define CONFIG_MACH_TYPE MACH_TYPE_TX25
 
-#ifdef CONFIG_NAND_SPL
+#ifdef CONFIG_SPL_BUILD
 /* Start copying real U-boot from the second page */
-#define CONFIG_SYS_NAND_U_BOOT_OFFS	0x800
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	CONFIG_SPL_PAD_TO
 #define CONFIG_SYS_NAND_U_BOOT_SIZE	0x30000
 
-#define CONFIG_SYS_NAND_U_BOOT_DST      (0x81200000)
+#define CONFIG_SYS_NAND_U_BOOT_DST      CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_NAND_U_BOOT_START    CONFIG_SYS_NAND_U_BOOT_DST
 
 #define CONFIG_SYS_NAND_PAGE_SIZE	2048
-#define CONFIG_SYS_NAND_SPARE_SIZE	64
+#define CONFIG_SYS_NAND_OOBSIZE		64
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128 * 1024)
 #define CONFIG_SYS_NAND_PAGE_COUNT	64
 #define CONFIG_SYS_NAND_SIZE		(128 * 1024 * 1024)
@@ -146,9 +154,6 @@
 #define CONFIG_LOADADDR		0x81000000	/* loadaddr env var */
 #define CONFIG_SYS_LOAD_ADDR	CONFIG_LOADADDR
 
-#define xstr(s)	str(s)
-#define str(s)	#s
-
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
 	"netdev=eth0\0"							\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
@@ -162,7 +167,7 @@
 	"addmtd=setenv bootargs ${bootargs} ${mtdparts}\0"		\
 	"addmisc=setenv bootargs ${bootargs}\0"				\
 	"u-boot=tx25/u-boot.bin\0"					\
-	"kernel_addr_r=" xstr(CONFIG_LOADADDR) "\0"			\
+	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0"		\
 	"hostname=tx25\0"						\
 	"bootfile=tx25/uImage\0"					\
 	"rootpath=/opt/eldk/arm\0"					\
@@ -176,7 +181,6 @@
 
 /* additions for new relocation code, must be added to all boards */
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x1000 - /* Fix this */ \
-					GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR		(IMX_RAM_BASE + IMX_RAM_SIZE)
 
 #endif /* __CONFIG_H */

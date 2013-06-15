@@ -263,6 +263,7 @@
 #endif
 
 #define	CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define	CONFIG_PCI_PNP
 #define	CONFIG_SYS_PCI_MSTR_IO_BUS	0x00000000	/* PCI base   */
 
@@ -482,6 +483,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card Adapter */
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE	 not supported	*/

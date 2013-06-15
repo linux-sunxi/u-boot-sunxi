@@ -135,9 +135,6 @@
 
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 
-#define XMK_STR(x)		#x
-#define MK_STR(x)		XMK_STR(x)
-
 #if defined(CONFIG_HLAN) || defined(CONFIG_LAN)
 #define UBFILE			"share/u-boot/u-boot-hd.flash.bin"
 #elif defined(CONFIG_HGLAN)
@@ -153,10 +150,10 @@
 	"stdin=nc\0"								\
 	"stdout=nc\0"								\
 	"stderr=nc\0"								\
-	"ipaddr="MK_STR(CONFIG_IPADDR_LS)"\0"					\
+	"ipaddr="__stringify(CONFIG_IPADDR_LS)"\0"			\
 	"netmask=255.255.255.0\0"						\
-	"serverip="MK_STR(CONFIG_SERVERIP_LS)"\0"				\
-	"ncip="MK_STR(CONFIG_NCIP_LS)"\0"					\
+	"serverip="__stringify(CONFIG_SERVERIP_LS)"\0"			\
+	"ncip="__stringify(CONFIG_NCIP_LS)"\0"				\
 	"netretry=no\0"								\
 	"nc=setenv stdin nc;setenv stdout nc;setenv stderr nc\0"		\
 	"ser=setenv stdin serial;setenv stdout serial;setenv stderr serial\0"	\
@@ -188,6 +185,7 @@
  * PCI stuff
  */
 #define CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 /* Verified: CONFIG_PCI_PNP doesn't work */
 #undef CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW

@@ -65,7 +65,6 @@
 #define CONFIG_BOOTARGS		"root=/dev/ram console=ttyS0,57600" /* RAMdisk */
 #define CONFIG_ETHADDR		00:AA:00:14:00:05	/* UTX5 */
 #define CONFIG_SERVERIP		10.8.17.105	/* Spree */
-#define CONFIG_SYS_TFTP_LOADADDR	10000
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"kernel_addr=FFA00000\0" \
@@ -140,6 +139,7 @@ protect on ${u-boot_startaddr} ${u-boot_endaddr}"
  *-----------------------------------------------------------------------
  */
 #define CONFIG_PCI				/* include pci support		*/
+#define	CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #undef CONFIG_PCI_PNP
 #define CONFIG_PCI_SCAN_SHOW
 #define CONFIG_EEPRO100

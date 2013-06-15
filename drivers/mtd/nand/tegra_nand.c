@@ -26,12 +26,11 @@
 #include <common.h>
 #include <asm/io.h>
 #include <nand.h>
-#include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/funcmux.h>
-#include <asm/arch/gpio.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/errno.h>
-#include <asm-generic/gpio.h>
+#include <asm/gpio.h>
 #include <fdtdec.h>
 #include "tegra_nand.h"
 
@@ -220,6 +219,34 @@ static uint8_t read_byte(struct mtd_info *mtd)
 }
 
 /**
+ * Read len bytes from the chip into a buffer
+ *
+ * @param mtd	MTD device structure
+ * @param buf	buffer to store data to
+ * @param len	number of bytes to read
+ *
+ * Read function for 8bit bus-width
+ */
+static void read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
+{
+	int i, s;
+	unsigned int reg;
+	struct nand_chip *chip = mtd->priv;
+	struct nand_drv *info = (struct nand_drv *)chip->priv;
+
+	for (i = 0; i < len; i += 4) {
+		s = (len - i) > 4 ? 4 : len - i;
+		writel(CMD_PIO | CMD_RX | CMD_A_VALID | CMD_CE0 |
+			((s - 1) << CMD_TRANS_SIZE_SHIFT) | CMD_GO,
+			&info->reg->command);
+		if (!nand_waitfor_cmd_completion(info->reg))
+			puts("Command timeout during read_buf\n");
+		reg = readl(&info->reg->resp);
+		memcpy(buf + i, &reg, s);
+	}
+}
+
+/**
  * Check NAND status to see if it is ready or not
  *
  * @param mtd	MTD device structure
@@ -318,12 +345,19 @@ static void nand_command(struct mtd_info *mtd, unsigned int command,
 	switch (command) {
 	case NAND_CMD_READID:
 		writel(NAND_CMD_READID, &info->reg->cmd_reg1);
+		writel(column & 0xFF, &info->reg->addr_reg1);
 		writel(CMD_GO | CMD_CLE | CMD_ALE | CMD_PIO
 			| CMD_RX |
 			((4 - 1) << CMD_TRANS_SIZE_SHIFT)
 			| CMD_CE0,
 			&info->reg->command);
 		info->pio_byte_index = 0;
+		break;
+	case NAND_CMD_PARAM:
+		writel(NAND_CMD_PARAM, &info->reg->cmd_reg1);
+		writel(column & 0xFF, &info->reg->addr_reg1);
+		writel(CMD_GO | CMD_CLE | CMD_ALE | CMD_CE0,
+			&info->reg->command);
 		break;
 	case NAND_CMD_READ0:
 		writel(NAND_CMD_READ0, &info->reg->cmd_reg1);
@@ -673,7 +707,7 @@ static int nand_rw_page(struct mtd_info *mtd, struct nand_chip *chip,
  *		-EIO when command timeout
  */
 static int nand_read_page_hwecc(struct mtd_info *mtd,
-	struct nand_chip *chip, uint8_t *buf, int page)
+	struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
 	return nand_rw_page(mtd, chip, buf, page, 1, 0);
 }
@@ -685,8 +719,8 @@ static int nand_read_page_hwecc(struct mtd_info *mtd,
  * @param chip	nand chip info structure
  * @param buf	data buffer
  */
-static void nand_write_page_hwecc(struct mtd_info *mtd,
-	struct nand_chip *chip, const uint8_t *buf)
+static int nand_write_page_hwecc(struct mtd_info *mtd,
+	struct nand_chip *chip, const uint8_t *buf, int oob_required)
 {
 	int page;
 	struct nand_drv *info;
@@ -697,6 +731,7 @@ static void nand_write_page_hwecc(struct mtd_info *mtd,
 		(readl(&info->reg->addr_reg2) << 16);
 
 	nand_rw_page(mtd, chip, (uint8_t *)buf, page, 1, 1);
+	return 0;
 }
 
 
@@ -712,7 +747,7 @@ static void nand_write_page_hwecc(struct mtd_info *mtd,
  *		-EIO when command timeout
  */
 static int nand_read_page_raw(struct mtd_info *mtd,
-	struct nand_chip *chip, uint8_t *buf, int page)
+	struct nand_chip *chip, uint8_t *buf, int oob_required, int page)
 {
 	return nand_rw_page(mtd, chip, buf, page, 0, 0);
 }
@@ -724,8 +759,8 @@ static int nand_read_page_raw(struct mtd_info *mtd,
  * @param chip	nand chip info structure
  * @param buf	data buffer
  */
-static void nand_write_page_raw(struct mtd_info *mtd,
-		struct nand_chip *chip,	const uint8_t *buf)
+static int nand_write_page_raw(struct mtd_info *mtd,
+		struct nand_chip *chip,	const uint8_t *buf, int oob_required)
 {
 	int page;
 	struct nand_drv *info;
@@ -735,6 +770,7 @@ static void nand_write_page_raw(struct mtd_info *mtd,
 		(readl(&info->reg->addr_reg2) << 16);
 
 	nand_rw_page(mtd, chip, (uint8_t *)buf, page, 0, 1);
+	return 0;
 }
 
 /**
@@ -839,19 +875,13 @@ static int nand_rw_oob(struct mtd_info *mtd, struct nand_chip *chip,
  * @param mtd		mtd info structure
  * @param chip		nand chip info structure
  * @param page		page number to read
- * @param sndcmd	flag whether to issue read command or not
- * @return	1 - issue read command next time
- *		0 - not to issue
  */
 static int nand_read_oob(struct mtd_info *mtd, struct nand_chip *chip,
-	int page, int sndcmd)
+	int page)
 {
-	if (sndcmd) {
-		chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
-		sndcmd = 0;
-	}
+	chip->cmdfunc(mtd, NAND_CMD_READOOB, 0, page);
 	nand_rw_oob(mtd, chip, page, 0, 0);
-	return sndcmd;
+	return 0;
 }
 
 /**
@@ -977,12 +1007,14 @@ int tegra_nand_init(struct nand_chip *nand, int devnum)
 	nand->options = LP_OPTIONS;
 	nand->cmdfunc = nand_command;
 	nand->read_byte = read_byte;
+	nand->read_buf = read_buf;
 	nand->ecc.read_page = nand_read_page_hwecc;
 	nand->ecc.write_page = nand_write_page_hwecc;
 	nand->ecc.read_page_raw = nand_read_page_raw;
 	nand->ecc.write_page_raw = nand_write_page_raw;
 	nand->ecc.read_oob = nand_read_oob;
 	nand->ecc.write_oob = nand_write_oob;
+	nand->ecc.strength = 1;
 	nand->select_chip = nand_select_chip;
 	nand->dev_ready  = nand_dev_ready;
 	nand->priv = &nand_ctrl;
@@ -993,7 +1025,6 @@ int tegra_nand_init(struct nand_chip *nand, int devnum)
 	/* Adjust timing for NAND device */
 	setup_timing(config->timing, info->reg);
 
-	funcmux_select(PERIPH_ID_NDFLASH, FUNCMUX_DEFAULT);
 	fdtdec_setup_gpio(&config->wp_gpio);
 	gpio_direction_output(config->wp_gpio.gpio, 1);
 

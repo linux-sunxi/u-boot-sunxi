@@ -65,8 +65,8 @@ static void ace_writew(u16 val, unsigned off)
 		writeb(val, base + off);
 		writeb(val >> 8, base + off + 1);
 #endif
-	}
-	out16(base + off, val);
+	} else
+		out16(base + off, val);
 }
 
 static u16 ace_readw(unsigned off)
@@ -83,7 +83,7 @@ static u16 ace_readw(unsigned off)
 }
 
 static unsigned long systemace_read(int dev, unsigned long start,
-				    unsigned long blkcnt, void *buffer);
+					lbaint_t blkcnt, void *buffer);
 
 static block_dev_desc_t systemace_dev = { 0 };
 
@@ -127,6 +127,7 @@ block_dev_desc_t *systemace_get_dev(int dev)
 		systemace_dev.part_type = PART_TYPE_UNKNOWN;
 		systemace_dev.type = DEV_TYPE_HARDDISK;
 		systemace_dev.blksz = 512;
+		systemace_dev.log2blksz = LOG2(systemace_dev.blksz);
 		systemace_dev.removable = 1;
 		systemace_dev.block_read = systemace_read;
 
@@ -149,7 +150,7 @@ block_dev_desc_t *systemace_get_dev(int dev)
  * number of blocks read. A zero return indicates an error.
  */
 static unsigned long systemace_read(int dev, unsigned long start,
-				    unsigned long blkcnt, void *buffer)
+					lbaint_t blkcnt, void *buffer)
 {
 	int retry;
 	unsigned blk_countdown;

@@ -77,7 +77,19 @@ static void __get_spd(generic_spd_eeprom_t *spd, u8 i2c_address)
 				sizeof(generic_spd_eeprom_t));
 
 	if (ret) {
-		printf("DDR: failed to read SPD from address %u\n", i2c_address);
+		if (i2c_address ==
+#ifdef SPD_EEPROM_ADDRESS
+				SPD_EEPROM_ADDRESS
+#elif defined(SPD_EEPROM_ADDRESS1)
+				SPD_EEPROM_ADDRESS1
+#endif
+				) {
+			printf("DDR: failed to read SPD from address %u\n",
+				i2c_address);
+		} else {
+			debug("DDR: failed to read SPD from address %u\n",
+				i2c_address);
+		}
 		memset(spd, 0, sizeof(generic_spd_eeprom_t));
 	}
 }
@@ -174,7 +186,7 @@ const char * step_to_string(unsigned int step) {
 	return step_string_tbl[s];
 }
 
-unsigned long long step_assign_addresses(fsl_ddr_info_t *pinfo,
+static unsigned long long __step_assign_addresses(fsl_ddr_info_t *pinfo,
 			  unsigned int dbw_cap_adj[])
 {
 	int i, j;
@@ -341,6 +353,11 @@ unsigned long long step_assign_addresses(fsl_ddr_info_t *pinfo,
 
 	return total_mem;
 }
+
+/* Use weak function to allow board file to override the address assignment */
+__attribute__((weak, alias("__step_assign_addresses")))
+unsigned long long step_assign_addresses(fsl_ddr_info_t *pinfo,
+			  unsigned int dbw_cap_adj[]);
 
 unsigned long long
 fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
@@ -520,11 +537,27 @@ phys_size_t fsl_ddr_sdram(void)
 
 	/* Compute it once normally. */
 #ifdef CONFIG_FSL_DDR_INTERACTIVE
-	if (getenv("ddr_interactive"))
-		total_memory = fsl_ddr_interactive(&info);
-	else
+	if (tstc() && (getc() == 'd')) {	/* we got a key press of 'd' */
+		total_memory = fsl_ddr_interactive(&info, 0);
+	} else if (fsl_ddr_interactive_env_var_exists()) {
+		total_memory = fsl_ddr_interactive(&info, 1);
+	} else
 #endif
 		total_memory = fsl_ddr_compute(&info, STEP_GET_SPD, 0);
+
+	/* setup 3-way interleaving before enabling DDRC */
+	if (info.memctl_opts[0].memctl_interleaving) {
+		switch (info.memctl_opts[0].memctl_interleaving_mode) {
+		case FSL_DDR_3WAY_1KB_INTERLEAVING:
+		case FSL_DDR_3WAY_4KB_INTERLEAVING:
+		case FSL_DDR_3WAY_8KB_INTERLEAVING:
+			fsl_ddr_set_intl3r(
+				info.memctl_opts[0].memctl_interleaving_mode);
+			break;
+		default:
+			break;
+		}
+	}
 
 	/* Program configuration registers. */
 	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
@@ -561,7 +594,6 @@ phys_size_t fsl_ddr_sdram(void)
 			case FSL_DDR_3WAY_8KB_INTERLEAVING:
 				law_memctl = LAW_TRGT_IF_DDR_INTLV_123;
 				if (i == 0) {
-					fsl_ddr_set_intl3r(info.memctl_opts[i].memctl_interleaving_mode);
 					fsl_ddr_set_lawbar(&info.common_timing_params[i],
 						law_memctl, i);
 				}

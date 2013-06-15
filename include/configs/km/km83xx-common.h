@@ -165,8 +165,10 @@
 #define CONFIG_UEC_ETH
 #define CONFIG_ETHPRIME		"UEC0"
 
+#if !defined(CONFIG_MPC8309)
 #define CONFIG_UEC_ETH1		/* GETH1 */
 #define UEC_VERBOSE_DEBUG	1
+#endif
 
 #ifdef CONFIG_UEC_ETH1
 #define CONFIG_SYS_UEC1_UCC_NUM	3	/* UCC4 */
@@ -310,7 +312,6 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_KM_DEF_ENV						\
 	CONFIG_KM_DEF_ARCH						\
-	"dtt_bus=pca9547:70:a\0"					\
 	"EEprom_ivm=pca9547:70:9\0"					\
 	"newenv="							\
 		"prot off 0xF00C0000 +0x40000 && "			\

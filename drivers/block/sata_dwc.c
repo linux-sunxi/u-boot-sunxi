@@ -35,6 +35,7 @@
 #include <asm/io.h>
 #include <malloc.h>
 #include <ata.h>
+#include <sata.h>
 #include <linux/ctype.h>
 
 #include "sata_dwc.h"
@@ -268,8 +269,6 @@ static int ata_dev_read_id(struct ata_device *dev, unsigned int *p_class,
 		unsigned int flags, u16 *id);
 static int check_sata_dev_state(void);
 
-extern block_dev_desc_t sata_dev_desc[CONFIG_SYS_SATA_MAX_DEVICE];
-
 static const struct ata_port_info sata_dwc_port_info[] = {
 	{
 		.flags		= ATA_FLAG_SATA | ATA_FLAG_NO_LEGACY |
@@ -361,7 +360,7 @@ int init_sata(int dev)
 	if (status == 0x7f) {
 		printf("Hard Disk not found.\n");
 		dev_state = SATA_NODEVICE;
-		rc = FALSE;
+		rc = false;
 		return rc;
 	}
 
@@ -382,7 +381,7 @@ int init_sata(int dev)
 			printf("** TimeOUT **\n");
 
 			dev_state = SATA_NODEVICE;
-			rc = FALSE;
+			rc = false;
 			return rc;
 		}
 		if ((i >= 100) && ((i % 100) == 0))
@@ -459,7 +458,7 @@ static int sata_dwc_softreset(struct ata_port *ap)
 	} else {
 		printf("No device found\n");
 		dev_state = SATA_NODEVICE;
-		return FALSE;
+		return false;
 	}
 
 	tmp = ATA_DEVICE_OBS;
@@ -738,7 +737,7 @@ static int ata_dev_read_id(struct ata_device *dev, unsigned int *p_class,
 	status = ata_busy_wait(ap, ATA_BUSY, 30000);
 	if (status & ATA_BUSY) {
 		printf("BSY = 0 check. timeout.\n");
-		rc = FALSE;
+		rc = false;
 		return rc;
 	}
 
@@ -988,7 +987,7 @@ unsigned ata_exec_internal(struct ata_device *dev,
 	status = ata_busy_wait(ap, ATA_BUSY, 300000);
 	if (status & ATA_BUSY) {
 		printf("BSY = 0 check. timeout.\n");
-		rc = FALSE;
+		rc = false;
 		return rc;
 	}
 
@@ -998,7 +997,7 @@ unsigned ata_exec_internal(struct ata_device *dev,
 	tag = ATA_TAG_INTERNAL;
 
 	if (test_and_set_bit(tag, &ap->qc_allocated)) {
-		rc = FALSE;
+		rc = false;
 		return rc;
 	}
 
@@ -1657,14 +1656,14 @@ static int check_sata_dev_state(void)
 
 		ret = ata_dev_read_sectors(pdata, datalen, 0, 1);
 
-		if (ret == TRUE)
+		if (ret == true)
 			break;
 
 		i++;
 		if (i > (ATA_RESET_TIME * 100)) {
 			printf("** TimeOUT **\n");
 			dev_state = SATA_NODEVICE;
-			return FALSE;
+			return false;
 		}
 
 		if ((i >= 100) && ((i % 100) == 0))
@@ -1673,7 +1672,7 @@ static int check_sata_dev_state(void)
 
 	dev_state = SATA_READY;
 
-	return TRUE;
+	return true;
 }
 
 static unsigned int ata_dev_set_feature(struct ata_device *dev,
@@ -1773,7 +1772,7 @@ ulong sata_read(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
 			blks = 0;
 		}
 
-		if (ata_dev_read_sectors(pdata, datalen, block, n_block) != TRUE) {
+		if (ata_dev_read_sectors(pdata, datalen, block, n_block) != true) {
 			printf("sata_dwc : Hard disk read error.\n");
 			blkcnt -= blks;
 			break;
@@ -1796,7 +1795,7 @@ static int ata_dev_read_sectors(unsigned char *pdata, unsigned long datalen,
 	int may_fallback = 1;
 
 	if (dev_state == SATA_ERROR)
-		return FALSE;
+		return false;
 
 	ata_dev_select(ap, dev->devno, 1, 1);
 
@@ -1894,11 +1893,11 @@ retry:
 		goto err_out;
 	}
 
-	return TRUE;
+	return true;
 
 err_out:
 	printf("failed to READ SECTORS (%s, err_mask=0x%x)\n", reason, err_mask);
-	return FALSE;
+	return false;
 }
 
 #if defined(CONFIG_SATA_DWC) && !defined(CONFIG_LBA48)
@@ -1907,7 +1906,7 @@ err_out:
 #define SATA_MAX_WRITE_BLK 0xFFFF
 #endif
 
-ulong sata_write(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
+ulong sata_write(int device, ulong blknr, lbaint_t blkcnt, const void *buffer)
 {
 	ulong start,blks, buf_addr;
 	unsigned short smallblks;
@@ -1947,7 +1946,7 @@ ulong sata_write(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
 			blks = 0;
 		}
 
-		if (ata_dev_write_sectors(pdata, datalen, block, n_block) != TRUE) {
+		if (ata_dev_write_sectors(pdata, datalen, block, n_block) != true) {
 			printf("sata_dwc : Hard disk read error.\n");
 			blkcnt -= blks;
 			break;
@@ -1970,7 +1969,7 @@ static int ata_dev_write_sectors(unsigned char* pdata, unsigned long datalen,
 	int may_fallback = 1;
 
 	if (dev_state == SATA_ERROR)
-		return FALSE;
+		return false;
 
 	ata_dev_select(ap, dev->devno, 1, 1);
 
@@ -2069,9 +2068,9 @@ retry:
 		goto err_out;
 	}
 
-	return TRUE;
+	return true;
 
 err_out:
 	printf("failed to WRITE SECTORS (%s, err_mask=0x%x)\n", reason, err_mask);
-	return FALSE;
+	return false;
 }

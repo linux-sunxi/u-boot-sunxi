@@ -13,7 +13,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -29,8 +29,8 @@
 #include <asm/arch/sys_proto.h>
 
 
-int sunxi_key_init(void) {
-
+int sunxi_key_init(void)
+{
 	struct sunxi_lradc *sunxi_key_base =
 		(struct sunxi_lradc *)SUNXI_LRADC_BASE;
 
@@ -43,13 +43,13 @@ int sunxi_key_init(void) {
 	/* disable all key irq */
 	writel(0x0, &sunxi_key_base->intc);
 	/* clear all key pending */
-	writel(0xFFFFFFFF, &sunxi_key_base->ints);
+	writel(0xffffffff, &sunxi_key_base->ints);
 
 	return 0;
 }
 
-u32 sunxi_read_key(void) {
-
+u32 sunxi_read_key(void)
+{
 	u32 ints;
 	u32 key = 0;
 	struct sunxi_lradc *sunxi_key_base =
@@ -59,7 +59,7 @@ u32 sunxi_read_key(void) {
 
 	/* if there is already data pending,
 	 read it */
-	if( ints & ADC0_DATA_PENDING) {
+	if (ints & ADC0_DATA_PENDING) {
 		key = readl(&sunxi_key_base->data0);
 #ifdef DEBUG
 		printf("key pressed, value=0x%x\n", key);
@@ -69,4 +69,3 @@ u32 sunxi_read_key(void) {
 	writel(ints, &sunxi_key_base->ints);
 	return key;
 }
-

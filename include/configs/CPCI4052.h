@@ -176,6 +176,7 @@
 #define PCI_HOST_AUTO   2               /* detected via arbiter enable  */
 
 #define CONFIG_PCI			/* include pci support	        */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_HOST	PCI_HOST_AUTO   /* select pci host function     */
 #define CONFIG_PCI_PNP			/* do pci plug-and-play         */
 					/* resource configuration       */
@@ -195,7 +196,7 @@
 #define CONFIG_SYS_PCI_PTM1PCI 0x00000000      /* Host: use this pci address   */
 #define CONFIG_SYS_PCI_PTM2LA  0xffc00000      /* point to flash               */
 #define CONFIG_SYS_PCI_PTM2MS  0xffc00001      /* 4MB, enable                  */
-#define CONFIG_SYS_PCI_PTM2PCI 0x04000000      /* Host: use this pci address   */
+#define CONFIG_SYS_PCI_PTM2PCI (bd->bi_memsize) /* host use this pci address */
 
 #define CONFIG_PCI_4xx_PTM_OVERWRITE	1 /* overwrite PTMx settings by env */
 

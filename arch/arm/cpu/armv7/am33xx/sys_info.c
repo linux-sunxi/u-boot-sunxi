@@ -92,11 +92,13 @@ u32 get_sysboot_value(void)
 int print_cpuinfo(void)
 {
 	char *cpu_s, *sec_s;
-	int arm_freq, ddr_freq;
 
 	switch (get_cpu_type()) {
 	case AM335X:
 		cpu_s = "AM335X";
+		break;
+	case TI81XX:
+		cpu_s = "TI81XX";
 		break;
 	default:
 		cpu_s = "Unknown cpu type";
@@ -120,10 +122,7 @@ int print_cpuinfo(void)
 		sec_s = "?";
 	}
 
-	printf("AM%s-%s rev %d\n",
-			cpu_s, sec_s, get_cpu_rev());
-
-	/* TODO: Print ARM and DDR frequencies  */
+	printf("%s-%s rev %d\n", cpu_s, sec_s, get_cpu_rev());
 
 	return 0;
 }

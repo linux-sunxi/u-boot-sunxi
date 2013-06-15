@@ -77,7 +77,6 @@ int mcdmafec_initialize(bd_t *bis);
 int mcffec_initialize(bd_t *bis);
 int mpc512x_fec_initialize(bd_t *bis);
 int mpc5xxx_fec_initialize(bd_t *bis);
-int mpc8220_fec_initialize(bd_t *bis);
 int mpc82xx_scc_enet_initialize(bd_t *bis);
 int mvgbe_initialize(bd_t *bis);
 int natsemi_initialize(bd_t *bis);
@@ -94,6 +93,7 @@ int sh_eth_initialize(bd_t *bis);
 int skge_initialize(bd_t *bis);
 int smc91111_initialize(u8 dev_num, int base_addr);
 int smc911x_initialize(u8 dev_num, int base_addr);
+int sunxi_emac_initialize(bd_t *bis);
 int tsi108_eth_initialize(bd_t *bis);
 int uec_standard_init(bd_t *bis);
 int uli526x_initialize(bd_t *bis);
@@ -104,7 +104,7 @@ int xilinx_emaclite_initialize(bd_t *bis, unsigned long base_addr,
 							int txpp, int rxpp);
 int xilinx_ll_temac_eth_init(bd_t *bis, unsigned long base_addr, int flags,
 						unsigned long ctrl_addr);
-int zynq_gem_initialize(bd_t *bis, int base_addr);
+int zynq_gem_initialize(bd_t *bis, int base_addr, int phy_addr, u32 emio);
 /*
  * As long as the Xilinx xps_ll_temac ethernet driver has not its own interface
  * exported by a public hader file, we need a global definition at this point.
@@ -163,10 +163,9 @@ static inline int pci_eth_init(bd_t *bis)
  * the stuct and enums here are used to specify switch configuration params
  */
 #if defined(CONFIG_MV88E61XX_SWITCH)
-enum mv88e61xx_cfg_vlan {
-	MV88E61XX_VLANCFG_DEFAULT,
-	MV88E61XX_VLANCFG_ROUTER
-};
+
+/* constants for any 88E61xx switch */
+#define MV88E61XX_MAX_PORTS_NUM	6
 
 enum mv88e61xx_cfg_mdip {
 	MV88E61XX_MDIP_NOCHANGE,
@@ -192,7 +191,7 @@ enum mv88e61xx_cfg_prtstt {
 
 struct mv88e61xx_config {
 	char *name;
-	enum mv88e61xx_cfg_vlan vlancfg;
+	u8 vlancfg[MV88E61XX_MAX_PORTS_NUM];
 	enum mv88e61xx_cfg_rgmiid rgmii_delay;
 	enum mv88e61xx_cfg_prtstt portstate;
 	enum mv88e61xx_cfg_ledinit led_init;
@@ -201,12 +200,31 @@ struct mv88e61xx_config {
 	u8 cpuport;
 };
 
+/*
+ * Common mappings for Internal VLANs
+ * These mappings consider that all ports are useable; the driver
+ * will mask inexistent/unused ports.
+ */
+
+/* Switch mode : routes any port to any port */
+#define MV88E61XX_VLANCFG_SWITCH { 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F }
+
+/* Router mode: routes only CPU port 5 to/from non-CPU ports 0-4 */
+#define MV88E61XX_VLANCFG_ROUTER { 0x20, 0x20, 0x20, 0x20, 0x20, 0x1F }
+
 int mv88e61xx_switch_initialize(struct mv88e61xx_config *swconfig);
 #endif /* CONFIG_MV88E61XX_SWITCH */
 
+struct mii_dev *fec_get_miibus(uint32_t base_addr, int dev_id);
+#ifdef CONFIG_PHYLIB
+struct phy_device;
+int fec_probe(bd_t *bd, int dev_id, uint32_t base_addr,
+		struct mii_dev *bus, struct phy_device *phydev);
+#else
 /*
  * Allow FEC to fine-tune MII configuration on boards which require this.
  */
 int fecmxc_register_mii_postcall(struct eth_device *dev, int (*cb)(int));
+#endif
 
 #endif /* _NETDEV_H_ */

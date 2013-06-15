@@ -15,6 +15,7 @@
 *.swp
 *.patch
 *.bin
+*.cfgtmp
 
 # Build tree
 /build-*
@@ -24,10 +25,13 @@
 #
 
 /MLO
+/SPL
 /System.map
 /u-boot
 /u-boot.hex
 /u-boot.imx
+/u-boot-with-spl.imx
+/u-boot-with-nand-spl.imx
 /u-boot.map
 /u-boot.srec
 /u-boot.ldr
@@ -42,6 +46,7 @@
 /u-boot.ais
 /u-boot.dtb
 /u-boot.sb
+/u-boot.bd
 /u-boot.geany
 
 #
@@ -74,6 +79,12 @@ cscope.*
 /tags
 /ctags
 /etags
+
+# gnu global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
 
 # spl ais files
 /spl/*.ais

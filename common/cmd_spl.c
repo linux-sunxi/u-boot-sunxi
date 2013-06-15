@@ -130,10 +130,12 @@ static int spl_export(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (call_bootm(argc, argv, subcmd_list[(int)c->cmd]))
 			return -1;
 		switch ((int)c->cmd) {
+#ifdef CONFIG_OF_LIBFDT
 		case SPL_EXPORT_FDT:
 			printf("Argument image is now in RAM: 0x%p\n",
 				(void *)images.ft_addr);
 			break;
+#endif
 		case SPL_EXPORT_ATAGS:
 			printf("Argument image is now in RAM at: 0x%p\n",
 				(void *)gd->bd->bi_boot_params);
@@ -182,7 +184,11 @@ static int do_spl(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 U_BOOT_CMD(
 	spl, 6 , 1, do_spl, "SPL configuration",
-	"export <img=atags|fdt> [kernel_addr] [initrd_addr] "
-	"[fdt_addr if <img> = fdt] - export a kernel parameter image\n"
-	"\t initrd_img can be set to \"-\" if fdt_addr without initrd img is"
-	"used");
+	"export <img=atags|fdt> [kernel_addr] [initrd_addr] [fdt_addr]\n"
+	"\timg\t\t\"atags\" or \"fdt\"\n"
+	"\tkernel_addr\taddress where a kernel image is stored.\n"
+	"\t\t\tkernel is loaded as part of the boot process, but it is not started.\n"
+	"\tinitrd_addr\taddress of initial ramdisk\n"
+	"\t\t\tcan be set to \"-\" if fdt_addr without initrd_addr is used.\n"
+	"\tfdt_addr\tin case of fdt, the address of the device tree.\n"
+	);

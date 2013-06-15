@@ -38,6 +38,7 @@
 /* SC85T,SC860T, FEL8xx-AT(855T/860T) */
 /*#define CONFIG_FEL8xx_AT */
 /*#define CONFIG_LCD */
+/*#define CONFIG_MPC8XX_LCD*/
 /* if core > 50MHz , un-comment CONFIG_BUS_DIV2 */
 /* #define CONFIG_50MHz */
 /* #define CONFIG_66MHz */
@@ -359,6 +360,8 @@
 
 #undef	CONFIG_IDE_8xx_PCCARD		/* Use IDE with PC Card	Adapter	*/
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
+#define CONFIG_IDE_INIT_POSTRESET	1	/* Use postreset IDE hook */
 #define	CONFIG_IDE_8xx_DIRECT	1	/* Direct IDE    not supported	*/
 #undef	CONFIG_IDE_LED			/* LED   for ide not supported	*/
 #undef	CONFIG_IDE_RESET		/* reset for ide not supported	*/

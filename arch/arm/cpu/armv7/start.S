@@ -35,12 +35,6 @@
 #include <asm/system.h>
 #include <linux/linkage.h>
 
-#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SUNXI)
-/* Hack to align to 32 bytes offet */
-__start:	b _start
-	.balignl 16,0xdeadbeef
-#endif
-
 .globl _start
 _start: b	reset
 	ldr	pc, _undefined_instruction
@@ -87,7 +81,11 @@ _end_vect:
 
 .globl _TEXT_BASE
 _TEXT_BASE:
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_TEXT_BASE)
+	.word	CONFIG_SPL_TEXT_BASE
+#else
 	.word	CONFIG_SYS_TEXT_BASE
+#endif
 
 /*
  * These are defined in the board-specific linker script.
@@ -96,13 +94,9 @@ _TEXT_BASE:
 _bss_start_ofs:
 	.word __bss_start - _start
 
-.global	_image_copy_end_ofs
-_image_copy_end_ofs:
-	.word 	__image_copy_end - _start
-
 .globl _bss_end_ofs
 _bss_end_ofs:
-	.word __bss_end__ - _start
+	.word __bss_end - _start
 
 .globl _end_ofs
 _end_ofs:
@@ -130,16 +124,17 @@ IRQ_STACK_START_IN:
  */
 
 reset:
-#if defined(CONFIG_SUNXI)
-	mcr	p15, 0, r0, c7, c5, 0	@ invalidate icache
-#endif
 	bl	save_boot_params
 	/*
-	 * set the cpu to SVC32 mode
+	 * disable interrupts (FIQ and IRQ), also set the cpu to SVC32 mode,
+	 * except if in HYP mode already
 	 */
 	mrs	r0, cpsr
-	bic	r0, r0, #0x1f
-	orr	r0, r0, #0xd3
+	and	r1, r0, #0x1f		@ mask mode bits
+	teq	r1, #0x1a		@ test for HYP mode
+	bicne	r0, r0, #0x1f		@ clear all mode bits
+	orrne	r0, r0, #0x13		@ set SVC mode
+	orr	r0, r0, #0xc0		@ disable FIQ and IRQ
 	msr	cpsr,r0
 
 /*
@@ -164,112 +159,11 @@ reset:
 	bl	cpu_init_crit
 #endif
 
-/* Set stackpointer in internal RAM to call board_init_f */
-call_board_init_f:
-	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
-	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
-	ldr	r0,=0x00000000
-	bl	board_init_f
+	bl	_main
 
 /*------------------------------------------------------------------------------*/
 
-#ifndef CONFIG_SPL_BUILD
-/*
- * void relocate_code (addr_sp, gd, addr_moni)
- *
- * This "function" does not return, instead it continues in RAM
- * after relocating the monitor code.
- *
- */
-ENTRY(relocate_code)
-	mov	r4, r0	/* save addr_sp */
-	mov	r5, r1	/* save addr of gd */
-	mov	r6, r2	/* save addr of destination */
-
-	/* Set up the stack						    */
-stack_setup:
-	mov	sp, r4
-
-	adr	r0, _start
-	cmp	r0, r6
-	moveq	r9, #0		/* no relocation. relocation offset(r9) = 0 */
-	beq	clear_bss		/* skip relocation */
-	mov	r1, r6			/* r1 <- scratch for copy_loop */
-	ldr	r3, _image_copy_end_ofs
-	add	r2, r0, r3		/* r2 <- source end address	    */
-
-copy_loop:
-	ldmia	r0!, {r9-r10}		/* copy from source address [r0]    */
-	stmia	r1!, {r9-r10}		/* copy to   target address [r1]    */
-	cmp	r0, r2			/* until source end address [r2]    */
-	blo	copy_loop
-
-	/*
-	 * fix .rel.dyn relocations
-	 */
-	ldr	r0, _TEXT_BASE		/* r0 <- Text base */
-	sub	r9, r6, r0		/* r9 <- relocation offset */
-	ldr	r10, _dynsym_start_ofs	/* r10 <- sym table ofs */
-	add	r10, r10, r0		/* r10 <- sym table in FLASH */
-	ldr	r2, _rel_dyn_start_ofs	/* r2 <- rel dyn start ofs */
-	add	r2, r2, r0		/* r2 <- rel dyn start in FLASH */
-	ldr	r3, _rel_dyn_end_ofs	/* r3 <- rel dyn end ofs */
-	add	r3, r3, r0		/* r3 <- rel dyn end in FLASH */
-fixloop:
-	ldr	r0, [r2]		/* r0 <- location to fix up, IN FLASH! */
-	add	r0, r0, r9		/* r0 <- location to fix up in RAM */
-	ldr	r1, [r2, #4]
-	and	r7, r1, #0xff
-	cmp	r7, #23			/* relative fixup? */
-	beq	fixrel
-	cmp	r7, #2			/* absolute fixup? */
-	beq	fixabs
-	/* ignore unknown type of fixup */
-	b	fixnext
-fixabs:
-	/* absolute fix: set location to (offset) symbol value */
-	mov	r1, r1, LSR #4		/* r1 <- symbol index in .dynsym */
-	add	r1, r10, r1		/* r1 <- address of symbol in table */
-	ldr	r1, [r1, #4]		/* r1 <- symbol value */
-	add	r1, r1, r9		/* r1 <- relocated sym addr */
-	b	fixnext
-fixrel:
-	/* relative fix: increase location by offset */
-	ldr	r1, [r0]
-	add	r1, r1, r9
-fixnext:
-	str	r1, [r0]
-	add	r2, r2, #8		/* each rel.dyn entry is 8 bytes */
-	cmp	r2, r3
-	blo	fixloop
-	b	clear_bss
-_rel_dyn_start_ofs:
-	.word __rel_dyn_start - _start
-_rel_dyn_end_ofs:
-	.word __rel_dyn_end - _start
-_dynsym_start_ofs:
-	.word __dynsym_start - _start
-
-clear_bss:
-	ldr	r0, _bss_start_ofs
-	ldr	r1, _bss_end_ofs
-	mov	r4, r6			/* reloc addr */
-	add	r0, r0, r4
-	add	r1, r1, r4
-	mov	r2, #0x00000000		/* clear			    */
-
-clbss_l:cmp	r0, r1			/* clear loop... */
-	bhs	clbss_e			/* if reached end of bss, exit */
-	str	r2, [r0]
-	add	r0, r0, #4
-	b	clbss_l
-clbss_e:
-
-/*
- * We are done. Do not return, instead branch to second part of board
- * initialization, now running from RAM.
- */
-jump_2_ram:
+ENTRY(c_runtime_cpu_setup)
 /*
  * If I-cache is enabled invalidate it
  */
@@ -281,27 +175,13 @@ jump_2_ram:
 /*
  * Move vector table
  */
-#if !defined(CONFIG_TEGRA20)
 	/* Set vector address in CP15 VBAR register */
 	ldr     r0, =_start
-	add     r0, r0, r9
 	mcr     p15, 0, r0, c12, c0, 0  @Set VBAR
-#endif /* !Tegra20 */
 
-	ldr	r0, _board_init_r_ofs
-	adr	r1, _start
-	add	lr, r0, r1
-	add	lr, lr, r9
-	/* setup parameters for board_init_r */
-	mov	r0, r5		/* gd_t */
-	mov	r1, r6		/* dest_addr */
-	/* jump to it ... */
-	mov	pc, lr
+	bx	lr
 
-_board_init_r_ofs:
-	.word board_init_r - _start
-ENDPROC(relocate_code)
-#endif
+ENDPROC(c_runtime_cpu_setup)
 
 /*************************************************************************
  *
@@ -350,6 +230,31 @@ ENTRY(cpu_init_cp15)
 	orr	r0, r0, #0x00001000	@ set bit 12 (I) I-cache
 #endif
 	mcr	p15, 0, r0, c1, c0, 0
+
+#ifdef CONFIG_ARM_ERRATA_716044
+	mrc	p15, 0, r0, c1, c0, 0	@ read system control register
+	orr	r0, r0, #1 << 11	@ set bit #11
+	mcr	p15, 0, r0, c1, c0, 0	@ write system control register
+#endif
+
+#ifdef CONFIG_ARM_ERRATA_742230
+	mrc	p15, 0, r0, c15, c0, 1	@ read diagnostic register
+	orr	r0, r0, #1 << 4		@ set bit #4
+	mcr	p15, 0, r0, c15, c0, 1	@ write diagnostic register
+#endif
+
+#ifdef CONFIG_ARM_ERRATA_743622
+	mrc	p15, 0, r0, c15, c0, 1	@ read diagnostic register
+	orr	r0, r0, #1 << 6		@ set bit #6
+	mcr	p15, 0, r0, c15, c0, 1	@ write diagnostic register
+#endif
+
+#ifdef CONFIG_ARM_ERRATA_751472
+	mrc	p15, 0, r0, c15, c0, 1	@ read diagnostic register
+	orr	r0, r0, #1 << 11	@ set bit #11
+	mcr	p15, 0, r0, c15, c0, 1	@ write diagnostic register
+#endif
+
 	mov	pc, lr			@ back to my caller
 ENDPROC(cpu_init_cp15)
 
@@ -482,9 +387,10 @@ ENDPROC(cpu_init_crit)
 						@ spots for abort stack
 	str	lr, [r0]			@ save caller lr in position 0
 						@ of saved stack
-	mrs	r0, spsr			@ get the spsr
+	mrs	lr, spsr			@ get the spsr
 	str	lr, [r0, #4]			@ save spsr in position 1 of
 						@ saved stack
+	ldr	lr, [r0]			@ restore lr
 	ldr	r0, [r13]			@ restore r0
 	add	r13, r13, #4			@ pop stack entry
 	.endm

@@ -30,19 +30,49 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/imx-common/boot_mode.h>
+#include <asm/imx-common/dma.h>
+#include <stdbool.h>
+
+struct scu_regs {
+	u32	ctrl;
+	u32	config;
+	u32	status;
+	u32	invalidate;
+	u32	fpga_rev;
+};
 
 u32 get_cpu_rev(void)
 {
 	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
-	int reg = readl(&anatop->digprog);
+	u32 reg = readl(&anatop->digprog_sololite);
+	u32 type = ((reg >> 16) & 0xff);
 
-	/* Read mx6 variant: quad, dual or solo */
-	int system_rev = (reg >> 4) & 0xFF000;
-	/* Read mx6 silicon revision */
-	system_rev |= (reg & 0xFF) + 0x10;
+	if (type != MXC_CPU_MX6SL) {
+		reg = readl(&anatop->digprog);
+		type = ((reg >> 16) & 0xff);
+		if (type == MXC_CPU_MX6DL) {
+			struct scu_regs *scu = (struct scu_regs *)SCU_BASE_ADDR;
+			u32 cfg = readl(&scu->config) & 3;
 
-	return system_rev;
+			if (!cfg)
+				type = MXC_CPU_MX6SOLO;
+		}
+	}
+	reg &= 0xff;		/* mx6 silicon revision */
+	return (type << 12) | (reg + 0x10);
 }
+
+#ifdef CONFIG_REVISION_TAG
+u32 __weak get_board_rev(void)
+{
+	u32 cpurev = get_cpu_rev();
+	u32 type = ((cpurev >> 12) & 0xff);
+	if (type == MXC_CPU_MX6SOLO)
+		cpurev = (MXC_CPU_MX6DL) << 12 | (cpurev & 0xFFF);
+
+	return cpurev;
+}
+#endif
 
 void init_aips(void)
 {
@@ -105,11 +135,28 @@ void set_vddsoc(u32 mv)
 	writel(reg, &anatop->reg_core);
 }
 
+static void imx_set_wdog_powerdown(bool enable)
+{
+	struct wdog_regs *wdog1 = (struct wdog_regs *)WDOG1_BASE_ADDR;
+	struct wdog_regs *wdog2 = (struct wdog_regs *)WDOG2_BASE_ADDR;
+
+	/* Write to the PDE (Power Down Enable) bit */
+	writew(enable, &wdog1->wmcr);
+	writew(enable, &wdog2->wmcr);
+}
+
 int arch_cpu_init(void)
 {
 	init_aips();
 
 	set_vddsoc(1200);	/* Set VDDSOC to 1.2V */
+
+	imx_set_wdog_powerdown(false); /* Disable PDE bit of WMCR register */
+
+#ifdef CONFIG_APBH_DMA
+	/* Start APBH DMA */
+	mxs_dma_init();
+#endif
 
 	return 0;
 }
@@ -125,8 +172,8 @@ void enable_caches(void)
 #if defined(CONFIG_FEC_MXC)
 void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 {
-	struct iim_regs *iim = (struct iim_regs *)IMX_IIM_BASE;
-	struct fuse_bank *bank = &iim->bank[4];
+	struct ocotp_regs *ocotp = (struct ocotp_regs *)OCOTP_BASE_ADDR;
+	struct fuse_bank *bank = &ocotp->bank[4];
 	struct fuse_bank4_regs *fuse =
 			(struct fuse_bank4_regs *)bank->fuse_regs;
 
@@ -146,7 +193,7 @@ void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
 void boot_mode_apply(unsigned cfg_val)
 {
 	unsigned reg;
-	struct src_regs *psrc = (struct src_regs *)SRC_BASE_ADDR;
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
 	writel(cfg_val, &psrc->gpr9);
 	reg = readl(&psrc->gpr10);
 	if (cfg_val)
@@ -177,3 +224,7 @@ const struct boot_mode soc_boot_modes[] = {
 	{"esdhc4",	MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
 	{NULL,		0},
 };
+
+void s_init(void)
+{
+}

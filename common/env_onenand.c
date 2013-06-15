@@ -68,7 +68,7 @@ void env_relocate_spec(void)
 	/* Check OneNAND exist */
 	if (mtd->writesize)
 		/* Ignore read fail */
-		mtd->read(mtd, env_addr, ONENAND_MAX_ENV_SIZE,
+		mtd_read(mtd, env_addr, ONENAND_MAX_ENV_SIZE,
 				&retlen, (u_char *)buf);
 	else
 		mtd->writesize = MAX_ONENAND_PAGESIZE;
@@ -95,7 +95,7 @@ int saveenv(void)
 	};
 
 	res = (char *)&env_new.data;
-	len = hexport_r(&env_htab, '\0', &res, ENV_SIZE, 0, NULL);
+	len = hexport_r(&env_htab, '\0', 0, &res, ENV_SIZE, 0, NULL);
 	if (len < 0) {
 		error("Cannot export environment: errno = %d\n", errno);
 		return 1;
@@ -113,12 +113,12 @@ int saveenv(void)
 #endif
 	instr.addr = env_addr;
 	instr.mtd = mtd;
-	if (mtd->erase(mtd, &instr)) {
+	if (mtd_erase(mtd, &instr)) {
 		printf("OneNAND: erase failed at 0x%08llx\n", env_addr);
 		return 1;
 	}
 
-	if (mtd->write(mtd, env_addr, ONENAND_MAX_ENV_SIZE, &retlen,
+	if (mtd_write(mtd, env_addr, ONENAND_MAX_ENV_SIZE, &retlen,
 			(u_char *)&env_new)) {
 		printf("OneNAND: write failed at 0x%llx\n", instr.addr);
 		return 2;

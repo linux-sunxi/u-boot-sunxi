@@ -68,7 +68,7 @@ struct fsl_esdhc {
 };
 
 /* Return the XFERTYP flags for a given command and data packet */
-uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
+static uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
 {
 	uint xfertyp = 0;
 
@@ -178,7 +178,7 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 	int timeout;
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
 	struct fsl_esdhc *regs = (struct fsl_esdhc *)cfg->esdhc_base;
-#ifndef CONFIG_SYS_FSL_ESDHC_USE_PIO
+#ifdef CONFIG_SYS_FSL_ESDHC_USE_PIO
 	uint wml_value;
 
 	wml_value = data->blocksize/4;
@@ -327,9 +327,6 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	while (!(esdhc_read32(&regs->irqstat) & (IRQSTAT_CC | IRQSTAT_CTOE)))
 		;
 
-	if (data && (data->flags & MMC_DATA_READ))
-		check_and_invalidate_dcache_range(cmd, data);
-
 	irqstat = esdhc_read32(&regs->irqstat);
 	esdhc_write32(&regs->irqstat, irqstat);
 
@@ -400,9 +397,10 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 			if (irqstat & DATA_ERR)
 				return COMM_ERR;
-		} while (!(irqstat & IRQSTAT_TC) &&
-				(esdhc_read32(&regs->prsstat) & PRSSTAT_DLA));
+		} while ((irqstat & DATA_COMPLETE) != DATA_COMPLETE);
 #endif
+		if (data->flags & MMC_DATA_READ)
+			check_and_invalidate_dcache_range(cmd, data);
 	}
 
 	esdhc_write32(&regs->irqstat, -1);
@@ -410,12 +408,12 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	return 0;
 }
 
-void set_sysctl(struct mmc *mmc, uint clock)
+static void set_sysctl(struct mmc *mmc, uint clock)
 {
-	int sdhc_clk = gd->sdhc_clk;
 	int div, pre_div;
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
 	volatile struct fsl_esdhc *regs = (struct fsl_esdhc *)cfg->esdhc_base;
+	int sdhc_clk = cfg->sdhc_clk;
 	uint clk;
 
 	if (clock < mmc->f_min)
@@ -552,6 +550,7 @@ int fsl_esdhc_initialize(bd_t *bis, struct fsl_esdhc_cfg *cfg)
 	mmc->set_ios = esdhc_set_ios;
 	mmc->init = esdhc_init;
 	mmc->getcd = esdhc_getcd;
+	mmc->getwp = NULL;
 
 	voltage_caps = 0;
 	caps = regs->hostcapblt;
@@ -577,13 +576,20 @@ int fsl_esdhc_initialize(bd_t *bis, struct fsl_esdhc_cfg *cfg)
 		return -1;
 	}
 
-	mmc->host_caps = MMC_MODE_4BIT | MMC_MODE_8BIT;
+	mmc->host_caps = MMC_MODE_4BIT | MMC_MODE_8BIT | MMC_MODE_HC;
+
+	if (cfg->max_bus_width > 0) {
+		if (cfg->max_bus_width < 8)
+			mmc->host_caps &= ~MMC_MODE_8BIT;
+		if (cfg->max_bus_width < 4)
+			mmc->host_caps &= ~MMC_MODE_4BIT;
+	}
 
 	if (caps & ESDHC_HOSTCAPBLT_HSS)
 		mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
 
 	mmc->f_min = 400000;
-	mmc->f_max = MIN(gd->sdhc_clk, 52000000);
+	mmc->f_max = MIN(gd->arch.sdhc_clk, 52000000);
 
 	mmc->b_max = 0;
 	mmc_register(mmc);
@@ -595,9 +601,9 @@ int fsl_esdhc_mmc_init(bd_t *bis)
 {
 	struct fsl_esdhc_cfg *cfg;
 
-	cfg = malloc(sizeof(struct fsl_esdhc_cfg));
-	memset(cfg, 0, sizeof(struct fsl_esdhc_cfg));
+	cfg = calloc(sizeof(struct fsl_esdhc_cfg), 1);
 	cfg->esdhc_base = CONFIG_SYS_FSL_ESDHC_ADDR;
+	cfg->sdhc_clk = gd->arch.sdhc_clk;
 	return fsl_esdhc_initialize(bis, cfg);
 }
 
@@ -615,7 +621,7 @@ void fdt_fixup_esdhc(void *blob, bd_t *bd)
 #endif
 
 	do_fixup_by_compat_u32(blob, compat, "clock-frequency",
-			       gd->sdhc_clk, 1);
+			       gd->arch.sdhc_clk, 1);
 
 	do_fixup_by_compat(blob, compat, "status", "okay",
 			   4 + 1, 1);

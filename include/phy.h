@@ -52,6 +52,7 @@ typedef enum {
 	PHY_INTERFACE_MODE_MII,
 	PHY_INTERFACE_MODE_GMII,
 	PHY_INTERFACE_MODE_SGMII,
+	PHY_INTERFACE_MODE_QSGMII,
 	PHY_INTERFACE_MODE_TBI,
 	PHY_INTERFACE_MODE_RMII,
 	PHY_INTERFACE_MODE_RGMII,
@@ -67,6 +68,7 @@ static const char *phy_interface_strings[] = {
 	[PHY_INTERFACE_MODE_MII]		= "mii",
 	[PHY_INTERFACE_MODE_GMII]		= "gmii",
 	[PHY_INTERFACE_MODE_SGMII]		= "sgmii",
+	[PHY_INTERFACE_MODE_QSGMII]		= "qsgmii",
 	[PHY_INTERFACE_MODE_TBI]		= "tbi",
 	[PHY_INTERFACE_MODE_RMII]		= "rmii",
 	[PHY_INTERFACE_MODE_RGMII]		= "rgmii",
@@ -199,6 +201,9 @@ static inline int is_10g_interface(phy_interface_t interface)
 
 int phy_init(void);
 int phy_reset(struct phy_device *phydev);
+struct phy_device *phy_find_by_mask(struct mii_dev *bus, unsigned phy_mask,
+		phy_interface_t interface);
+void phy_connect_dev(struct phy_device *phydev, struct eth_device *dev);
 struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 				struct eth_device *dev,
 				phy_interface_t interface);
@@ -220,6 +225,7 @@ int gen10g_discover_mmds(struct phy_device *phydev);
 int phy_atheros_init(void);
 int phy_broadcom_init(void);
 int phy_davicom_init(void);
+int phy_et1011c_init(void);
 int phy_lxt_init(void);
 int phy_marvell_init(void);
 int phy_micrel_init(void);

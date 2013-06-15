@@ -38,8 +38,6 @@
 /* include common defines/options for all 83xx Keymile boards */
 #include "km83xx-common.h"
 
-#define CONFIG_MISC_INIT_R
-
 /*
  * System IO Config
  */
@@ -115,7 +113,7 @@
 #define CONFIG_SYS_DDR_TIMING_3	0x00000000
 
 #define CONFIG_SYS_KMBEC_FPGA_BASE	0xE8000000
-#define	CONFIG_SYS_KMBEC_FPGA_SIZE	128
+#define CONFIG_SYS_KMBEC_FPGA_SIZE	128
 
 /* EEprom support */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1

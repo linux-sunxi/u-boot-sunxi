@@ -30,18 +30,6 @@
 
 #else
 
-#ifdef CONFIG_CMD_EXT2
-#define BOOT_FSTYPE_EXT2 "ext2 "
-#else
-#define BOOT_FSTYPE_EXT2 ""
-#endif
-
-#ifdef CONFIG_CMD_FAT
-#define BOOT_FSTYPE_FAT "fat"
-#else
-#define BOOT_FSTYPE_FAT ""
-#endif
-
 #ifdef CONFIG_CMD_MMC
 #define BOOTCMDS_MMC \
 	"mmc_boot=" \
@@ -95,12 +83,10 @@
 #endif
 
 #define BOOTCMDS_COMMON \
-	"scriptaddr=0x400000\0" \
-	\
 	"rootpart=1\0" \
 	\
 	"script_boot="                                                    \
-		"if ${fs}load ${devtype} ${devnum}:${rootpart} "          \
+		"if load ${devtype} ${devnum}:${rootpart} "               \
 				"${scriptaddr} ${prefix}${script}; then " \
 			"echo ${script} found! Executing ...;"            \
 			"source ${scriptaddr};"                           \
@@ -108,11 +94,9 @@
 	\
 	"scan_boot="                                                      \
 		"echo Scanning ${devtype} ${devnum}...; "                 \
-		"for fs in ${boot_fstypes}; do "                          \
-			"for prefix in ${boot_prefixes}; do "             \
-				"for script in ${boot_scripts}; do "      \
-					"run script_boot; "               \
-				"done; "                                  \
+		"for prefix in ${boot_prefixes}; do "                     \
+			"for script in ${boot_scripts}; do "              \
+				"run script_boot; "                       \
 			"done; "                                          \
 		"done;\0"                                                 \
 	\
@@ -120,11 +104,6 @@
 		BOOT_TARGETS_MMC " " \
 		BOOT_TARGETS_USB " " \
 		BOOT_TARGETS_DHCP " " \
-		"\0" \
-	\
-	"boot_fstypes=" \
-		BOOT_FSTYPE_EXT2 " " \
-		BOOT_FSTYPE_FAT " " \
 		"\0" \
 	\
 	"boot_prefixes=/ /boot/\0" \
@@ -140,23 +119,49 @@
 
 #endif
 
+#ifdef CONFIG_TEGRA_KEYBOARD
+#define STDIN_KBD_KBC ",tegra-kbc"
+#else
+#define STDIN_KBD_KBC ""
+#endif
+
+#ifdef CONFIG_USB_KEYBOARD
+#define STDIN_KBD_USB ",usbkbd"
+#define CONFIG_SYS_USB_EVENT_POLL
+#define CONFIG_PREBOOT			"usb start"
+#else
+#define STDIN_KBD_USB ""
+#endif
+
+#ifdef CONFIG_VIDEO_TEGRA
+#define STDOUT_LCD ",lcd"
+#else
+#define STDOUT_LCD ""
+#endif
+
+#define TEGRA_DEVICE_SETTINGS \
+	"stdin=serial" STDIN_KBD_KBC STDIN_KBD_USB "\0" \
+	"stdout=serial" STDOUT_LCD "\0" \
+	"stderr=serial" STDOUT_LCD "\0" \
+	""
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	TEGRA_DEVICE_SETTINGS \
-	"fdt_load=0x01000000\0" \
-	"fdt_high=01100000\0" \
+	MEM_LAYOUT_ENV_SETTINGS \
 	BOOTCMDS_COMMON
+
+#if defined(CONFIG_TEGRA20_SFLASH) || defined(CONFIG_TEGRA20_SLINK) || defined(CONFIG_TEGRA114_SPI)
+#define CONFIG_FDT_SPI
+#endif
 
 /* overrides for SPL build here */
 #ifdef CONFIG_SPL_BUILD
 
+#define CONFIG_SKIP_LOWLEVEL_INIT
+
 /* remove devicetree support */
 #ifdef CONFIG_OF_CONTROL
 #undef CONFIG_OF_CONTROL
-#endif
-
-/* remove SERIAL_MULTI */
-#ifdef CONFIG_SERIAL_MULTI
-#undef CONFIG_SERIAL_MULTI
 #endif
 
 /* remove I2C support */
@@ -188,11 +193,23 @@
 #ifdef CONFIG_EFI_PARTITION
 #undef CONFIG_EFI_PARTITION
 #endif
+#ifdef CONFIG_CMD_FS_GENERIC
+#undef CONFIG_CMD_FS_GENERIC
+#endif
+#ifdef CONFIG_CMD_EXT4
+#undef CONFIG_CMD_EXT4
+#endif
 #ifdef CONFIG_CMD_EXT2
 #undef CONFIG_CMD_EXT2
 #endif
 #ifdef CONFIG_CMD_FAT
 #undef CONFIG_CMD_FAT
+#endif
+#ifdef CONFIG_FS_EXT4
+#undef CONFIG_FS_EXT4
+#endif
+#ifdef CONFIG_FS_FAT
+#undef CONFIG_FS_FAT
 #endif
 
 /* remove USB */
@@ -207,6 +224,15 @@
 #endif
 #ifdef CONFIG_CMD_USB
 #undef CONFIG_CMD_USB
+#endif
+
+/* remove part command support */
+#ifdef CONFIG_PARTITION_UUIDS
+#undef CONFIG_PARTITION_UUIDS
+#endif
+
+#ifdef CONFIG_CMD_PART
+#undef CONFIG_CMD_PART
 #endif
 
 #endif /* CONFIG_SPL_BUILD */

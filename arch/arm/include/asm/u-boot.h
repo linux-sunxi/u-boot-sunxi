@@ -36,8 +36,14 @@
 #ifndef _U_BOOT_H_
 #define _U_BOOT_H_	1
 
+#ifdef CONFIG_SYS_GENERIC_BOARD
+/* Use the generic board which requires a unified bd_info */
+#include <asm-generic/u-boot.h>
+#else
+
+#ifndef __ASSEMBLY__
 typedef struct bd_info {
-    int			bi_baudrate;	/* serial console baudrate */
+	unsigned int	bi_baudrate;	/* serial console baudrate */
     ulong	        bi_arch_number;	/* unique id for this board */
     ulong	        bi_boot_params;	/* where this board expects params */
 	unsigned long	bi_arm_freq; /* arm frequency */
@@ -49,6 +55,9 @@ typedef struct bd_info {
 	ulong size;
     }			bi_dram[CONFIG_NR_DRAM_BANKS];
 } bd_t;
+#endif
+
+#endif /* !CONFIG_SYS_GENERIC_BOARD */
 
 /* For image.h:image_check_target_arch() */
 #define IH_ARCH_DEFAULT IH_ARCH_ARM

@@ -19,6 +19,9 @@ usage()
 	  -l,        --list            List all targets to be built
 	  -m,        --maintainers     List all targets and maintainer email
 	  -M,        --mails           List all targets and all affilated emails
+	  -C,        --check           Enable build checking
+	  -n,        --continue        Continue (skip boards already built)
+	  -r,        --rebuild-errors  Rebuild any boards that errored
 	  -h,        --help            This help output
 
 	Selections by these options are logically ANDed; if the same option
@@ -32,6 +35,9 @@ usage()
 	Environment variables:
 	  BUILD_NCPUS      number of parallel make jobs (default: auto)
 	  CROSS_COMPILE    cross-compiler toolchain prefix (default: "")
+	  CROSS_COMPILE_<ARCH> cross-compiler toolchain prefix for
+	                   architecture "ARCH".  Substitute "ARCH" for any
+	                   supported architecture (default: "")
 	  MAKEALL_LOGDIR   output all logs to here (default: ./LOG/)
 	  BUILD_DIR        output build directory (default: ./)
 	  BUILD_NBUILDS	   number of parallel targets (default: 1)
@@ -51,8 +57,8 @@ usage()
 	exit ${ret}
 }
 
-SHORT_OPTS="ha:c:v:s:lmM"
-LONG_OPTS="help,arch:,cpu:,vendor:,soc:,list,maintainers,mails"
+SHORT_OPTS="ha:c:v:s:lmMCnr"
+LONG_OPTS="help,arch:,cpu:,vendor:,soc:,list,maintainers,mails,check,continue,rebuild-errors"
 
 # Option processing based on util-linux-2.13/getopt-parse.bash
 
@@ -72,6 +78,8 @@ SELECTED=''
 ONLY_LIST=''
 PRINT_MAINTS=''
 MAINTAINERS_ONLY=''
+CONTINUE=''
+REBUILD_ERRORS=''
 
 while true ; do
 	case "$1" in
@@ -96,9 +104,9 @@ while true ; do
 	-s|--soc)
 		# echo "Option SoC: argument \`$2'"
 		if [ "$opt_s" ] ; then
-			opt_s="${opt_s%)} || \$6 == \"$2\")"
+			opt_s="${opt_s%)} || \$6 == \"$2\" || \$6 ~ /$2/)"
 		else
-			opt_s="(\$6 == \"$2\")"
+			opt_s="(\$6 == \"$2\" || \$6 ~ /$2/)"
 		fi
 		SELECTED='y'
 		shift 2 ;;
@@ -111,6 +119,15 @@ while true ; do
 		fi
 		SELECTED='y'
 		shift 2 ;;
+	-C|--check)
+		CHECK='C=1'
+		shift ;;
+	-n|--continue)
+		CONTINUE='y'
+		shift ;;
+	-r|--rebuild-errors)
+		REBUILD_ERRORS='y'
+		shift ;;
 	-l|--list)
 		ONLY_LIST='y'
 		shift ;;
@@ -166,13 +183,6 @@ else
 	JOBS=""
 fi
 
-
-if [ "${CROSS_COMPILE}" ] ; then
-	MAKE="make CROSS_COMPILE=${CROSS_COMPILE}"
-else
-	MAKE=make
-fi
-
 if [ "${MAKEALL_LOGDIR}" ] ; then
 	LOG_DIR=${MAKEALL_LOGDIR}
 else
@@ -194,7 +204,9 @@ fi
 OUTPUT_PREFIX="${BUILD_DIR}"
 
 [ -d ${LOG_DIR} ] || mkdir "${LOG_DIR}" || exit 1
-find "${LOG_DIR}/" -type f -exec rm -f {} +
+if [ "$CONTINUE" != 'y' -a "$REBUILD_ERRORS" != 'y' ] ; then
+	find "${LOG_DIR}/" -type f -exec rm -f {} +
+fi
 
 LIST=""
 
@@ -204,6 +216,7 @@ ERR_LIST=""
 WRN_CNT=0
 WRN_LIST=""
 TOTAL_CNT=0
+SKIP_CNT=0
 CURRENT_CNT=0
 OLDEST_IDX=1
 RC=0
@@ -253,12 +266,6 @@ LIST_8xx="$(boards_by_cpu mpc8xx)"
 #########################################################################
 
 LIST_4xx="$(boards_by_cpu ppc4xx)"
-
-#########################################################################
-## MPC8220 Systems
-#########################################################################
-
-LIST_8220="$(boards_by_cpu mpc8220)"
 
 #########################################################################
 ## MPC824x Systems
@@ -311,7 +318,6 @@ LIST_powerpc="		\
 	${LIST_512x}	\
 	${LIST_5xxx}	\
 	${LIST_8xx}	\
-	${LIST_8220}	\
 	${LIST_824x}	\
 	${LIST_8260}	\
 	${LIST_83xx}	\
@@ -377,6 +383,12 @@ LIST_pxa="$(boards_by_cpu pxa)"
 LIST_ixp="$(boards_by_cpu ixp)"
 
 #########################################################################
+## SPEAr Systems
+#########################################################################
+
+LIST_spear="$(boards_by_soc spear)"
+
+#########################################################################
 ## ARM groups
 #########################################################################
 
@@ -411,7 +423,6 @@ LIST_au1xx0="		\
 	dbau1100	\
 	dbau1500	\
 	dbau1550	\
-	gth2		\
 "
 
 LIST_mips="		\
@@ -563,6 +574,18 @@ get_target_maintainers() {
 	echo "$mail"
 }
 
+get_target_arch() {
+	local target=$1
+
+	# Automatic mode
+	local line=`egrep -i "^[[:space:]]*${target}[[:space:]]" boards.cfg`
+
+	if [ -z "${line}" ] ; then echo "" ; return ; fi
+
+	set ${line}
+	echo "$2"
+}
+
 list_target() {
 	if [ "$PRINT_MAINTS" != 'y' ] ; then
 		echo "$1"
@@ -607,6 +630,13 @@ list_target() {
 donep="${LOG_DIR}/._done_"
 skipp="${LOG_DIR}/._skip_"
 
+build_target_killed() {
+	echo "Aborted $target build."
+	# Remove the logs for this board since it was aborted
+	rm -f ${LOG_DIR}/$target.MAKELOG ${LOG_DIR}/$target.ERR
+	exit
+}
+
 build_target() {
 	target=$1
 	build_idx=$2
@@ -619,16 +649,27 @@ build_target() {
 	if [ $BUILD_MANY == 1 ] ; then
 		output_dir="${OUTPUT_PREFIX}/${target}"
 		mkdir -p "${output_dir}"
+		trap build_target_killed TERM
 	else
 		output_dir="${OUTPUT_PREFIX}"
 	fi
 
 	export BUILD_DIR="${output_dir}"
 
+	target_arch=$(get_target_arch ${target})
+	eval cross_toolchain=\$CROSS_COMPILE_`echo $target_arch | tr '[:lower:]' '[:upper:]'`
+	if [ "${cross_toolchain}" ] ; then
+	    MAKE="make CROSS_COMPILE=${cross_toolchain}"
+	elif [ "${CROSS_COMPILE}" ] ; then
+	    MAKE="make CROSS_COMPILE=${CROSS_COMPILE}"
+	else
+	    MAKE=make
+	fi
+
 	${MAKE} distclean >/dev/null
 	${MAKE} -s ${target}_config
 
-	${MAKE} ${JOBS} all \
+	${MAKE} ${JOBS} ${CHECK} all \
 		>${LOG_DIR}/$target.MAKELOG 2> ${LOG_DIR}/$target.ERR
 
 	# Check for 'make' errors
@@ -637,7 +678,9 @@ build_target() {
 	fi
 
 	if [ $BUILD_MANY == 1 ] ; then
-		${MAKE} tidy
+		trap - TERM
+
+		${MAKE} -s tidy
 
 		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
 			cp ${LOG_DIR}/${target}.ERR ${OUTPUT_PREFIX}/ERR/${target}
@@ -715,10 +758,20 @@ build_targets() {
 			: $((CURRENT_CNT += 1))
 			rm -f "${donep}${TOTAL_CNT}"
 			rm -f "${skipp}${TOTAL_CNT}"
-			if [ $BUILD_MANY == 1 ] ; then
-				build_target ${t} ${TOTAL_CNT} &
+			if [ "$CONTINUE" = 'y' -a -e ${LOG_DIR}/$t.MAKELOG ] ; then
+				: $((SKIP_CNT += 1))
+				touch "${donep}${TOTAL_CNT}"
+			elif [ "$REBUILD_ERRORS" = 'y' -a ! -e ${LOG_DIR}/$t.ERR ] ; then
+				: $((SKIP_CNT += 1))
+				touch "${donep}${TOTAL_CNT}"
 			else
-				build_target ${t} ${TOTAL_CNT}
+				if [ $BUILD_MANY == 1 ] ; then
+					build_target ${t} ${TOTAL_CNT} &
+				else
+					CUR_TGT="${t}"
+					build_target ${t} ${TOTAL_CNT}
+					CUR_TGT=''
+				fi
 			fi
 		fi
 
@@ -742,13 +795,32 @@ build_targets() {
 #-----------------------------------------------------------------------
 
 kill_children() {
-	kill -- "-$1"
+	local OS=$(uname -s)
+	local children=""
+	case "${OS}" in
+		"Darwin")
+			# Mac OS X is known to have BSD style ps
+			local pgid=$(ps -p $$ -o pgid | sed -e "/PGID/d")
+			children=$(ps -g $pgid -o pid | sed -e "/PID\|$$\|$pgid/d")
+			;;
+		*)
+			# everything else tries the GNU style
+			local pgid=$(ps -p $$ --no-headers -o "%r" | tr -d ' ')
+			children=$(pgrep -g $pgid | sed -e "/$$\|$pgid/d")
+			;;
+	esac
+
+	kill $children 2> /dev/null
+	wait $children 2> /dev/null
 
 	exit
 }
 
 print_stats() {
 	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
+
+	# Only count boards that completed
+	: $((TOTAL_CNT = `find ${skipp}* 2> /dev/null | wc -l`))
 
 	rm -f ${donep}* ${skipp}*
 
@@ -759,10 +831,17 @@ print_stats() {
 		WRN_LIST=`grep -riwL error ${OUTPUT_PREFIX}/ERR/`
 		WRN_LIST=`for f in $WRN_LIST ; do echo -n " $(basename $f)" ; done`
 		WRN_CNT=`echo $WRN_LIST | wc -w | awk '{print $1}'`
+	else
+		# Remove the logs for any board that was interrupted
+		rm -f ${LOG_DIR}/${CUR_TGT}.MAKELOG ${LOG_DIR}/${CUR_TGT}.ERR
 	fi
 
+	: $((TOTAL_CNT -= ${SKIP_CNT}))
 	echo ""
 	echo "--------------------- SUMMARY ----------------------------"
+	if [ "$CONTINUE" = 'y' -o "$REBUILD_ERRORS" = 'y' ] ; then
+		echo "Boards skipped: ${SKIP_CNT}"
+	fi
 	echo "Boards compiled: ${TOTAL_CNT}"
 	if [ ${ERR_CNT} -gt 0 ] ; then
 		echo "Boards with errors: ${ERR_CNT} (${ERR_LIST} )"
@@ -773,7 +852,7 @@ print_stats() {
 	echo "----------------------------------------------------------"
 
 	if [ $BUILD_MANY == 1 ] ; then
-		kill_children $$ &
+		kill_children
 	fi
 
 	exit $RC

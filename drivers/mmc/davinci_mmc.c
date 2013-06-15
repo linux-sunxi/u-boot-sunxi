@@ -285,8 +285,11 @@ dmmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 			 */
 			if (bytes_left > fifo_bytes)
 				dmmc_wait_fifo_status(regs, 0x4a);
-			else if (bytes_left == fifo_bytes)
+			else if (bytes_left == fifo_bytes) {
 				dmmc_wait_fifo_status(regs, 0x40);
+				if (cmd->cmdidx == MMC_CMD_SEND_EXT_CSD)
+					udelay(600);
+			}
 
 			for (i = 0; bytes_left && (i < fifo_words); i++) {
 				cmddata = get_val(&regs->mmcdrr);
@@ -388,6 +391,7 @@ int davinci_mmc_init(bd_t *bis, struct davinci_mmc *host)
 	mmc->set_ios = dmmc_set_ios;
 	mmc->init = dmmc_init;
 	mmc->getcd = NULL;
+	mmc->getwp = NULL;
 
 	mmc->f_min = 200000;
 	mmc->f_max = 25000000;

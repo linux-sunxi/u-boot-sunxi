@@ -53,7 +53,8 @@
 
 #define CONFIG_MISC_INIT_R
 
-#define CONFIG_OF_LIBFDT		1
+#define CONFIG_OF_LIBFDT
+#define CONFIG_CMD_BOOTZ
 
 #define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS	1
@@ -117,21 +118,19 @@
 #define CONFIG_SYS_I2C_NOPROBES		{{0x0, 0x0}}
 
 /* USB */
-#define CONFIG_MUSB_UDC			1
-#define CONFIG_USB_OMAP3		1
+#define CONFIG_MUSB_GADGET
+#define CONFIG_USB_MUSB_OMAP2PLUS
+#define CONFIG_MUSB_PIO_ONLY
+#define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_TWL4030_USB		1
-
-/* USB device configuration */
-#define CONFIG_USB_DEVICE		1
-#define CONFIG_USB_TTY			1
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV	1
+#define CONFIG_USB_ETHER
+#define CONFIG_USB_ETHER_RNDIS
 
 /* USB EHCI */
 #define CONFIG_CMD_USB
 #define CONFIG_USB_EHCI
 
 #define CONFIG_USB_EHCI_OMAP
-/*#define CONFIG_EHCI_DCACHE*/ /* leave it disabled for now */
 #define CONFIG_OMAP_EHCI_PHY1_RESET_GPIO	147
 
 #define CONFIG_USB_ULPI
@@ -180,8 +179,6 @@
 #define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_I2C_MULTI_BUS		1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 #define CONFIG_VIDEO_OMAP3	/* DSS Support			*/
@@ -287,9 +284,9 @@
 		"else run userbutton_nonxm; fi;\0" \
 	"userbutton_xm=gpio input 4;\0" \
 	"userbutton_nonxm=gpio input 7;\0"
-/* "run userbutton" will return 1 (false) if is pressed and 0 (false) if not */
+/* "run userbutton" will return 1 (false) if pressed and 0 (true) if not */
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run userbutton; then " \
 			"setenv bootenv uEnv.txt;" \
 		"else " \
@@ -414,6 +411,9 @@
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 #define CONFIG_SPL_GPIO_SUPPORT
 #define CONFIG_SPL_POWER_SUPPORT
 #define CONFIG_SPL_OMAP3_ID_NAND

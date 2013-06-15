@@ -182,7 +182,7 @@ static void enable_cpc(void)
 	printf("Corenet Platform Cache: %d KB enabled\n", size);
 }
 
-void invalidate_cpc(void)
+static void invalidate_cpc(void)
 {
 	int i;
 	cpc_corenet_t *cpc = (cpc_corenet_t *)CONFIG_SYS_FSL_CPC_ADDR;
@@ -295,6 +295,57 @@ static void __fsl_serdes__init(void)
 }
 __attribute__((weak, alias("__fsl_serdes__init"))) void fsl_serdes_init(void);
 
+#ifdef CONFIG_SYS_FSL_QORIQ_CHASSIS2
+int enable_cluster_l2(void)
+{
+	int i = 0;
+	u32 cluster;
+	ccsr_gur_t *gur = (void __iomem *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+	struct ccsr_cluster_l2 __iomem *l2cache;
+
+	cluster = in_be32(&gur->tp_cluster[i].lower);
+	if (cluster & TP_CLUSTER_EOC)
+		return 0;
+
+	/* The first cache has already been set up, so skip it */
+	i++;
+
+	/* Look through the remaining clusters, and set up their caches */
+	do {
+		int j, cluster_valid = 0;
+
+		l2cache = (void __iomem *)(CONFIG_SYS_FSL_CLUSTER_1_L2 + i * 0x40000);
+
+		cluster = in_be32(&gur->tp_cluster[i].lower);
+
+		/* check that at least one core/accel is enabled in cluster */
+		for (j = 0; j < 4; j++) {
+			u32 idx = (cluster >> (j*8)) & TP_CLUSTER_INIT_MASK;
+			u32 type = in_be32(&gur->tp_ityp[idx]);
+
+			if (type & TP_ITYP_AV)
+				cluster_valid = 1;
+		}
+
+		if (cluster_valid) {
+			/* set stash ID to (cluster) * 2 + 32 + 1 */
+			clrsetbits_be32(&l2cache->l2csr1, 0xff, 32 + i * 2 + 1);
+
+			printf("enable l2 for cluster %d %p\n", i, l2cache);
+
+			out_be32(&l2cache->l2csr0, L2CSR0_L2FI|L2CSR0_L2LFC);
+			while ((in_be32(&l2cache->l2csr0)
+				& (L2CSR0_L2FI|L2CSR0_L2LFC)) != 0)
+					;
+			out_be32(&l2cache->l2csr0, L2CSR0_L2E|L2CSR0_L2PE|L2CSR0_L2REP_MODE);
+		}
+		i++;
+	} while (!(cluster & TP_CLUSTER_EOC));
+
+	return 0;
+}
+#endif
+
 /*
  * Initialize L2 as cache.
  *
@@ -306,7 +357,16 @@ int cpu_init_r(void)
 {
 	__maybe_unused u32 svr = get_svr();
 #ifdef CONFIG_SYS_LBC_LCRR
-	volatile fsl_lbc_t *lbc = LBC_BASE_ADDR;
+	fsl_lbc_t *lbc = (void __iomem *)LBC_BASE_ADDR;
+#endif
+#ifdef CONFIG_L2_CACHE
+	ccsr_l2cache_t *l2cache = (void __iomem *)CONFIG_SYS_MPC85xx_L2_ADDR;
+#elif defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2)
+	struct ccsr_cluster_l2 * l2cache = (void __iomem *)CONFIG_SYS_FSL_CLUSTER_1_L2;
+#endif
+#if defined(CONFIG_PPC_SPINTABLE_COMPATIBLE) && defined(CONFIG_MP)
+	extern int spin_table_compat;
+	const char *spin;
 #endif
 
 #if defined(CONFIG_SYS_P4080_ERRATUM_CPU22) || \
@@ -353,10 +413,17 @@ int cpu_init_r(void)
 	}
 #endif
 
+#if defined(CONFIG_PPC_SPINTABLE_COMPATIBLE) && defined(CONFIG_MP)
+	spin = getenv("spin_table_compat");
+	if (spin && (*spin == 'n'))
+		spin_table_compat = 0;
+	else
+		spin_table_compat = 1;
+#endif
+
 	puts ("L2:    ");
 
 #if defined(CONFIG_L2_CACHE)
-	volatile ccsr_l2cache_t *l2cache = (void *)CONFIG_SYS_MPC85xx_L2_ADDR;
 	volatile uint cache_ctl;
 	uint ver;
 	u32 l2siz_field;
@@ -429,7 +496,7 @@ int cpu_init_r(void)
 				&& l2srbar >= CONFIG_SYS_FLASH_BASE) {
 			l2srbar = CONFIG_SYS_INIT_L2_ADDR;
 			l2cache->l2srbar0 = l2srbar;
-			printf("moving to 0x%08x", CONFIG_SYS_INIT_L2_ADDR);
+			printf(", moving to 0x%08x", CONFIG_SYS_INIT_L2_ADDR);
 		}
 #endif /* CONFIG_SYS_INIT_L2_ADDR */
 		puts("\n");
@@ -467,6 +534,11 @@ int cpu_init_r(void)
 	}
 
 skip_l2:
+#elif defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2)
+	if (l2cache->l2csr0 & L2CSR0_L2E)
+		printf("%d KB enabled\n", (l2cache->l2cfg0 & 0x3fff) * 64);
+
+	enable_cluster_l2();
 #else
 	puts("disabled\n");
 #endif
@@ -476,9 +548,23 @@ skip_l2:
 	/* needs to be in ram since code uses global static vars */
 	fsl_serdes_init();
 
+#ifdef CONFIG_SYS_FSL_ERRATUM_A005871
+	if (IS_SVR_REV(svr, 1, 0)) {
+		int i;
+		__be32 *p = (void __iomem *)CONFIG_SYS_DCSRBAR + 0xb004c;
+
+		for (i = 0; i < 12; i++) {
+			p += i + (i > 5 ? 11 : 0);
+			out_be32(p, 0x2);
+		}
+		p = (void __iomem *)CONFIG_SYS_DCSRBAR + 0xb0108;
+		out_be32(p, 0x34);
+	}
+#endif
+
 #ifdef CONFIG_SYS_SRIO
 	srio_init();
-#ifdef CONFIG_FSL_CORENET
+#ifdef CONFIG_SYS_FSL_SRIO_PCIE_BOOT_MASTER 
 	char *s = getenv("bootmaster");
 	if (s) {
 		if (!strcmp(s, "SRIO1")) {
@@ -497,11 +583,13 @@ skip_l2:
 	setup_mp();
 #endif
 
-#ifdef CONFIG_SYS_FSL_ERRATUM_ESDHC136
+#ifdef CONFIG_SYS_FSL_ERRATUM_ESDHC13
 	{
-		void *p;
-		p = (void *)CONFIG_SYS_DCSRBAR + 0x20520;
-		setbits_be32(p, 1 << (31 - 14));
+		if (SVR_MAJ(svr) < 3) {
+			void *p;
+			p = (void *)CONFIG_SYS_DCSRBAR + 0x20520;
+			setbits_be32(p, 1 << (31 - 14));
+		}
 	}
 #endif
 
@@ -533,6 +621,42 @@ skip_l2:
 		out_be32(&usb_phy2->usb_enable_override,
 				CONFIG_SYS_FSL_USB_ENABLE_OVERRIDE);
 	}
+#endif
+
+#ifdef CONFIG_SYS_FSL_ERRATUM_USB14
+	/* On P204x/P304x/P50x0 Rev1.0, USB transmit will result internal
+	 * multi-bit ECC errors which has impact on performance, so software
+	 * should disable all ECC reporting from USB1 and USB2.
+	 */
+	if (IS_SVR_REV(get_svr(), 1, 0)) {
+		struct dcsr_dcfg_regs *dcfg = (struct dcsr_dcfg_regs *)
+			(CONFIG_SYS_DCSRBAR + CONFIG_SYS_DCSR_DCFG_OFFSET);
+		setbits_be32(&dcfg->ecccr1,
+				(DCSR_DCFG_ECC_DISABLE_USB1 |
+				 DCSR_DCFG_ECC_DISABLE_USB2));
+	}
+#endif
+
+#if defined(CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE)
+		ccsr_usb_phy_t *usb_phy =
+			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
+		setbits_be32(&usb_phy->pllprg[1],
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY2_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY1_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_MFI |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PLL_EN);
+		setbits_be32(&usb_phy->port1.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port1.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port1.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
+		setbits_be32(&usb_phy->port2.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port2.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port2.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
 #endif
 
 #ifdef CONFIG_FMAN_ENET

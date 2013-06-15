@@ -22,7 +22,7 @@
 #ifndef __MX28_REGS_DIGCTL_H__
 #define __MX28_REGS_DIGCTL_H__
 
-#include <asm/arch/regs-common.h>
+#include <asm/imx-common/regs-common.h>
 
 #ifndef	__ASSEMBLY__
 struct mxs_digctl_regs {
@@ -154,6 +154,7 @@ struct mxs_digctl_regs {
 
 /* Product code identification */
 #define HW_DIGCTL_CHIPID_MASK	(0xffff << 16)
+#define HW_DIGCTL_CHIPID_MX23	(0x3780 << 16)
 #define HW_DIGCTL_CHIPID_MX28	(0x2800 << 16)
 
 #endif /* __MX28_REGS_DIGCTL_H__ */

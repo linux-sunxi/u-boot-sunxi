@@ -176,8 +176,8 @@ static int mmc_spi_request(struct mmc *mmc, struct mmc_cmd *cmd,
 	u8 r1;
 	int i;
 	int ret = 0;
-	debug("%s:cmd%d %x %x %x\n", __func__,
-	      cmd->cmdidx, cmd->resp_type, cmd->cmdarg, cmd->flags);
+	debug("%s:cmd%d %x %x\n", __func__,
+	      cmd->cmdidx, cmd->resp_type, cmd->cmdarg);
 	spi_claim_bus(spi);
 	spi_cs_activate(spi);
 	r1 = mmc_spi_sendcmd(mmc, cmd->cmdidx, cmd->cmdarg);
@@ -273,6 +273,7 @@ struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode)
 	mmc->set_ios = mmc_spi_set_ios;
 	mmc->init = mmc_spi_init_p;
 	mmc->getcd = NULL;
+	mmc->getwp = NULL;
 	mmc->host_caps = MMC_MODE_SPI;
 
 	mmc->voltages = MMC_SPI_VOLTAGE;

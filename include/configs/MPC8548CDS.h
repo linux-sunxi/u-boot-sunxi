@@ -52,6 +52,7 @@
 #define CONFIG_PCIE1		/* PCIE controler 1 (slot 1) */
 #undef CONFIG_PCI2
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code */
+#define CONFIG_PCI_INDIRECT_BRIDGE 1	/* indirect PCI bridge support */
 #define CONFIG_FSL_PCIE_RESET	1	/* need PCIe reset errata */
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 
@@ -593,13 +594,18 @@ extern unsigned long get_clock_freq(void);
 #define	CONFIG_EXTRA_ENV_SETTINGS		\
 	"hwconfig=fsl_ddr:ecc=off\0"		\
 	"netdev=eth0\0"				\
-	"uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"	\
+	"uboot=" __stringify(CONFIG_UBOOTPATH) "\0"	\
 	"tftpflash=tftpboot $loadaddr $uboot; "	\
-		"protect off " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "   \
-		"erase " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "	      \
-		"cp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize; " \
-		"protect on " MK_STR(CONFIG_SYS_TEXT_BASE) " +$filesize; "    \
-		"cmp.b $loadaddr " MK_STR(CONFIG_SYS_TEXT_BASE) " $filesize\0"\
+		"protect off " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" +$filesize; "	\
+		"erase " __stringify(CONFIG_SYS_TEXT_BASE)		\
+			" +$filesize; "	\
+		"cp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" $filesize; "	\
+		"protect on " __stringify(CONFIG_SYS_TEXT_BASE)		\
+			" +$filesize; "	\
+		"cmp.b $loadaddr " __stringify(CONFIG_SYS_TEXT_BASE)	\
+			" $filesize\0"	\
 	"consoledev=ttyS1\0"			\
 	"ramdiskaddr=2000000\0"			\
 	"ramdiskfile=ramdisk.uboot\0"		\

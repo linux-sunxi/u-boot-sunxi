@@ -39,6 +39,7 @@
 #define	CONFIG_SYS_TEXT_BASE	0x40000000
 
 #define CONFIG_LCD
+#define CONFIG_MPC8XX_LCD
 #undef  CONFIG_EDT32F10
 #define CONFIG_SHARP_LQ057Q3DC02
 
@@ -329,6 +330,7 @@
  */
 
 #if 1
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/

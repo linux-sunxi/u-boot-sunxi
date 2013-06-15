@@ -25,9 +25,8 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)libomap-common.o
 
-SOBJS	:= reset.o
-
-COBJS	:= timer.o
+COBJS	:= reset.o
+COBJS	+= timer.o
 COBJS	+= utils.o
 
 ifneq ($(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
@@ -37,7 +36,7 @@ COBJS	+= emif-common.o
 COBJS	+= vc.o
 endif
 
-ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
+ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX)$(CONFIG_TI814X),)
 COBJS	+= boot-common.o
 SOBJS	+= lowlevel_init.o
 endif

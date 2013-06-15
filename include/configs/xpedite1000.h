@@ -167,6 +167,7 @@ extern void out32(unsigned int, unsigned long);
  */
 /* General PCI */
 #define CONFIG_PCI				/* include pci support */
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_PCI_PNP				/* do pci plug-and-play */
 #define CONFIG_PCI_SCAN_SHOW			/* show pci devices on startup */
 #define CONFIG_SYS_PCI_TARGBASE	0x80000000	/* PCIaddr mapped to CONFIG_SYS_PCI_MEMBASE */
@@ -263,9 +264,9 @@ extern void out32(unsigned int, unsigned long);
  * ff000000 - ffbfffff	OS Use/Filesystem (12MB)
  */
 
-#define CONFIG_UBOOT_ENV_ADDR	MK_STR(CONFIG_SYS_TEXT_BASE)
-#define CONFIG_FDT_ENV_ADDR	MK_STR(0xfff00000)
-#define CONFIG_OS_ENV_ADDR	MK_STR(0xffc00000)
+#define CONFIG_UBOOT_ENV_ADDR	__stringify(CONFIG_SYS_TEXT_BASE)
+#define CONFIG_FDT_ENV_ADDR	__stringify(0xfff00000)
+#define CONFIG_OS_ENV_ADDR	__stringify(0xffc00000)
 
 #define CONFIG_PROG_UBOOT						\
 	"$download_cmd $loadaddr $ubootfile; "				\

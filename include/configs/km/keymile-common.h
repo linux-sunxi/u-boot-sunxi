@@ -24,10 +24,6 @@
 #ifndef __CONFIG_KEYMILE_H
 #define __CONFIG_KEYMILE_H
 
-/* Do boardspecific init for all boards */
-#define CONFIG_BOARD_EARLY_INIT_R
-#define CONFIG_LAST_STAGE_INIT
-
 #define CONFIG_BOOTCOUNT_LIMIT
 
 /*
@@ -148,8 +144,13 @@
 	"ubi part " CONFIG_KM_UBI_PARTITION_NAME_APP "; fi\0"
 #endif /* CONFIG_KM_UBI_PARTITION_NAME_APP */
 
-#define xstr(s)	str(s)
-#define str(s)	#s
+#ifdef CONFIG_NAND_ECC_BCH
+#define CONFIG_KM_UIMAGE_NAME "ecc_bch_uImage\0"
+#define CONFIG_KM_ECC_MODE    " eccmode=bch"
+#else
+#define CONFIG_KM_UIMAGE_NAME "uImage\0"
+#define CONFIG_KM_ECC_MODE
+#endif
 
 /*
  * boottargets
@@ -187,7 +188,8 @@
 		":${hostname}:${netdev}:off3"				\
 		" console=" CONFIG_KM_CONSOLE_TTY ",${baudrate}"	\
 		" mem=${kernelmem} init=${init}"			\
-		" phram.phram=phvar,${varaddr}," xstr(CONFIG_KM_PHRAM)	\
+		CONFIG_KM_ECC_MODE					\
+		" phram.phram=phvar,${varaddr}," __stringify(CONFIG_KM_PHRAM)\
 		" " CONFIG_KM_UBI_LINUX_MTD " "				\
 		CONFIG_KM_DEF_BOOT_ARGS_CPU				\
 		"\0"							\
@@ -212,10 +214,11 @@
  * - 'cramfsloadfdt': copy fdt from a cramfs to ram
  */
 #define CONFIG_KM_DEF_ENV_FLASH_BOOT					\
-	"cramfsaddr=" xstr(CONFIG_KM_CRAMFS_ADDR) "\0"			\
-	"cramfsloadkernel=cramfsload ${load_addr_r} uImage\0"		\
-	"ubicopy=ubi read "xstr(CONFIG_KM_CRAMFS_ADDR)			\
+	"cramfsaddr=" __stringify(CONFIG_KM_CRAMFS_ADDR) "\0"		\
+	"cramfsloadkernel=cramfsload ${load_addr_r} ${uimage}\0"	\
+	"ubicopy=ubi read "__stringify(CONFIG_KM_CRAMFS_ADDR)		\
 			" bootfs${boot_bank}\0"				\
+	"uimage=" CONFIG_KM_UIMAGE_NAME					\
 	CONFIG_KM_DEV_ENV_FLASH_BOOT_UBI
 
 /*
@@ -227,7 +230,7 @@
 #define CONFIG_KM_DEF_ENV_CONSTANTS					\
 	"backup_bank=0\0"						\
 	"release=run newenv; reset\0"					\
-	"pnvramsize=" xstr(CONFIG_KM_PNVRAM) "\0"			\
+	"pnvramsize=" __stringify(CONFIG_KM_PNVRAM) "\0"		\
 	"testbootcmd=setenv boot_bank ${test_bank}; "			\
 		"run ${subbootcmds}; reset\0"				\
 	""
@@ -252,13 +255,10 @@
 		"saveenv && saveenv && boot\0"				\
 	"bootlimit=3\0"							\
 	"init=/sbin/init-overlay.sh\0"					\
-	"load_addr_r="xstr(CONFIG_KM_KERNEL_ADDR) "\0"			\
+	"load_addr_r="__stringify(CONFIG_KM_KERNEL_ADDR) "\0"		\
 	"load=tftpboot ${load_addr_r} ${u-boot}\0"			\
 	"mtdids=" MTDIDS_DEFAULT "\0"					\
 	"mtdparts=" MTDPARTS_DEFAULT "\0"				\
-	"stderr=serial\0"						\
-	"stdin=serial\0"						\
-	"stdout=serial\0"						\
 	""
 #endif /* CONFIG_KM_DEF_ENV */
 

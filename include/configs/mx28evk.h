@@ -19,9 +19,7 @@
 #ifndef __MX28EVK_CONFIG_H__
 #define __MX28EVK_CONFIG_H__
 
-/*
- * SoC configurations
- */
+/* SoC configurations */
 #define CONFIG_MX28				/* i.MX28 SoC */
 
 #define CONFIG_MXS_GPIO			/* GPIO control */
@@ -35,9 +33,7 @@
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_ARCH_MISC_INIT
 
-/*
- * SPL
- */
+/* SPL */
 #define CONFIG_SPL
 #define CONFIG_SPL_NO_CPU_SUPPORT_CODE
 #define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/arm926ejs/mxs"
@@ -46,9 +42,7 @@
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_GPIO_SUPPORT
 
-/*
- * U-Boot Commands
- */
+/* U-Boot Commands */
 #include <config_cmd_default.h>
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DOS_PARTITION
@@ -68,11 +62,10 @@
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_USB
 #define CONFIG_CMD_BOOTZ
-#define CONFIG_CMD_I2C
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND_TRIMFFS
 
-/*
- * Memory configurations
- */
+/* Memory configurations */
 #define CONFIG_NR_DRAM_BANKS		1		/* 1 bank of DRAM */
 #define PHYS_SDRAM_1			0x40000000	/* Base address */
 #define PHYS_SDRAM_1_SIZE		0x40000000	/* Max 1 GB RAM */
@@ -98,9 +91,7 @@
 #define CONFIG_SYS_TEXT_BASE	0x40000100
 
 #define CONFIG_ENV_OVERWRITE
-/*
- * U-Boot general configurations
- */
+/* U-Boot general configurations */
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_PROMPT	"MX28EVK U-Boot > "
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O buffer size */
@@ -115,24 +106,17 @@
 #define CONFIG_CMDLINE_EDITING		/* Command history etc */
 #define CONFIG_SYS_HUSH_PARSER
 
-/*
- * Serial Driver
- */
+/* Serial Driver */
 #define CONFIG_PL011_SERIAL
 #define CONFIG_PL011_CLOCK		24000000
 #define CONFIG_PL01x_PORTS		{ (void *)MXS_UARTDBG_BASE }
 #define CONFIG_CONS_INDEX		0
 #define CONFIG_BAUDRATE			115200	/* Default baud rate */
 
-/*
- * DMA
- */
+/* DMA */
 #define CONFIG_APBH_DMA
 
-/*
- * MMC Driver
- */
-#define CONFIG_ENV_IS_IN_MMC
+/* MMC Driver */
 #ifdef CONFIG_ENV_IS_IN_MMC
  #define CONFIG_ENV_OFFSET	(256 * 1024)
  #define CONFIG_ENV_SIZE	(16 * 1024)
@@ -142,47 +126,68 @@
 #ifdef	CONFIG_CMD_MMC
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
-#define CONFIG_MMC_BOUNCE_BUFFER
+#define CONFIG_BOUNCE_BUFFER
 #define CONFIG_MXS_MMC
 #endif
 
-/*
- * NAND Driver
- */
+/* NAND Driver */
+#define CONFIG_ENV_SIZE			(16 * 1024)
 #ifdef CONFIG_CMD_NAND
 #define CONFIG_NAND_MXS
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x60000000
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE
+
+/* Environment is in NAND */
+#ifdef CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_SIZE_REDUND		CONFIG_ENV_SIZE
+#define CONFIG_ENV_SECT_SIZE		(128 * 1024)
+#define CONFIG_ENV_RANGE		(512 * 1024)
+#define CONFIG_ENV_OFFSET		0x300000
+#define CONFIG_ENV_OFFSET_REDUND	\
+		(CONFIG_ENV_OFFSET + CONFIG_ENV_RANGE)
 #endif
 
-/*
- * Ethernet on SOC (FEC)
- */
+#define CONFIG_CMD_UBI
+#define CONFIG_CMD_UBIFS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_RBTREE
+#define CONFIG_LZO
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define MTDIDS_DEFAULT			"nand0=gpmi-nand"
+#define MTDPARTS_DEFAULT			\
+	"mtdparts=gpmi-nand:"			\
+		"3m(bootloader)ro,"		\
+		"512k(environment),"		\
+		"512k(redundant-environment),"	\
+		"4m(kernel),"			\
+		"128k(fdt),"			\
+		"8m(ramdisk),"			\
+		"-(filesystem)"
+#endif
+
+/* Ethernet on SOC (FEC) */
 #ifdef	CONFIG_CMD_NET
 #define CONFIG_NET_MULTI
 #define CONFIG_ETHPRIME	"FEC0"
 #define CONFIG_FEC_MXC
-#define CONFIG_FEC_MXC_MULTI
 #define CONFIG_MII
 #define CONFIG_FEC_XCV_TYPE	RMII
 #define CONFIG_MX28_FEC_MAC_IN_OCOTP
 #endif
 
-/*
- * RTC
- */
+/* RTC */
 #ifdef	CONFIG_CMD_DATE
 #define	CONFIG_RTC_MXS
 #endif
 
-/*
- * USB
- */
+/* USB */
 #ifdef	CONFIG_CMD_USB
 #define	CONFIG_USB_EHCI
 #define	CONFIG_USB_EHCI_MXS
-#define	CONFIG_EHCI_MXS_PORT 1
+#define CONFIG_EHCI_MXS_PORT1
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	1
 #define	CONFIG_EHCI_IS_TDI
 #define	CONFIG_USB_STORAGE
 #define	CONFIG_USB_HOST_ETHER
@@ -197,13 +202,10 @@
 #define CONFIG_SYS_I2C_SPEED	400000
 #endif
 
-/*
- * SPI
- */
+/* SPI */
 #ifdef CONFIG_CMD_SPI
 #define CONFIG_HARD_SPI
 #define CONFIG_MXS_SPI
-#define CONFIG_MXS_SPI_DMA_ENABLE
 #define CONFIG_SPI_HALF_DUPLEX
 #define CONFIG_DEFAULT_SPI_BUS		2
 #define CONFIG_DEFAULT_SPI_MODE		SPI_MODE_0
@@ -233,20 +235,16 @@
 #endif
 #endif
 
-/*
- * Boot Linux
- */
+/* Boot Linux */
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	1
 #define CONFIG_BOOTFILE	"uImage"
 #define CONFIG_LOADADDR	0x42000000
 #define CONFIG_SYS_LOAD_ADDR	CONFIG_LOADADDR
 #define CONFIG_OF_LIBFDT
 
-/*
- * Extra Environments
- */
+/* Extra Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"update_nand_full_filename=u-boot.nand\0" \
 	"update_nand_firmware_filename=u-boot.sb\0"	\
@@ -263,7 +261,7 @@
 		"if tftp ${update_nand_full_filename} ; then " \
 		"run update_nand_get_fcb_size ; " \
 		"nand scrub -y 0x0 ${filesize} ; " \
-		"nand write.raw ${loadaddr} 0x0 ${update_nand_fcb} ; " \
+		"nand write.raw ${loadaddr} 0x0 ${fcb_sz} ; " \
 		"setexpr update_off ${loadaddr} + ${update_nand_fcb} ; " \
 		"setexpr update_sz ${filesize} - ${update_nand_fcb} ; " \
 		"nand write ${update_off} ${update_nand_fcb} ${update_sz} ; " \
@@ -290,30 +288,63 @@
 	"uimage=uImage\0" \
 	"console_fsl=ttyAM0\0" \
 	"console_mainline=ttyAMA0\0" \
+	"fdt_file=imx28-evk.dtb\0" \
+	"fdt_addr=0x41000000\0" \
+	"boot_fdt=try\0" \
+	"ip_dyn=yes\0" \
 	"mmcdev=0\0" \
 	"mmcpart=2\0" \
-	"mmcroot=/dev/mmcblk0p3 rw\0" \
-	"mmcrootfstype=ext3 rootwait\0"	\
+	"mmcroot=/dev/mmcblk0p3 rw rootwait\0" \
 	"mmcargs=setenv bootargs console=${console_mainline},${baudrate} " \
-		"root=${mmcroot} " \
-		"rootfstype=${mmcrootfstype}\0"	\
+		"root=${mmcroot}\0" \
 	"loadbootscript="  \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; "	\
 		"source\0" \
 	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
+	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; "	\
-		"bootm\0" \
+		"run mmcargs; " \
+		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+			"if run loadfdt; then " \
+				"bootm ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootm; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi; " \
+			"fi; " \
+		"else " \
+			"bootm; " \
+		"fi;\0" \
 	"netargs=setenv bootargs console=${console_mainline},${baudrate} " \
 		"root=/dev/nfs " \
 		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"netboot=echo Booting from net ...; " \
 		"run netargs; "	\
-		"dhcp ${uimage}; bootm\0"
+		"if test ${ip_dyn} = yes; then " \
+			"setenv get_cmd dhcp; " \
+		"else " \
+			"setenv get_cmd tftp; " \
+		"fi; " \
+		"${get_cmd} ${uimage}; " \
+		"if test ${boot_fdt} = yes; then " \
+			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
+				"bootm ${loadaddr} - ${fdt_addr}; " \
+			"else " \
+				"if test ${boot_fdt} = try; then " \
+					"bootm; " \
+				"else " \
+					"echo WARN: Cannot load the DT; " \
+				"fi;" \
+			"fi; " \
+		"else " \
+			"bootm; " \
+		"fi;\0"
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \

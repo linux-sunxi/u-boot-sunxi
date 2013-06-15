@@ -42,6 +42,7 @@
 #define CONFIG_SYS_IMMR		0xE0000000
 
 #define CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_SKIP_HOST_BRIDGE
 #define CONFIG_HARD_I2C
 #define CONFIG_TSEC_ENET
@@ -455,23 +456,23 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS				\
 	"console_nr=0\0"					\
-	"baudrate=" MK_STR(CONFIG_BAUDRATE) "\0"		\
+	"baudrate=" __stringify(CONFIG_BAUDRATE) "\0"		\
 	"stdin=serial\0"					\
 	"stdout=serial\0"					\
 	"stderr=serial\0"					\
 	"fpga=0\0"						\
-	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"			\
-	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"		\
-	"script_addr=" MK_STR(MV_SCRIPT_ADDR) "\0"		\
-	"script_addr2=" MK_STR(MV_SCRIPT_ADDR2) "\0"		\
-	"mv_kernel_addr=" MK_STR(MV_KERNEL_ADDR) "\0"		\
-	"mv_kernel_addr_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"	\
-	"mv_initrd_addr=" MK_STR(MV_INITRD_ADDR) "\0"		\
-	"mv_initrd_addr_ram=" MK_STR(MV_INITRD_ADDR_RAM) "\0"	\
-	"mv_initrd_length=" MK_STR(MV_INITRD_LENGTH) "\0"	\
-	"mv_dtb_addr=" MK_STR(MV_DTB_ADDR) "\0"			\
-	"mv_dtb_addr_ram=" MK_STR(MV_DTB_ADDR_RAM) "\0"		\
-	"dtb_name=" MK_STR(MV_DTB_NAME) "\0"			\
+	"fpgadata=" __stringify(MV_FPGA_DATA) "\0"			\
+	"fpgadatasize=" __stringify(MV_FPGA_SIZE) "\0"		\
+	"script_addr=" __stringify(MV_SCRIPT_ADDR) "\0"		\
+	"script_addr2=" __stringify(MV_SCRIPT_ADDR2) "\0"		\
+	"mv_kernel_addr=" __stringify(MV_KERNEL_ADDR) "\0"		\
+	"mv_kernel_addr_ram=" __stringify(MV_KERNEL_ADDR_RAM) "\0"	\
+	"mv_initrd_addr=" __stringify(MV_INITRD_ADDR) "\0"		\
+	"mv_initrd_addr_ram=" __stringify(MV_INITRD_ADDR_RAM) "\0"	\
+	"mv_initrd_length=" __stringify(MV_INITRD_LENGTH) "\0"	\
+	"mv_dtb_addr=" __stringify(MV_DTB_ADDR) "\0"			\
+	"mv_dtb_addr_ram=" __stringify(MV_DTB_ADDR_RAM) "\0"		\
+	"dtb_name=" __stringify(MV_DTB_NAME) "\0"			\
 	"mv_version=" U_BOOT_VERSION "\0"			\
 	"dhcp_client_id=" MV_CI "\0"				\
 	"dhcp_vendor-class-identifier=" MV_VCI "\0"		\
@@ -499,7 +500,7 @@
 	""
 
 #define CONFIG_FPGA_COUNT	1
-#define CONFIG_FPGA		CONFIG_SYS_ALTERA_CYCLON2
+#define CONFIG_FPGA
 #define CONFIG_FPGA_ALTERA
 #define CONFIG_FPGA_CYCLON2
 

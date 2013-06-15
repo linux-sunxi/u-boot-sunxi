@@ -75,13 +75,10 @@ SECTIONS
 	}
 	PROVIDE (_egot = .);
 
-	PROVIDE (__u_boot_cmd_start = .);
-	.u_boot_cmd :
-	{
-		*(.u_boot_cmd)
-		. = ALIGN(4);
+
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	}
-	PROVIDE (__u_boot_cmd_end = .);
 
 	PROVIDE (reloc_dst_end = .);
 	/* _reloc_dst_end = .; */
@@ -95,5 +92,5 @@ SECTIONS
 	}
 	PROVIDE (bss_end = .);
 
-	PROVIDE (__bss_end__ = .);
+	PROVIDE (__bss_end = .);
 }

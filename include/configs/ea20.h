@@ -42,6 +42,7 @@
 #define CONFIG_MACH_DAVINCI_DA850_EVM
 #define CONFIG_ARM926EJS		/* arm926ejs CPU core */
 #define CONFIG_SOC_DA8XX		/* TI DA8xx SoC */
+#define CONFIG_SOC_DA850		/* TI DA850 SoC */
 #define CONFIG_SYS_CLK_FREQ		clk_get(DAVINCI_ARM_CLKID)
 #define CONFIG_SYS_OSCIN_FREQ		24000000
 #define CONFIG_SYS_TIMERBASE		DAVINCI_TIMER0_BASE
@@ -236,8 +237,6 @@
  * Default environment and default scripts
  * to update uboot and load kernel
  */
-#define xstr(s)	str(s)
-#define str(s)	#s
 
 #define CONFIG_HOSTNAME ea20
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
@@ -277,9 +276,9 @@
 	"loadaddr=c0000014\0"						\
 	"memory=32M\0"							\
 	"kernel_addr_r=c0700000\0"					\
-	"hostname=" xstr(CONFIG_HOSTNAME) "\0"				\
-	"bootfile=" xstr(CONFIG_HOSTNAME) "/uImage\0"			\
-	"ramdisk_file=" xstr(CONFIG_HOSTNAME) "/image.ext2\0"		\
+	"hostname=" __stringify(CONFIG_HOSTNAME) "\0"			\
+	"bootfile=" __stringify(CONFIG_HOSTNAME) "/uImage\0"		\
+	"ramdisk_file=" __stringify(CONFIG_HOSTNAME) "/image.ext2\0"	\
 	"flash_self=run ramargs addip addtty addmtd addmisc addmem;"	\
 			"bootm ${kernel_addr_r}\0"			\
 	"flash_nfs=run nfsargs addip addtty addmtd addmisc addmem;"	\
@@ -295,12 +294,12 @@
 		"bootm ${kernel_addr_r}\0"				\
 	"net_self_load=tftp ${kernel_addr_r} ${bootfile};"		\
 		"tftp ${ramdisk_addr_r} ${ramdisk_file};\0"		\
-	"nand_nand=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"nand_nand=ubi part nand0,${as};ubifsmount ubi:rootfs;"		\
 		"ubifsload ${kernel_addr_r} /boot/uImage;"		\
 		"ubifsumount; run nandargs addip addtty "		\
 		"addmtd addmisc addmem;clrlogo;"			\
 		"bootm ${kernel_addr_r}\0"				\
-	"nand_nandrw=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"nand_nandrw=ubi part nand0,${as};ubifsmount ubi:rootfs;"	\
 		"ubifsload ${kernel_addr_r} /boot/uImage;"		\
 		"ubifsumount; run nandrwargs addip addtty "		\
 		"addmtd addmisc addmem;clrlogo;"			\
@@ -308,10 +307,10 @@
 	"net_nandrw=tftp ${kernel_addr_r} ${bootfile}; run nandrwargs"	\
 		" addip addtty addmtd addmisc addmem;"			\
 		"clrlogo;bootm ${kernel_addr_r}\0"			\
-	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
+	"u-boot=" __stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
 	"load_magic=if sf probe 0;then sf "				\
 		"read c0000000 0x10000 0x60000;fi\0"			\
-	"load_nand=ubi part nand0,${as};ubifsmount rootfs;"		\
+	"load_nand=ubi part nand0,${as};ubifsmount ubi:rootfs;"		\
 		"if ubifsload c0000014 /boot/u-boot.bin;"		\
 		"then mw c0000008 ${filesize};else echo Error reading"	\
 		" u-boot from nand!;fi\0"				\

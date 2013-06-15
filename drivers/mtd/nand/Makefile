@@ -26,21 +26,35 @@ include $(TOPDIR)/config.mk
 LIB	:= $(obj)libnand.o
 
 ifdef CONFIG_CMD_NAND
+
 ifdef CONFIG_SPL_BUILD
-ifdef CONFIG_SPL_NAND_SIMPLE
-COBJS-y += nand_spl_simple.o
+
+ifdef CONFIG_SPL_NAND_DRIVERS
+NORMAL_DRIVERS=y
 endif
-ifdef CONFIG_SPL_NAND_LOAD
-COBJS-y	+= nand_spl_load.o
-endif
-else
+
+COBJS-$(CONFIG_SPL_NAND_AM33XX_BCH) += am335x_spl_bch.o
+COBJS-$(CONFIG_SPL_NAND_DOCG4) += docg4_spl.o
+COBJS-$(CONFIG_SPL_NAND_SIMPLE) += nand_spl_simple.o
+COBJS-$(CONFIG_SPL_NAND_LOAD) += nand_spl_load.o
+COBJS-$(CONFIG_SPL_NAND_ECC) += nand_ecc.o
+COBJS-$(CONFIG_SPL_NAND_BASE) += nand_base.o
+
+else # not spl
+
+NORMAL_DRIVERS=y
+
 COBJS-y += nand.o
 COBJS-y += nand_bbt.o
 COBJS-y += nand_ids.o
 COBJS-y += nand_util.o
-endif
 COBJS-y += nand_ecc.o
 COBJS-y += nand_base.o
+
+endif # not spl
+
+ifdef NORMAL_DRIVERS
+
 COBJS-$(CONFIG_NAND_ECC_BCH) += nand_bch.o
 
 COBJS-$(CONFIG_NAND_ATMEL) += atmel_nand.o
@@ -60,12 +74,19 @@ COBJS-$(CONFIG_NAND_MXS) += mxs_nand.o
 COBJS-$(CONFIG_NAND_NDFC) += ndfc.o
 COBJS-$(CONFIG_NAND_NOMADIK) += nomadik.o
 COBJS-$(CONFIG_NAND_S3C2410) += s3c2410_nand.o
-COBJS-$(CONFIG_NAND_S3C64XX) += s3c64xx.o
 COBJS-$(CONFIG_NAND_SPEAR) += spr_nand.o
 COBJS-$(CONFIG_TEGRA_NAND) += tegra_nand.o
 COBJS-$(CONFIG_NAND_OMAP_GPMC) += omap_gpmc.o
 COBJS-$(CONFIG_NAND_PLAT) += nand_plat.o
-endif
+COBJS-$(CONFIG_NAND_DOCG4) += docg4.o
+
+else  # minimal SPL drivers
+
+COBJS-$(CONFIG_NAND_FSL_ELBC) += fsl_elbc_spl.o
+COBJS-$(CONFIG_NAND_MXC) += mxc_nand_spl.o
+
+endif # drivers
+endif # nand
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

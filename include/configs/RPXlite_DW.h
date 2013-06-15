@@ -54,6 +54,7 @@
 #define	CONFIG_SYS_TEXT_BASE	0xff000000
 
 #ifdef	CONFIG_LCD			/* with LCD controller ?	*/
+#define CONFIG_MPC8XX_LCD
 #define CONFIG_SPLASH_SCREEN		/* ... with splashscreen support*/
 #endif
 
@@ -335,6 +336,7 @@
  * IDE/ATA stuff (Supports IDE harddisk on PCMCIA Adapter)
  *-----------------------------------------------------------------------
  */
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card Adapter */
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE	 not supported	*/

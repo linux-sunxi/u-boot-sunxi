@@ -79,12 +79,10 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	if (!spi_cs_is_valid(bus, cs))
 		return NULL;
 
-	fsl = malloc(sizeof(struct fsl_spi_slave));
+	fsl = spi_alloc_slave(struct fsl_spi_slave, bus, cs);
 	if (!fsl)
 		return NULL;
 
-	fsl->slave.bus = bus;
-	fsl->slave.cs = cs;
 	fsl->mode = mode;
 	fsl->max_transfer_length = ESPI_MAX_DATA_TRANSFER_LEN;
 
@@ -216,10 +214,8 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *data_out,
 			return 1;
 		}
 		memcpy(buffer, cmd_buf, cmd_len);
-		if (cmd_len != 1) {
-			if (data_in == NULL)
-				memcpy(buffer + cmd_len, data_out, data_len);
-		}
+		if (data_in == NULL)
+			memcpy(buffer + cmd_len, data_out, data_len);
 		break;
 	case SPI_XFER_BEGIN | SPI_XFER_END:
 		len = data_len;

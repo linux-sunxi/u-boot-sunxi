@@ -36,6 +36,7 @@
 
 #include <asm/arch/cpu.h>
 #include <asm/arch/omap3.h>
+#include <asm/mach-types.h>
 
 /*
  * Display CPU and Board information
@@ -54,7 +55,8 @@
 #define CONFIG_INITRD_TAG		1
 #define CONFIG_REVISION_TAG		1
 
-#define CONFIG_OF_LIBFDT		1
+#define CONFIG_OF_LIBFDT
+#define CONFIG_CMD_BOOTZ
 
 /*
  * NS16550 Configuration
@@ -81,6 +83,12 @@
 #define CONFIG_MMC			1
 #define CONFIG_OMAP_HSMMC		1
 #define CONFIG_DOS_PARTITION		1
+
+/* define to enable boot progress via leds */
+#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
+    (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0030)
+#define CONFIG_SHOW_BOOT_PROGRESS
+#endif
 
 /* USB */
 #define CONFIG_MUSB_UDC			1
@@ -112,7 +120,10 @@
 #ifdef CONFIG_BOOT_NAND
 #define CONFIG_CMD_NAND
 #endif
+#if (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0020) || \
+    (CONFIG_MACH_TYPE == MACH_TYPE_IGEP0032)
 #define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
+#endif
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_NFS		/* NFS support			*/
@@ -126,8 +137,6 @@
 #define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 
 /*
@@ -180,7 +189,7 @@
 		"bootm ${loadaddr}\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"echo SD/MMC found on device ${mmcdev};" \
 		"if run loadbootenv; then " \
 			"run importbootenv;" \
@@ -236,7 +245,6 @@
  */
 #define CONFIG_NR_DRAM_BANKS	2	/* CS1 may or may not be populated */
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 meg */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
 
 /*
@@ -313,6 +321,7 @@
 #define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION	1
 #define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
 
+#define CONFIG_SPL_BOARD_INIT
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_I2C_SUPPORT
@@ -338,6 +347,9 @@
 
 #ifdef CONFIG_BOOT_NAND
 #define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_NAND_ECC
 
 /* NAND boot config */
 #define CONFIG_SYS_NAND_5_ADDR_CYCLE

@@ -11,7 +11,8 @@
 
 #include "ddr.h"
 
-unsigned int
+#if defined(CONFIG_FSL_DDR3)
+static unsigned int
 compute_cas_latency_ddr3(const dimm_params_t *dimm_params,
 			 common_timing_params_t *outpdimm,
 			 unsigned int number_of_dimms)
@@ -43,7 +44,6 @@ compute_cas_latency_ddr3(const dimm_params_t *dimm_params,
 		printf("DDR clock (MCLK cycle %u ps) is faster than "
 			"the slowest DIMM(s) (tCKmin %u ps) can support.\n",
 			mclk_ps, tCKmin_X_ps);
-		return 1;
 	}
 	/* determine the acutal cas latency */
 	caslat_actual = (tAAmin_ps + mclk_ps - 1) / mclk_ps;
@@ -59,12 +59,12 @@ compute_cas_latency_ddr3(const dimm_params_t *dimm_params,
 	if (caslat_actual * mclk_ps > 20000) {
 		printf("The choosen cas latency %d is too large\n",
 			caslat_actual);
-		return 1;
 	}
 	outpdimm->lowest_common_SPD_caslat = caslat_actual;
 
 	return 0;
 }
+#endif
 
 /*
  * compute_lowest_common_dimm_parameters()
@@ -76,7 +76,7 @@ compute_cas_latency_ddr3(const dimm_params_t *dimm_params,
 unsigned int
 compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 				      common_timing_params_t *outpdimm,
-				      unsigned int number_of_dimms)
+				      const unsigned int number_of_dimms)
 {
 	unsigned int i, j;
 
@@ -126,13 +126,20 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 			temp1++;
 			continue;
 		}
+
+		/*
+		 * check if quad-rank DIMM is plugged if
+		 * CONFIG_CHIP_SELECT_QUAD_CAPABLE is not defined
+		 * Only the board with proper design is capable
+		 */
+#ifndef CONFIG_FSL_DDR_FIRST_SLOT_QUAD_CAPABLE
 		if (dimm_params[i].n_ranks == 4 && \
 		  CONFIG_CHIP_SELECTS_PER_CTRL/CONFIG_DIMM_SLOTS_PER_CTLR < 4) {
 			printf("Found Quad-rank DIMM, not able to support.");
 			temp1++;
 			continue;
 		}
-
+#endif
 		/*
 		 * Find minimum tCKmax_ps to find fastest slow speed,
 		 * i.e., this is the slowest the whole system can go.
@@ -236,11 +243,14 @@ compute_lowest_common_dimm_parameters(const dimm_params_t *dimm_params,
 	if (outpdimm->all_DIMMs_registered)
 		for (j = 0; j < 16; j++) {
 			outpdimm->rcw[j] = dimm_params[0].rcw[j];
-			for (i = 1; i < number_of_dimms; i++)
+			for (i = 1; i < number_of_dimms; i++) {
+				if (!dimm_params[i].n_ranks)
+					continue;
 				if (dimm_params[i].rcw[j] != dimm_params[0].rcw[j]) {
 					temp1 = 1;
 					break;
 				}
+			}
 		}
 
 	if (temp1 != 0)

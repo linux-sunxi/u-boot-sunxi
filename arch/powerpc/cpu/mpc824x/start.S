@@ -72,7 +72,7 @@
 	GOT_ENTRY(transfer_to_handler)
 
 	GOT_ENTRY(__init_end)
-	GOT_ENTRY(__bss_end__)
+	GOT_ENTRY(__bss_end)
 	GOT_ENTRY(__bss_start)
 #if defined(CONFIG_FADS)
 	GOT_ENTRY(environment)
@@ -113,9 +113,6 @@ _start:
 
 
 in_flash:
-#if defined(CONFIG_BMW)
-	bl early_init_f /* Must be ASM: no stack yet! */
-#endif
 	/*
 	 * Setup BATs - cannot be done in C since we don't have a stack yet
 	 */
@@ -126,7 +123,7 @@ in_flash:
 	mfmsr	r3
 	ori	r3, r3, (MSR_IR | MSR_DR)
 	mtmsr	r3
-#if !defined(CONFIG_BMW)
+
 	/* Enable and invalidate data cache.
 	 */
 	mfspr	r3, HID0
@@ -158,7 +155,7 @@ in_flash:
 	ori	r3, r3, 0x0080
 	sync
 	mtspr	1011, r3
-#endif /* !CONFIG_BMW */
+
 	/*
 	 * Thisk the stack pointer *somewhere* sensible. Doesnt
 	 * matter much where as we'll move it when we relocate
@@ -498,7 +495,6 @@ relocate_code:
 	bdnz	3b
 
 4:
-#if !defined(CONFIG_BMW)
 /* Unlock the data cache and invalidate locked area */
 	xor	r0, r0, r0
 	mtspr	1011, r0
@@ -510,7 +506,6 @@ relocate_code:
 	dcbi	r0, r4
 	addi	r4, r4, 32
 	bdnz	41b
-#endif
 
 /*
  * Now flush the cache: note that we must start from a cache aligned
@@ -589,7 +584,7 @@ clear_bss:
 	 * Now clear BSS segment
 	 */
 	lwz	r3,GOT(__bss_start)
-	lwz	r4,GOT(__bss_end__)
+	lwz	r4,GOT(__bss_end)
 
 	cmplw	0, r3, r4
 	beq	6f

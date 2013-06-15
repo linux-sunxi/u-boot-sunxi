@@ -110,13 +110,15 @@ int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				if (led_commands[i].on)
 					led_commands[i].on();
 				else
-					__led_set(led_commands[i].mask, 1);
+					__led_set(led_commands[i].mask,
+							  STATUS_LED_ON);
 				break;
 			case LED_OFF:
 				if (led_commands[i].off)
 					led_commands[i].off();
 				else
-					__led_set(led_commands[i].mask, 0);
+					__led_set(led_commands[i].mask,
+							  STATUS_LED_OFF);
 				break;
 			case LED_TOGGLE:
 				if (led_commands[i].toggle)
@@ -140,7 +142,7 @@ int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 U_BOOT_CMD(
 	led, 3, 1, do_led,
-	"led\t- ["
+	"["
 #ifdef CONFIG_BOARD_SPECIFIC_LED
 #ifdef STATUS_LED_BIT
 	"0|"
@@ -167,6 +169,6 @@ U_BOOT_CMD(
 #ifdef STATUS_LED_BLUE
 	"blue|"
 #endif
-	"all] [on|off|toggle]\n",
-	"led [led_name] [on|off|toggle] sets or clears led(s)\n"
+	"all] [on|off|toggle]",
+	"[led_name] [on|off|toggle] sets or clears led(s)"
 );

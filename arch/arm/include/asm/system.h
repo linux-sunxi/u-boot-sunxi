@@ -61,6 +61,12 @@
 
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 
+#ifdef __ARM_ARCH_7A__
+#define wfi() __asm__ __volatile__ ("wfi" : : : "memory")
+#else
+#define wfi()
+#endif
+
 static inline unsigned int get_cr(void)
 {
 	unsigned int val;
@@ -74,6 +80,51 @@ static inline void set_cr(unsigned int val)
 	  : : "r" (val) : "cc");
 	isb();
 }
+
+static inline unsigned int get_dacr(void)
+{
+	unsigned int val;
+	asm("mrc p15, 0, %0, c3, c0, 0	@ get DACR" : "=r" (val) : : "cc");
+	return val;
+}
+
+static inline void set_dacr(unsigned int val)
+{
+	asm volatile("mcr p15, 0, %0, c3, c0, 0	@ set DACR"
+	  : : "r" (val) : "cc");
+	isb();
+}
+
+/* options available for data cache on each page */
+enum dcache_option {
+	DCACHE_OFF = 0x12,
+	DCACHE_WRITETHROUGH = 0x1a,
+	DCACHE_WRITEBACK = 0x1e,
+};
+
+/* Size of an MMU section */
+enum {
+	MMU_SECTION_SHIFT	= 20,
+	MMU_SECTION_SIZE	= 1 << MMU_SECTION_SHIFT,
+};
+
+/**
+ * Change the cache settings for a region.
+ *
+ * \param start		start address of memory region to change
+ * \param size		size of memory region to change
+ * \param option	dcache option to select
+ */
+void mmu_set_region_dcache_behaviour(u32 start, int size,
+				     enum dcache_option option);
+
+/**
+ * Register an update to the page tables, and flush the TLB
+ *
+ * \param start		start address of update in page table
+ * \param stop		stop address of update in page table
+ */
+void mmu_page_table_flush(unsigned long start, unsigned long stop);
 
 #endif /* __ASSEMBLY__ */
 

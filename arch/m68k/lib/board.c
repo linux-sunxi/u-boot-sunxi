@@ -29,6 +29,7 @@
 #include <command.h>
 #include <malloc.h>
 #include <stdio_dev.h>
+#include <linux/compiler.h>
 
 #include <asm/immap.h>
 
@@ -76,9 +77,10 @@ static char *failed = "*** failed ***\n";
 #include <environment.h>
 
 extern ulong __init_end;
-extern ulong __bss_end__;
+extern ulong __bss_end;
 
 #if defined(CONFIG_WATCHDOG)
+# undef INIT_FUNC_WATCHDOG_INIT
 # define INIT_FUNC_WATCHDOG_INIT	watchdog_init,
 # define WATCHDOG_DISABLE		watchdog_disable
 
@@ -243,7 +245,7 @@ board_init_f (ulong bootflag)
 	 *	- monitor code
 	 *	- board info struct
 	 */
-	len = (ulong)&__bss_end__ - CONFIG_SYS_MONITOR_BASE;
+	len = (ulong)&__bss_end - CONFIG_SYS_MONITOR_BASE;
 
 	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
 
@@ -348,9 +350,9 @@ board_init_f (ulong bootflag)
 	bd->bi_pcifreq = gd->pci_clk;		/* PCI Freq in Hz */
 #endif
 #ifdef CONFIG_EXTRA_CLOCK
-	bd->bi_inpfreq = gd->inp_clk;		/* input Freq in Hz */
-	bd->bi_vcofreq = gd->vco_clk;		/* vco Freq in Hz */
-	bd->bi_flbfreq = gd->flb_clk;		/* flexbus Freq in Hz */
+	bd->bi_inpfreq = gd->arch.inp_clk;		/* input Freq in Hz */
+	bd->bi_vcofreq = gd->arch.vco_clk;		/* vco Freq in Hz */
+	bd->bi_flbfreq = gd->arch.flb_clk;		/* flexbus Freq in Hz */
 #endif
 	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate     */
 
@@ -387,7 +389,7 @@ board_init_f (ulong bootflag)
  */
 void board_init_r (gd_t *id, ulong dest_addr)
 {
-	char *s;
+	char *s __maybe_unused;
 	bd_t *bd;
 
 #ifndef CONFIG_ENV_IS_NOWHERE
@@ -401,15 +403,13 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
-#ifdef CONFIG_SERIAL_MULTI
-	serial_initialize();
-#endif
-
 	debug ("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
 
 	WATCHDOG_RESET ();
 
 	gd->reloc_off =  dest_addr - CONFIG_SYS_MONITOR_BASE;
+
+	serial_initialize();
 
 	monitor_flash_len = (ulong)&__init_end - dest_addr;
 
@@ -417,8 +417,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/*
 	 * We have to relocate the command table manually
 	 */
-	fixup_cmdtable(&__u_boot_cmd_start,
-		(ulong)(&__u_boot_cmd_end - &__u_boot_cmd_start));
+	fixup_cmdtable(ll_entry_start(cmd_tbl_t, cmd),
+			ll_entry_count(cmd_tbl_t, cmd));
 #endif /* defined(CONFIG_NEEDS_MANUAL_RELOC) */
 
 	/* there are some other pointer constants we must deal with */
@@ -450,7 +450,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* The Malloc area is immediately below the monitor copy in DRAM */
 	mem_malloc_init (CONFIG_SYS_MONITOR_BASE + gd->reloc_off -
 			TOTAL_MALLOC_LEN, TOTAL_MALLOC_LEN);
-	malloc_bin_reloc ();
 
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts ("Flash: ");
@@ -463,8 +462,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		 *
 		 * NOTE: Maybe we should add some WATCHDOG_RESET()? XXX
 		 */
-		s = getenv ("flashchecksum");
-		if (s && (*s == 'y')) {
+		if (getenv_yesno("flashchecksum") == 1) {
 			printf ("  CRC: %08X",
 					crc32 (0,
 						   (const unsigned char *) CONFIG_SYS_FLASH_BASE,
@@ -664,11 +662,4 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	}
 
 	/* NOTREACHED - no way out of command loop except booting */
-}
-
-
-void hang(void)
-{
-	puts ("### ERROR ### Please RESET the board ###\n");
-	for (;;);
 }

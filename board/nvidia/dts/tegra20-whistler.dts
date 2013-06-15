@@ -1,6 +1,6 @@
 /dts-v1/;
 
-/include/ ARCH_CPU_DTS
+#include "tegra20.dtsi"
 
 / {
 	model = "NVIDIA Tegra20 Whistler evaluation board";
@@ -9,22 +9,13 @@
 	aliases {
 		i2c0 = "/i2c@7000d000";
 		usb0 = "/usb@c5008000";
-		usb1 = "/usb@c5000000";
+		sdhci0 = "/sdhci@c8000600";
+		sdhci1 = "/sdhci@c8000400";
 	};
 
 	memory {
 		device_type = "memory";
 		reg = < 0x00000000 0x20000000 >;
-	};
-
-	clocks {
-		osc {
-			clock-frequency = <12000000>;
-		};
-	};
-
-	clock@60006000 {
-		clocks = <&clk_32k &osc>;
 	};
 
 	serial@70006000 {
@@ -61,7 +52,22 @@
 		};
 	};
 
+	usb@c5000000 {
+		status = "disabled";
+	};
+
 	usb@c5004000 {
 		status = "disabled";
+	};
+
+	sdhci@c8000400 {
+		status = "okay";
+		wp-gpios = <&gpio 173 0>; /* gpio PV5 */
+		bus-width = <8>;
+	};
+
+	sdhci@c8000600 {
+		status = "okay";
+		bus-width = <8>;
 	};
 };

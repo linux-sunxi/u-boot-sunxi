@@ -65,9 +65,11 @@ SECTIONS
   PROVIDE (edata = .);
 
   . = .;
-  __u_boot_cmd_start = .;
-  .u_boot_cmd : { *(.u_boot_cmd) }
-  __u_boot_cmd_end = .;
+
+  . = ALIGN(4);
+  .u_boot_list : {
+	KEEP(*(SORT(.u_boot_list*)));
+  }
 
 
   . = .;
@@ -91,7 +93,7 @@ SECTIONS
    . = ALIGN(4);
   }
 
-  __bss_end__ = . ;
+  __bss_end = . ;
   PROVIDE (end = .);
   . = env_start;
   .ppcenv :

@@ -16,12 +16,37 @@
 #include <asm/mach-common/bits/core.h>
 #include <asm/mach-common/bits/ebiu.h>
 #include <asm/mach-common/bits/trace.h>
+#include <asm/serial.h>
 
 #include "cpu.h"
-#include "serial.h"
 #include "initcode.h"
 
 ulong bfin_poweron_retx;
+
+#if defined(CONFIG_CORE1_RUN) && defined(COREB_L1_CODE_START)
+void bfin_core1_start(void)
+{
+#ifdef BF561_FAMILY
+	/* Enable core 1 */
+	bfin_write_SYSCR(bfin_read_SYSCR() & ~0x0020);
+#else
+	/* Enable core 1 */
+	bfin_write32(RCU0_SVECT1, COREB_L1_CODE_START);
+	bfin_write32(RCU0_CRCTL, 0);
+
+	bfin_write32(RCU0_CRCTL, 0x2);
+
+	/* Check if core 1 starts */
+	while (!(bfin_read32(RCU0_CRSTAT) & 0x2))
+		continue;
+
+	bfin_write32(RCU0_CRCTL, 0);
+
+	/* flag to notify cces core 1 application */
+	bfin_write32(SDU0_MSG_SET, (1 << 19));
+#endif
+}
+#endif
 
 __attribute__ ((__noreturn__))
 void cpu_init_f(ulong bootflag, ulong loaded_from_ldr)
@@ -68,7 +93,13 @@ void cpu_init_f(ulong bootflag, ulong loaded_from_ldr)
 	/* Reset upon a double exception rather than just hanging.
 	 * Do not do bfin_read on SWRST as that will reset status bits.
 	 */
+# ifdef SWRST
 	bfin_write_SWRST(DOUBLE_FAULT);
+# endif
+#endif
+
+#if defined(CONFIG_CORE1_RUN) && defined(COREB_L1_CODE_START)
+	bfin_core1_start();
 #endif
 
 	serial_early_puts("Board init flash\n");
@@ -92,7 +123,7 @@ int irq_init(void)
 #elif defined(SICA_IMASK0)
 	bfin_write_SICA_IMASK0(0);
 	bfin_write_SICA_IMASK1(0);
-#else
+#elif defined(SIC_IMASK)
 	bfin_write_SIC_IMASK(0);
 #endif
 	/* Set up a dummy NMI handler if needed.  */

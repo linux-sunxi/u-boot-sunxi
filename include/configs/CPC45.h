@@ -450,6 +450,7 @@
  *-----------------------------------------------------------------------
  */
 #define CONFIG_PCI			/* include pci support			*/
+#define CONFIG_PCI_INDIRECT_BRIDGE	/* indirect PCI bridge support */
 #define CONFIG_SYS_EARLY_PCI_INIT
 #undef	CONFIG_PCI_PNP
 #undef	CONFIG_PCI_SCAN_SHOW
@@ -480,6 +481,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/

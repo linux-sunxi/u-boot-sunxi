@@ -137,11 +137,15 @@ static s32 spi_cfg_mxc(struct mxc_spi_slave *mxcs, unsigned int cs,
 		return -1;
 	}
 
-	reg_ctrl = reg_read(&regs->ctrl);
-
-	/* Reset spi */
-	reg_write(&regs->ctrl, 0);
-	reg_write(&regs->ctrl, (reg_ctrl | 0x1));
+	/*
+	 * Reset SPI and set all CSs to master mode, if toggling
+	 * between slave and master mode we might see a glitch
+	 * on the clock line
+	 */
+	reg_ctrl = MXC_CSPICTRL_MODE_MASK;
+	reg_write(&regs->ctrl, reg_ctrl);
+	reg_ctrl |=  MXC_CSPICTRL_EN;
+	reg_write(&regs->ctrl, reg_ctrl);
 
 	/*
 	 * The following computation is taken directly from Freescale's code.
@@ -173,9 +177,6 @@ static s32 spi_cfg_mxc(struct mxc_spi_slave *mxcs, unsigned int cs,
 		MXC_CSPICTRL_PREDIV(pre_div);
 	reg_ctrl = (reg_ctrl & ~MXC_CSPICTRL_POSTDIV(0x0F)) |
 		MXC_CSPICTRL_POSTDIV(post_div);
-
-	/* always set to master mode */
-	reg_ctrl |= 1 << (cs + 4);
 
 	/* We need to disable SPI before changing registers */
 	reg_ctrl &= ~MXC_CSPICTRL_EN;
@@ -387,7 +388,7 @@ static int decode_cs(struct mxc_spi_slave *mxcs, unsigned int cs)
 	if (cs > 3) {
 		mxcs->gpio = cs >> 8;
 		cs &= 3;
-		ret = gpio_direction_output(mxcs->gpio, 0);
+		ret = gpio_direction_output(mxcs->gpio, !(mxcs->ss_pol));
 		if (ret) {
 			printf("mxc_spi: cannot setup gpio %d\n", mxcs->gpio);
 			return -EINVAL;
@@ -408,11 +409,13 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	if (bus >= ARRAY_SIZE(spi_bases))
 		return NULL;
 
-	mxcs = calloc(sizeof(struct mxc_spi_slave), 1);
+	mxcs = spi_alloc_slave(struct mxc_spi_slave, bus, cs);
 	if (!mxcs) {
 		puts("mxc_spi: SPI Slave not allocated !\n");
 		return NULL;
 	}
+
+	mxcs->ss_pol = (mode & SPI_CS_HIGH) ? 1 : 0;
 
 	ret = decode_cs(mxcs, cs);
 	if (ret < 0) {
@@ -422,10 +425,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 	cs = ret;
 
-	mxcs->slave.bus = bus;
-	mxcs->slave.cs = cs;
 	mxcs->base = spi_bases[bus];
-	mxcs->ss_pol = (mode & SPI_CS_HIGH) ? 1 : 0;
 
 	ret = spi_cfg_mxc(mxcs, cs, max_hz, mode);
 	if (ret) {

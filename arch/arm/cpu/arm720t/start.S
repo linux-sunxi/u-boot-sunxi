@@ -43,11 +43,7 @@ _start: b	reset
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
 	ldr	pc, _data_abort
-#ifdef CONFIG_LPC2292
-	.word	0xB4405F76 /* 2's complement of the checksum of the vectors */
-#else
 	ldr	pc, _not_used
-#endif
 	ldr	pc, _irq
 	ldr	pc, _fiq
 
@@ -89,7 +85,7 @@ _pad:			.word 0x12345678 /* now 16*4=64 */
 
 .globl _TEXT_BASE
 _TEXT_BASE:
-#ifdef CONFIG_SPL_BUILD
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_TEXT_BASE)
 	.word	CONFIG_SPL_TEXT_BASE
 #else
 	.word	CONFIG_SYS_TEXT_BASE
@@ -107,7 +103,7 @@ _bss_start_ofs:
 
 .globl _bss_end_ofs
 _bss_end_ofs:
-	.word __bss_end__ - _start
+	.word __bss_end - _start
 
 .globl _end_ofs
 _end_ofs:
@@ -151,134 +147,14 @@ reset:
 	bl	cpu_init_crit
 #endif
 
-#ifdef CONFIG_LPC2292
-	bl	lowlevel_init
-#endif
-
-/* Set stackpointer in internal RAM to call board_init_f */
-call_board_init_f:
-	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
-	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
-	ldr	r0,=0x00000000
-	bl	board_init_f
+	bl	_main
 
 /*------------------------------------------------------------------------------*/
 
-/*
- * void relocate_code (addr_sp, gd, addr_moni)
- *
- * This "function" does not return, instead it continues in RAM
- * after relocating the monitor code.
- *
- */
-	.globl	relocate_code
-relocate_code:
-	mov	r4, r0	/* save addr_sp */
-	mov	r5, r1	/* save addr of gd */
-	mov	r6, r2	/* save addr of destination */
+	.globl	c_runtime_cpu_setup
+c_runtime_cpu_setup:
 
-	/* Set up the stack						    */
-stack_setup:
-	mov	sp, r4
-
-	adr	r0, _start
-	cmp	r0, r6
-	moveq	r9, #0		/* no relocation. relocation offset(r9) = 0 */
-	beq	clear_bss		/* skip relocation */
-	mov	r1, r6			/* r1 <- scratch for copy_loop */
-	ldr	r3, _bss_start_ofs
-	add	r2, r0, r3		/* r2 <- source end address	    */
-
-copy_loop:
-	ldmia	r0!, {r9-r10}		/* copy from source address [r0]    */
-	stmia	r1!, {r9-r10}		/* copy to   target address [r1]    */
-	cmp	r0, r2			/* until source end address [r2]    */
-	blo	copy_loop
-
-#ifndef CONFIG_SPL_BUILD
-	/*
-	 * fix .rel.dyn relocations
-	 */
-	ldr	r0, _TEXT_BASE		/* r0 <- Text base */
-	sub	r9, r6, r0		/* r9 <- relocation offset */
-	ldr	r10, _dynsym_start_ofs	/* r10 <- sym table ofs */
-	add	r10, r10, r0		/* r10 <- sym table in FLASH */
-	ldr	r2, _rel_dyn_start_ofs	/* r2 <- rel dyn start ofs */
-	add	r2, r2, r0		/* r2 <- rel dyn start in FLASH */
-	ldr	r3, _rel_dyn_end_ofs	/* r3 <- rel dyn end ofs */
-	add	r3, r3, r0		/* r3 <- rel dyn end in FLASH */
-fixloop:
-	ldr	r0, [r2]		/* r0 <- location to fix up, IN FLASH! */
-	add	r0, r0, r9		/* r0 <- location to fix up in RAM */
-	ldr	r1, [r2, #4]
-	and	r7, r1, #0xff
-	cmp	r7, #23			/* relative fixup? */
-	beq	fixrel
-	cmp	r7, #2			/* absolute fixup? */
-	beq	fixabs
-	/* ignore unknown type of fixup */
-	b	fixnext
-fixabs:
-	/* absolute fix: set location to (offset) symbol value */
-	mov	r1, r1, LSR #4		/* r1 <- symbol index in .dynsym */
-	add	r1, r10, r1		/* r1 <- address of symbol in table */
-	ldr	r1, [r1, #4]		/* r1 <- symbol value */
-	add	r1, r1, r9		/* r1 <- relocated sym addr */
-	b	fixnext
-fixrel:
-	/* relative fix: increase location by offset */
-	ldr	r1, [r0]
-	add	r1, r1, r9
-fixnext:
-	str	r1, [r0]
-	add	r2, r2, #8		/* each rel.dyn entry is 8 bytes */
-	cmp	r2, r3
-	blo	fixloop
-#endif
-
-clear_bss:
-#ifndef CONFIG_SPL_BUILD
-	ldr	r0, _bss_start_ofs
-	ldr	r1, _bss_end_ofs
-	mov	r4, r6			/* reloc addr */
-	add	r0, r0, r4
-	add	r1, r1, r4
-	mov	r2, #0x00000000		/* clear			    */
-
-clbss_l:cmp	r0, r1			/* clear loop... */
-	bhs	clbss_e			/* if reached end of bss, exit */
-	str	r2, [r0]
-	add	r0, r0, #4
-	b	clbss_l
-clbss_e:
-
-	bl coloured_LED_init
-	bl red_led_on
-#endif
-
-/*
- * We are done. Do not return, instead branch to second part of board
- * initialization, now running from RAM.
- */
-	ldr	r0, _board_init_r_ofs
-	adr	r1, _start
-	add	lr, r0, r1
-	add	lr, lr, r9
-	/* setup parameters for board_init_r */
-	mov	r0, r5		/* gd_t */
-	mov	r1, r6		/* dest_addr */
-	/* jump to it ... */
 	mov	pc, lr
-
-_board_init_r_ofs:
-	.word board_init_r - _start
-
-_rel_dyn_start_ofs:
-	.word __rel_dyn_start - _start
-_rel_dyn_end_ofs:
-	.word __rel_dyn_end - _start
-_dynsym_start_ofs:
-	.word __dynsym_start - _start
 
 /*
  *************************************************************************
@@ -291,148 +167,9 @@ _dynsym_start_ofs:
  *************************************************************************
  */
 
-#if defined(CONFIG_LPC2292)
-PLLCFG_ADR:	.word	PLLCFG
-PLLFEED_ADR:	.word	PLLFEED
-PLLCON_ADR:	.word	PLLCON
-PLLSTAT_ADR:	.word	PLLSTAT
-VPBDIV_ADR:	.word	VPBDIV
-MEMMAP_ADR:	.word	MEMMAP
-
-#endif
-
+#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 cpu_init_crit:
-#if defined(CONFIG_NETARM)
-	/*
-	 * prior to software reset : need to set pin PORTC4 to be *HRESET
-	 */
-	ldr	r0, =NETARM_GEN_MODULE_BASE
-	ldr	r1, =(NETARM_GEN_PORT_MODE(0x10) | \
-			NETARM_GEN_PORT_DIR(0x10))
-	str	r1, [r0, #+NETARM_GEN_PORTC]
-	/*
-	 * software reset : see HW Ref. Guide 8.2.4 : Software Service register
-	 *		    for an explanation of this process
-	 */
-	ldr	r0, =NETARM_GEN_MODULE_BASE
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETA
-	str	r1, [r0, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETB
-	str	r1, [r0, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETA
-	str	r1, [r0, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETB
-	str	r1, [r0, #+NETARM_GEN_SOFTWARE_SERVICE]
-	/*
-	 * setup PLL and System Config
-	 */
-	ldr	r0, =NETARM_GEN_MODULE_BASE
 
-	ldr	r1, =(	NETARM_GEN_SYS_CFG_LENDIAN | \
-			NETARM_GEN_SYS_CFG_BUSFULL | \
-			NETARM_GEN_SYS_CFG_USER_EN | \
-			NETARM_GEN_SYS_CFG_ALIGN_ABORT | \
-			NETARM_GEN_SYS_CFG_BUSARB_INT | \
-			NETARM_GEN_SYS_CFG_BUSMON_EN )
-
-	str	r1, [r0, #+NETARM_GEN_SYSTEM_CONTROL]
-
-#ifndef CONFIG_NETARM_PLL_BYPASS
-	ldr	r1, =(	NETARM_GEN_PLL_CTL_PLLCNT(NETARM_PLL_COUNT_VAL) | \
-			NETARM_GEN_PLL_CTL_POLTST_DEF | \
-			NETARM_GEN_PLL_CTL_INDIV(1) | \
-			NETARM_GEN_PLL_CTL_ICP_DEF | \
-			NETARM_GEN_PLL_CTL_OUTDIV(2) )
-	str	r1, [r0, #+NETARM_GEN_PLL_CONTROL]
-#endif
-
-	/*
-	 * mask all IRQs by clearing all bits in the INTMRs
-	 */
-	mov	r1, #0
-	ldr	r0, =NETARM_GEN_MODULE_BASE
-	str	r1, [r0, #+NETARM_GEN_INTR_ENABLE]
-
-#elif defined(CONFIG_S3C4510B)
-
-	/*
-	 * Mask off all IRQ sources
-	 */
-	ldr	r1, =REG_INTMASK
-	ldr	r0, =0x3FFFFF
-	str	r0, [r1]
-
-	/*
-	 * Disable Cache
-	 */
-	ldr r0, =REG_SYSCFG
-	ldr r1, =0x83ffffa0	/* cache-disabled  */
-	str r1, [r0]
-
-#elif defined(CONFIG_INTEGRATOR) && defined(CONFIG_ARCH_INTEGRATOR)
-	/* No specific initialisation for IntegratorAP/CM720T as yet */
-#elif defined(CONFIG_LPC2292)
-	/* Set-up PLL */
-	mov	r3, #0xAA
-	mov	r4, #0x55
-	/* First disconnect and disable the PLL */
-	ldr	r0, PLLCON_ADR
-	mov	r1, #0x00
-	str	r1, [r0]
-	ldr	r0, PLLFEED_ADR /* start feed sequence */
-	str	r3, [r0]
-	str	r4, [r0]	/* feed sequence done */
-	/* Set new M and P values */
-	ldr	r0, PLLCFG_ADR
-	mov	r1, #0x23	/* M=4 and P=2 */
-	str	r1, [r0]
-	ldr	r0, PLLFEED_ADR /* start feed sequence */
-	str	r3, [r0]
-	str	r4, [r0]	/* feed sequence done */
-	/* Then enable the PLL */
-	ldr	r0, PLLCON_ADR
-	mov	r1, #0x01	/* PLL enable bit */
-	str	r1, [r0]
-	ldr	r0, PLLFEED_ADR /* start feed sequence */
-	str	r3, [r0]
-	str	r4, [r0]	/* feed sequence done */
-	/* Wait for the lock */
-	ldr	r0, PLLSTAT_ADR
-	mov	r1, #0x400	/* lock bit */
-lock_loop:
-	ldr	r2, [r0]
-	and	r2, r1, r2
-	cmp	r2, #0
-	beq	lock_loop
-	/* And finally connect the PLL */
-	ldr	r0, PLLCON_ADR
-	mov	r1, #0x03	/* PLL enable bit and connect bit */
-	str	r1, [r0]
-	ldr	r0, PLLFEED_ADR /* start feed sequence */
-	str	r3, [r0]
-	str	r4, [r0]	/* feed sequence done */
-	/* Set-up VPBDIV register */
-	ldr	r0, VPBDIV_ADR
-	mov	r1, #0x01	/* VPB clock is same as process clock */
-	str	r1, [r0]
-#elif defined(CONFIG_TEGRA)
-	/* No cpu_init_crit for tegra as yet */
-#else
-#error No cpu_init_crit() defined for current CPU type
-#endif
-
-#ifdef CONFIG_ARM7_REVD
-	/* set clock speed */
-	/* !!! we run @ 36 MHz due to a hardware flaw in Rev. D processors */
-	/* !!! not doing DRAM refresh properly! */
-	ldr	r0, SYSCON3
-	ldr	r1, [r0]
-	bic	r1, r1, #CLKCTL
-	orr	r1, r1, #CLKCTL_36
-	str	r1, [r0]
-#endif
-
-#if !defined(CONFIG_LPC2292) && !defined(CONFIG_TEGRA)
 	mov	ip, lr
 	/*
 	 * before relocating, we have to setup RAM timing
@@ -441,9 +178,9 @@ lock_loop:
 	 */
 	bl	lowlevel_init
 	mov	lr, ip
-#endif
 
 	mov	pc, lr
+#endif /* CONFIG_SKIP_LOWLEVEL_INIT */
 
 
 #ifndef CONFIG_SPL_BUILD
@@ -610,39 +347,3 @@ fiq:
 
 #endif
 #endif /* CONFIG_SPL_BUILD */
-
-#if defined(CONFIG_NETARM)
-	.align	5
-.globl reset_cpu
-reset_cpu:
-	ldr	r1, =NETARM_MEM_MODULE_BASE
-	ldr	r0, [r1, #+NETARM_MEM_CS0_BASE_ADDR]
-	ldr	r1, =0xFFFFF000
-	and	r0, r1, r0
-	ldr	r1, =(relocate-CONFIG_SYS_TEXT_BASE)
-	add	r0, r1, r0
-	ldr	r4, =NETARM_GEN_MODULE_BASE
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETA
-	str	r1, [r4, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETB
-	str	r1, [r4, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETA
-	str	r1, [r4, #+NETARM_GEN_SOFTWARE_SERVICE]
-	ldr	r1, =NETARM_GEN_SW_SVC_RESETB
-	str	r1, [r4, #+NETARM_GEN_SOFTWARE_SERVICE]
-	mov	pc, r0
-#elif defined(CONFIG_S3C4510B)
-/* Nothing done here as reseting the CPU is board specific, depending
- * on external peripherals such as watchdog timers, etc. */
-#elif defined(CONFIG_INTEGRATOR) && defined(CONFIG_ARCH_INTEGRATOR)
-	/* No specific reset actions for IntegratorAP/CM720T as yet */
-#elif defined(CONFIG_LPC2292)
-	.align	5
-.globl reset_cpu
-reset_cpu:
-	mov	pc, r0
-#elif defined(CONFIG_TEGRA)
-	/* No specific reset actions for tegra as yet */
-#else
-#error No reset_cpu() defined for current CPU type
-#endif

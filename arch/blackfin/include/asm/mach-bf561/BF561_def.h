@@ -690,6 +690,7 @@
 #define PPI1_FRAME                     0xFFC01310
 #define UART_THR                       0xFFC00400
 #define UART_RBR                       0xFFC00400
+#define UART0_RBR                      UART_RBR
 #define UART_DLL                       0xFFC00400
 #define UART_DLH                       0xFFC00404
 #define UART_IER                       0xFFC00404
@@ -712,5 +713,7 @@
 #define L1_INST_SRAM 0xFFA00000 /* 0xFFA00000 -> 0xFFA03FFF Instruction Bank A SRAM */
 #define L1_INST_SRAM_SIZE (0xFFA03FFF - 0xFFA00000 + 1)
 #define L1_INST_SRAM_END (L1_INST_SRAM + L1_INST_SRAM_SIZE)
+
+#define COREB_L1_CODE_START       0xFF600000
 
 #endif /* __BFIN_DEF_ADSP_BF561_proc__ */

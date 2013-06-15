@@ -30,16 +30,22 @@
 #include <linux/compiler.h>
 
 #define SD_VERSION_SD	0x20000
-#define SD_VERSION_2	(SD_VERSION_SD | 0x20)
-#define SD_VERSION_1_0	(SD_VERSION_SD | 0x10)
-#define SD_VERSION_1_10	(SD_VERSION_SD | 0x1a)
+#define SD_VERSION_3	(SD_VERSION_SD | 0x300)
+#define SD_VERSION_2	(SD_VERSION_SD | 0x200)
+#define SD_VERSION_1_0	(SD_VERSION_SD | 0x100)
+#define SD_VERSION_1_10	(SD_VERSION_SD | 0x10a)
 #define MMC_VERSION_MMC		0x10000
 #define MMC_VERSION_UNKNOWN	(MMC_VERSION_MMC)
-#define MMC_VERSION_1_2		(MMC_VERSION_MMC | 0x12)
-#define MMC_VERSION_1_4		(MMC_VERSION_MMC | 0x14)
-#define MMC_VERSION_2_2		(MMC_VERSION_MMC | 0x22)
-#define MMC_VERSION_3		(MMC_VERSION_MMC | 0x30)
-#define MMC_VERSION_4		(MMC_VERSION_MMC | 0x40)
+#define MMC_VERSION_1_2		(MMC_VERSION_MMC | 0x102)
+#define MMC_VERSION_1_4		(MMC_VERSION_MMC | 0x104)
+#define MMC_VERSION_2_2		(MMC_VERSION_MMC | 0x202)
+#define MMC_VERSION_3		(MMC_VERSION_MMC | 0x300)
+#define MMC_VERSION_4		(MMC_VERSION_MMC | 0x400)
+#define MMC_VERSION_4_1		(MMC_VERSION_MMC | 0x401)
+#define MMC_VERSION_4_2		(MMC_VERSION_MMC | 0x402)
+#define MMC_VERSION_4_3		(MMC_VERSION_MMC | 0x403)
+#define MMC_VERSION_4_41	(MMC_VERSION_MMC | 0x429)
+#define MMC_VERSION_4_5		(MMC_VERSION_MMC | 0x405)
 
 #define MMC_MODE_HS		0x001
 #define MMC_MODE_HS_52MHz	0x010
@@ -62,6 +68,7 @@
 #define UNUSABLE_ERR		-17 /* Unusable Card */
 #define COMM_ERR		-18 /* Communications Error */
 #define TIMEOUT			-19
+#define IN_PROGRESS		-20 /* operation is in progress */
 
 #define MMC_CMD_GO_IDLE_STATE		0
 #define MMC_CMD_SEND_OP_COND		1
@@ -201,6 +208,9 @@
 #define PART_ACCESS_MASK	(0x7)
 #define PART_SUPPORT		(0x1)
 
+/* Maximum block size for MMC */
+#define MMC_MAX_BLOCK_LEN	512
+
 struct mmc_cid {
 	unsigned long psn;
 	unsigned short oid;
@@ -259,7 +269,12 @@ struct mmc {
 	void (*set_ios)(struct mmc *mmc);
 	int (*init)(struct mmc *mmc);
 	int (*getcd)(struct mmc *mmc);
+	int (*getwp)(struct mmc *mmc);
 	uint b_max;
+	char op_cond_pending;	/* 1 if we are waiting on an op_cond command */
+	char init_in_progress;	/* 1 if we have done mmc_start_init() */
+	char preinit;		/* start init as early as possible */
+	uint op_cond_response;	/* the response byte from the last op_cond */
 };
 
 int mmc_register(struct mmc *mmc);
@@ -274,7 +289,33 @@ int get_mmc_num(void);
 int board_mmc_getcd(struct mmc *mmc);
 int mmc_switch_part(int dev_num, unsigned int part_num);
 int mmc_getcd(struct mmc *mmc);
+int mmc_getwp(struct mmc *mmc);
 void spl_mmc_load(void) __noreturn;
+
+/**
+ * Start device initialization and return immediately; it does not block on
+ * polling OCR (operation condition register) status.  Then you should call
+ * mmc_init, which would block on polling OCR status and complete the device
+ * initializatin.
+ *
+ * @param mmc	Pointer to a MMC device struct
+ * @return 0 on success, IN_PROGRESS on waiting for OCR status, <0 on error.
+ */
+int mmc_start_init(struct mmc *mmc);
+
+/**
+ * Set preinit flag of mmc device.
+ *
+ * This will cause the device to be pre-inited during mmc_initialize(),
+ * which may save boot time if the device is not accessed until later.
+ * Some eMMC devices take 200-300ms to init, but unfortunately they
+ * must be sent a series of commands to even get them to start preparing
+ * for operation.
+ *
+ * @param mmc		Pointer to a MMC device struct
+ * @param preinit	preinit flag value
+ */
+void mmc_set_preinit(struct mmc *mmc, int preinit);
 
 #ifdef CONFIG_GENERIC_MMC
 #define mmc_host_is_spi(mmc)	((mmc)->host_caps & MMC_MODE_SPI)

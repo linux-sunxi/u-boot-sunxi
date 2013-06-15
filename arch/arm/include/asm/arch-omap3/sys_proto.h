@@ -32,6 +32,15 @@ struct emu_hal_params {
 	u32 param1;
 };
 
+/* Board SDRC timing values */
+struct board_sdrc_timings {
+	u32 mcfg;
+	u32 ctrla;
+	u32 ctrlb;
+	u32 rfr_ctrl;
+	u32 mr;
+};
+
 void prcm_init(void);
 void per_clocks_enable(void);
 void ehci_clocks_enable(void);
@@ -39,8 +48,8 @@ void ehci_clocks_enable(void);
 void memif_init(void);
 void sdrc_init(void);
 void do_sdrc_init(u32, u32);
-void get_board_mem_timings(u32 *mcfg, u32 *ctrla, u32 *ctrlb, u32 *rfr_ctrl,
-		u32 *mr);
+
+void get_board_mem_timings(struct board_sdrc_timings *timings);
 void identify_nand_chip(int *mfr, int *id);
 void emif4_init(void);
 void gpmc_init(void);
@@ -69,7 +78,7 @@ void sr32(void *, u32, u32, u32);
 u32 wait_on_value(u32, u32, void *, u32);
 void sdelay(unsigned long);
 void make_cs1_contiguous(void);
-void omap_nand_switch_ecc(int);
+void omap_nand_switch_ecc(uint32_t, uint32_t);
 void power_init_r(void);
 void dieid_num_r(void);
 void do_omap3_emu_romcode_call(u32 service_id, u32 parameters);

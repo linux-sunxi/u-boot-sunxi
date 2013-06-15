@@ -13,7 +13,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -39,11 +39,11 @@ struct sunxi_lradc {
 #define LRADC_HOLD_EN             0x1    /* sample hold enable */
 #define KEY_MODE_SELECT           0x0    /* normal mode */
 
-#define ADC0_DATA_PENDING         (1 << 0)    /* adc0 has data */
-#define ADC0_KEYDOWN_PENDING      (1 << 1)    /* key down */
-#define ADC0_HOLDKEY_PENDING      (1 << 2)    /* key hold */
-#define ADC0_ALRDY_HOLD_PENDING   (1 << 3)    /* key already hold */
-#define ADC0_KEYUP_PENDING        (1 << 4)    /* key up */
+#define ADC0_DATA_PENDING         (0x1 << 0)    /* adc0 has data */
+#define ADC0_KEYDOWN_PENDING      (0x1 << 1)    /* key down */
+#define ADC0_HOLDKEY_PENDING      (0x1 << 2)    /* key hold */
+#define ADC0_ALRDY_HOLD_PENDING   (0x1 << 3)    /* key already hold */
+#define ADC0_KEYUP_PENDING        (0x1 << 4)    /* key up */
 
 int sunxi_key_init(void);
 u32 sunxi_read_key(void);

@@ -13,7 +13,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -30,7 +30,15 @@
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
+#ifdef CONFIG_SUN4I
+	puts("CPU:   Allwinner A10 (SUN4I)\n");
+#elif defined CONFIG_SUN5I
+	/* TODO: Distinguish A13/A10s */
+	puts("CPU:   Allwinner A13/A10s (SUN5I)\n");
+#else
+#warning Please update cpu_info.c with correct CPU information
 	puts("CPU:   SUNXI Family\n");
+#endif
 	return 0;
 }
 #endif

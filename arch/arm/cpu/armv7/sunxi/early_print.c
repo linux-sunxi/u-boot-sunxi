@@ -15,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -31,29 +31,35 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
 
-int uart0_init(void) {
+static int uart_initialized = 0;
+
+#define UART	CONFIG_CONS_INDEX-1
+void uart_init(void) {
 
 	/* select dll dlh */
-	writel(0x80, UART0_LCR);
+	writel(UART_LCR_DLAB, UART_LCR(UART));
 	/* set baudrate */
-	writel(0, UART0_DLH);
-	writel(BAUD_115200, UART0_DLL);
+	writel(0, UART_DLH(UART));
+	writel(BAUD_115200, UART_DLL(UART));
 	/* set line control */
-	writel(LC_8_N_1, UART0_LCR);
+	writel(LC_8_N_1, UART_LCR(UART));
 
-	return 0;
+	uart_initialized = 1;
 }
 
-#define TX_READY (readl(UART0_LSR) & (1 << 6))
-void uart0_putc(char c) {
+#define TX_READY (readl(UART_LSR(UART)) & UART_LSR_TEMT)
 
-	while(!TX_READY)
+void uart_putc(char c) {
+
+	while (!TX_READY)
 		;
-	writel(c, UART0_THR);
+	writel(c, UART_THR(UART));
 }
 
-void uart0_puts(const char *s) {
+void uart_puts(const char *s) {
 
-	while(*s)
-		uart0_putc(*s++);
+	while (*s)
+		uart_putc(*s++);
 }
+
+

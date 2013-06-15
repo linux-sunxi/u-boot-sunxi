@@ -201,7 +201,7 @@
   MORECORE_FAILURE          (default: -1)
      The value returned upon failure of MORECORE.
   MORECORE_CLEARS           (default 1)
-     True (1) if the routine mapped to MORECORE zeroes out memory (which
+     true (1) if the routine mapped to MORECORE zeroes out memory (which
      holds for sbrk).
   DEFAULT_TRIM_THRESHOLD
   DEFAULT_TOP_PAD
@@ -1465,7 +1465,7 @@ typedef struct malloc_chunk* mbinptr;
 #define IAV(i)  bin_at(i), bin_at(i)
 
 static mbinptr av_[NAV * 2 + 2] = {
- 0, 0,
+ NULL, NULL,
  IAV(0),   IAV(1),   IAV(2),   IAV(3),   IAV(4),   IAV(5),   IAV(6),   IAV(7),
  IAV(8),   IAV(9),   IAV(10),  IAV(11),  IAV(12),  IAV(13),  IAV(14),  IAV(15),
  IAV(16),  IAV(17),  IAV(18),  IAV(19),  IAV(20),  IAV(21),  IAV(22),  IAV(23),
@@ -1485,7 +1485,7 @@ static mbinptr av_[NAV * 2 + 2] = {
 };
 
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
-void malloc_bin_reloc (void)
+static void malloc_bin_reloc(void)
 {
 	mbinptr *p = &av_[2];
 	size_t i;
@@ -1493,6 +1493,8 @@ void malloc_bin_reloc (void)
 	for (i = 2; i < ARRAY_SIZE(av_); ++i, ++p)
 		*p = (mbinptr)((ulong)*p + gd->reloc_off);
 }
+#else
+static inline void malloc_bin_reloc(void) {}
 #endif
 
 ulong mem_malloc_start = 0;
@@ -1526,6 +1528,8 @@ void mem_malloc_init(ulong start, ulong size)
 	mem_malloc_brk = start;
 
 	memset((void *)mem_malloc_start, 0, size);
+
+	malloc_bin_reloc();
 }
 
 /* field-extraction macros */
@@ -2173,10 +2177,10 @@ Void_t* mALLOc(bytes) size_t bytes;
   /* check if mem_malloc_init() was run */
   if ((mem_malloc_start == 0) && (mem_malloc_end == 0)) {
     /* not initialized yet */
-    return 0;
+    return NULL;
   }
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   nb = request2size(bytes);  /* padded request size; */
 
@@ -2379,7 +2383,7 @@ Void_t* mALLOc(bytes) size_t bytes;
     /* Try to extend */
     malloc_extend_top(nb);
     if ( (remainder_size = chunksize(top) - nb) < (long)MINSIZE)
-      return 0; /* propagate failure */
+      return NULL; /* propagate failure */
   }
 
   victim = top;
@@ -2433,7 +2437,7 @@ void fREe(mem) Void_t* mem;
   mchunkptr fwd;       /* misc temp for linking */
   int       islr;      /* track whether merging with last_remainder */
 
-  if (mem == 0)                              /* free(0) has no effect */
+  if (mem == NULL)                              /* free(0) has no effect */
     return;
 
   p = mem2chunk(mem);
@@ -2579,10 +2583,10 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
   if (bytes == 0) { fREe(oldmem); return 0; }
 #endif
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   /* realloc of null is supposed to be same as malloc */
-  if (oldmem == 0) return mALLOc(bytes);
+  if (oldmem == NULL) return mALLOc(bytes);
 
   newp    = oldp    = mem2chunk(oldmem);
   newsize = oldsize = chunksize(oldp);
@@ -2643,7 +2647,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
     }
     else
     {
-      next = 0;
+      next = NULL;
       nextsize = 0;
     }
 
@@ -2656,7 +2660,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
       /* try forward + backward first to save a later consolidation */
 
-      if (next != 0)
+      if (next != NULL)
       {
 	/* into top */
 	if (next == top)
@@ -2689,7 +2693,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
       }
 
       /* backward only */
-      if (prev != 0 && (long)(prevsize + newsize) >= (long)nb)
+      if (prev != NULL && (long)(prevsize + newsize) >= (long)nb)
       {
 	unlink(prev, bck, fwd);
 	newp = prev;
@@ -2704,8 +2708,8 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
     newmem = mALLOc (bytes);
 
-    if (newmem == 0)  /* propagate failure */
-      return 0;
+    if (newmem == NULL)  /* propagate failure */
+      return NULL;
 
     /* Avoid copy if newp is next chunk after oldp. */
     /* (This can only happen when new chunk is sbrk'ed.) */
@@ -2783,7 +2787,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   mchunkptr remainder;        /* spare room at end to split off */
   long      remainder_size;   /* its size */
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   /* If need less alignment than we give anyway, just relay to malloc */
 
@@ -2798,7 +2802,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   nb = request2size(bytes);
   m  = (char*)(mALLOc(nb + alignment + MINSIZE));
 
-  if (m == 0) return 0; /* propagate failure */
+  if (m == NULL) return NULL; /* propagate failure */
 
   p = mem2chunk(m);
 
@@ -2923,10 +2927,10 @@ Void_t* cALLOc(n, elem_size) size_t n; size_t elem_size;
 #endif
   Void_t* mem = mALLOc (sz);
 
-  if ((long)n < 0) return 0;
+  if ((long)n < 0) return NULL;
 
-  if (mem == 0)
-    return 0;
+  if (mem == NULL)
+    return NULL;
   else
   {
     p = mem2chunk(mem);
@@ -3072,7 +3076,7 @@ size_t malloc_usable_size(mem) Void_t* mem;
 #endif
 {
   mchunkptr p;
-  if (mem == 0)
+  if (mem == NULL)
     return 0;
   else
   {

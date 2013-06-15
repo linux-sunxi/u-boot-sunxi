@@ -31,9 +31,8 @@
 #include <asm/utils.h>
 
 #ifndef CONFIG_SYS_EMIF_PRECALCULATED_TIMING_REGS
-u32 *const T_num = (u32 *)OMAP4_SRAM_SCRATCH_EMIF_T_NUM;
-u32 *const T_den = (u32 *)OMAP4_SRAM_SCRATCH_EMIF_T_DEN;
-u32 *const emif_sizes = (u32 *)OMAP4_SRAM_SCRATCH_EMIF_SIZE;
+u32 *const T_num = (u32 *)OMAP_SRAM_SCRATCH_EMIF_T_NUM;
+u32 *const T_den = (u32 *)OMAP_SRAM_SCRATCH_EMIF_T_DEN;
 #endif
 
 #ifdef CONFIG_SYS_DEFAULT_LPDDR2_TIMINGS

@@ -30,15 +30,31 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/sys_proto.h>
 #include <watchdog.h>
-#include <pmic.h>
+#include <power/pmic.h>
 #include <fsl_pmic.h>
+#include <errno.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifdef CONFIG_HW_WATCHDOG
-void hw_watchdog_reset(void)
+#ifdef CONFIG_SPL_BUILD
+void board_init_f(ulong bootflag)
 {
-	mxc_hw_watchdog_reset();
+	/*
+	 * copy ourselves from where we are running to where we were
+	 * linked at. Use ulong pointers as all addresses involved
+	 * are 4-byte-aligned.
+	 */
+	ulong *start_ptr, *end_ptr, *link_ptr, *run_ptr, *dst;
+	asm volatile ("ldr %0, =_start" : "=r"(start_ptr));
+	asm volatile ("ldr %0, =_end" : "=r"(end_ptr));
+	asm volatile ("ldr %0, =board_init_f" : "=r"(link_ptr));
+	asm volatile ("adr %0, board_init_f" : "=r"(run_ptr));
+	for (dst = start_ptr; dst < end_ptr; dst++)
+		*dst = *(dst+(run_ptr-link_ptr));
+	/*
+	 * branch to nand_boot's link-time address.
+	 */
+	asm volatile("ldr pc, =nand_boot");
 }
 #endif
 
@@ -83,16 +99,21 @@ int board_late_init(void)
 {
 	u32 val;
 	struct pmic *p;
+	int ret;
 
-	pmic_init();
-	p = get_pmic();
+	ret = pmic_init(I2C_PMIC);
+	if (ret)
+		return ret;
 
+	p = pmic_get("FSL_PMIC");
+	if (!p)
+		return -ENODEV;
 	/* Enable RTC battery */
 	pmic_reg_read(p, REG_POWER_CTL0, &val);
 	pmic_reg_write(p, REG_POWER_CTL0, val | COINCHEN);
 	pmic_reg_write(p, REG_INT_STATUS1, RTCRSTI);
 #ifdef CONFIG_HW_WATCHDOG
-	mxc_hw_watchdog_enable();
+	hw_watchdog_init();
 #endif
 	return 0;
 }

@@ -37,8 +37,8 @@ SECTIONS
 	. = ALIGN(4);
 	.text	:
 	{
-		arch/arm/cpu/arm926ejs/mxs/start.o	(.text)
-		*(.text)
+		arch/arm/cpu/arm926ejs/mxs/start.o	(.text*)
+		*(.text*)
 	}
 
 	. = ALIGN(4);
@@ -46,13 +46,8 @@ SECTIONS
 
 	. = ALIGN(4);
 	.data : {
-		*(.data)
+		*(.data*)
 	}
-
-	. = ALIGN(4);
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
-	__u_boot_cmd_end = .;
 
 	. = ALIGN(4);
 
@@ -72,7 +67,7 @@ SECTIONS
 		__bss_start = .;
 		*(.bss*)
 		. = ALIGN(4);
-		__bss_end__ = .;
+		__bss_end = .;
 	}
 
 	_end = .;

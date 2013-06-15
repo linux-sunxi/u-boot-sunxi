@@ -31,12 +31,6 @@
 
 #include <usb.h>
 
-#ifdef	USB_KBD_DEBUG
-#define USB_KBD_PRINTF(fmt, args...)	printf(fmt, ##args)
-#else
-#define USB_KBD_PRINTF(fmt, args...)
-#endif
-
 /*
  * If overwrite_console returns 1, the stdin, stderr and stdout
  * are switched to the serial port, else the settings in the
@@ -94,6 +88,15 @@ static const unsigned char usb_kbd_num_keypad[] = {
 };
 
 /*
+ * map arrow keys to ^F/^B ^N/^P, can't really use the proper
+ * ANSI sequence for arrow keys because the queuing code breaks
+ * when a single keypress expands to 3 queue elements
+ */
+static const unsigned char usb_kbd_arrow[] = {
+	0x6, 0x2, 0xe, 0x10
+};
+
+/*
  * NOTE: It's important for the NUM, CAPS, SCROLL-lock bits to be in this
  *       order. See usb_kbd_setled() function!
  */
@@ -112,7 +115,7 @@ struct usb_kbd_pdata {
 	uint32_t	usb_out_pointer;
 	uint8_t		usb_kbd_buffer[USB_KBD_BUFFER_LEN];
 
-	uint8_t		new[8];
+	uint8_t		*new;
 	uint8_t		old[8];
 
 	uint8_t		flags;
@@ -224,6 +227,10 @@ static int usb_kbd_translate(struct usb_kbd_pdata *data, unsigned char scancode,
 			keycode = usb_kbd_numkey[scancode - 0x1e];
 	}
 
+	/* Arrow keys */
+	if ((scancode >= 0x4f) && (scancode <= 0x52))
+		keycode = usb_kbd_arrow[scancode - 0x4f];
+
 	/* Numeric keypad */
 	if ((scancode >= 0x54) && (scancode <= 0x67))
 		keycode = usb_kbd_num_keypad[scancode - 0x54];
@@ -249,7 +256,7 @@ static int usb_kbd_translate(struct usb_kbd_pdata *data, unsigned char scancode,
 
 	/* Report keycode if any */
 	if (keycode) {
-		USB_KBD_PRINTF("%c", keycode);
+		debug("%c", keycode);
 		usb_kbd_put_queue(data, keycode);
 	}
 
@@ -311,8 +318,8 @@ static int usb_kbd_irq_worker(struct usb_device *dev)
 static int usb_kbd_irq(struct usb_device *dev)
 {
 	if ((dev->irq_status != 0) || (dev->irq_act_len != 8)) {
-		USB_KBD_PRINTF("USB KBD: Error %lX, len %d\n",
-				dev->irq_status, dev->irq_act_len);
+		debug("USB KBD: Error %lX, len %d\n",
+		      dev->irq_status, dev->irq_act_len);
 		return 1;
 	}
 
@@ -424,7 +431,7 @@ static int usb_kbd_probe(struct usb_device *dev, unsigned int ifnum)
 	if ((ep->bmAttributes & 3) != 3)
 		return 0;
 
-	USB_KBD_PRINTF("USB KBD: found set protocol...\n");
+	debug("USB KBD: found set protocol...\n");
 
 	data = malloc(sizeof(struct usb_kbd_pdata));
 	if (!data) {
@@ -434,6 +441,9 @@ static int usb_kbd_probe(struct usb_device *dev, unsigned int ifnum)
 
 	/* Clear private data */
 	memset(data, 0, sizeof(struct usb_kbd_pdata));
+
+	/* allocate input buffer aligned and sized to USB DMA alignment */
+	data->new = memalign(USB_DMA_MINALIGN, roundup(8, USB_DMA_MINALIGN));
 
 	/* Insert private data into USB device structure */
 	dev->privptr = data;
@@ -447,10 +457,10 @@ static int usb_kbd_probe(struct usb_device *dev, unsigned int ifnum)
 	/* We found a USB Keyboard, install it. */
 	usb_set_protocol(dev, iface->desc.bInterfaceNumber, 0);
 
-	USB_KBD_PRINTF("USB KBD: found set idle...\n");
+	debug("USB KBD: found set idle...\n");
 	usb_set_idle(dev, iface->desc.bInterfaceNumber, REPEAT_RATE, 0);
 
-	USB_KBD_PRINTF("USB KBD: enable interrupt pipe...\n");
+	debug("USB KBD: enable interrupt pipe...\n");
 	usb_submit_int_msg(dev, pipe, data->new, maxp > 8 ? 8 : maxp,
 				ep->bInterval);
 
@@ -481,16 +491,16 @@ int drv_usb_kbd_init(void)
 			continue;
 
 		/* We found a keyboard, check if it is already registered. */
-		USB_KBD_PRINTF("USB KBD: found set up device.\n");
+		debug("USB KBD: found set up device.\n");
 		old_dev = stdio_get_by_name(DEVNAME);
 		if (old_dev) {
 			/* Already registered, just return ok. */
-			USB_KBD_PRINTF("USB KBD: is already registered.\n");
+			debug("USB KBD: is already registered.\n");
 			return 1;
 		}
 
 		/* Register the keyboard */
-		USB_KBD_PRINTF("USB KBD: register.\n");
+		debug("USB KBD: register.\n");
 		memset(&usb_kbd_dev, 0, sizeof(struct stdio_dev));
 		strcpy(usb_kbd_dev.name, DEVNAME);
 		usb_kbd_dev.flags =  DEV_FLAGS_INPUT | DEV_FLAGS_SYSTEM;

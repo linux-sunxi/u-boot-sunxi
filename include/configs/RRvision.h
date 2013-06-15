@@ -110,7 +110,9 @@
 #define	CONFIG_RTC_MPC8xx		/* use internal RTC of MPC8xx	*/
 
 
-#ifndef CONFIG_LCD
+#ifdef CONFIG_LCD
+#define CONFIG_MPC8XX_LCD
+#else
 #define CONFIG_VIDEO		1	/* To enable the video initialization */
 
 /* Video related */
@@ -329,6 +331,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/

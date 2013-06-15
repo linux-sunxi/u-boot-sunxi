@@ -67,12 +67,12 @@ static struct omap_usbhs_board_data usbhs_bdata = {
 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
 };
 
-int ehci_hcd_init(void)
+int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
-	return omap_ehci_hcd_init(&usbhs_bdata);
+	return omap_ehci_hcd_init(&usbhs_bdata, hccr, hcor);
 }
 
-int ehci_hcd_stop(void)
+int ehci_hcd_stop(int index)
 {
 	return omap_ehci_hcd_stop();
 }
@@ -98,9 +98,12 @@ int board_init(void)
 	return 0;
 }
 
+#ifndef CONFIG_SPL_BUILD
 int misc_init_r(void)
 {
 	char *eth_addr;
+	struct tam3517_module_info info;
+	int ret;
 
 	dieid_num_r();
 
@@ -108,12 +111,13 @@ int misc_init_r(void)
 	if (eth_addr)
 		return 0;
 
-#ifndef CONFIG_SPL_BUILD
-	TAM3517_READ_MAC_FROM_EEPROM;
-#endif
+	TAM3517_READ_EEPROM(&info, ret);
+	if (!ret)
+		TAM3517_READ_MAC_FROM_EEPROM(&info);
 
 	return 0;
 }
+#endif
 
 /*
  * Routine: set_muxconf_regs
@@ -143,7 +147,7 @@ int board_eth_init(bd_t *bis)
 	!defined(CONFIG_SPL_BUILD)
 int board_mmc_init(bd_t *bis)
 {
-	return omap_mmc_init(0, 0, 0);
+	return omap_mmc_init(0, 0, 0, -1, -1);
 }
 #endif
 
@@ -161,10 +165,10 @@ void spl_board_prepare_for_linux(void)
 int spl_start_uboot(void)
 {
 	int val = 0;
-	if (!gpio_request(CONFIG_SPL_OS_BOOT_KEY, "U-Boot key")) {
-		gpio_direction_input(CONFIG_SPL_OS_BOOT_KEY);
-		val = gpio_get_value(CONFIG_SPL_OS_BOOT_KEY);
-		gpio_free(CONFIG_SPL_OS_BOOT_KEY);
+	if (!gpio_request(SPL_OS_BOOT_KEY, "U-Boot key")) {
+		gpio_direction_input(SPL_OS_BOOT_KEY);
+		val = gpio_get_value(SPL_OS_BOOT_KEY);
+		gpio_free(SPL_OS_BOOT_KEY);
 	}
 	return val;
 }

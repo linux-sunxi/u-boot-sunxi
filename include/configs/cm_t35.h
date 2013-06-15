@@ -114,9 +114,15 @@
 #define CONFIG_DOS_PARTITION
 
 /* USB */
-#define CONFIG_MUSB_UDC
 #define CONFIG_USB_OMAP3
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_OMAP
+#define CONFIG_USB_ULPI
+#define CONFIG_USB_ULPI_VIEWPORT_OMAP
+#define CONFIG_USB_STORAGE
+#define CONFIG_MUSB_UDC
 #define CONFIG_TWL4030_USB
+#define CONFIG_CMD_USB
 
 /* USB device configuration */
 #define CONFIG_USB_DEVICE
@@ -129,12 +135,12 @@
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_EXT2		/* EXT2 Support			*/
 #define CONFIG_CMD_FAT		/* FAT support			*/
-#define CONFIG_CMD_JFFS2	/* JFFS2 Support		*/
 #define CONFIG_CMD_MTDPARTS	/* Enable MTD parts commands */
 #define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
+#define CONFIG_MTD_PARTITIONS
 #define MTDIDS_DEFAULT		"nand0=nand"
 #define MTDPARTS_DEFAULT	"mtdparts=nand:512k(x-loader),"\
-				"1920k(u-boot),128k(u-boot-env),"\
+				"1920k(u-boot),256k(u-boot-env),"\
 				"4m(kernel),-(fs)"
 
 #define CONFIG_CMD_I2C		/* I2C serial bus support	*/
@@ -151,8 +157,6 @@
 #define CONFIG_HARD_I2C
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_DRIVER_OMAP34XX_I2C
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
@@ -178,16 +182,9 @@
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND */
 							/* devices */
-#define CONFIG_JFFS2_NAND
-/* nand device jffs2 lives on */
-#define CONFIG_JFFS2_DEV		"nand0"
-/* start of jffs2 partition */
-#define CONFIG_JFFS2_PART_OFFSET	0x680000
-#define CONFIG_JFFS2_PART_SIZE		0xf980000	/* size of jffs2 */
-							/* partition */
-
 /* Environment information */
 #define CONFIG_BOOTDELAY		10
+#define CONFIG_ZERO_BOOTDELAY_CHECK
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
@@ -199,9 +196,9 @@
 	"defaultdisplay=dvi\0" \
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 rw\0" \
-	"mmcrootfstype=ext3 rootwait\0" \
+	"mmcrootfstype=ext4 rootwait\0" \
 	"nandroot=/dev/mtdblock4 rw\0" \
-	"nandrootfstype=jffs2\0" \
+	"nandrootfstype=ubifs\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"mpurate=${mpurate} " \
 		"vram=${vram} " \
@@ -227,11 +224,11 @@
 		"bootm ${loadaddr}\0" \
 	"nandboot=echo Booting from nand ...; " \
 		"run nandargs; " \
-		"nand read ${loadaddr} 280000 400000; " \
+		"nand read ${loadaddr} 2a0000 400000; " \
 		"bootm ${loadaddr}\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmc rescan ${mmcdev}; then " \
+	"mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \
@@ -282,32 +279,21 @@
  */
 #define CONFIG_NR_DRAM_BANKS	1	/* CS1 is never populated */
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
 
 /* **** PISMO SUPPORT *** */
-
 /* Configure the PISMO */
 #define PISMO1_NAND_SIZE		GPMC_SIZE_128M
-#define PISMO1_ONEN_SIZE		GPMC_SIZE_128M
-
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
-
-#if defined(CONFIG_CMD_NAND)
-#define CONFIG_SYS_FLASH_BASE		PISMO1_NAND_BASE
-#endif
 
 /* Monitor at start of flash */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
-#define CONFIG_SYS_ONENAND_BASE		ONENAND_MAP
+#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
 #define CONFIG_ENV_IS_IN_NAND
-#define ONENAND_ENV_OFFSET		0x260000 /* environment starts here */
 #define SMNAND_ENV_OFFSET		0x260000 /* environment starts here */
-
 #define CONFIG_ENV_OFFSET		SMNAND_ENV_OFFSET
 #define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
 
@@ -337,9 +323,22 @@
 #define STATUS_LED_BOOT			STATUS_LED_BIT
 #define GREEN_LED_GPIO			186 /* CM-T35 Green LED is GPIO186 */
 
+#define CONFIG_SPLASHIMAGE_GUARD
+
 /* GPIO banks */
 #ifdef CONFIG_STATUS_LED
 #define CONFIG_OMAP3_GPIO_6	/* GPIO186 is in GPIO bank 6  */
 #endif
+
+/* Display Configuration */
+#define CONFIG_OMAP3_GPIO_2
+#define CONFIG_VIDEO_OMAP3
+#define LCD_BPP		LCD_COLOR16
+
+#define CONFIG_LCD
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_CMD_BMP
+#define CONFIG_BMP_16BPP
+#define CONFIG_SPLASH_SCREEN_PREPARE
 
 #endif /* __CONFIG_H */

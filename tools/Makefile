@@ -21,7 +21,7 @@
 # MA 02111-1307 USA
 #
 
-TOOLSUBDIRS =
+TOOLSUBDIRS = kernel-doc
 
 #
 # Include this after HOSTOS HOSTARCH check
@@ -69,8 +69,9 @@ BIN_FILES-$(CONFIG_XWAY_SWAP_BYTES) += xway-swap-bytes$(SFX)
 BIN_FILES-y += mkenvimage$(SFX)
 BIN_FILES-y += mkimage$(SFX)
 BIN_FILES-$(CONFIG_SMDK5250) += mksmdk5250spl$(SFX)
-BIN_FILES-$(CONFIG_MX28) += mxsboot$(SFX)
+BIN_FILES-$(CONFIG_MX23) += mxsboot$(SFX)
 BIN_FILES-$(CONFIG_SUNXI) += mksunxiboot$(SFX)
+BIN_FILES-$(CONFIG_MX28) += mxsboot$(SFX)
 BIN_FILES-$(CONFIG_NETCONSOLE) += ncb$(SFX)
 BIN_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1$(SFX)
 BIN_FILES-$(CONFIG_KIRKWOOD) += kwboot$(SFX)
@@ -78,6 +79,7 @@ BIN_FILES-$(CONFIG_KIRKWOOD) += kwboot$(SFX)
 # Source files which exist outside the tools directory
 EXT_OBJ_FILES-$(CONFIG_BUILD_ENVCRC) += common/env_embedded.o
 EXT_OBJ_FILES-y += common/image.o
+EXT_OBJ_FILES-$(CONFIG_FIT) += common/image-fit.o
 EXT_OBJ_FILES-y += lib/crc32.o
 EXT_OBJ_FILES-y += lib/md5.o
 EXT_OBJ_FILES-y += lib/sha1.o
@@ -95,12 +97,14 @@ NOPED_OBJ_FILES-y += aisimage.o
 NOPED_OBJ_FILES-y += kwbimage.o
 NOPED_OBJ_FILES-y += pblimage.o
 NOPED_OBJ_FILES-y += imximage.o
+NOPED_OBJ_FILES-y += image-host.o
 NOPED_OBJ_FILES-y += omapimage.o
 NOPED_OBJ_FILES-y += mkenvimage.o
 NOPED_OBJ_FILES-y += mkimage.o
 OBJ_FILES-$(CONFIG_SMDK5250) += mkexynosspl.o
-OBJ_FILES-$(CONFIG_MX28) += mxsboot.o
+OBJ_FILES-$(CONFIG_MX23) += mxsboot.o
 OBJ_FILES-$(CONFIG_SUNXI) += mksunxiboot.o
+OBJ_FILES-$(CONFIG_MX28) += mxsboot.o
 OBJ_FILES-$(CONFIG_NETCONSOLE) += ncb.o
 NOPED_OBJ_FILES-y += os_support.o
 OBJ_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1.o
@@ -164,7 +168,8 @@ NOPEDOBJS := $(addprefix $(obj),$(NOPED_OBJ_FILES-y))
 # Use native tools and options
 # Define __KERNEL_STRICT_NAMES to prevent typedef overlaps
 #
-HOSTCPPFLAGS =	-idirafter $(SRCTREE)/include \
+HOSTCPPFLAGS =	-include $(SRCTREE)/include/libfdt_env.h \
+		-idirafter $(SRCTREE)/include \
 		-idirafter $(OBJTREE)/include2 \
 		-idirafter $(OBJTREE)/include \
 	        -I $(SRCTREE)/lib/libfdt \
@@ -208,7 +213,9 @@ $(obj)mkimage$(SFX):	$(obj)aisimage.o \
 			$(obj)crc32.o \
 			$(obj)default_image.o \
 			$(obj)fit_image.o \
+			$(obj)image-fit.o \
 			$(obj)image.o \
+			$(obj)image-host.o \
 			$(obj)imximage.o \
 			$(obj)kwbimage.o \
 			$(obj)pblimage.o \
@@ -230,11 +237,11 @@ $(obj)mpc86x_clk$(SFX):	$(obj)mpc86x_clk.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 
-$(obj)mxsboot$(SFX):	$(obj)mxsboot.o
+$(obj)mksunxiboot$(SFX):	$(obj)mksunxiboot.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 
-$(obj)mksunxiboot$(SFX):	$(obj)mksunxiboot.o
+$(obj)mxsboot$(SFX):	$(obj)mxsboot.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 

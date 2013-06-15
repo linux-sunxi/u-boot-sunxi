@@ -24,10 +24,10 @@
 #include <common.h>
 #include <tps6586x.h>
 #include <asm/io.h>
-#include <asm/arch/ap20.h>
-#include <asm/arch/tegra20.h>
-#include <asm/arch/tegra_i2c.h>
-#include <asm/arch/sys_proto.h>
+#include <asm/arch/tegra.h>
+#include <asm/arch-tegra/ap.h>
+#include <asm/arch-tegra/tegra_i2c.h>
+#include <asm/arch-tegra/sys_proto.h>
 
 #define VDD_CORE_NOMINAL_T25	0x17	/* 1.3v */
 #define VDD_CPU_NOMINAL_T25	0x10	/* 1.125v */
@@ -44,7 +44,7 @@ int pmu_set_nominal(void)
 	int core, cpu, bus;
 
 	/* by default, the table has been filled with T25 settings */
-	switch (tegra_get_chip_type()) {
+	switch (tegra_get_chip_sku()) {
 	case TEGRA_SOC_T20:
 		core = VDD_CORE_NOMINAL_T20;
 		cpu = VDD_CPU_NOMINAL_T20;
@@ -54,7 +54,7 @@ int pmu_set_nominal(void)
 		cpu = VDD_CPU_NOMINAL_T25;
 		break;
 	default:
-		debug("%s: Unknown chip type\n", __func__);
+		debug("%s: Unknown SKU id\n", __func__);
 		return -1;
 	}
 

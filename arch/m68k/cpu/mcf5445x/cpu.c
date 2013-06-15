@@ -39,6 +39,8 @@ int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	rcm_t *rcm = (rcm_t *) (MMAP_RCM);
 	udelay(1000);
+	out_8(&rcm->rcr, RCM_RCR_FRCRSTOUT);
+	udelay(10000);
 	setbits_8(&rcm->rcr, RCM_RCR_SOFTRST);
 
 	/* we don't return! */
@@ -74,6 +76,21 @@ int checkcpu(void)
 	case 0x4f:
 		id = 54450;
 		break;
+	case 0x9F:
+		id = 54410;
+		break;
+	case 0xA0:
+		id = 54415;
+		break;
+	case 0xA1:
+		id = 54416;
+		break;
+	case 0xA2:
+		id = 54417;
+		break;
+	case 0xA3:
+		id = 54418;
+		break;
 	}
 
 	if (id) {
@@ -84,16 +101,16 @@ int checkcpu(void)
 		printf("       CPU CLK %s MHz BUS CLK %s MHz FLB CLK %s MHz\n",
 		       strmhz(buf1, gd->cpu_clk),
 		       strmhz(buf2, gd->bus_clk),
-		       strmhz(buf3, gd->flb_clk));
+		       strmhz(buf3, gd->arch.flb_clk));
 #ifdef CONFIG_PCI
 		printf("       PCI CLK %s MHz INP CLK %s MHz VCO CLK %s MHz\n",
 		       strmhz(buf1, gd->pci_clk),
-		       strmhz(buf2, gd->inp_clk),
-		       strmhz(buf3, gd->vco_clk));
+		       strmhz(buf2, gd->arch.inp_clk),
+		       strmhz(buf3, gd->arch.vco_clk));
 #else
 		printf("       INP CLK %s MHz VCO CLK %s MHz\n",
-		       strmhz(buf1, gd->inp_clk),
-		       strmhz(buf2, gd->vco_clk));
+		       strmhz(buf1, gd->arch.inp_clk),
+		       strmhz(buf2, gd->arch.vco_clk));
 #endif
 	}
 

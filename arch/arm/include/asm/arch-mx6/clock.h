@@ -24,6 +24,20 @@
 #ifndef __ASM_ARCH_CLOCK_H
 #define __ASM_ARCH_CLOCK_H
 
+#include <common.h>
+
+#ifdef CONFIG_SYS_MX6_HCLK
+#define MXC_HCLK	CONFIG_SYS_MX6_HCLK
+#else
+#define MXC_HCLK	24000000
+#endif
+
+#ifdef CONFIG_SYS_MX6_CLK32
+#define MXC_CLK32	CONFIG_SYS_MX6_CLK32
+#else
+#define MXC_CLK32	32768
+#endif
+
 enum mxc_clock {
 	MXC_ARM_CLK = 0,
 	MXC_PER_CLK,
@@ -41,11 +55,13 @@ enum mxc_clock {
 	MXC_ESDHC4_CLK,
 	MXC_SATA_CLK,
 	MXC_NFC_CLK,
+	MXC_I2C_CLK,
 };
 
 u32 imx_get_uartclk(void);
 u32 imx_get_fecclk(void);
 unsigned int mxc_get_clock(enum mxc_clock clk);
+void enable_ocotp_clk(unsigned char enable);
 void enable_usboh3_clk(unsigned char enable);
 int enable_sata_clock(void);
 int enable_i2c_clk(unsigned char enable, unsigned i2c_num);

@@ -31,6 +31,7 @@
 #include <miiphy.h>
 #include <phy.h>
 #include <errno.h>
+#include <linux/err.h>
 
 /* Generic PHY support and helper functions */
 
@@ -43,7 +44,7 @@
  *   what is supported.  Returns < 0 on error, 0 if the PHY's advertisement
  *   hasn't changed, and > 0 if it has changed.
  */
-int genphy_config_advert(struct phy_device *phydev)
+static int genphy_config_advert(struct phy_device *phydev)
 {
 	u32 advertise;
 	int oldadv, adv;
@@ -118,7 +119,7 @@ int genphy_config_advert(struct phy_device *phydev)
  * Description: Configures MII_BMCR to force speed/duplex
  *   to the values in phydev. Assumes that the values are valid.
  */
-int genphy_setup_forced(struct phy_device *phydev)
+static int genphy_setup_forced(struct phy_device *phydev)
 {
 	int err;
 	int ctl = 0;
@@ -429,6 +430,9 @@ int phy_init(void)
 #ifdef CONFIG_PHY_DAVICOM
 	phy_davicom_init();
 #endif
+#ifdef CONFIG_PHY_ET1011C
+	phy_et1011c_init();
+#endif
 #ifdef CONFIG_PHY_LXT
 	phy_lxt_init();
 #endif
@@ -465,7 +469,7 @@ int phy_register(struct phy_driver *drv)
 	return 0;
 }
 
-int phy_probe(struct phy_device *phydev)
+static int phy_probe(struct phy_device *phydev)
 {
 	int err = 0;
 
@@ -488,7 +492,7 @@ static struct phy_driver *generic_for_interface(phy_interface_t interface)
 	return &genphy_driver;
 }
 
-struct phy_driver *get_phy_driver(struct phy_device *phydev,
+static struct phy_driver *get_phy_driver(struct phy_device *phydev,
 				phy_interface_t interface)
 {
 	struct list_head *entry;
@@ -505,8 +509,9 @@ struct phy_driver *get_phy_driver(struct phy_device *phydev,
 	return generic_for_interface(interface);
 }
 
-struct phy_device *phy_device_create(struct mii_dev *bus, int addr, int phy_id,
-					phy_interface_t interface)
+static struct phy_device *phy_device_create(struct mii_dev *bus, int addr,
+					    int phy_id,
+					    phy_interface_t interface)
 {
 	struct phy_device *dev;
 
@@ -549,7 +554,7 @@ struct phy_device *phy_device_create(struct mii_dev *bus, int addr, int phy_id,
  * Description: Reads the ID registers of the PHY at @addr on the
  *   @bus, stores it in @phy_id and returns zero on success.
  */
-int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
+static int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 {
 	int phy_reg;
 
@@ -573,6 +578,61 @@ int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
 	return 0;
 }
 
+static struct phy_device *create_phy_by_mask(struct mii_dev *bus,
+		unsigned phy_mask, int devad, phy_interface_t interface)
+{
+	u32 phy_id = 0xffffffff;
+	while (phy_mask) {
+		int addr = ffs(phy_mask) - 1;
+		int r = get_phy_id(bus, addr, devad, &phy_id);
+		if (r < 0)
+			return ERR_PTR(r);
+		/* If the PHY ID is mostly f's, we didn't find anything */
+		if ((phy_id & 0x1fffffff) != 0x1fffffff)
+			return phy_device_create(bus, addr, phy_id, interface);
+		phy_mask &= ~(1 << addr);
+	}
+	return NULL;
+}
+
+static struct phy_device *search_for_existing_phy(struct mii_dev *bus,
+		unsigned phy_mask, phy_interface_t interface)
+{
+	/* If we have one, return the existing device, with new interface */
+	while (phy_mask) {
+		int addr = ffs(phy_mask) - 1;
+		if (bus->phymap[addr]) {
+			bus->phymap[addr]->interface = interface;
+			return bus->phymap[addr];
+		}
+		phy_mask &= ~(1 << addr);
+	}
+	return NULL;
+}
+
+static struct phy_device *get_phy_device_by_mask(struct mii_dev *bus,
+		unsigned phy_mask, phy_interface_t interface)
+{
+	int i;
+	struct phy_device *phydev;
+
+	phydev = search_for_existing_phy(bus, phy_mask, interface);
+	if (phydev)
+		return phydev;
+	/* Try Standard (ie Clause 22) access */
+	/* Otherwise we have to try Clause 45 */
+	for (i = 0; i < 5; i++) {
+		phydev = create_phy_by_mask(bus, phy_mask,
+				i ? i : MDIO_DEVAD_NONE, interface);
+		if (IS_ERR(phydev))
+			return NULL;
+		if (phydev)
+			return phydev;
+	}
+	printf("Phy not found\n");
+	return phy_device_create(bus, ffs(phy_mask) - 1, 0xffffffff, interface);
+}
+
 /**
  * get_phy_device - reads the specified PHY device and returns its @phy_device struct
  * @bus: the target MII bus
@@ -581,41 +641,10 @@ int get_phy_id(struct mii_dev *bus, int addr, int devad, u32 *phy_id)
  * Description: Reads the ID registers of the PHY at @addr on the
  *   @bus, then allocates and returns the phy_device to represent it.
  */
-struct phy_device *get_phy_device(struct mii_dev *bus, int addr,
-				phy_interface_t interface)
+static struct phy_device *get_phy_device(struct mii_dev *bus, int addr,
+					 phy_interface_t interface)
 {
-	u32 phy_id = 0x1fffffff;
-	int i;
-	int r;
-
-	/* If we have one, return the existing device, with new interface */
-	if (bus->phymap[addr]) {
-		bus->phymap[addr]->interface = interface;
-
-		return bus->phymap[addr];
-	}
-
-	/* Try Standard (ie Clause 22) access */
-	r = get_phy_id(bus, addr, MDIO_DEVAD_NONE, &phy_id);
-	if (r)
-		return NULL;
-
-	/* If the PHY ID is mostly f's, we didn't find anything */
-	if ((phy_id & 0x1fffffff) != 0x1fffffff)
-		return phy_device_create(bus, addr, phy_id, interface);
-
-	/* Otherwise we have to try Clause 45 */
-	for (i = 1; i < 5; i++) {
-		r = get_phy_id(bus, addr, i, &phy_id);
-		if (r)
-			return NULL;
-
-		/* If the phy_id is mostly Fs, there is no device there */
-		if ((phy_id & 0x1fffffff) != 0x1fffffff)
-			break;
-	}
-
-	return phy_device_create(bus, addr, phy_id, interface);
+	return get_phy_device_by_mask(bus, 1 << addr, interface);
 }
 
 int phy_reset(struct phy_device *phydev)
@@ -688,38 +717,41 @@ int miiphy_reset(const char *devname, unsigned char addr)
 	return phy_reset(phydev);
 }
 
-struct phy_device *phy_connect(struct mii_dev *bus, int addr,
-				struct eth_device *dev,
-				phy_interface_t interface)
+struct phy_device *phy_find_by_mask(struct mii_dev *bus, unsigned phy_mask,
+		phy_interface_t interface)
 {
-	struct phy_device *phydev;
-
 	/* Reset the bus */
 	if (bus->reset)
 		bus->reset(bus);
 
 	/* Wait 15ms to make sure the PHY has come out of hard reset */
 	udelay(15000);
+	return get_phy_device_by_mask(bus, phy_mask, interface);
+}
 
-	phydev = get_phy_device(bus, addr, interface);
-
-	if (!phydev) {
-		printf("Could not get PHY for %s:%d\n", bus->name, addr);
-
-		return NULL;
-	}
-
+void phy_connect_dev(struct phy_device *phydev, struct eth_device *dev)
+{
 	/* Soft Reset the PHY */
 	phy_reset(phydev);
-
-	if (phydev->dev)
+	if (phydev->dev) {
 		printf("%s:%d is connected to %s.  Reconnecting to %s\n",
-			bus->name, addr, phydev->dev->name, dev->name);
-
+				phydev->bus->name, phydev->addr,
+				phydev->dev->name, dev->name);
+	}
 	phydev->dev = dev;
-
 	debug("%s connected to %s\n", dev->name, phydev->drv->name);
+}
 
+struct phy_device *phy_connect(struct mii_dev *bus, int addr,
+		struct eth_device *dev, phy_interface_t interface)
+{
+	struct phy_device *phydev;
+
+	phydev = phy_find_by_mask(bus, 1 << addr, interface);
+	if (phydev)
+		phy_connect_dev(phydev, dev);
+	else
+		printf("Could not get PHY for %s: addr %d\n", bus->name, addr);
 	return phydev;
 }
 

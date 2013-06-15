@@ -425,6 +425,16 @@ static struct phy_driver M88E1118_driver = {
 	.shutdown = &genphy_shutdown,
 };
 
+static struct phy_driver M88E1118R_driver = {
+	.name = "Marvell 88E1118R",
+	.uid = 0x1410e40,
+	.mask = 0xffffff0,
+	.features = PHY_GBIT_FEATURES,
+	.config = &m88e1118_config,
+	.startup = &m88e1118_startup,
+	.shutdown = &genphy_shutdown,
+};
+
 static struct phy_driver M88E1121R_driver = {
 	.name = "Marvell 88E1121R",
 	.uid = 0x1410cb0,
@@ -455,14 +465,26 @@ static struct phy_driver M88E1149S_driver = {
 	.shutdown = &genphy_shutdown,
 };
 
+static struct phy_driver M88E1518_driver = {
+	.name = "Marvell 88E1518",
+	.uid = 0x1410dd1,
+	.mask = 0xffffff0,
+	.features = PHY_GBIT_FEATURES,
+	.config = &m88e1111s_config,
+	.startup = &m88e1011s_startup,
+	.shutdown = &genphy_shutdown,
+};
+
 int phy_marvell_init(void)
 {
 	phy_register(&M88E1149S_driver);
 	phy_register(&M88E1145_driver);
 	phy_register(&M88E1121R_driver);
 	phy_register(&M88E1118_driver);
+	phy_register(&M88E1118R_driver);
 	phy_register(&M88E1111S_driver);
 	phy_register(&M88E1011S_driver);
+	phy_register(&M88E1518_driver);
 
 	return 0;
 }

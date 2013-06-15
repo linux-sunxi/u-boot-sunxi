@@ -28,7 +28,7 @@
 #include <part.h>
 #include <sata.h>
 
-int sata_curr_device = -1;
+static int sata_curr_device = -1;
 block_dev_desc_t sata_dev_desc[CONFIG_SYS_SATA_MAX_DEVICE];
 
 int __sata_initialize(void)
@@ -44,6 +44,7 @@ int __sata_initialize(void)
 		sata_dev_desc[i].type = DEV_TYPE_HARDDISK;
 		sata_dev_desc[i].lba = 0;
 		sata_dev_desc[i].blksz = 512;
+		sata_dev_desc[i].log2blksz = LOG2(sata_dev_desc[i].blksz);
 		sata_dev_desc[i].block_read = sata_read;
 		sata_dev_desc[i].block_write = sata_write;
 
@@ -67,7 +68,7 @@ block_dev_desc_t *sata_get_dev(int dev)
 }
 #endif
 
-int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int rc = 0;
 
@@ -196,7 +197,7 @@ int do_sata(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 	sata, 5, 1, do_sata,
 	"SATA sub system",
-	"sata init - init SATA sub system\n"
+	"init - init SATA sub system\n"
 	"sata info - show available SATA devices\n"
 	"sata device [dev] - show or set current device\n"
 	"sata part [dev] - print partition table\n"

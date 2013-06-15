@@ -44,7 +44,6 @@ struct spl_image_info {
 #define SPL_COPY_PAYLOAD_ONLY	1
 
 extern struct spl_image_info spl_image;
-extern u32 *boot_params_ptr;
 
 /* SPL common functions */
 void preloader_console_init(void);
@@ -58,6 +57,9 @@ void spl_display_print(void);
 
 /* NAND SPL functions */
 void spl_nand_load_image(void);
+
+/* OneNAND SPL functions */
+void spl_onenand_load_image(void);
 
 /* NOR SPL functions */
 void spl_nor_load_image(void);

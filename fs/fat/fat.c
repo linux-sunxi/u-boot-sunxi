@@ -33,6 +33,13 @@
 #include <part.h>
 #include <malloc.h>
 #include <linux/compiler.h>
+#include <linux/ctype.h>
+
+#ifdef CONFIG_SUPPORT_VFAT
+static const int vfat_enabled = 1;
+#else
+static const int vfat_enabled = 0;
+#endif
 
 /*
  * Convert a string to lowercase.
@@ -40,13 +47,12 @@
 static void downcase(char *str)
 {
 	while (*str != '\0') {
-		TOLOWER(*str);
+		*str = tolower(*str);
 		str++;
 	}
 }
 
 static block_dev_desc_t *cur_dev;
-static unsigned int cur_part_nr;
 static disk_partition_t cur_part_info;
 
 #define DOS_BOOT_MAGIC_OFFSET	0x1fe
@@ -62,43 +68,12 @@ static int disk_read(__u32 block, __u32 nr_blocks, void *buf)
 			cur_part_info.start + block, nr_blocks, buf);
 }
 
-int fat_register_device(block_dev_desc_t * dev_desc, int part_no)
+int fat_set_blk_dev(block_dev_desc_t *dev_desc, disk_partition_t *info)
 {
 	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, buffer, dev_desc->blksz);
 
-	/* First close any currently found FAT filesystem */
-	cur_dev = NULL;
-
-#if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
-
-	/* Read the partition table, if present */
-	if (!get_partition_info(dev_desc, part_no, &cur_part_info)) {
-		cur_dev = dev_desc;
-		cur_part_nr = part_no;
-	}
-#endif
-
-	/* Otherwise it might be a superfloppy (whole-disk FAT filesystem) */
-	if (!cur_dev) {
-		if (part_no != 0) {
-			printf("** Partition %d not valid on device %d **\n",
-					part_no, dev_desc->dev);
-			return -1;
-		}
-
-		cur_dev = dev_desc;
-		cur_part_nr = 1;
-		cur_part_info.start = 0;
-		cur_part_info.size = dev_desc->lba;
-		cur_part_info.blksz = dev_desc->blksz;
-		memset(cur_part_info.name, 0, sizeof(cur_part_info.name));
-		memset(cur_part_info.type, 0, sizeof(cur_part_info.type));
-	}
+	cur_dev = dev_desc;
+	cur_part_info = *info;
 
 	/* Make sure it has a valid FAT header */
 	if (disk_read(0, 1, buffer) != 1) {
@@ -122,6 +97,34 @@ int fat_register_device(block_dev_desc_t * dev_desc, int part_no)
 	return -1;
 }
 
+int fat_register_device(block_dev_desc_t *dev_desc, int part_no)
+{
+	disk_partition_t info;
+
+	/* First close any currently found FAT filesystem */
+	cur_dev = NULL;
+
+	/* Read the partition table, if present */
+	if (get_partition_info(dev_desc, part_no, &info)) {
+		if (part_no != 0) {
+			printf("** Partition %d not valid on device %d **\n",
+					part_no, dev_desc->dev);
+			return -1;
+		}
+
+		info.start = 0;
+		info.size = dev_desc->lba;
+		info.blksz = dev_desc->blksz;
+		info.name[0] = 0;
+		info.type[0] = 0;
+		info.bootable = 0;
+#ifdef CONFIG_PARTITION_UUIDS
+		info.uuid[0] = 0;
+#endif
+	}
+
+	return fat_set_blk_dev(dev_desc, &info);
+}
 
 /*
  * Get the first occurence of a directory delimiter ('/' or '\') in a string.
@@ -445,7 +448,6 @@ getit:
 	} while (1);
 }
 
-#ifdef CONFIG_SUPPORT_VFAT
 /*
  * Extract the file name information from 'slotptr' into 'l_name',
  * starting at l_name[*idx].
@@ -567,19 +569,19 @@ get_vfatname(fsdata *mydata, int curclust, __u8 *cluster,
 }
 
 /* Calculate short name checksum */
-static __u8 mkcksum(const char *str)
+static __u8 mkcksum(const char name[8], const char ext[3])
 {
 	int i;
 
 	__u8 ret = 0;
 
-	for (i = 0; i < 11; i++) {
-		ret = (((ret & 1) << 7) | ((ret & 0xfe) >> 1)) + str[i];
-	}
+	for (i = 0; i < 8; i++)
+		ret = (((ret & 1) << 7) | ((ret & 0xfe) >> 1)) + name[i];
+	for (i = 0; i < 3; i++)
+		ret = (((ret & 1) << 7) | ((ret & 0xfe) >> 1)) + ext[i];
 
 	return ret;
 }
-#endif	/* CONFIG_SUPPORT_VFAT */
 
 /*
  * Get the directory entry associated with 'filename' from the directory
@@ -620,8 +622,8 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 				continue;
 			}
 			if ((dentptr->attr & ATTR_VOLUME)) {
-#ifdef CONFIG_SUPPORT_VFAT
-				if ((dentptr->attr & ATTR_VFAT) == ATTR_VFAT &&
+				if (vfat_enabled &&
+				    (dentptr->attr & ATTR_VFAT) == ATTR_VFAT &&
 				    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
 					prevcksum = ((dir_slot *)dentptr)->alias_checksum;
 					get_vfatname(mydata, curclust,
@@ -661,9 +663,7 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 						continue;
 					}
 					debug("vfatname: |%s|\n", l_name);
-				} else
-#endif
-				{
+				} else {
 					/* Volume label or VFAT entry */
 					dentptr++;
 					continue;
@@ -677,13 +677,15 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 				debug("Dentname == NULL - %d\n", i);
 				return NULL;
 			}
-#ifdef CONFIG_SUPPORT_VFAT
-			if (dols && mkcksum(dentptr->name) == prevcksum) {
-				prevcksum = 0xffff;
-				dentptr++;
-				continue;
+			if (vfat_enabled) {
+				__u8 csum = mkcksum(dentptr->name, dentptr->ext);
+				if (dols && csum == prevcksum) {
+					prevcksum = 0xffff;
+					dentptr++;
+					continue;
+				}
 			}
-#endif
+
 			get_name(dentptr, s_name);
 			if (dols) {
 				int isdir = (dentptr->attr & ATTR_DIR);
@@ -886,9 +888,9 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 		return -1;
 	}
 
-#ifdef CONFIG_SUPPORT_VFAT
-	debug("VFAT Support enabled\n");
-#endif
+	if (vfat_enabled)
+		debug("VFAT Support enabled\n");
+
 	debug("FAT%d, fat_sect: %d, fatlength: %d\n",
 	       mydata->fatsize, mydata->fat_sect, mydata->fatlength);
 	debug("Rootdir begins at cluster: %d, sector: %d, offset: %x\n"
@@ -946,15 +948,20 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 
 		for (i = 0; i < DIRENTSPERBLOCK; i++) {
 			char s_name[14], l_name[VFAT_MAXLEN_BYTES];
+			__u8 csum;
 
 			l_name[0] = '\0';
 			if (dentptr->name[0] == DELETED_FLAG) {
 				dentptr++;
 				continue;
 			}
-			if ((dentptr->attr & ATTR_VOLUME)) {
-#ifdef CONFIG_SUPPORT_VFAT
-				if ((dentptr->attr & ATTR_VFAT) == ATTR_VFAT &&
+
+			if (vfat_enabled)
+				csum = mkcksum(dentptr->name, dentptr->ext);
+
+			if (dentptr->attr & ATTR_VOLUME) {
+				if (vfat_enabled &&
+				    (dentptr->attr & ATTR_VFAT) == ATTR_VFAT &&
 				    (dentptr->name[0] & LAST_LONG_ENTRY_MASK)) {
 					prevcksum =
 						((dir_slot *)dentptr)->alias_checksum;
@@ -998,9 +1005,7 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 					}
 					debug("Rootvfatname: |%s|\n",
 					       l_name);
-				} else
-#endif
-				{
+				} else {
 					/* Volume label or VFAT entry */
 					dentptr++;
 					continue;
@@ -1014,14 +1019,13 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 				}
 				goto exit;
 			}
-#ifdef CONFIG_SUPPORT_VFAT
-			else if (dols == LS_ROOT &&
-				 mkcksum(dentptr->name) == prevcksum) {
+			else if (vfat_enabled &&
+				 dols == LS_ROOT && csum == prevcksum) {
 				prevcksum = 0xffff;
 				dentptr++;
 				continue;
 			}
-#endif
+
 			get_name(dentptr, s_name);
 
 			if (dols == LS_ROOT) {
@@ -1235,8 +1239,7 @@ int file_fat_detectfs(void)
 	vol_label[11] = '\0';
 	volinfo.fs_type[5] = '\0';
 
-	printf("Partition %d: Filesystem: %s \"%s\"\n", cur_part_nr,
-		volinfo.fs_type, vol_label);
+	printf("Filesystem: %s \"%s\"\n", volinfo.fs_type, vol_label);
 
 	return 0;
 }
@@ -1256,4 +1259,21 @@ long file_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 long file_fat_read(const char *filename, void *buffer, unsigned long maxsize)
 {
 	return file_fat_read_at(filename, 0, buffer, maxsize);
+}
+
+int fat_read_file(const char *filename, void *buf, int offset, int len)
+{
+	int len_read;
+
+	len_read = file_fat_read_at(filename, offset, buf, len);
+	if (len_read == -1) {
+		printf("** Unable to read file %s **\n", filename);
+		return -1;
+	}
+
+	return len_read;
+}
+
+void fat_close(void)
+{
 }

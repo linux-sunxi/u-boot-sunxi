@@ -29,6 +29,9 @@ SECTIONS
   {
     arch/m68k/cpu/mcf52x2/start.o	(.text*)
 
+    . = DEFINED(env_offset) ? env_offset : .;
+    common/env_embedded.o      (.text*)
+
     *(.text*)
   }
   _etext = .;
@@ -65,9 +68,11 @@ SECTIONS
   PROVIDE (edata = .);
 
   . = .;
-  __u_boot_cmd_start = .;
-  .u_boot_cmd : { *(.u_boot_cmd) }
-  __u_boot_cmd_end = .;
+
+  . = ALIGN(4);
+  .u_boot_list : {
+	KEEP(*(SORT(.u_boot_list*)));
+  }
 
   . = .;
   __start___ex_table = .;
@@ -91,6 +96,6 @@ SECTIONS
    . = ALIGN(4);
    _ebss = .;
   }
-  __bss_end__ = . ;
+  __bss_end = . ;
   PROVIDE (end = .);
 }

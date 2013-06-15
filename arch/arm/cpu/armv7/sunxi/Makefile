@@ -1,4 +1,7 @@
 #
+# (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
+#
+# Based on some other Makefile
 # (C) Copyright 2000-2003
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
@@ -12,7 +15,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -25,13 +28,14 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
-SOBJS	+= reset.o
+TARGETS =  $(obj).depend $(LIB)
 
 COBJS	+= timer.o
 COBJS	+= dram.o
 COBJS	+= board.o
 COBJS	+= clock.o
-COBJS	+= gpio.o
+COBJS	+= pinmux.o
+COBJS	+= watchdog.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif
@@ -39,15 +43,21 @@ endif
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
 COBJS	+= cpu_info.o
-COBJS   += cmd_watchdog.o
+ifdef CONFIG_CMD_WATCHDOG
+COBJS	+= cmd_watchdog.o
+endif
 endif
 
-COBJS   += watchdog.o
+ifdef CONFIG_SPL_BUILD
+ifdef CONFIG_SPL_FEL
+TARGETS	+= $(obj)start.o
+endif
+endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
 
-all:	 $(obj).depend $(LIB)
+all:	$(TARGETS)
 
 $(LIB):	$(OBJS)
 	$(call cmd_link_o_target, $(OBJS))

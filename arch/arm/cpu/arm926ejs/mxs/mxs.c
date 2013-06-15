@@ -1,5 +1,5 @@
 /*
- * Freescale i.MX28 common code
+ * Freescale i.MX23/i.MX28 common code
  *
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
@@ -30,19 +30,14 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/dma.h>
+#include <asm/imx-common/dma.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/iomux.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/sys_proto.h>
+#include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-/* 1 second delay should be plenty of time for block reset. */
-#define	RESET_MAX_TIMEOUT	1000000
-
-#define	MXS_BLOCK_SFTRST	(1 << 31)
-#define	MXS_BLOCK_CLKGATE	(1 << 30)
 
 /* Lowlevel init isn't used on i.MX28, so just have a dummy here */
 inline void lowlevel_init(void) {}
@@ -79,63 +74,6 @@ void enable_caches(void)
 #ifndef CONFIG_SYS_DCACHE_OFF
 	dcache_enable();
 #endif
-}
-
-int mxs_wait_mask_set(struct mxs_register_32 *reg, uint32_t mask, unsigned
-								int timeout)
-{
-	while (--timeout) {
-		if ((readl(&reg->reg) & mask) == mask)
-			break;
-		udelay(1);
-	}
-
-	return !timeout;
-}
-
-int mxs_wait_mask_clr(struct mxs_register_32 *reg, uint32_t mask, unsigned
-								int timeout)
-{
-	while (--timeout) {
-		if ((readl(&reg->reg) & mask) == 0)
-			break;
-		udelay(1);
-	}
-
-	return !timeout;
-}
-
-int mxs_reset_block(struct mxs_register_32 *reg)
-{
-	/* Clear SFTRST */
-	writel(MXS_BLOCK_SFTRST, &reg->reg_clr);
-
-	if (mxs_wait_mask_clr(reg, MXS_BLOCK_SFTRST, RESET_MAX_TIMEOUT))
-		return 1;
-
-	/* Clear CLKGATE */
-	writel(MXS_BLOCK_CLKGATE, &reg->reg_clr);
-
-	/* Set SFTRST */
-	writel(MXS_BLOCK_SFTRST, &reg->reg_set);
-
-	/* Wait for CLKGATE being set */
-	if (mxs_wait_mask_set(reg, MXS_BLOCK_CLKGATE, RESET_MAX_TIMEOUT))
-		return 1;
-
-	/* Clear SFTRST */
-	writel(MXS_BLOCK_SFTRST, &reg->reg_clr);
-
-	if (mxs_wait_mask_clr(reg, MXS_BLOCK_SFTRST, RESET_MAX_TIMEOUT))
-		return 1;
-
-	/* Clear CLKGATE */
-	writel(MXS_BLOCK_CLKGATE, &reg->reg_clr);
-
-	if (mxs_wait_mask_clr(reg, MXS_BLOCK_CLKGATE, RESET_MAX_TIMEOUT))
-		return 1;
-
-	return 0;
 }
 
 void mx28_fixup_vt(uint32_t start_addr)
@@ -196,6 +134,8 @@ static const char *get_cpu_type(void)
 		(struct mxs_digctl_regs *)MXS_DIGCTL_BASE;
 
 	switch (readl(&digctl_regs->hw_digctl_chipid) & HW_DIGCTL_CHIPID_MASK) {
+	case HW_DIGCTL_CHIPID_MX23:
+		return "23";
 	case HW_DIGCTL_CHIPID_MX28:
 		return "28";
 	default:
@@ -210,6 +150,21 @@ static const char *get_cpu_rev(void)
 	uint8_t rev = readl(&digctl_regs->hw_digctl_chipid) & 0x000000FF;
 
 	switch (readl(&digctl_regs->hw_digctl_chipid) & HW_DIGCTL_CHIPID_MASK) {
+	case HW_DIGCTL_CHIPID_MX23:
+		switch (rev) {
+		case 0x0:
+			return "1.0";
+		case 0x1:
+			return "1.1";
+		case 0x2:
+			return "1.2";
+		case 0x3:
+			return "1.3";
+		case 0x4:
+			return "1.4";
+		default:
+			return "??";
+		}
 	case HW_DIGCTL_CHIPID_MX28:
 		switch (rev) {
 		case 0x1:
@@ -276,7 +231,7 @@ int cpu_eth_init(bd_t *bis)
 }
 #endif
 
-static void __mx28_adjust_mac(int dev_id, unsigned char *mac)
+__weak void mx28_adjust_mac(int dev_id, unsigned char *mac)
 {
 	mac[0] = 0x00;
 	mac[1] = 0x04; /* Use FSL vendor MAC address by default */
@@ -284,9 +239,6 @@ static void __mx28_adjust_mac(int dev_id, unsigned char *mac)
 	if (dev_id == 1) /* Let MAC1 be MAC0 + 1 by default */
 		mac[5] += 1;
 }
-
-void mx28_adjust_mac(int dev_id, unsigned char *mac)
-	__attribute__((weak, alias("__mx28_adjust_mac")));
 
 #ifdef	CONFIG_MX28_FEC_MAC_IN_OCOTP
 

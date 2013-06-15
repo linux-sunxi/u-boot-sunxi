@@ -23,6 +23,13 @@
 
 #########################################################################
 
+# Set shell to bash if possible, otherwise fall back to sh
+SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
+	else if [ -x /bin/bash ]; then echo /bin/bash; \
+	else echo sh; fi; fi)
+
+export	SHELL
+
 ifeq ($(CURDIR),$(SRCTREE))
 dir :=
 else
@@ -149,6 +156,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 RANLIB	= $(CROSS_COMPILE)RANLIB
 DTC	= dtc
+CHECK	= sparse
 
 #########################################################################
 
@@ -214,8 +222,20 @@ ifneq ($(CONFIG_SPL_PAD_TO),)
 CPPFLAGS += -DCONFIG_SPL_PAD_TO=$(CONFIG_SPL_PAD_TO)
 endif
 
+ifneq ($(CONFIG_UBOOT_PAD_TO),)
+CPPFLAGS += -DCONFIG_UBOOT_PAD_TO=$(CONFIG_UBOOT_PAD_TO)
+endif
+
 ifeq ($(CONFIG_SPL_BUILD),y)
 CPPFLAGS += -DCONFIG_SPL_BUILD
+endif
+
+# Does this architecture support generic board init?
+ifeq ($(__HAVE_ARCH_GENERIC_BOARD),)
+ifneq ($(CONFIG_SYS_GENERIC_BOARD),)
+CHECK_GENERIC_BOARD = $(error Your architecture does not support generic board. \
+Please undefined CONFIG_SYS_GENERIC_BOARD in your board config file)
+endif
 endif
 
 ifneq ($(RESET_VECTOR_ADDRESS),)
@@ -230,11 +250,10 @@ CPPFLAGS += -I$(TOPDIR)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-ifdef BUILD_TAG
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
-	-DBUILD_TAG='"$(BUILD_TAG)"'
-else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
+
+ifdef BUILD_TAG
+CFLAGS += -DBUILD_TAG='"$(BUILD_TAG)"'
 endif
 
 CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
@@ -274,6 +293,10 @@ LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
 ifneq ($(CONFIG_SPL_TEXT_BASE),)
 LDFLAGS_u-boot-spl += -Ttext $(CONFIG_SPL_TEXT_BASE)
 endif
+
+# Linus' kernel sanity checking tool
+CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
+                  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
 
 # Location of a usable BFD library, where we define "usable" as
 # "built for ${HOST}, supports ${TARGET}".  Sensible values are
@@ -322,6 +345,9 @@ $(obj)%.s:	%.S
 $(obj)%.o:	%.S
 	$(CC)  $(ALL_AFLAGS) -o $@ $< -c
 $(obj)%.o:	%.c
+ifneq ($(CHECKSRC),0)
+	$(CHECK) $(CHECKFLAGS) $(ALL_CFLAGS) $<
+endif
 	$(CC)  $(ALL_CFLAGS) -o $@ $< -c
 $(obj)%.i:	%.c
 	$(CPP) $(ALL_CFLAGS) -o $@ $< -c

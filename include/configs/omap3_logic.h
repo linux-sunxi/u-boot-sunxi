@@ -138,8 +138,6 @@
 
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_SYS_I2C_BUS		0
-#define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_I2C_MULTI_BUS
 
 /*
@@ -202,7 +200,7 @@
 	"mtdids=" MTDIDS_DEFAULT "\0"	\
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"mmcdev=0\0" \
-	"autoboot=if mmc rescan ${mmcdev}; then " \
+	"autoboot=mmc dev ${mmcdev}; if mmc rescan; then " \
 			"if run loadbootscript; then " \
 				"run bootscript; " \
 			"else " \

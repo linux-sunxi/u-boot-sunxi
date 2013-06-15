@@ -18,7 +18,9 @@ COBJS-$(CONFIG_SPL_FRAMEWORK) += spl.o
 COBJS-$(CONFIG_SPL_NOR_SUPPORT) += spl_nor.o
 COBJS-$(CONFIG_SPL_YMODEM_SUPPORT) += spl_ymodem.o
 COBJS-$(CONFIG_SPL_NAND_SUPPORT) += spl_nand.o
+COBJS-$(CONFIG_SPL_ONENAND_SUPPORT) += spl_onenand.o
 COBJS-$(CONFIG_SPL_NET_SUPPORT) += spl_net.o
+COBJS-$(CONFIG_SPL_MMC_SUPPORT) += spl_mmc.o
 endif
 
 COBJS	:= $(sort $(COBJS-y))

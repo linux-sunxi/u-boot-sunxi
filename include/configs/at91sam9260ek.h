@@ -62,6 +62,9 @@
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
 
+#define CONFIG_CMD_BOOTZ
+#define CONFIG_OF_LIBFDT
+
 /* general purpose I/O */
 #define CONFIG_ATMEL_LEGACY		/* required until (g)pio is fixed */
 #define CONFIG_AT91_GPIO
@@ -102,6 +105,8 @@
 #define CONFIG_CMD_PING		1
 #define CONFIG_CMD_DHCP		1
 #define CONFIG_CMD_NAND		1
+#define CONFIG_CMD_MMC
+#define CONFIG_CMD_FAT
 #define CONFIG_CMD_USB		1
 
 /*
@@ -125,7 +130,26 @@
 	(ATMEL_BASE_SRAM1 + 0x1000 - GENERATED_GBL_DATA_SIZE)
 #endif
 
+/*
+ * The (arm)linux board id set by generic code depending on configured board
+ * (see boards.cfg for different boards)
+ */
+#ifdef CONFIG_AT91SAM9G20
+	/* the sam9g20 variants have two different board ids */
+# ifdef CONFIG_AT91SAM9G20EK_2MMC
+	/* we may be setup for the 2MMC variant of at91sam9g20ek */
+#  define CONFIG_MACH_TYPE MACH_TYPE_AT91SAM9G20EK_2MMC
+# else
+	/* or the normal at91sam9g20ek */
+#  define CONFIG_MACH_TYPE MACH_TYPE_AT91SAM9G20EK
+# endif
+#else
+	/* otherwise default to good old at91sam9260ek */
+# define CONFIG_MACH_TYPE MACH_TYPE_AT91SAM9260EK
+#endif
+
 /* DataFlash */
+#ifndef CONFIG_AT91SAM9G20EK_2MMC
 #define CONFIG_ATMEL_DATAFLASH_SPI
 #define CONFIG_HAS_DATAFLASH		1
 #define CONFIG_SYS_SPI_WRITE_TOUT		(5*CONFIG_SYS_HZ)
@@ -133,6 +157,7 @@
 #define CONFIG_SYS_DATAFLASH_LOGIC_ADDR_CS0	0xC0000000	/* CS0 */
 #define CONFIG_SYS_DATAFLASH_LOGIC_ADDR_CS1	0xD0000000	/* CS1 */
 #define AT91_SPI_CLK			15000000
+#endif
 
 #ifdef CONFIG_AT91SAM9G20EK
 #define DATAFLASH_TCSS			(0x22 << 16)
@@ -153,6 +178,18 @@
 #define CONFIG_SYS_NAND_READY_PIN	AT91_PIN_PC13
 #endif
 
+/* MMC */
+#ifdef CONFIG_CMD_MMC
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_GENERIC_ATMEL_MCI
+#endif
+
+/* FAT */
+#ifdef CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#endif
+
 /* NOR flash - no real flash on this board */
 #define CONFIG_SYS_NO_FLASH			1
 
@@ -165,13 +202,11 @@
 /* USB */
 #define CONFIG_USB_ATMEL
 #define CONFIG_USB_OHCI_NEW		1
-#define CONFIG_DOS_PARTITION		1
 #define CONFIG_SYS_USB_OHCI_CPU_INIT		1
 #define CONFIG_SYS_USB_OHCI_REGS_BASE		0x00500000	/* AT91SAM9260_UHP_BASE */
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"at91sam9260"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2
 #define CONFIG_USB_STORAGE		1
-#define CONFIG_CMD_FAT			1
 
 #define CONFIG_SYS_LOAD_ADDR			0x22000000	/* load address */
 
@@ -206,21 +241,37 @@
 				"mtdparts=atmel_nand:-(root) "		\
 				"rw rootfstype=jffs2"
 
-#else /* CONFIG_SYS_USE_NANDFLASH */
+#elif defined(CONFIG_SYS_USE_NANDFLASH)
 
 /* bootstrap + u-boot + env + linux in nandflash */
 #define CONFIG_ENV_IS_IN_NAND	1
-#define CONFIG_ENV_OFFSET		0x60000
-#define CONFIG_ENV_OFFSET_REDUND	0x80000
+#define CONFIG_ENV_OFFSET		0xc0000
+#define CONFIG_ENV_OFFSET_REDUND	0x100000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
-#define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0xA0000 0x200000; bootm"
-#define CONFIG_BOOTARGS		"console=ttyS0,115200 "			\
-				"root=/dev/mtdblock5 "			\
-				"mtdparts=atmel_nand:128k(bootstrap)ro,"	\
-				"256k(uboot)ro,128k(env1)ro,"		\
-				"128k(env2)ro,2M(linux),-(root) "	\
-				"rw rootfstype=jffs2"
+#define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0x200000 0x300000; bootm"
+#define CONFIG_BOOTARGS							\
+	"console=ttyS0,115200 earlyprintk "				\
+	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
+	"256k(env),256k(env_redundant),256k(spare),"			\
+	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
+	"root=/dev/mtdblock7 rw rootfstype=jffs2"
 
+#else	/* CONFIG_SYS_USE_MMC */
+/* bootstrap + u-boot + env + linux in mmc */
+#define CONFIG_ENV_IS_IN_MMC
+/* For FAT system, most cases it should be in the reserved sector */
+#define CONFIG_ENV_OFFSET		0x2000
+#define CONFIG_ENV_SIZE			0x1000
+#define CONFIG_SYS_MMC_ENV_DEV		0
+
+#define CONFIG_BOOTCOMMAND						\
+	"fatload mmc 0:1 0x22000000 uImage; bootm"
+#define CONFIG_BOOTARGS							\
+	"console=ttyS0,115200 earlyprintk "				\
+	"mtdparts=atmel_nand:256k(bootstrap)ro,512k(uboot)ro,"		\
+	"256k(env),256k(env_redundant),256k(spare),"			\
+	"512k(dtb),6M(kernel)ro,-(rootfs) "				\
+	"root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait"
 #endif
 
 #define CONFIG_SYS_PROMPT		"U-Boot> "

@@ -56,6 +56,7 @@ int checkcpu(void)
 		u32 partid;
 	} cpu_type_list [] = {
 		CPU_TYPE_ENTRY(8308),
+		CPU_TYPE_ENTRY(8309),
 		CPU_TYPE_ENTRY(8311),
 		CPU_TYPE_ENTRY(8313),
 		CPU_TYPE_ENTRY(8314),
@@ -121,7 +122,7 @@ int checkcpu(void)
 
 	printf(" at %s MHz, ", strmhz(buf, clock));
 
-	printf("CSB: %s MHz\n", strmhz(buf, gd->csb_clk));
+	printf("CSB: %s MHz\n", strmhz(buf, gd->arch.csb_clk));
 
 	return 0;
 }

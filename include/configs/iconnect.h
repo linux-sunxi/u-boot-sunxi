@@ -1,7 +1,7 @@
 /*
  * (C) Copyright 2009-2012
  * Wojciech Dubowik <wojciech.dubowik@neratec.com>
- * Luka Perkov <uboot@lukaperkov.net>
+ * Luka Perkov <luka@openwrt.org>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -87,7 +87,7 @@
 #define CONFIG_BOOTCOMMAND \
 	"setenv bootargs ${console} ${mtdparts} ${bootargs_root}; "	\
 	"ubi part rootfs; "						\
-	"ubifsmount rootfs; "						\
+	"ubifsmount ubi:rootfs; "					\
 	"ubifsload 0x800000 ${kernel}; "				\
 	"bootm 0x800000"
 

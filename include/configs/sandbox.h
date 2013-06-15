@@ -22,15 +22,22 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_NR_DRAM_BANKS	1
-#define CONFIG_DRAM_SIZE	(128 << 20)
-
 /* Number of bits in a C 'long' on this architecture */
 #define CONFIG_SANDBOX_BITS_PER_LONG	64
 
 #define CONFIG_OF_CONTROL
+#define CONFIG_OF_HOSTFILE
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB
+#define CONFIG_FIT
+#define CONFIG_CMD_FDT
+
+#define CONFIG_FS_FAT
+#define CONFIG_FS_EXT4
+#define CONFIG_EXT4_WRITE
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT4
+#define CONFIG_CMD_EXT4_WRITE
 
 #define CONFIG_SYS_VSNPRINTF
 
@@ -63,13 +70,18 @@
 #define CONFIG_SYS_HZ			1000
 
 /* Memory things - we don't really want a memory test */
-#define CONFIG_SYS_LOAD_ADDR		0x10000000
-#define CONFIG_SYS_MEMTEST_START	0x10000000
+#define CONFIG_SYS_LOAD_ADDR		0x00000000
+#define CONFIG_SYS_MEMTEST_START	0x00100000
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + 0x1000)
 #define CONFIG_PHYS_64BIT
+#define CONFIG_SYS_FDT_LOAD_ADDR	0x1000000
 
 /* Size of our emulated memory */
+#define CONFIG_SYS_SDRAM_BASE		0
 #define CONFIG_SYS_SDRAM_SIZE		(128 << 20)
+#define CONFIG_SYS_TEXT_BASE		0
+#define CONFIG_SYS_MONITOR_BASE	0
+#define CONFIG_NR_DRAM_BANKS		1
 
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
@@ -84,6 +96,13 @@
 /* We don't have networking support yet */
 #undef CONFIG_CMD_NET
 #undef CONFIG_CMD_NFS
+
+#define CONFIG_CMD_HASH
+#define CONFIG_HASH_VERIFY
+#define CONFIG_SHA1
+#define CONFIG_SHA256
+
+#define CONFIG_CMD_SANDBOX
 
 #define CONFIG_BOOTARGS ""
 

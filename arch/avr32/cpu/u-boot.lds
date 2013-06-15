@@ -47,11 +47,11 @@ SECTIONS
 	}
 
 	. = ALIGN(4);
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : {
-		KEEP(*(.u_boot_cmd))
+
+	. = ALIGN(4);
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
 	}
-	__u_boot_cmd_end = .;
 
 	. = ALIGN(4);
 	_got = .;
@@ -68,5 +68,5 @@ SECTIONS
 		*(.bss.*)
 	}
 	. = ALIGN(8);
-	__bss_end__ = .;
+	__bss_end = .;
 }

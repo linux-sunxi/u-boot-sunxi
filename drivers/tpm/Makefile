@@ -23,7 +23,12 @@ include $(TOPDIR)/config.mk
 
 LIB := $(obj)libtpm.o
 
-COBJS-$(CONFIG_GENERIC_LPC_TPM) = generic_lpc_tpm.o
+$(shell mkdir -p $(obj)slb9635_i2c)
+
+# TODO: Merge tpm_tis_lpc.c with tpm.c
+COBJS-$(CONFIG_TPM_TIS_I2C) += tpm.o
+COBJS-$(CONFIG_TPM_TIS_I2C) += tpm_tis_i2c.o
+COBJS-$(CONFIG_TPM_TIS_LPC) += tpm_tis_lpc.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

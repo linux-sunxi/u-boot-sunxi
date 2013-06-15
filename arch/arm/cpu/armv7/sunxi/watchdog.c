@@ -1,10 +1,12 @@
 /*
- * (C) Copyright 2012 Henrik Nordstrom <henrik@hno.se>
+ * Watchdog driver for the Allwinner sunxi platform.
+ * Copyright (C) 2013  Oliver Schinagl <oliver@schinagl.nl>
+ * http://www.linux-sunxi.org/
  *
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,41 +15,83 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA  02110-1301, USA.
  */
 
-#include <common.h>
-#include <asm/arch/timer.h>
-#include <asm/armv7.h>
 #include <asm/io.h>
+#include <asm/arch/timer.h>
+#include <asm/arch/watchdog.h>
+#include <common.h>
+#include <watchdog.h>
 
-#if CONFIG_SPL_BUILD
-#undef CONFIG_CMD_WATCHDOG
-#endif
 
-#if defined(CONFIG_CMD_WATCHDOG) || defined(CONFIG_WATCHDOG)
-static struct sunxi_wdog * const wdog =
-		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+#define WDT_CTRL_RESTART	(0x1 << 0)
+#define WDT_CTRL_KEY		(0x0a57 << 1)
+
+#define WDT_MODE_EN		(0x1 << 0)
+#define WDT_MODE_RESET_EN	(0x1 << 1)
+#define WDT_MAX_TIMEOUT		16
+#define WDT_MODE_TIMEOUT(n) \
+	 (wdt_timeout_map[(n) < WDT_MAX_TIMEOUT ? (n) : WDT_MAX_TIMEOUT] << 3)
+
+
+/*
+ * Watchdog timeout table. The sunxi cores only use 4 bits for the watchdog as
+ * set by the table below. The gaps are filled by rounding up to the next
+ * second up.
+ */
+const unsigned int wdt_timeout_map[] = {
+	[0] = 0b0000,  /* 0.5s*/
+	[1] = 0b0001,  /* 1s  */
+	[2] = 0b0010,  /* 2s  */
+	[3] = 0b0011,  /* 3s  */
+	[4] = 0b0100,  /* 4s  */
+	[5] = 0b0101,  /* 5s  */
+	[6] = 0b0110,  /* 6s  */
+	[7] = 0b0111,  /* 8s  */
+	[8] = 0b0111,  /* 8s  */
+	[9] = 0b1000, /* 10s */
+	[10] = 0b1000, /* 10s */
+	[11] = 0b1001, /* 12s */
+	[12] = 0b1001, /* 12s */
+	[13] = 0b1010, /* 14s */
+	[14] = 0b1010, /* 14s */
+	[15] = 0b1011, /* 16s */
+	[16] = 0b1011, /* 16s */
+};
+
 
 void watchdog_reset(void)
 {
-	/* a little magic to reload the watchdog */
-	writel(0xA57 << 1 | 1 << 0, &wdog->ctl);
+	static const struct sunxi_wdog *wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+
+	writel(WDT_CTRL_KEY | WDT_CTRL_RESTART, &wdog->ctl);
 }
 
-static void watchdog_set(int interval)
+void watchdog_set(int timeout)
 {
+	static struct sunxi_wdog *const wdog =
+		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
+	u32 reg_val;
+
 	/* Set timeout, reset & enable */
-	writel(interval << 2 | 1 << 1 | 1 << 0, &wdog->mode);
+	if (timeout >= 0) {
+		reg_val |= WDT_MODE_TIMEOUT(timeout) | WDT_MODE_RESET_EN |
+			   WDT_MODE_EN;
+		writel(reg_val, &wdog->mode);
+	} else {
+		writel(0, &wdog->mode);
+	}
 	watchdog_reset();
 }
 
-#endif
-
-#ifdef CONFIG_WATCHDOG
 void watchdog_init(void)
 {
-	watchdog_set(23); /* max possible timeout */
-}
+#ifdef CONFIG_WATCHDOG
+	watchdog_set(WDT_MAX_TIMEOUT);
+#else
+	watchdog_set(WDT_OFF); /* no timeout */
 #endif
+}

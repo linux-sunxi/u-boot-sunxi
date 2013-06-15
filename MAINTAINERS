@@ -7,6 +7,10 @@
 # and Cc: the <u-boot@lists.denx.de> mailing list.			#
 #									#
 # Note: lists sorted by Maintainer Name					#
+# Note: These are the maintainers for specific *boards*.  The		#
+#	custodians for general architectures and subsystems can		#
+#	be found here -- http://www.denx.de/wiki/U-Boot/Custodians	#
+#									#
 #########################################################################
 
 
@@ -22,6 +26,10 @@ Poonam Aggrwal <poonam.aggrwal@freescale.com>
 	P2020RDB	P2020
 
 	BSC9131RDB	BSC9131
+
+Naveen Burmi <NaveenBurmi@freescale.com>
+
+	BSC9132QDS	BSC9132
 
 Greg Allen <gallen@arlut.utexas.edu>
 
@@ -104,8 +112,6 @@ Wolfgang Denk <wd@denx.de>
 
 	ARIA		MPC5121e
 
-	AMX860		MPC860
-	ETX094		MPC850
 	FPS850L		MPC850
 	FPS860L		MPC860
 	ICU862		MPC862
@@ -116,7 +122,6 @@ Wolfgang Denk <wd@denx.de>
 	IVMS8		MPC860
 	IVMS8_128	MPC860
 	IVMS8_256	MPC860
-	LANTEC		MPC850
 	LWMON		MPC823
 	R360MPI		MPC823
 	RRvision	MPC823
@@ -128,7 +133,6 @@ Wolfgang Denk <wd@denx.de>
 	TQM855L		MPC855
 	TQM860L		MPC860
 	TQM860L_FEC	MPC860
-	c2mon		MPC855
 	hermes		MPC860
 	lwmon		MPC823
 
@@ -145,9 +149,6 @@ Wolfgang Denk <wd@denx.de>
 	TQM8260		MPC8260
 
 	P3G4		MPC7410
-
-	PCIPPC2		MPC750
-	PCIPPC6		MPC750
 
 Phil Edworthy <phil.edworthy@renesas.com>
 
@@ -179,7 +180,6 @@ Thomas Frieden <ThomasF@hyperion-entertainment.com>
 
 Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 
-	ADCIOP		IOP480 (PPC401)
 	APC405		PPC405GP
 	AR405		PPC405GP
 	ASH405		PPC405EP
@@ -190,7 +190,6 @@ Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 	CPCI405AB	PPC405GP
 	CPCI405DT	PPC405GP
 	CPCIISER4	PPC405GP
-	DASA_SIM	IOP480 (PPC401)
 	DP405		PPC405EP
 	DU405		PPC405GP
 	DU440		PPC440EPx
@@ -216,9 +215,7 @@ Siddarth Gore <gores@marvell.com>
 Paul Gortmaker <paul.gortmaker@windriver.com>
 
 	sbc8349		MPC8349
-	sbc8540		MPC8540
 	sbc8548		MPC8548
-	sbc8560		MPC8560
 	sbc8641d	MPC8641D
 
 Frank Gottschling <fgottschling@eltec.de>
@@ -231,10 +228,10 @@ Wolfgang Grandegger <wg@denx.de>
 
 	PN62		MPC8240
 	IPHASE4539	MPC8260
-	SCM		MPC8260
 
 Anatolij Gustschin <agust@denx.de>
 
+	ac14xx		MPC5121e
 	O2D		MPC5200
 	O2D300		MPC5200
 	O2DNT2		MPC5200
@@ -340,6 +337,19 @@ Reinhard Meyer <reinhard.meyer@emk-elektronik.de>
 	TOP5200		MPC5200
 	TOP9000		ARM926EJS (AT91SAM9xxx SoC)
 
+Henrik Nordstrom <henrik@henriknordstrom.net>
+	A13_OLINUXINO	ARM V7 (Allwinner A13 SoC)
+	A13_MID		ARM V7 (Allwinner A13 SoC)
+	CUBIEBOARD	ARM V7 (Allwinner A10 SoC)
+	CUBIEBOARD_512	ARM V7 (Allwinner A10 SoC)
+	HACKBERRY	ARM V7 (Allwinner A10 SoC)
+	MELE_A1000	ARM V7 (Allwinner A10 SoC)
+	MINI-X		ARM V7 (Allwinner A10 SoC)
+	SUN4I		ARM V7 (Allwinner A10 SoC)
+	SUN4I_SDCON	ARM V7 (Allwinner A10 SoC)
+	SUN5I		ARM V7 (Allwinner A13 SoC)
+	SUN5I_SDCON	ARM V7 (Allwinner A13 SoC)
+
 Kyle Moffett <Kyle.D.Moffett@boeing.com>
 
 	HWW1U1A		P2020
@@ -396,6 +406,9 @@ Ricardo Ribalda <ricardo.ribalda@uam.es>
 	xilinx-ppc440-generic	PPC440x5
 
 Stefan Roese <sr@denx.de>
+
+	a3m071		MPC5200
+	a4m2k		MPC5200
 
 	P3M7448		MPC7448
 
@@ -455,10 +468,6 @@ Heiko Schocher <hs@denx.de>
 	sc3		PPC405GP
 	uc101		MPC5200
 	ve8313		MPC8313
-
-Peter De Schrijver <p2@mind.be>
-
-	ML2		PPC4xx
 
 Andre Schwarz <andre.schwarz@matrix-vision.de>
 
@@ -551,7 +560,6 @@ Unknown / orphaned boards:
 	FADS850SAR	MPC8xx
 	FADS860T	MPC8xx
 	GENIETV		MPC8xx
-	IAD210		MPC8xx
 	MBX		MPC8xx
 	MBX860T		MPC8xx
 	NX823		MPC8xx
@@ -579,6 +587,10 @@ Albert ARIBAUD <albert.u.boot@aribaud.net>
 
 	edminiv2	ARM926EJS (Orion5x SoC)
 
+Raphael Assenat <raph@8d.com>
+
+	eco5pk		ARM ARMV7 (AM35x SoC)
+
 Stefano Babic <sbabic@denx.de>
 
 	ea20		davinci
@@ -590,6 +602,11 @@ Stefano Babic <sbabic@denx.de>
 	trizepsiv	xscale/pxa
 	twister		omap3
  	vision2		i.MX51
+	woodburn	i.MX35
+
+Lukasz Dalek <luk0104@gmail.com>
+
+	h2200		xscale/pxa
 
 Jason Liu <r64343@freescale.com>
 
@@ -602,6 +619,8 @@ Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
 	igep0020	ARM ARMV7 (OMAP3xx SoC)
 	igep0030	ARM ARMV7 (OMAP3xx SoC)
+	igep0032	ARM ARMV7 (OMAP3xx SoC)
+	igep0033	ARM ARMV7 (AM33xx Soc)
 
 Eric Benard <eric@eukrea.com>
 
@@ -656,6 +675,10 @@ Fabio Estevam <fabio.estevam@freescale.com>
 	mx31pdk		i.MX31
 	mx53ard		i.MX53
 	mx53smd		i.MX53
+	mx6qsabresd	i.MX6Q
+	mx6qsabreauto	i.MX6Q
+	wandboard	i.MX6DL/S
+	mx6slevk	i.MX6SL
 
 Daniel Gorsulowski <daniel.gorsulowski@esd.eu>
 
@@ -675,11 +698,15 @@ Simon Guinot <simon.guinot@sequanux.org>
 
 Igor Grinberg <grinberg@compulab.co.il>
 
-	cm-t35		ARM ARMV7 (OMAP3xx Soc)
+	cm_t35		ARM ARMV7 (OMAP3xx Soc)
 
 Stefan Herbrechtsmeier <stefan@code.herbrechtsmeier.net>
 
 	dns325		ARM926EJS (Kirkwood SoC)
+
+Lauri Hintsala <lauri.hintsala@bluegiga.com>
+
+	apx4devkit	i.MX28
 
 Vaibhav Hiremath <hvaibhav@ti.com>
 
@@ -799,11 +826,7 @@ Linus Walleij <linus.walleij@linaro.org>
 	integratorap	various
 	integratorcp	various
 
-Veli-Pekka Peltola <veli-pekka.peltola@bluegiga.com>
-
-	apx4devkit	i.MX28
-
-Luka Perkov <uboot@lukaperkov.net>
+Luka Perkov <luka@openwrt.org>
 
 	ib62x0		ARM926EJS
 	iconnect	ARM926EJS
@@ -811,6 +834,9 @@ Luka Perkov <uboot@lukaperkov.net>
 Dave Peverley <dpeverley@mpc-data.co.uk>
 
 	omap730p2	ARM926EJS
+
+Lars Poeschel <poeschel@lemonage.de>
+	pcm051  	ARM ARMV7 (AM33xx Soc)
 
 Mathieu Poirier <mathieu.poirier@linaro.org>
 
@@ -823,6 +849,10 @@ Stelian Pop <stelian@popies.net>
 	at91sam9263ek	ARM926EJS (AT91SAM9263 SoC)
 	at91sam9rlek	ARM926EJS (AT91SAM9RL SoC)
 
+Matt Porter <mporter@ti.com>
+
+	ti814x_evm	ARM ARMV7 (TI814x Soc)
+
 Dave Purdy <david.c.purdy@gmail.com>
 
 	pogo_e02	ARM926EJS (Kirkwood SoC)
@@ -833,10 +863,14 @@ Sricharan R <r.sricharan@ti.com>
 	omap4_sdp4430	ARM ARMV7 (OMAP4xx SoC)
 	omap5_evm	ARM ARMV7 (OMAP5xx Soc)
 
+Suriyan Ramasami <suriyan.r@gmail.com>
+
+	goflexhome	ARM926EJS (Kirkwood SoC)
+
 Thierry Reding <thierry.reding@avionic-design.de>
 
 	plutux		Tegra20 (ARM7 & A9 Dual Core)
-	medcom		Tegra20 (ARM7 & A9 Dual Core)
+	medcom-wide	Tegra20 (ARM7 & A9 Dual Core)
 	tec		Tegra20 (ARM7 & A9 Dual Core)
 
 Christian Riesch <christian.riesch@omicron.at>
@@ -861,6 +895,8 @@ John Rigby <jcrigby@gmail.com>
 Stefan Roese <sr@denx.de>
 
 	x600		ARM926EJS (spear600 Soc)
+
+	titanium	i.MX6Q
 
 	pdnb3		xscale/ixp
 	scpu		xscale/ixp
@@ -899,10 +935,19 @@ Matt Sealey <matt@genesi-usa.com>
 
 Bo Shen <voice.shen@atmel.com>
 	at91sam9x5ek		ARM926EJS (AT91SAM9G15,G25,G35,X25,X35 SoC)
+	sama5d3xek		ARMV7 (SAMA5D31, D33, D34, D35 SoC)
+
+Rajeshwari Shinde <rajeshwari.s@samsung.com>
+
+	snow			ARM ARMV7 (EXYNOS5250 SoC)
 
 Michal Simek <monstr@monstr.eu>
 
 	zynq		ARM ARMV7 (Zynq SoC)
+
+Lucas Stach <dev@lynxeye.de>
+
+	colibri_t20_iris	Tegra20 (ARM7 & A9 Dual Core)
 
 Nick Thompson <nick.thompson@gefanuc.com>
 
@@ -928,8 +973,10 @@ Marek Vasut <marek.vasut@gmail.com>
 	palmtc		xscale/pxa
 	vpac270		xscale/pxa
 	zipitz2		xscale/pxa
+	mx23_olinuxino	i.MX23
 	m28evk		i.MX28
 	sc_sps_1	i.MX28
+	m53evk		i.MX53
 
 Hugo Villeneuve <hugo.villeneuve@lyrtech.com>
 
@@ -937,7 +984,12 @@ Hugo Villeneuve <hugo.villeneuve@lyrtech.com>
 
 Matt Waddel <matt.waddel@linaro.org>
 
-	ca9x4_ct_vxp	ARM ARMV7 (Quad Core)
+	vexpress_ca9x4	ARM ARMV7 (Quad Core)
+	vexpress_ca5x2	ARM ARMV7 (Dual Core)
+
+Otavio Salvador <otavio@ossystems.com.br>
+
+	mx23evk		i.MX23
 
 Prafulla Wadaskar <prafulla@marvell.com>
 
@@ -956,6 +1008,8 @@ Tom Warren <twarren@nvidia.com>
 
 	harmony		Tegra20 (ARM7 & A9 Dual Core)
 	seaboard	Tegra20 (ARM7 & A9 Dual Core)
+	cardhu		Tegra30 (ARM7 & A9 Quad Core)
+	dalmore		Tegra114 (ARM7 & A15 Quad Core)
 
 Tom Warren <twarren@nvidia.com>
 Stephen Warren <swarren@nvidia.com>
@@ -964,6 +1018,7 @@ Stephen Warren <swarren@nvidia.com>
 	paz00		Tegra20 (ARM7 & A9 Dual Core)
 	trimslice	Tegra20 (ARM7 & A9 Dual Core)
 	whistler	Tegra20 (ARM7 & A9 Dual Core)
+	beaver		Tegra30 (ARM7 & A9 Quad Core)
 
 Stephen Warren <swarren@wwwdotorg.org>
 
@@ -987,6 +1042,9 @@ Richard Woodruff <r-woodruff2@ti.com>
 
 	omap2420h4	ARM1136EJS
 
+Josh Wu <josh.wu@atmel.com>
+	at91sam9n12ek	ARM926EJS (AT91SAM9N12 SoC)
+
 Ilya Yanok <yanok@emcraft.com>
 
 	mcx		ARM ARMV7 (AM35x SoC)
@@ -1000,10 +1058,6 @@ Vladimir Zapolskiy <vz@mleia.com>
 
 	devkit3250	lpc32xx
 
-Zhong Hongbo <bocui107@gmail.com>
-
-	SMDK6400	ARM1176 (S3C6400 SoC)
-
 Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
 Tetsuyuki Kobayashi <koba@kmckk.co.jp>
 
@@ -1013,10 +1067,22 @@ Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
 
 	armadillo-800eva	R8A7740 (RMOBILE SoC)
 
+Pali Rohár <pali.rohar@gmail.com>
+
+	nokia_rx51	ARM ARMV7 (OMAP34xx SoC)
+
+Eric Nelson <eric.nelson@boundarydevices.com>
+	nitrogen6dl		i.MX6DL		1GB
+	nitrogen6dl2g		i.MX6DL		2GB
+	nitrogen6q		i.MX6Q/6D	1GB
+	nitrogen6q2g    	i.MX6Q/6D	2GB
+	nitrogen6s		i.MX6S		512MB
+	nitrogen6s1g		i.MX6S		1GB
+
 -------------------------------------------------------------------------
 
 Unknown / orphaned boards:
- 	Board		CPU	Last known maintainer / Comment
+	Board		CPU	Last known maintainer / Comment
 .........................................................................
 
 	omap1510inn	ARM925T         Kshitij Gupta <kshitij@ti.com>
@@ -1033,9 +1099,19 @@ Unknown / orphaned boards:
 #	Board		CPU						#
 #########################################################################
 
-Graeme Russ <graeme.russ@gmail.com>
+Simon Glass <sjg@chromium.org>
 
-	eNET		AMD SC520
+	chromebook-x86	Coreboot runs first, then U-Boot
+			Supports Intel Sandy Bridge / Ivy Bridge so far
+
+			Chromebooks for x86, including:
+				Samsung Series 5 Chromebook
+				Acer AC700 Chromebook
+				Acer C7 Chromebook
+				Samsung Chromebook 550
+				HP Pavillion Chromebook
+				Acer C710 Chromebook
+				Chromebook Pixel
 
 #########################################################################
 # MIPS Systems:								#
@@ -1048,10 +1124,6 @@ Wolfgang Denk <wd@denx.de>
 
 	incaip		MIPS32 4Kc
 
-Thomas Lange <thomas@corelatus.se>
-	dbau1x00	MIPS32 Au1000
-	gth2		MIPS32 Au1000
-
 Vlad Lungu <vlad.lungu@windriver.com>
 	qemu_mips	MIPS32
 
@@ -1062,6 +1134,14 @@ Stefan Roese <sr@denx.de>
 Xiangfu Liu <xiangfu@openmobilefree.net>
 
 	qi_lb60		MIPS32 (XBurst Jz4740 SoC)
+
+-------------------------------------------------------------------------
+
+Unknown / orphaned boards:
+ 	Board		CPU		Last known maintainer / Comment
+.........................................................................
+
+	dbau1x00	MIPS32 Au1000	Thomas Lange <thomas@corelatus.se>
 
 #########################################################################
 # Nios-II Systems:							#
@@ -1188,6 +1268,7 @@ Mark Jonas <mark.jonas@de.bosch.com>
 Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 
 	MS7720SE	SH7720
+	R0P77520000RZ	SH7752
 	R0P77570030RL	SH7757
 	R0P77850011RL	SH7785
 
@@ -1198,7 +1279,7 @@ Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 #	Board		CPU						#
 #########################################################################
 
-Mike Frysinger <vapier@gentoo.org>
+Sonic Zhang <sonic.adi@gmail.com>
 Blackfin Team <u-boot-devel@blackfin.uclinux.org>
 
 	BF506F-EZKIT	BF506
@@ -1215,6 +1296,7 @@ Blackfin Team <u-boot-devel@blackfin.uclinux.org>
 	BF538F-EZKIT	BF538
 	BF548-EZKIT	BF548
 	BF561-EZKIT	BF561
+	BF609-EZKIT	BF609
 
 M.Hasewinkel (MHA) <info@ssv-embedded.de>
 
@@ -1293,6 +1375,17 @@ Macpaul Lin <macpaul@andestech.com>
 Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 
 	openrisc-generic	OpenRISC
+
+#########################################################################
+# Sandbox:								#
+#									#
+# Maintainer Name, Email Address					#
+#	Board		CPU						#
+#########################################################################
+
+Simon Glass <sjg@chromium.org>
+
+	sandbox		sandbox
 
 #########################################################################
 # End of MAINTAINERS list						#

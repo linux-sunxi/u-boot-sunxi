@@ -43,6 +43,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define SMSTPCR1_CMT0	(1 << 24)
 #define SMSTPCR1_I2C0	(1 << 16)
 #define SMSTPCR3_USB	(1 << 22)
+#define SMSTPCR3_I2C1	(1 << 23)
 
 #define PORT32CR (0xE6051020)
 #define PORT33CR (0xE6051021)
@@ -83,7 +84,7 @@ static void sbsc_init(struct sh73a0_sbsc *sbsc)
 	writel(0x0017040a, &sbsc->sdwcr01);
 	writel(0x31020707, &sbsc->sdwcr10);
 	writel(0x0017040a, &sbsc->sdwcr11);
-	writel(0x05555555, &sbsc->sddrvcr0);
+	writel(0x055557ff, &sbsc->sddrvcr0); /* Enlarge drivability of LPDQS0-3, LPCLK */
 	writel(0x30000000, &sbsc->sdwcr2);
 
 	writel(readl(&sbsc->sdpcr) | 0x80, &sbsc->sdpcr);
@@ -111,7 +112,7 @@ static void sbsc_init(struct sh73a0_sbsc *sbsc)
 		writel(0x0, SDMRA1A);
 		writel(0x00000402, &sbsc->sdmracr0);
 		writel(0x0, SDMRA1A);
-		writel(0x00000403, &sbsc->sdmracr0);
+		writel(0x00000203, &sbsc->sdmracr0); /* MR3 register DS=2 */
 		writel(0x0, SDMRA1A);
 		writel(0x0, SDMRA2A);
 	} else {
@@ -119,7 +120,7 @@ static void sbsc_init(struct sh73a0_sbsc *sbsc)
 		writel(0x0, SDMRA1B);
 		writel(0x00000402, &sbsc->sdmracr0);
 		writel(0x0, SDMRA1B);
-		writel(0x00000403, &sbsc->sdmracr0);
+		writel(0x00000203, &sbsc->sdmracr0); /* MR3 register DS=2 */
 		writel(0x0, SDMRA1B);
 		writel(0x0, SDMRA2B);
 	}
@@ -194,7 +195,7 @@ void s_init(void)
 
 	/* FRQCR Init */
 	writel(0x0012453C, &cpg->frqcra);
-	writel(0x80331350, &cpg->frqcrb);
+	writel(0x80431350, &cpg->frqcrb);    /* ETM TRCLK  78MHz */
 	cmp_loop(&cpg->frqcrb, 0x80000000, 0x0);
 	writel(0x00000B0B, &cpg->frqcrd);
 	cmp_loop(&cpg->frqcrd, 0x80000000, 0x0);
@@ -287,8 +288,8 @@ int board_early_init_f(void)
 
 	clrbits_le32(&cpg->smstpcr1, (SMSTPCR1_CMT0|SMSTPCR1_I2C0));
 	clrbits_le32(&cpg_srcr->srcr1, (SMSTPCR1_CMT0|SMSTPCR1_I2C0));
-	clrbits_le32(&cpg->smstpcr3, SMSTPCR3_USB);
-	clrbits_le32(&cpg_srcr->srcr3, SMSTPCR3_USB);
+	clrbits_le32(&cpg->smstpcr3, (SMSTPCR3_USB|SMSTPCR3_I2C1));
+	clrbits_le32(&cpg_srcr->srcr3, (SMSTPCR3_USB|SMSTPCR3_I2C1));
 	writel(VCLKCR1_D, &cpg->vclkcr1);
 
 	/* Setup SCIF4 / workaround */
@@ -300,8 +301,19 @@ int board_early_init_f(void)
 	return 0;
 }
 
+void adjust_core_voltage(void)
+{
+	u8 data;
+
+	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	data = 0x35;
+	i2c_set_bus_num(0);
+	i2c_write(0x40, 3, 1, &data, 1);
+}
+
 int board_init(void)
 {
+	adjust_core_voltage();
 	sh73a0_pinmux_init();
 
     /* SCIFA 4 */
@@ -343,6 +355,8 @@ int board_init(void)
 	gpio_direction_output(GPIO_PORT15, 1);
 
 	/* I2C */
+	gpio_request(GPIO_FN_PORT237_I2C_SCL2, NULL);
+	gpio_request(GPIO_FN_PORT236_I2C_SDA2, NULL);
 	gpio_request(GPIO_FN_PORT27_I2C_SCL3, NULL);
 	gpio_request(GPIO_FN_PORT28_I2C_SDA3, NULL);
 

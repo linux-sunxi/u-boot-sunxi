@@ -26,7 +26,6 @@
 #include <stdio_dev.h>
 #include <i8042.h>
 #include <asm/ptrace.h>
-#include <asm/realmode.h>
 #include <asm/io.h>
 #include <asm/pci.h>
 
@@ -222,8 +221,5 @@ int video_init(void)
 
 int drv_video_init(void)
 {
-	if (video_bios_init())
-		return 1;
-
 	return video_init();
 }

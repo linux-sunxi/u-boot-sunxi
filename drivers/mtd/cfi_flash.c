@@ -38,6 +38,7 @@
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/byteorder.h>
+#include <asm/unaligned.h>
 #include <environment.h>
 #include <mtd/cfi_flash.h>
 #include <watchdog.h>
@@ -183,16 +184,16 @@ u64 flash_read64(void *addr)__attribute__((weak, alias("__flash_read64")));
 flash_info_t *flash_get_info(ulong base)
 {
 	int i;
-	flash_info_t *info = NULL;
+	flash_info_t *info;
 
 	for (i = 0; i < CONFIG_SYS_MAX_FLASH_BANKS; i++) {
-		info = & flash_info[i];
+		info = &flash_info[i];
 		if (info->size && info->start[0] <= base &&
 		    base <= info->start[0] + info->size - 1)
-			break;
+			return info;
 	}
 
-	return info;
+	return NULL;
 }
 #endif
 
@@ -752,8 +753,8 @@ static void flash_add_byte (flash_info_t * info, cfiword_t * cword, uchar c)
  */
 static flash_sect_t find_sector (flash_info_t * info, ulong addr)
 {
-	static flash_sect_t saved_sector = 0; /* previously found sector */
-	static flash_info_t *saved_info = 0; /* previously used flash bank */
+	static flash_sect_t saved_sector; /* previously found sector */
+	static flash_info_t *saved_info; /* previously used flash bank */
 	flash_sect_t sector = saved_sector;
 
 	if ((info != saved_info) || (sector >= info->sector_count))
@@ -1128,7 +1129,7 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 						AMD_CMD_ERASE_START);
 				flash_unlock_seq (info, sect);
 				flash_write_cmd (info, sect, 0,
-						 AMD_CMD_ERASE_SECTOR);
+						 info->cmd_erase_sector);
 				break;
 #ifdef CONFIG_FLASH_CFI_LEGACY
 			case CFI_CMDSET_AMD_LEGACY:
@@ -1147,8 +1148,9 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 			}
 
 			if (use_flash_status_poll(info)) {
-				cfiword_t cword = (cfiword_t)0xffffffffffffffffULL;
+				cfiword_t cword;
 				void *dest;
+				cword.ll = 0xffffffffffffffffULL;
 				dest = flash_map(info, sect, 0);
 				st = flash_status_poll(info, &cword, dest,
 						       info->erase_blk_tout, "erase");
@@ -1246,6 +1248,8 @@ void flash_print_info (flash_info_t * info)
 		printf(info->chipwidth == FLASH_CFI_16BIT ? "%04X" : "%02X",
 		info->device_id2);
 	}
+	if ((info->vendor == CFI_CMDSET_AMD_STANDARD) && (info->legacy_unlock))
+		printf("\n  Advanced Sector Protection (PPB) enabled");
 	printf ("\n  Erase timeout: %ld ms, write timeout: %ld ms\n",
 		info->erase_blk_tout,
 		info->write_tout);
@@ -1424,14 +1428,19 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 	return flash_write_cfiword (info, wp, cword);
 }
 
+static inline int manufact_match(flash_info_t *info, u32 manu)
+{
+	return info->manufacturer_id == ((manu & FLASH_VENDMASK) >> 16);
+}
+
 /*-----------------------------------------------------------------------
  */
 #ifdef CONFIG_SYS_FLASH_PROTECTION
 
 static int cfi_protect_bugfix(flash_info_t *info, long sector, int prot)
 {
-	if ((info->manufacturer_id == (uchar)INTEL_MANUFACT) &&
-		(info->device_id == NUMONYX_256MBIT)) {
+	if (manufact_match(info, INTEL_MANUFACT)
+	    && info->device_id == NUMONYX_256MBIT) {
 		/*
 		 * see errata called
 		 * "Numonyx Axcell P33/P30 Specification Update" :)
@@ -1487,7 +1496,7 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 		case CFI_CMDSET_AMD_EXTENDED:
 		case CFI_CMDSET_AMD_STANDARD:
 			/* U-Boot only checks the first byte */
-			if (info->manufacturer_id == (uchar)ATM_MANUFACT) {
+			if (manufact_match(info, ATM_MANUFACT)) {
 				if (prot) {
 					flash_unlock_seq (info, 0);
 					flash_write_cmd (info, 0,
@@ -1505,7 +1514,7 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 							0, ATM_CMD_UNLOCK_SECT);
 				}
 			}
-			if (info->manufacturer_id == (uchar)AMD_MANUFACT) {
+			if (info->legacy_unlock) {
 				int flag = disable_interrupts();
 				int lock_flag;
 
@@ -1632,9 +1641,10 @@ static void cfi_reverse_geometry(struct cfi_qry *qry)
 	u32 tmp;
 
 	for (i = 0, j = qry->num_erase_regions - 1; i < j; i++, j--) {
-		tmp = qry->erase_region_info[i];
-		qry->erase_region_info[i] = qry->erase_region_info[j];
-		qry->erase_region_info[j] = tmp;
+		tmp = get_unaligned(&(qry->erase_region_info[i]));
+		put_unaligned(get_unaligned(&(qry->erase_region_info[j])),
+			      &(qry->erase_region_info[i]));
+		put_unaligned(tmp, &(qry->erase_region_info[j]));
 	}
 }
 
@@ -1730,17 +1740,15 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 static int cmdset_amd_init(flash_info_t *info, struct cfi_qry *qry)
 {
 	info->cmd_reset = AMD_CMD_RESET;
+	info->cmd_erase_sector = AMD_CMD_ERASE_SECTOR;
 
 	cmdset_amd_read_jedec_ids(info);
 	flash_write_cmd(info, 0, info->cfi_offset, FLASH_CMD_CFI);
 
 #ifdef CONFIG_SYS_FLASH_PROTECTION
-	if (info->ext_addr && info->manufacturer_id == (uchar)AMD_MANUFACT) {
-		ushort spus;
-
-		/* read sector protect/unprotect scheme */
-		spus = flash_read_uchar(info, info->ext_addr + 9);
-		if (spus == 0x8)
+	if (info->ext_addr) {
+		/* read sector protect/unprotect scheme (at 0x49) */
+		if (flash_read_uchar(info, info->ext_addr + 9) == 0x8)
 			info->legacy_unlock = 1;
 	}
 #endif
@@ -1854,7 +1862,7 @@ static void flash_read_cfi (flash_info_t *info, void *buf,
 		p[i] = flash_read_uchar(info, start + i);
 }
 
-void __flash_cmd_reset(flash_info_t *info)
+static void __flash_cmd_reset(flash_info_t *info)
 {
 	/*
 	 * We do not yet know what kind of commandset to use, so we issue
@@ -1999,6 +2007,45 @@ static void flash_fixup_stm(flash_info_t *info, struct cfi_qry *qry)
 	}
 }
 
+static void flash_fixup_sst(flash_info_t *info, struct cfi_qry *qry)
+{
+	/*
+	 * SST, for many recent nor parallel flashes, says they are
+	 * CFI-conformant. This is not true, since qry struct.
+	 * reports a std. AMD command set (0x0002), while SST allows to
+	 * erase two different sector sizes for the same memory.
+	 * 64KB sector (SST call it block)  needs 0x30 to be erased.
+	 * 4KB  sector (SST call it sector) needs 0x50 to be erased.
+	 * Since CFI query detect the 4KB number of sectors, users expects
+	 * a sector granularity of 4KB, and it is here set.
+	 */
+	if (info->device_id == 0x5D23 || /* SST39VF3201B */
+	    info->device_id == 0x5C23) { /* SST39VF3202B */
+		/* set sector granularity to 4KB */
+		info->cmd_erase_sector=0x50;
+	}
+}
+
+static void flash_fixup_num(flash_info_t *info, struct cfi_qry *qry)
+{
+	/*
+	 * The M29EW devices seem to report the CFI information wrong
+	 * when it's in 8 bit mode.
+	 * There's an app note from Numonyx on this issue.
+	 * So adjust the buffer size for M29EW while operating in 8-bit mode
+	 */
+	if (((qry->max_buf_write_size) > 0x8) &&
+			(info->device_id == 0x7E) &&
+			(info->device_id2 == 0x2201 ||
+			info->device_id2 == 0x2301 ||
+			info->device_id2 == 0x2801 ||
+			info->device_id2 == 0x4801)) {
+		debug("Adjusted buffer size on Numonyx flash"
+			" M29EW family in 8 bit mode\n");
+		qry->max_buf_write_size = 0x8;
+	}
+}
+
 /*
  * The following code cannot be run from FLASH!
  *
@@ -2028,8 +2075,8 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 	info->start[0] = (ulong)map_physmem(base, info->portwidth, MAP_NOCACHE);
 
 	if (flash_detect_cfi (info, &qry)) {
-		info->vendor = le16_to_cpu(qry.p_id);
-		info->ext_addr = le16_to_cpu(qry.p_adr);
+		info->vendor = le16_to_cpu(get_unaligned(&(qry.p_id)));
+		info->ext_addr = le16_to_cpu(get_unaligned(&(qry.p_adr)));
 		num_erase_regions = qry.num_erase_regions;
 
 		if (info->ext_addr) {
@@ -2077,6 +2124,12 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 		case 0x0020:
 			flash_fixup_stm(info, &qry);
 			break;
+		case 0x00bf: /* SST */
+			flash_fixup_sst(info, &qry);
+			break;
+		case 0x0089: /* Numonyx */
+			flash_fixup_num(info, &qry);
+			break;
 		}
 
 		debug ("manufacturer is %d\n", info->vendor);
@@ -2112,7 +2165,8 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 				break;
 			}
 
-			tmp = le32_to_cpu(qry.erase_region_info[i]);
+			tmp = le32_to_cpu(get_unaligned(
+						&(qry.erase_region_info[i])));
 			debug("erase region %u: 0x%08lx\n", i, tmp);
 
 			erase_region_count = (tmp & 0xffff) + 1;
@@ -2153,6 +2207,27 @@ ulong flash_get_size (phys_addr_t base, int banknum)
 						flash_isset (info, sect_cnt,
 							     FLASH_OFFSET_PROTECT,
 							     FLASH_STATUS_PROTECT);
+					break;
+				case CFI_CMDSET_AMD_EXTENDED:
+				case CFI_CMDSET_AMD_STANDARD:
+					if (!info->legacy_unlock) {
+						/* default: not protected */
+						info->protect[sect_cnt] = 0;
+						break;
+					}
+
+					/* Read protection (PPB) from sector */
+					flash_write_cmd(info, 0, 0,
+							info->cmd_reset);
+					flash_unlock_seq(info, 0);
+					flash_write_cmd(info, 0,
+							info->addr_unlock1,
+							FLASH_CMD_READ_ID);
+					info->protect[sect_cnt] =
+						flash_isset(
+							info, sect_cnt,
+							FLASH_OFFSET_PROTECT,
+							FLASH_STATUS_PROTECT);
 					break;
 				default:
 					/* default: not protected */

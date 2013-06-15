@@ -50,6 +50,12 @@
 
 static int initialized = 0;
 
+/* Read Atmel MCI IP version */
+static unsigned int atmel_mci_get_version(struct atmel_mci *mci)
+{
+	return readl(&mci->version) & 0x00000fff;
+}
+
 /*
  * Print command and status:
  *
@@ -87,6 +93,11 @@ static void mci_set_mode(struct mmc *mmc, u32 hz, u32 blklen)
 		 | MMCI_BF(BLKLEN, blklen)
 		 | MMCI_BIT(RDPROOF)
 		 | MMCI_BIT(WRPROOF)), &mci->mr);
+	/*
+	 * On some new platforms BLKLEN in mci->mr is ignored.
+	 * Should use the BLKLEN in the block register.
+	 */
+	writel(MMCI_BF(BLKLEN, blklen), &mci->blkr);
 	initialized = 1;
 }
 
@@ -183,6 +194,12 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	/* Figure out the transfer arguments */
 	cmdr = mci_encode_cmd(cmd, data, &error_flags);
 
+	/* For multi blocks read/write, set the block register */
+	if ((cmd->cmdidx == MMC_CMD_READ_MULTIPLE_BLOCK)
+			|| (cmd->cmdidx == MMC_CMD_WRITE_MULTIPLE_BLOCK))
+		writel(data->blocks | MMCI_BF(BLKLEN, mmc->read_bl_len),
+			&mci->blkr);
+
 	/* Send the command */
 	writel(cmd->cmdarg, &mci->argr);
 	writel(cmdr, &mci->cmdr);
@@ -194,7 +211,10 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	/* Wait for the command to complete */
 	while (!((status = readl(&mci->sr)) & MMCI_BIT(CMDRDY)));
 
-	if (status & error_flags) {
+	if ((status & error_flags) & MMCI_BIT(RTOE)) {
+		dump_cmd(cmdr, cmd->cmdarg, status, "Command Time Out");
+		return TIMEOUT;
+	} else if (status & error_flags) {
 		dump_cmd(cmdr, cmd->cmdarg, status, "Command Failed");
 		return COMM_ERR;
 	}
@@ -286,7 +306,9 @@ mci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 static void mci_set_ios(struct mmc *mmc)
 {
 	atmel_mci_t *mci = (atmel_mci_t *)mmc->priv;
-	int busw = (mmc->bus_width == 4) ? 1 : 0;
+	int bus_width = mmc->bus_width;
+	unsigned int version = atmel_mci_get_version(mci);
+	int busw;
 
 	/* Set the clock speed */
 	mci_set_mode(mmc, mmc->clock, MMC_DEFAULT_BLKLEN);
@@ -294,9 +316,26 @@ static void mci_set_ios(struct mmc *mmc)
 	/*
 	 * set the bus width and select slot for this interface
 	 * there is no capability for multiple slots on the same interface yet
-	 * Bitfield SCDBUS needs to be expanded to 2 bits for 8-bit buses
 	 */
-	writel(MMCI_BF(SCDBUS, busw) | MMCI_BF(SCDSEL, MCI_BUS), &mci->sdcr);
+	if ((version & 0xf00) >= 0x300) {
+		switch (bus_width) {
+		case 8:
+			busw = 3;
+			break;
+		case 4:
+			busw = 2;
+			break;
+		default:
+			busw = 0;
+			break;
+		}
+
+		writel(busw << 6 | MMCI_BF(SCDSEL, MCI_BUS), &mci->sdcr);
+	} else {
+		busw = (bus_width == 4) ? 1 : 0;
+
+		writel(busw << 7 | MMCI_BF(SCDSEL, MCI_BUS), &mci->sdcr);
+	}
 }
 
 /* Entered into mmc structure during driver init */
@@ -310,8 +349,8 @@ static int mci_init(struct mmc *mmc)
 	writel(MMCI_BIT(MCIEN), &mci->cr);	/* enable mci */
 	writel(MMCI_BF(SCDSEL, MCI_BUS), &mci->sdcr);	/* select port */
 
-	/* Initial Time-outs */
-	writel(0x5f, &mci->dtor);
+	/* This delay can be optimized, but stick with max value */
+	writel(0x7f, &mci->dtor);
 	/* Disable Interrupts */
 	writel(~0UL, &mci->idr);
 
@@ -329,19 +368,29 @@ static int mci_init(struct mmc *mmc)
 int atmel_mci_init(void *regs)
 {
 	struct mmc *mmc = malloc(sizeof(struct mmc));
+	struct atmel_mci *mci;
+	unsigned int version;
 
 	if (!mmc)
 		return -1;
+
 	strcpy(mmc->name, "mci");
 	mmc->priv = regs;
 	mmc->send_cmd = mci_send_cmd;
 	mmc->set_ios = mci_set_ios;
 	mmc->init = mci_init;
 	mmc->getcd = NULL;
+	mmc->getwp = NULL;
 
 	/* need to be able to pass these in on a board by board basis */
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
-	mmc->host_caps = MMC_MODE_4BIT;
+	mci = (struct atmel_mci *)mmc->priv;
+	version = atmel_mci_get_version(mci);
+	if ((version & 0xf00) >= 0x300)
+		mmc->host_caps = MMC_MODE_8BIT;
+
+	mmc->host_caps |= MMC_MODE_4BIT;
+
 	/*
 	 * min and max frequencies determined by
 	 * max and min of clock divider
