@@ -26,12 +26,14 @@
 #include <watchdog.h>
 
 
-#define WDT_CTRL_RESTART (0x1 << 0)
-#define WDT_CTRL_KEY (0x0a57 << 1)
+#define WDT_CTRL_RESTART	(0x1 << 0)
+#define WDT_CTRL_KEY		(0x0a57 << 1)
 
-#define WDT_MODE_EN (0x1 << 0)
-#define WDT_MODE_RESET_EN (0x1 << 1)
-#define WDT_MODE_TIMEOUT(n) ((n) << 3)
+#define WDT_MODE_EN		(0x1 << 0)
+#define WDT_MODE_RESET_EN	(0x1 << 1)
+#define WDT_MAX_TIMEOUT		16
+#define WDT_MODE_TIMEOUT(n) \
+	 (wdt_timeout_map[(n) < WDT_MAX_TIMEOUT ? (n) : WDT_MAX_TIMEOUT] << 3)
 
 
 /*
@@ -68,21 +70,19 @@ void watchdog_reset(void)
 	writel(WDT_CTRL_KEY | WDT_CTRL_RESTART, &wdog->ctl);
 }
 
-void watchdog_set(unsigned int timeout)
+void watchdog_set(int timeout)
 {
 	static struct sunxi_wdog *const wdog =
 		&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->wdog;
 	u32 reg_val;
 
 	/* Set timeout, reset & enable */
-	if (timeout > WDT_MAX_TIMEOUT)
-		timeout = WDT_MAX_TIMEOUT;
-	reg_val = readl(&wdog->mode);
-	writel(reg_val & ~(WDT_MODE_RESET_EN | WDT_MODE_EN), &wdog->ctl);
-	if (!timeout > WDT_MAX_TIMEOUT) { /* only run and enable wdt if t > MAX */
+	if (timeout >= 0) {
 		reg_val |= WDT_MODE_TIMEOUT(timeout) | WDT_MODE_RESET_EN |
 			   WDT_MODE_EN;
 		writel(reg_val, &wdog->mode);
+	} else {
+		writel(0, &wdog->mode);
 	}
 	watchdog_reset();
 }
@@ -92,6 +92,6 @@ void watchdog_init(void)
 #ifdef CONFIG_WATCHDOG
 	watchdog_set(WDT_MAX_TIMEOUT);
 #else
-	watchdog_set(WDT_MAX_TIMEOUT + 1); /* no timeout */
+	watchdog_set(WDT_OFF); /* no timeout */
 #endif
 }

@@ -22,12 +22,13 @@
 #ifndef _SUNXI_WATCHDOG_H_
 #define _SUNXI_WATCHDOG_H_
 
-#define WDT_MAX_TIMEOUT 16 /* max wdt timeout in seconds */
-/* Anything above WDT_MAX_TIMEOUT disables the WDT */
+/* Timeout limits */
+#define WDT_MAX_TIMEOUT 16
+#define WDT_OFF -1
 
 #ifndef __ASSEMBLY__
 void watchdog_reset(void);
-void watchdog_set(unsigned int timeout);
+void watchdog_set(int timeout);
 void watchdog_init(void);
 #endif /* __ASSEMBLY__ */
 
