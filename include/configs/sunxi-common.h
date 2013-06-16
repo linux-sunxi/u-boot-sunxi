@@ -290,6 +290,37 @@
 #define CONFIG_WATCHDOG			/* automatic watchdog support */
 #endif
 
+/* Ethernet support */
+#ifdef CONFIG_SUNXI_EMAC
+#define CONFIG_MII			/* MII PHY management		*/
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_NET
+#endif
+
+#ifdef CONFIG_CMD_NET
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_NFS
+#define CONFIG_CMD_SNTP
+#define CONFIG_TIMESTAMP		/* Needed by SNTP */
+#define CONFIG_CMD_DNS
+#define CONFIG_NETCONSOLE
+#define CONFIG_BOOTP_SUBNETMASK
+#define CONFIG_BOOTP_GATEWAY
+#define CONFIG_BOOTP_HOSTNAME
+#define CONFIG_BOOTP_NISDOMAIN
+#define CONFIG_BOOTP_BOOTPATH
+#define CONFIG_BOOTP_BOOTFILESIZE
+#define CONFIG_BOOTP_DNS
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_BOOTP_NTPSERVER
+#define CONFIG_BOOTP_TIMEOFFSET
+#define CONFIG_BOOTP_MAY_FAIL
+#define CONFIG_BOOTP_SERVERIP
+#define CONFIG_BOOTP_DHCP_REQUEST_DELAY		50000
+#endif
+
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 

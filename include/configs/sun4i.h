@@ -26,16 +26,16 @@
 #define __CONFIG_H
 
 /*
- * Include common sunxi configuration where most the settings are
- */
-#include <configs/sunxi-common.h>
-
-/*
  * A10 specific configuration
  */
 #define CONFIG_SUN4I		/* sun4i SoC generation */
 
 #define CONFIG_SYS_PROMPT		"sun4i#"
 #define CONFIG_MACH_TYPE		4104
+
+/*
+ * Include common sunxi configuration where most the settings are
+ */
+#include <configs/sunxi-common.h>
 
 #endif /* __CONFIG_H */
