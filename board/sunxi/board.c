@@ -39,6 +39,9 @@ int board_init(void)
 {
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 
+#ifdef CONFIG_STATUS_LED
+	status_led_set(STATUS_LED_BOOT, STATUS_LED_ON);
+#endif
 	return 0;
 }
 

@@ -236,6 +236,32 @@
 #undef CONFIG_CMD_NET
 #undef CONFIG_CMD_NFS
 
+#ifdef STATUS_LED_BIT
+#define CONFIG_GPIO_LED
+#define CONFIG_STATUS_LED
+#ifndef STATUS_LED_BOOT
+#define STATUS_LED_BOOT 0
+#endif
+#ifndef STATUS_LED_STATE
+#define STATUS_LED_STATE STATUS_LED_ON
+#define STATUS_LED_PERIOD 1
+#endif
+#ifndef STATUS_LED_STATE1
+#define STATUS_LED_STATE1 STATUS_LED_OFF
+#define STATUS_LED_PERIOD1 1
+#endif
+#ifndef STATUS_LED_STATE2
+#define STATUS_LED_STATE2 STATUS_LED_OFF
+#define STATUS_LED_PERIOD2 1
+#endif
+#ifndef STATUS_LED_STATE3
+#define STATUS_LED_STATE3 STATUS_LED_OFF
+#define STATUS_LED_PERIOD3 1
+#endif
+#define CONFIG_BOARD_SPECIFIC_LED
+#define CONFIG_CMD_LED
+#endif
+
 /* Define this to have serial channel 1 (UART0) redirected to SD port */
 /* #define CONFIG_UART0_PORT_F */
 
