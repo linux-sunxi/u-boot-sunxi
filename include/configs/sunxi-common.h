@@ -370,7 +370,7 @@
 #endif
 
 /* PMU */
-#if ! defined CONFIG_AXP152_POWER && ! defined CONFIG_NO_AXP
+#if !defined CONFIG_AXP152_POWER && !defined CONFIG_NO_AXP
 #define CONFIG_AXP209_POWER
 #endif
 #if defined CONFIG_AXP152_POWER || defined CONFIG_AXP209_POWER
