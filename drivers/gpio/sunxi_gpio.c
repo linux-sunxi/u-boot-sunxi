@@ -102,7 +102,7 @@ int name_to_gpio(const char *name)
 	int group = 0;
 	int groupsize = 9 * 32;
 	long pin;
-	const char *eptr;
+	char *eptr;
 	if (*name == 'P' || *name == 'p')
 		name++;
 	if (*name >= 'A') {
