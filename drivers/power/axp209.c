@@ -56,8 +56,8 @@ int axp209_set_dcdc2(int mvolt)
 		cfg = (1 << 6) - 1;
 
 	/* Do we really need to be this gentle? It has built-in voltage slope */
-	while ((rc = axp209_read(AXP209_DCDC2_VOLTAGE, &current)) == 0
-	       && current != cfg) {
+	while ((rc = axp209_read(AXP209_DCDC2_VOLTAGE, &current)) == 0 &&
+	       current != cfg) {
 		if (current < cfg)
 			current++;
 		else
