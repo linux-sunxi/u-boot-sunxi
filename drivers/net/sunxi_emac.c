@@ -505,7 +505,7 @@ int sunxi_emac_initialize(void)
 	/* Set MII clock */
 	clrsetbits_le32(&regs->mac_mcfg, 0xf << 2, 0xd << 2);
 
-	dev->iobase = regs;
+	dev->iobase = (int)regs;
 	dev->priv = priv;
 	dev->init = sunxi_emac_eth_init;
 	dev->halt = sunxi_emac_eth_halt;
