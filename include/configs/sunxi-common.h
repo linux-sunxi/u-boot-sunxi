@@ -146,16 +146,16 @@
 #define CONFIG_BOOTCOMMAND \
 	"run boot_ram;" \
 	"if run loadbootenv; then " \
-		"echo Loaded environment from ${bootenv};" \
-		"env import -t ${scriptaddr} ${filesize};" \
+	  "echo Loaded environment from ${bootenv};" \
+	  "env import -t ${scriptaddr} ${filesize};" \
 	"fi;" \
 	"if test -n \\\"${uenvcmd}\\\"; then " \
-		"echo Running uenvcmd ...;" \
-		"run uenvcmd;" \
+	  "echo Running uenvcmd ...;" \
+	  "run uenvcmd;" \
 	"fi;" \
 	"if run loadbootscr; then "\
-		"echo Jumping to ${bootscr};" \
-		"source ${scriptaddr};" \
+	  "echo Jumping to ${bootscr};" \
+	  "source ${scriptaddr};" \
 	"fi;" \
 	"run autoboot;" \
 	""
@@ -169,71 +169,72 @@
 	"device=mmc\0" \
 	"partition=0:1\0" \
 	"setargs=" \
-		"if test -z \\\"$root\\\"; then"\
-			" if test \\\"$bootpath\\\" = \"boot/\"; then"\
-				" root=\"/dev/mmcblk0p1 rootwait\";"\
-			" else" \
-				" root=\"/dev/mmcblk0p2 rootwait\";"\
-			" fi;"\
-		" fi;"\
-		" setenv bootargs console=${console} root=${root}" \
-			" loglevel=${loglevel} ${panicarg} ${extraargs}\0" \
+	  "if test -z \\\"$root\\\"; then"\
+	    " if test \\\"$bootpath\\\" = \"boot/\"; then"\
+	      " root=\"/dev/mmcblk0p1 rootwait\";"\
+	    " else" \
+	      " root=\"/dev/mmcblk0p2 rootwait\";"\
+	    " fi;"\
+	  " fi;"\
+	  " setenv bootargs console=${console} root=${root}" \
+	  " loglevel=${loglevel} ${panicarg} ${extraargs}" \
+	  "\0" \
 	"kernel=uImage\0" \
 	"bootenv=uEnv.txt\0" \
 	"bootscr=boot.scr\0" \
 	"loadbootscr=" \
-		"fatload $device $partition $scriptaddr ${bootscr}" \
-		" || " \
-		"ext2load $device $partition $scriptaddr boot/${bootscr}" \
-		" ||" \
-		"ext2load $device $partition $scriptaddr ${bootscr}" \
-		"\0" \
+	  "fatload $device $partition $scriptaddr ${bootscr}" \
+	  " || " \
+	  "ext2load $device $partition $scriptaddr boot/${bootscr}" \
+	  " ||" \
+	  "ext2load $device $partition $scriptaddr ${bootscr}" \
+	  "\0" \
 	"loadbootenv=" \
-		"fatload $device $partition $scriptaddr ${bootenv}" \
-		" || " \
-		"ext2load $device $partition $scriptaddr boot/${bootenv}" \
-		" || " \
-		"ext2load $device $partition $scriptaddr ${bootenv}" \
-		"\0" \
+	  "fatload $device $partition $scriptaddr ${bootenv}" \
+	  " || " \
+	  "ext2load $device $partition $scriptaddr boot/${bootenv}" \
+	  " || " \
+	  "ext2load $device $partition $scriptaddr ${bootenv}" \
+	  "\0" \
 	"loadkernel=" \
-		"if "\
-			"bootpath=/boot/" \
-			" && " \
-			"ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
-			" && " \
-			"ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
-		";then true; elif " \
-			"bootpath=/" \
-			" && " \
-			"fatload $device $partition 0x43000000 script.bin" \
-			" && " \
-			"fatload $device $partition 0x48000000 ${kernel}" \
-		";then true; elif " \
-			"bootpath=/" \
-			" && " \
-			"ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
-			" && " \
-			"ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
-		";then true; else "\
-			"false" \
-		";fi" \
-		"\0" \
+	  "if "\
+	    "bootpath=/boot/" \
+	    " && " \
+	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
+	    " && " \
+	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
+	  ";then true; elif " \
+	    "bootpath=/" \
+	    " && " \
+	    "fatload $device $partition 0x43000000 script.bin" \
+	    " && " \
+	    "fatload $device $partition 0x48000000 ${kernel}" \
+	  ";then true; elif " \
+	    "bootpath=/" \
+	    " && " \
+	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
+	    " && " \
+	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
+	  ";then true; else "\
+	    "false" \
+	  ";fi" \
+	  "\0" \
 	"autoboot=" \
-		"run loadkernel" \
-		" && " \
-		"run setargs" \
-		" && " \
-		"bootm 0x48000000" \
-		"\0" \
+	  "run loadkernel" \
+	  " && " \
+	  "run setargs" \
+	  " && " \
+	  "bootm 0x48000000" \
+	  "\0" \
 	"boot_ram=" \
-		"saved_stdout=$stdout;setenv stdout nc;"\
-		"if iminfo 0x41000000; then" \
-		" setenv stdout $saved_stdout;" \
-		" source 0x41000000;" \
-		"else" \
-		" setenv stdout $saved_stdout;" \
-		"fi" \
-		"\0" \
+	  "saved_stdout=$stdout;setenv stdout nc;"\
+	  "if iminfo 0x41000000; then" \
+	    " setenv stdout $saved_stdout;" \
+	    " source 0x41000000;" \
+	  "else" \
+	    " setenv stdout $saved_stdout;" \
+	  "fi" \
+	  "\0" \
 	""
 
 #define CONFIG_BOOTDELAY	3
@@ -383,7 +384,10 @@
 #define CONFIG_CONS_INDEX              1       /* UART0 */
 #endif
 
-#if !defined CONFIG_ENV_IS_IN_MMC && !defined CONFIG_ENV_IS_IN_NAND && !defined CONFIG_ENV_IS_IN_FAT && !defined CONFIG_ENV_IS_IN_SPI_FLASH
+#if !defined CONFIG_ENV_IS_IN_MMC && \
+    !defined CONFIG_ENV_IS_IN_NAND && \
+    !defined CONFIG_ENV_IS_IN_FAT && \
+    !defined CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_IS_NOWHERE
 #endif
 
