@@ -65,8 +65,8 @@ COBJS-$(CONFIG_UHOST_U1A)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
 
 COBJS	:= $(COBJS-y)
-SRCS 	:= $(COBJS:.o=.c)
-OBJS 	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 

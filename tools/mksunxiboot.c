@@ -68,11 +68,11 @@ int gen_check_sum(void *boot_buf)
 	u32 i;
 	u32 sum;
 
-	head_p = (struct boot_file_head *) boot_buf;
+	head_p = (struct boot_file_head *)boot_buf;
 	length = head_p->length;
 	if ((length & 0x3) != 0)	/* must 4-byte-aligned */
 		return -1;
-	buf = (u32 *) boot_buf;
+	buf = (u32 *)boot_buf;
 	head_p->check_sum = STAMP_VALUE;	/* fill stamp */
 	loop = length >> 2;
 
@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 	int count;
 
 	if (argc < 2) {
-		printf("\tThis program makes an input bin file to sun4i "
-		       "bootable image.\n"
+		printf("\tThis program makes an input bin file to sun4i " \
+		       "bootable image.\n" \
 		       "\tUsage: %s input_file out_putfile\n", argv[0]);
 		return EXIT_FAILURE;
 	}

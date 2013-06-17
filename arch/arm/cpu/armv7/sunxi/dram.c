@@ -116,9 +116,8 @@ static void mctl_enable_dllx(void)
 	else
 		n = 3;
 
-	for (i = 1; i < n; i++) {
+	for (i = 1; i < n; i++)
 		clrsetbits_le32(&dram->dllcr[i], 0x1 << 30, 0x1 << 31);
-	}
 	sdelay(0x100);
 
 	for (i = 1; i < n; i++)

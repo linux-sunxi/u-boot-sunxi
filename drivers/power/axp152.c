@@ -24,21 +24,21 @@
 #include <i2c.h>
 #include <axp152.h>
 
-typedef enum {
+enum axp152_reg {
 	AXP152_CHIP_VERSION = 0x3,
 	AXP152_DCDC2_VOLTAGE = 0x23,
 	AXP152_DCDC3_VOLTAGE = 0x27,
 	AXP152_DCDC4_VOLTAGE = 0x2B,
 	AXP152_LDO2_VOLTAGE = 0x2A,
 	AXP152_SHUTDOWN = 0x32,
-} axp152_reg;
+};
 
-int axp152_write(axp152_reg reg, u8 val)
+int axp152_write(enum axp152_reg reg, u8 val)
 {
 	return i2c_write(0x30, reg, 1, &val, 1);
 }
 
-int axp152_read(axp152_reg reg, u8 *val)
+int axp152_read(enum axp152_reg reg, u8 *val)
 {
 	return i2c_read(0x30, reg, 1, val, 1);
 }
@@ -54,8 +54,8 @@ int axp152_set_dcdc2(int mvolt)
 	if (target > (1<<6)-1)
 		target = (1<<6)-1;
 	/* Do we really need to be this gentle? It has built-in voltage slope */
-	while ((rc = axp152_read(AXP152_DCDC2_VOLTAGE, &current)) == 0 && current != target)
-	{
+	while ((rc = axp152_read(AXP152_DCDC2_VOLTAGE, &current)) == 0 &&
+	       current != target) {
 		if (current < target)
 			current++;
 		else
