@@ -32,8 +32,8 @@ LIB	:= $(obj)lib$(BOARD).o
 COBJS-y	:= board.o
 
 COBJS	:= $(COBJS-y)
-SRCS 	:= $(COBJS:.o=.c)
-OBJS 	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 
