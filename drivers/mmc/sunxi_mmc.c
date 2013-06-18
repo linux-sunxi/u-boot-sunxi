@@ -25,13 +25,13 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <asm/arch/cpu.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/mmc.h>
 #include <malloc.h>
 #include <mmc.h>
+#include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/cpu.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/mmc.h>
 
 static void dumphex32(char *name, char *base, int len)
 {

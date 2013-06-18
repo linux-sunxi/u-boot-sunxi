@@ -28,7 +28,6 @@
 #include <asm/arch/key.h>
 #include <asm/arch/sys_proto.h>
 
-
 int sunxi_key_init(void)
 {
 	struct sunxi_lradc *sunxi_key_base =

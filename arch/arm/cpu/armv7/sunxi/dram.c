@@ -31,9 +31,9 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/clock.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/timer.h>
-#include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
 static void mctl_ddr3_reset(void)

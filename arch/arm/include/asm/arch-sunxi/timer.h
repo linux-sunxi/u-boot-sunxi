@@ -29,6 +29,8 @@
 
 #ifndef __ASSEMBLY__
 
+#include <linux/types.h>
+
 /* General purpose timer */
 struct sunxi_timer {
 	u32 ctl;

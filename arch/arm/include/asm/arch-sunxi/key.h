@@ -25,6 +25,8 @@
 #ifndef _SUNXI_KEY_H
 #define _SUNXI_KEY_H
 
+#include <linux/types.h>
+
 struct sunxi_lradc {
 	u32 ctrl;         /* lradc control */
 	u32 intc;         /* interrupt control */

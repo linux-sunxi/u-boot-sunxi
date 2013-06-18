@@ -25,6 +25,8 @@
 #ifndef _SUNXI_GPIO_H
 #define _SUNXI_GPIO_H
 
+#include <linux/types.h>
+
 /*
  * sunxi has 9 banks of gpio, they are:
  * PA0 - PA17 | PB0 - PB23 | PC0 - PC24
