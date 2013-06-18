@@ -31,9 +31,9 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/clock.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/timer.h>
-#include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
 #define CPU_CFG_CHIP_VER(n) ((n) << 6)

@@ -7,10 +7,10 @@
  */
 
 #include <common.h>
-#include <malloc.h>
-#include <net.h>
-#include <miiphy.h>
 #include <linux/err.h>
+#include <malloc.h>
+#include <miiphy.h>
+#include <net.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>

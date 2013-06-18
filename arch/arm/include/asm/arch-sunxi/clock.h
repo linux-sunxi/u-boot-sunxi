@@ -25,6 +25,8 @@
 #ifndef _SUNXI_CLOCK_H
 #define _SUNXI_CLOCK_H
 
+#include <linux/types.h>
+
 /* clock control module regs definition */
 
 struct sunxi_ccm_reg {

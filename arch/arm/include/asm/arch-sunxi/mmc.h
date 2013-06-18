@@ -27,6 +27,8 @@
 #ifndef _SUNXI_MMC_H
 #define _SUNXI_MMC_H
 
+#include <linux/types.h>
+
 struct sunxi_mmc {
 	u32 gctrl;		/* (0x00) SMC Global Control Register */
 	u32 clkcr;		/* (0x04) SMC Clock Control Register */

@@ -27,19 +27,19 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <serial.h>
 #include <i2c.h>
-#include <asm/gpio.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/timer.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/arch/watchdog.h>
 #include <netdev.h>
+#include <serial.h>
 #ifdef CONFIG_SPL_BUILD
 #include <spl.h>
 #endif
+#include <asm/gpio.h>
+#include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/timer.h>
+#include <asm/arch/watchdog.h>
 
 #ifdef CONFIG_SPL_BUILD
 /* Pointer to the global data structure for SPL */
