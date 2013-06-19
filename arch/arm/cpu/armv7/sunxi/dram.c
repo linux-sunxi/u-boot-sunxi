@@ -664,5 +664,5 @@ int dramc_init(struct dram_para *para)
 	/* configure all host port */
 	mctl_configure_hostport();
 
-	return get_ram_size((long *)PHYS_SDRAM_1, 1 << 30);
+	return get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 }
