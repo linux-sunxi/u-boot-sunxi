@@ -18,7 +18,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -28,15 +28,15 @@
  */
 
 #include <common.h>
-#include <asm/arch/dram.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/mmc.h>
 #ifdef CONFIG_AXP152_POWER
 #include <axp152.h>
 #endif
 #ifdef CONFIG_AXP209_POWER
 #include <axp209.h>
 #endif
+#include <asm/arch/clock.h>
+#include <asm/arch/dram.h>
+#include <asm/arch/mmc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -92,7 +92,7 @@ void sunxi_board_init(void)
 		printf(" ?");
 		ramsize = sunxi_dram_init();
 	}
-	printf(" %dMB\n", ramsize>>20);
+	printf(" %d MiB\n", ramsize >> 20);
 	if (!ramsize)
 		hang();
 
@@ -123,7 +123,7 @@ void sunxi_board_init(void)
 		clock_set_pll1(1008000000);
 #endif
 	else
-		printf("Failed to set core voltage!. Can't set CPU frequency\n");
+		printf("Failed to set core voltage! Can't set CPU frequency\n");
 }
 
 #ifdef CONFIG_SPL_DISPLAY_PRINT
