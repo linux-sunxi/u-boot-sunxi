@@ -75,7 +75,11 @@ static void mctl_set_drive(void)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
+#ifdef CONFIG_SUN7I
+	clrsetbits_le32(&dram->mcr, DRAM_MCR_MODE_NORM(0x3) | (0x3 << 28),
+#else
 	clrsetbits_le32(&dram->mcr, DRAM_MCR_MODE_NORM(0x3),
+#endif
 			DRAM_MCR_MODE_EN(0x3) |
 			0xffc);
 }
@@ -127,7 +131,11 @@ static void mctl_enable_dllx(u32 phase)
 		n = DRAM_DCR_NR_DLLCR_16BIT;
 
 	for (i = 1; i < n; i++) {
+#ifdef CONFIG_SUN7I
+		clrsetbits_le32(&dram->dllcr[i], 0xf << 14,
+#else
 		clrsetbits_le32(&dram->dllcr[i], 0x4 << 14,
+#endif
 				(phase & 0xf) << 14);
 		clrsetbits_le32(&dram->dllcr[i], DRAM_DLLCR_NRESET,
 				DRAM_DLLCR_DISABLE);
@@ -220,7 +228,12 @@ static void mctl_setup_dram_clock(u32 clk)
 
 	/* setup MBUS clock */
 	reg_val = CCM_MBUS_CTRL_GATE |
+#ifdef CONFIG_SUN7I
+		  CCM_MBUS_CTRL_CLK_SRC(CCM_MBUS_CTRL_CLK_SRC_PLL6) |
+		  CCM_MBUS_CTRL_N(CCM_MBUS_CTRL_N_X(2)) |
+#else
 		  CCM_MBUS_CTRL_CLK_SRC(CCM_MBUS_CTRL_CLK_SRC_PLL5) |
+#endif
 		  CCM_MBUS_CTRL_M(CCM_MBUS_CTRL_M_X(2));
 	writel(reg_val, &ccm->mbus_clk_cfg);
 
@@ -250,6 +263,9 @@ static int dramc_scan_readpipe(void)
 	u32 reg_val;
 
 	/* data training trigger */
+#ifdef CONFIG_SUN7I
+	clrbits_le32(&dram->csr, DRAM_CSR_FAILED);
+#endif
 	setbits_le32(&dram->ccr, DRAM_CCR_DATA_TRAINING);
 
 	/* check whether data training process has completed */
@@ -499,7 +515,10 @@ int dramc_init(struct dram_para *para)
 	writel(reg_val, &dram->dcr);
 
 #ifdef CONFIG_SUN7I
-	setbits_le32(&dram->zqcr1, 0x1 << 24);
+	setbits_le32(&dram->zqcr1, (0x1 << 24) | (0x1 << 1));
+	if (para->tpr4 & 0x2)
+		clrsetbits_le32(&dram->zqcr1, (0x1 << 24), (0x1 << 1));
+	dramc_clock_output_en(1);
 #endif
 
 #if (defined(CONFIG_SUN5I) || defined(CONFIG_SUN7I))
@@ -515,13 +534,14 @@ int dramc_init(struct dram_para *para)
 	setbits_le32(&dram->idcr, 0x1ffff);
 #endif
 
-	/* dram clock on */
-	dramc_clock_output_en(1);
 #ifdef CONFIG_SUN7I
 	if ((readl(&dram->ppwrsctl) & 0x1) != 0x1)
 		mctl_ddr3_reset();
 	else
 		setbits_le32(&dram->mcr, DRAM_MCR_RESET);
+#else
+	/* dram clock on */
+	dramc_clock_output_en(1);
 #endif
 
 	sdelay(0x10);
@@ -575,10 +595,52 @@ int dramc_init(struct dram_para *para)
 	/* set DQS window mode */
 	clrsetbits_le32(&dram->ccr, DRAM_CCR_DQS_DRIFT_COMP, DRAM_CCR_DQS_GATE);
 
+#ifdef CONFIG_SUN7I
+	/* Command rate timing mode 2T & 1T */
+	if (para->tpr4 & 0x1)
+		setbits_le32(&dram->ccr, DRAM_CCR_COMMAND_RATE_1T);
+#endif
 	/* reset external DRAM */
 	setbits_le32(&dram->ccr, DRAM_CCR_INIT);
 	while (readl(&dram->ccr) & DRAM_CCR_INIT);
 
+#ifdef CONFIG_SUN7I
+	/* setup zq calibration manual */
+	reg_val = readl(&dram->ppwrsctl);
+	if ((reg_val & 0x1) == 1) {
+		/* super_standby_flag = 1 */
+
+		reg_val = readl(0x01c20c00 + 0x120); /* rtc */
+		reg_val &= 0x000fffff;
+		reg_val |= 0x17b00000;
+		writel(reg_val, &dram->zqcr0);
+
+		/* exit self-refresh state */
+		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
+		/* check whether command has been executed */
+		while (readl(&dram->dcr) & (0x1 << 31));
+
+		sdelay(0x100);
+
+		/* dram pad hold off */
+		setbits_le32(&dram->ppwrsctl, 0x16510000);
+
+		while (readl(&dram->ppwrsctl) & 0x1);
+
+		/* exit self-refresh state */
+		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
+
+		/* check whether command has been executed */
+		while (readl(&dram->dcr) & (0x1 << 31));
+		sdelay(0x100);;
+
+		/* issue a refresh command */
+		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x13 << 27);
+		while (readl(&dram->dcr) & (0x1 << 31));
+
+		sdelay(0x100);
+	}
+#endif
 
 	/* scan read pipe value */
 	mctl_itm_enable();
