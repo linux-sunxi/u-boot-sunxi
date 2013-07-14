@@ -154,8 +154,14 @@
 #define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
 
+#ifdef CONFIG_SPL_FEL
+#define RUN_BOOT_RAM	"run boot_ram;"
+#else
+#define RUN_BOOT_RAM	""
+#endif
+
 #define CONFIG_BOOTCOMMAND \
-	"run boot_ram;" \
+	RUN_BOOT_RAM \
 	"if run loadbootenv; then " \
 	  "echo Loaded environment from ${bootenv};" \
 	  "env import -t ${scriptaddr} ${filesize};" \
