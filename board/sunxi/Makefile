@@ -35,6 +35,9 @@ COBJS-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
+COBJS-$(CONFIG_AUXTEK_T003)	+= dram_auxtek_t003.o
+# This is not a typo, uses the same mem settings as the a10s-olinuxino-m
+COBJS-$(CONFIG_AUXTEK_T004)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_BA10_TV_BOX)	+= dram_sun4i_384_1024_iow8.o
 COBJS-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID8042)	+= dram_sun4i_360_1024_iow16.o
@@ -59,10 +62,12 @@ COBJS-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 COBJS-$(CONFIG_MK802II)		+= dram_sun4i_408_1024_iow8.o
 COBJS-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
 COBJS-$(CONFIG_POV_PROTAB2)	+= dram_pov_protab2.o
+COBJS-$(CONFIG_POV_PROTAB2_XXL)	+= dram_pov_protab2_xxl.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
 COBJS-$(CONFIG_SANEI_N90)	+= dram_sanei_n90.o
 COBJS-$(CONFIG_UHOST_U1A)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
+COBJS-$(CONFIG_XZPAD700)	+= dram_xzpad700.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
