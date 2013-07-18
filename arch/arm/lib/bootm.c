@@ -68,12 +68,19 @@ void arch_lmb_reserve(struct lmb *lmb)
 		    gd->bd->bi_dram[0].start + gd->bd->bi_dram[0].size - sp);
 }
 
-static void announce_and_cleanup(void)
+/**
+ * announce_and_cleanup() - Print message and prepare for kernel boot
+ *
+ * @fake: non-zero to do everything except actually boot
+ */
+static void announce_and_cleanup(int fake)
 {
-	printf("\nStarting kernel ...\n\n");
+	printf("\nStarting kernel ...%s\n\n", fake ?
+		"(fake run for tracing)" : "");
 	bootstage_mark_name(BOOTSTAGE_ID_BOOTM_HANDOFF, "start_kernel");
 #ifdef CONFIG_BOOTSTAGE_FDT
-	bootstage_fdt_add_report();
+	if (flag == BOOTM_STATE_OS_FAKE_GO)
+		bootstage_fdt_add_report();
 #endif
 #ifdef CONFIG_BOOTSTAGE_REPORT
 	bootstage_report();
@@ -225,12 +232,13 @@ static void boot_prep_linux(bootm_headers_t *images)
 }
 
 /* Subcommand: GO */
-static void boot_jump_linux(bootm_headers_t *images)
+static void boot_jump_linux(bootm_headers_t *images, int flag)
 {
 	unsigned long machid = gd->bd->bi_arch_number;
 	char *s;
 	void (*kernel_entry)(int zero, int arch, uint params);
 	unsigned long r2;
+	int fake = (flag & BOOTM_STATE_OS_FAKE_GO);
 
 	kernel_entry = (void (*)(int, int, uint))images->ep;
 
@@ -243,14 +251,15 @@ static void boot_jump_linux(bootm_headers_t *images)
 	debug("## Transferring control to Linux (at address %08lx)" \
 		"...\n", (ulong) kernel_entry);
 	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
-	announce_and_cleanup();
+	announce_and_cleanup(fake);
 
 	if (IMAGE_ENABLE_OF_LIBFDT && images->ft_len)
 		r2 = (unsigned long)images->ft_addr;
 	else
 		r2 = gd->bd->bi_boot_params;
 
-	kernel_entry(0, machid, r2);
+	if (!fake)
+		kernel_entry(0, machid, r2);
 }
 
 /* Main Entry point for arm bootm implementation
@@ -270,13 +279,13 @@ int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
 		return 0;
 	}
 
-	if (flag & BOOTM_STATE_OS_GO) {
-		boot_jump_linux(images);
+	if (flag & (BOOTM_STATE_OS_GO | BOOTM_STATE_OS_FAKE_GO)) {
+		boot_jump_linux(images, flag);
 		return 0;
 	}
 
 	boot_prep_linux(images);
-	boot_jump_linux(images);
+	boot_jump_linux(images, flag);
 	return 0;
 }
 
@@ -291,21 +300,23 @@ struct zimage_header {
 
 #define	LINUX_ARM_ZIMAGE_MAGIC	0x016f2818
 
-int bootz_setup(void *image, void **start, void **end)
+int bootz_setup(ulong image, ulong *start, ulong *end)
 {
-	struct zimage_header *zi = (struct zimage_header *)image;
+	struct zimage_header *zi;
 
+	zi = (struct zimage_header *)map_sysmem(image, 0);
 	if (zi->zi_magic != LINUX_ARM_ZIMAGE_MAGIC) {
 		puts("Bad Linux ARM zImage magic!\n");
 		return 1;
 	}
 
-	*start = (void *)zi->zi_start;
-	*end = (void *)zi->zi_end;
+	*start = zi->zi_start;
+	*end = zi->zi_end;
 
-	debug("Kernel image @ 0x%08x [ 0x%08x - 0x%08x ]\n",
-		(uint32_t)image, (uint32_t)*start, (uint32_t)*end);
+	printf("Kernel image @ %#08lx [ %#08lx - %#08lx ]\n", image, *start,
+	      *end);
 
 	return 0;
 }
+
 #endif	/* CONFIG_CMD_BOOTZ */

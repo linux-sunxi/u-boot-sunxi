@@ -210,6 +210,11 @@ CPPFLAGS += -ffunction-sections -fdata-sections
 LDFLAGS_FINAL += --gc-sections
 endif
 
+# TODO(sjg@chromium.org): Is this correct on Mac OS?
+ifdef CONFIG_FIT_SIGNATURE
+HOSTLIBS	+= -lssl -lcrypto
+endif
+
 ifneq ($(CONFIG_SYS_TEXT_BASE),)
 CPPFLAGS += -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)
 endif
@@ -267,6 +272,16 @@ CFLAGS += $(CFLAGS_WARN)
 # Report stack usage if supported
 CFLAGS_STACK := $(call cc-option,-fstack-usage)
 CFLAGS += $(CFLAGS_STACK)
+
+BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:$(obj)%=%))
+
+ifeq ($(findstring examples/,$(BCURDIR)),)
+ifeq ($(CONFIG_SPL_BUILD),)
+ifdef FTRACE
+CFLAGS += -finstrument-functions -DFTRACE
+endif
+endif
+endif
 
 # $(CPPFLAGS) sets -g, which causes gcc to pass a suitable -g<format>
 # option to the assembler.
@@ -330,7 +345,6 @@ export	CONFIG_SYS_TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS 
 #########################################################################
 
 # Allow boards to use custom optimize flags on a per dir/file basis
-BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:$(obj)%=%))
 ALL_AFLAGS = $(AFLAGS) $(AFLAGS_$(BCURDIR)/$(@F)) $(AFLAGS_$(BCURDIR))
 ALL_CFLAGS = $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR))
 EXTRA_CPPFLAGS = $(CPPFLAGS_$(BCURDIR)/$(@F)) $(CPPFLAGS_$(BCURDIR))

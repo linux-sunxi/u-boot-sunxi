@@ -48,6 +48,8 @@ int do_bootm_linux(int flag, int argc, char * const argv[],
 	size_t		len;
 #endif
 
+	if (flag & BOOTM_STATE_OS_PREP)
+		return 0;
 	if ((flag != 0) && (flag != BOOTM_STATE_OS_GO))
 		return 1;
 
@@ -63,6 +65,8 @@ int do_bootm_linux(int flag, int argc, char * const argv[],
 		}
 #if defined(CONFIG_FIT)
 	} else if (images->fit_uname_os) {
+		int ret;
+
 		ret = fit_image_get_data(images->fit_hdr_os,
 					images->fit_noffset_os, &data, &len);
 		if (ret) {

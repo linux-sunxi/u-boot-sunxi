@@ -413,10 +413,21 @@ The following options need to be configured:
 		See Freescale App Note 4493 for more information about
 		this erratum.
 
+		CONFIG_A003399_NOR_WORKAROUND
+		Enables a workaround for IFC erratum A003399. It is only
+		requred during NOR boot.
+
 		CONFIG_SYS_FSL_CORENET_SNOOPVEC_COREONLY
 
 		This is the value to write into CCSR offset 0x18600
 		according to the A004510 workaround.
+
+		CONFIG_SYS_FSL_DSP_M2_RAM_ADDR
+		This value denotes start offset of M2 memory
+		which is directly connected to the DSP core.
+
+		CONFIG_SYS_FSL_DSP_CCSRBAR_DEFAULT
+		This value denotes start offset of DSP CCSR space.
 
 - Generic CPU options:
 		CONFIG_SYS_BIG_ENDIAN, CONFIG_SYS_LITTLE_ENDIAN
@@ -843,7 +854,7 @@ The following options need to be configured:
 		CONFIG_CMD_FDOS		* Dos diskette Support
 		CONFIG_CMD_FLASH	  flinfo, erase, protect
 		CONFIG_CMD_FPGA		  FPGA device initialization support
-		CONFIG_CMD_FUSE		  Device fuse support
+		CONFIG_CMD_FUSE		* Device fuse support
 		CONFIG_CMD_GETTIME	* Get time since boot
 		CONFIG_CMD_GO		* the 'go' command (exec code)
 		CONFIG_CMD_GREPENV	* search environment
@@ -853,7 +864,7 @@ The following options need to be configured:
 		CONFIG_CMD_IDE		* IDE harddisk support
 		CONFIG_CMD_IMI		  iminfo
 		CONFIG_CMD_IMLS		  List all images found in NOR flash
-		CONFIG_CMD_IMLS_NAND	  List all images found in NAND flash
+		CONFIG_CMD_IMLS_NAND	* List all images found in NAND flash
 		CONFIG_CMD_IMMAP	* IMMR dump support
 		CONFIG_CMD_IMPORTENV	* import an environment
 		CONFIG_CMD_INI		* import data from an ini file into the env
@@ -861,23 +872,24 @@ The following options need to be configured:
 		CONFIG_CMD_ITEST	  Integer/string test of 2 values
 		CONFIG_CMD_JFFS2	* JFFS2 Support
 		CONFIG_CMD_KGDB		* kgdb
-		CONFIG_CMD_LDRINFO	  ldrinfo (display Blackfin loader)
+		CONFIG_CMD_LDRINFO	* ldrinfo (display Blackfin loader)
 		CONFIG_CMD_LINK_LOCAL	* link-local IP address auto-configuration
 					  (169.254.*.*)
 		CONFIG_CMD_LOADB	  loadb
 		CONFIG_CMD_LOADS	  loads
-		CONFIG_CMD_MD5SUM	  print md5 message digest
+		CONFIG_CMD_MD5SUM	* print md5 message digest
 					  (requires CONFIG_CMD_MEMORY and CONFIG_MD5)
 		CONFIG_CMD_MEMINFO	* Display detailed memory information
 		CONFIG_CMD_MEMORY	  md, mm, nm, mw, cp, cmp, crc, base,
 					  loop, loopw
-		CONFIG_CMD_MEMTEST	  mtest
+		CONFIG_CMD_MEMTEST	* mtest
 		CONFIG_CMD_MISC		  Misc functions like sleep etc
 		CONFIG_CMD_MMC		* MMC memory mapped support
 		CONFIG_CMD_MII		* MII utility commands
 		CONFIG_CMD_MTDPARTS	* MTD partition support
 		CONFIG_CMD_NAND		* NAND support
 		CONFIG_CMD_NET		  bootp, tftpboot, rarpboot
+		CONFIG_CMD_NFS		  NFS support
 		CONFIG_CMD_PCA953X	* PCA953x I2C gpio commands
 		CONFIG_CMD_PCA953X_INFO * PCA953x I2C gpio info command
 		CONFIG_CMD_PCI		* pciinfo
@@ -896,7 +908,7 @@ The following options need to be configured:
 		CONFIG_CMD_SETGETDCR	  Support for DCR Register access
 					  (4xx only)
 		CONFIG_CMD_SF		* Read/write/erase SPI NOR flash
-		CONFIG_CMD_SHA1SUM	  print sha1 memory digest
+		CONFIG_CMD_SHA1SUM	* print sha1 memory digest
 					  (requires CONFIG_CMD_MEMORY)
 		CONFIG_CMD_SOFTSWITCH	* Soft switch setting command for BF60x
 		CONFIG_CMD_SOURCE	  "source" command Support
@@ -908,6 +920,7 @@ The following options need to be configured:
 		CONFIG_CMD_USB		* USB support
 		CONFIG_CMD_CDP		* Cisco Discover Protocol support
 		CONFIG_CMD_MFSL		* Microblaze FSL support
+		CONFIG_CMD_XIMG		  Load part of Multi Image
 
 
 		EXAMPLE: If you want all functions except of network
@@ -1379,6 +1392,12 @@ The following options need to be configured:
 		CONFIG_DFU_NAND
 		This enables support for exposing NAND devices via DFU.
 
+		CONFIG_SYS_DFU_DATA_BUF_SIZE
+		Dfu transfer uses a buffer before writing data to the
+		raw storage device. Make the size (in bytes) of this buffer
+		configurable. The size of this buffer is also configurable
+		through the "dfu_bufsiz" environment variable.
+
 		CONFIG_SYS_DFU_MAX_FILE_SIZE
 		When updating files rather than the raw storage device,
 		we use a static buffer to copy the file into and then write
@@ -1431,6 +1450,11 @@ CBFS (Coreboot Filesystem) support
 		GERMAN key layout (switch via environment 'keymap=de') support.
 		Export function i8042_kbd_init, i8042_tstc and i8042_getc
 		for cfb_console. Supports cursor blinking.
+
+		CONFIG_CROS_EC_KEYB
+		Enables a Chrome OS keyboard using the CROS_EC interface.
+		This uses CROS_EC to communicate with a second microcontroller
+		which provides key scans on request.
 
 - Video support:
 		CONFIG_VIDEO
@@ -1623,14 +1647,6 @@ CBFS (Coreboot Filesystem) support
 		setenv splashpos -10,m
 			=> vertically centered image
 			   at x = dspWidth - bmpWidth - 9
-
-		CONFIG_SPLASH_SCREEN_PREPARE
-
-		If this option is set then the board_splash_screen_prepare()
-		function, which must be defined in your code, is called as part
-		of the splash screen display sequence. It gives the board an
-		opportunity to prepare the splash image data before it is
-		processed and sent to the frame buffer by U-Boot.
 
 - Gzip compressed BMP image support: CONFIG_VIDEO_BMP_GZIP
 
@@ -2509,6 +2525,11 @@ CBFS (Coreboot Filesystem) support
 		Define this option to include a destructive SPI flash
 		test ('sf test').
 
+		CONFIG_SPI_FLASH_BAR		Ban/Extended Addr Reg
+
+		Define this option to use the Bank addr/Extended addr
+		support on SPI flashes which has size > 16Mbytes.
+
 - SystemACE Support:
 		CONFIG_SYSTEMACE
 
@@ -2559,6 +2580,16 @@ CBFS (Coreboot Filesystem) support
 
 		Note: There is also a sha1sum command, which should perhaps
 		be deprecated in favour of 'hash sha1'.
+
+- Signing support:
+		CONFIG_RSA
+
+		This enables the RSA algorithm used for FIT image verification
+		in U-Boot. See doc/uImage/signature for more information.
+
+		The signing part is build into mkimage regardless of this
+		option.
+
 
 - Show boot progress:
 		CONFIG_SHOW_BOOT_PROGRESS
@@ -2783,6 +2814,11 @@ FIT uImage format:
 		U-Boot itself. A match is considered "best" if it matches the
 		most specific compatibility entry of U-Boot's fdt's root node.
 		The order of entries in the configuration's fdt is ignored.
+
+		CONFIG_FIT_SIGNATURE
+		This option enables signature verification of FIT uImages,
+		using a hash signed and verified using RSA. See
+		doc/uImage.FIT/signature.txt for more details.
 
 - Standalone program support:
 		CONFIG_STANDALONE_LOAD_ADDR
@@ -3021,6 +3057,14 @@ FIT uImage format:
 
 		CONFIG_SPL_LIBGENERIC_SUPPORT
 		Support for lib/libgeneric.o in SPL binary
+
+		CONFIG_SPL_ENV_SUPPORT
+		Support for the environment operating in SPL binary
+
+		CONFIG_SPL_NET_SUPPORT
+		Support for the net/libnet.o in SPL binary.
+		It conflicts with SPL env from storage medium specified by
+		CONFIG_ENV_IS_xxx but CONFIG_ENV_IS_NOWHERE
 
 		CONFIG_SPL_PAD_TO
 		Image offset to which the SPL should be padded before appending
@@ -3964,6 +4008,9 @@ Low Level (hardware related) configuration options:
 - CONFIG_SRIO2:
 		Board has SRIO 2 port available
 
+- CONFIG_SRIO_PCIE_BOOT_MASTER
+		Board can support master function for Boot from SRIO and PCIE
+
 - CONFIG_SYS_SRIOn_MEM_VIRT:
 		Virtual Address of SRIO port 'n' memory region
 
@@ -4073,6 +4120,11 @@ Low Level (hardware related) configuration options:
 		Modifies the behaviour of start.S when compiling a loader
 		that is executed before the actual U-Boot. E.g. when
 		compiling a NAND SPL.
+
+- CONFIG_SYS_MPC85XX_NO_RESETVEC
+		Only for 85xx systems. If this variable is specified, the section
+		.resetvec is not kept and the section .bootpg is placed in the
+		previous 4k of the .text section.
 
 - CONFIG_ARCH_MAP_SYSMEM
 		Generally U-Boot (and in particular the md command) uses

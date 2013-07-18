@@ -121,16 +121,16 @@ int checkcpu (void)
 	switch(ver) {
 	case PVR_VER_E500_V1:
 	case PVR_VER_E500_V2:
-		puts("E500");
+		puts("e500");
 		break;
 	case PVR_VER_E500MC:
-		puts("E500MC");
+		puts("e500mc");
 		break;
 	case PVR_VER_E5500:
-		puts("E5500");
+		puts("e5500");
 		break;
 	case PVR_VER_E6500:
-		puts("E6500");
+		puts("e6500");
 		break;
 	default:
 		puts("Unknown");
@@ -341,7 +341,7 @@ phys_size_t initdram(int board_type)
 #if defined(CONFIG_SPD_EEPROM) || defined(CONFIG_DDR_SPD)
 	return fsl_ddr_sdram_size();
 #else
-	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+	return (phys_size_t)CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
 #endif
 }
 #else /* CONFIG_SYS_RAMBOOT */
