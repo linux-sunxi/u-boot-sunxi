@@ -22,6 +22,14 @@
 #
 
 include $(TOPDIR)/config.mk
+ifneq ($(OBJTREE),$(SRCTREE))
+$(shell mkdir -p $(obj)nand_drv)
+$(shell mkdir -p $(obj)src/format)
+$(shell mkdir -p $(obj)src/logic)
+$(shell mkdir -p $(obj)src/nfc)
+$(shell mkdir -p $(obj)src/physic)
+$(shell mkdir -p $(obj)src/scan)
+endif
 
 LIB	= $(obj)libsunxi-nand.o
 

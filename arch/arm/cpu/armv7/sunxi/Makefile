@@ -22,6 +22,9 @@
 #
 
 include $(TOPDIR)/config.mk
+ifneq ($(OBJTREE),$(SRCTREE))
+$(shell mkdir -p $(obj)usb)
+endif
 
 LIB	=  $(obj)lib$(SOC).o
 
