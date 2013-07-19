@@ -1,5 +1,5 @@
 #
-# (C) Copyriht 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
+# (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
 #
 # Based on some other board Makefile
 #
@@ -61,6 +61,8 @@ COBJS-$(CONFIG_MK802_1GB)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 COBJS-$(CONFIG_MK802II)		+= dram_sun4i_408_1024_iow8.o
 COBJS-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
+COBJS-$(CONFIG_PENGPOD700)	+= dram_sun4i_384_1024_iow8.o
+COBJS-$(CONFIG_PENGPOD1000)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_POV_PROTAB2)	+= dram_pov_protab2.o
 COBJS-$(CONFIG_POV_PROTAB2_XXL)	+= dram_pov_protab2_xxl.o
 COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
