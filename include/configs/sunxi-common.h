@@ -192,7 +192,7 @@
 	"partition=0:1\0" \
 	"setargs=" \
 	  "if test -z \\\\\"$root\\\\\"; then"\
-	    " if test \\\\\"$bootpath\\\\\" = \"boot/\"; then"\
+	    " if test \\\\\"$bootpath\\\\\" = \"/boot/\"; then"\
 	      " root=\"/dev/mmcblk0p1 rootwait\";"\
 	    " else" \
 	      " root=\"/dev/mmcblk0p2 rootwait\";"\
