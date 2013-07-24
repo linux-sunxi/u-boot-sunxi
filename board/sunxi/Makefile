@@ -42,6 +42,7 @@ COBJS-$(CONFIG_BA10_TV_BOX)	+= dram_sun4i_384_1024_iow8.o
 COBJS-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID8042)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID9742)	+= dram_sun4i_408_1024_iow16.o
+COBJS-$(CONFIG_MARSBOARD_A10)	+= dram_marsboard_a10.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
 COBJS-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
