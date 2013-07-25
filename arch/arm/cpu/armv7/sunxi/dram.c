@@ -84,7 +84,7 @@ static void mctl_itm_disable(void)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 
-	clrsetbits_le32(&dram->ccr, 0x1 << 31, DRAM_CCR_ITM_OFF);
+	clrsetbits_le32(&dram->ccr, DRAM_CCR_INIT, DRAM_CCR_ITM_OFF);
 }
 
 static void mctl_itm_enable(void)
@@ -275,6 +275,7 @@ static int dramc_scan_dll_para(void)
 	u32 max_val, min_val;
 	u32 dqs_index, clk_index;
 
+	/* Find DQS_DLY Pass Count for every CLK_DLY */
 	for (clk_i = 0; clk_i < 15; clk_i++) {
 		clk_dqs_count[clk_i] = 0;
 		clrsetbits_le32(&dram->dllcr[0], 0x3f << 6,
@@ -290,6 +291,7 @@ static int dramc_scan_dll_para(void)
 				clk_dqs_count[clk_i]++;
 		}
 	}
+	/* Test DQS_DLY Pass Count for every CLK_DLY from up to down */
 	for (dqs_i = 15; dqs_i > 0; dqs_i--) {
 		max_val = 15;
 		min_val = 15;
@@ -303,17 +305,29 @@ static int dramc_scan_dll_para(void)
 		if (max_val < 15)
 			break;
 	}
+
+	/* Check if Find a CLK_DLY failed */
 	if (!dqs_i)
 		goto fail;
 
+	/* Find the middle index of CLK_DLY */
 	clk_index = (max_val + min_val) >> 1;
 	if ((max_val == (15 - 1)) && (min_val > 0))
+		/* if CLK_DLY[MCTL_CLK_DLY_COUNT] is very good, then the middle
+		 * value can be more close to the max_val
+		 */
 		clk_index = (15 + clk_index) >> 1;
 	else if ((max_val < (15 - 1)) && (min_val == 0))
+		/* if CLK_DLY[0] is very good, then the middle value can be more
+		 * close to the min_val
+		 */
 		clk_index >>= 1;
 	if (clk_dqs_count[clk_index] < dqs_i)
 		clk_index = min_val;
 
+	/* Find the middle index of DQS_DLY for the CLK_DLY got above, and Scan
+	 * read pipe again
+	 */
 	clrsetbits_le32(&dram->dllcr[0], 0x3f << 6,
 			(clk_dly[clk_index] & 0x3f) << 6);
 	max_val = 7;
@@ -598,6 +612,7 @@ int dramc_init(struct dram_para *para)
 #endif
 
 #ifdef CONFIG_SUN7I
+	/* Set CKE Delay to about 1ms */
 	setbits_le32(&dram->idcr, 0x1ffff);
 #endif
 
@@ -607,7 +622,7 @@ int dramc_init(struct dram_para *para)
 	if ((readl(&dram->ppwrsctl) & 0x1) != 0x1)
 		mctl_ddr3_reset();
 	else
-		setbits_le32(&dram->mcr, 0x1 << 12);
+		setbits_le32(&dram->mcr, DRAM_MCR_RESET);
 #endif
 
 	sdelay(0x10);
