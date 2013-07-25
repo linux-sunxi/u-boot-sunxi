@@ -169,6 +169,56 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_USB_EHCI0	1
 #define AHB_GATE_OFFSET_USB		0
 
+#define CCM_AHB_GATE_GPS (0x1 << 26)
+#define CCM_AHB_GATE_SDRAM (0x1 << 14)
+#define CCM_AHB_GATE_DLL (0x1 << 15)
+#define CCM_AHB_GATE_ACE (0x1 << 16)
+
+#define CCM_PLL5_CTRL_M(n) (((n) & 0x3) << 0)
+#define CCM_PLL5_CTRL_M_MASK CCM_PLL5_CTRL_M(0x3)
+#define CCM_PLL5_CTRL_M_X(n) ((n) - 1)
+#define CCM_PLL5_CTRL_M1(n) (((n) & 0x3) << 2)
+#define CCM_PLL5_CTRL_M1_MASK CCM_PLL5_CTRL_M1(0x3)
+#define CCM_PLL5_CTRL_M1_X(n) ((n) - 1)
+#define CCM_PLL5_CTRL_K(n) (((n) & 0x3) << 4)
+#define CCM_PLL5_CTRL_K_MASK CCM_PLL5_CTRL_K(0x3)
+#define CCM_PLL5_CTRL_K_X(n) ((n) - 1)
+#define CCM_PLL5_CTRL_LDO (0x1 << 7)
+#define CCM_PLL5_CTRL_N(n) (((n) & 0x1f) << 8)
+#define CCM_PLL5_CTRL_N_MASK CCM_PLL5_CTRL_N(0x1f)
+#define CCM_PLL5_CTRL_N_X(n) (n)
+#define CCM_PLL5_CTRL_P(n) (((n) & 0x3) << 16)
+#define CCM_PLL5_CTRL_P_MASK CCM_PLL5_CTRL_P(0x3)
+#define CCM_PLL5_CTRL_P_X(n) ((n) - 1)
+#define CCM_PLL5_CTRL_BW (0x1 << 18)
+#define CCM_PLL5_CTRL_VCO_GAIN (0x1 << 19)
+#define CCM_PLL5_CTRL_BIAS(n) (((n) & 0x1f) << 20)
+#define CCM_PLL5_CTRL_BIAS_MASK CCM_PLL5_CTRL_BIAS(0x1f)
+#define CCM_PLL5_CTRL_BIAS_X(n) ((n) - 1)
+#define CCM_PLL5_CTRL_VCO_BIAS (0x1 << 25)
+#define CCM_PLL5_CTRL_DDR_CLK (0x1 << 29)
+#define CCM_PLL5_CTRL_BYPASS (0x1 << 30)
+#define CCM_PLL5_CTRL_EN (0x1 << 31)
+
+#define CCM_GPS_CTRL_RESET (0x1 << 0)
+#define CCM_GPS_CTRL_GATE (0x1 << 1)
+
+#define CCM_DRAM_CTRL_DCLK_OUT (0x1 << 15)
+
+#define CCM_MBUS_CTRL_M(n) (((n) & 0xf) << 0)
+#define CCM_MBUS_CTRL_M_MASK CCM_MBUS_CTRL_M(0xf)
+#define CCM_MBUS_CTRL_M_X(n) ((n) - 1)
+#define CCM_MBUS_CTRL_N(n) (((n) & 0xf) << 16)
+#define CCM_MBUS_CTRL_N_MASK CCM_MBUS_CTRL_N(0xf)
+#define CCM_MBUS_CTRL_N_X(n) ((n) - 1)
+#define CCM_MBUS_CTRL_CLK_SRC(n) (((n) & 0x3) << 24)
+#define CCM_MBUS_CTRL_CLK_SRC_MASK CCM_MBUS_CTRL_CLK_SRC(0x3)
+#define CCM_MBUS_CTRL_CLK_SRC_HOSC 0x0
+#define CCM_MBUS_CTRL_CLK_SRC_PLL6 0x1
+#define CCM_MBUS_CTRL_CLK_SRC_PLL5 0x2
+#define CCM_MBUS_CTRL_GATE (0x1 << 31)
+
+
 #ifndef __ASSEMBLY__
 int clock_init(void);
 int clock_twi_onoff(int port, int state);
