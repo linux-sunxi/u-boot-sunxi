@@ -13,6 +13,7 @@ obj-y	+= clock.o
 obj-y	+= pinmux.o
 obj-y	+= watchdog.o
 obj-$(CONFIG_SUN6I)	+= prcm.o
+obj-$(CONFIG_SUN6I)	+= p2wi.o
 obj-$(CONFIG_SUN4I)	+= clock_sun4i.o
 obj-$(CONFIG_SUN5I)	+= clock_sun4i.o
 obj-$(CONFIG_SUN6I)	+= clock_sun6i.o
