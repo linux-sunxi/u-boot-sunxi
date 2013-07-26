@@ -346,10 +346,10 @@
 #define CONFIG_CMD_GPIO
 
 /* PMU */
-#if !defined CONFIG_AXP152_POWER && !defined CONFIG_NO_AXP
+#if !defined CONFIG_AXP152_POWER && !defined CONFIG_AXP221_POWER && !defined CONFIG_NO_AXP
 #define CONFIG_AXP209_POWER
 #endif
-#if defined CONFIG_AXP152_POWER || defined CONFIG_AXP209_POWER
+#if defined CONFIG_AXP152_POWER || defined CONFIG_AXP209_POWER || defined CONFIG_AXP221_POWER
 #define CONFIG_SPL_POWER_SUPPORT
 #endif
 
