@@ -44,6 +44,7 @@ COBJS-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID8042)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID9742)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_MARSBOARD_A10)	+= dram_sun4i_360_1024_iow16.o
+COBJS-$(CONFIG_MARSBOARD_A20)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
 COBJS-$(CONFIG_CUBIEBOARD2)	+= dram_cubieboard2.o
