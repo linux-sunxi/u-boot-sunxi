@@ -31,7 +31,7 @@
  */
 #define CONFIG_SUN7I		/* sun7i SoC generation */
 
-#define CONFIG_SYS_PROMPT		"sun7i#"
+#define CONFIG_SYS_PROMPT		"sun7i# "
 #define CONFIG_MACH_TYPE		4283
 
 /*
