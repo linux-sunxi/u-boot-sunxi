@@ -35,8 +35,8 @@ unsigned long do_bootelf_exec(ulong (*entry)(int, char * const[]),
 	unsigned long ret;
 
 	/*
-	 * QNX images require the data cache is disabled.
-	 * Data cache is already flushed, so just turn it off.
+	 * QNX and other kernels require the data cache is disabled.  Data cache
+	 * is already flushed, so just turn it off.
 	 */
 	int dcache = dcache_status();
 	if (dcache)
@@ -57,7 +57,7 @@ unsigned long do_bootelf_exec(ulong (*entry)(int, char * const[]),
 /* ======================================================================
  * Determine if a valid ELF image exists at the given memory location.
  * First looks at the ELF header magic field, the makes sure that it is
- * executable and makes sure that it is for a PowerPC.
+ * executable and makes sure that it is for a valid architecture.
  * ====================================================================== */
 int valid_elf_image(unsigned long addr)
 {
@@ -76,8 +76,13 @@ int valid_elf_image(unsigned long addr)
 		printf("## Not a 32-bit elf image at address 0x%08lx\n", addr);
 		return 0;
 	}
-
-#if 0
+#if defined(CONFIG_ARM)
+	if (ehdr->e_machine != EM_ARM) {
+		printf("## Not an ARM elf image at address 0x%08lx\n", addr);
+		return 0;
+	}
+#endif
+#if defined(CONFIG_PPC)
 	if (ehdr->e_machine != EM_PPC) {
 		printf("## Not a PowerPC elf image at address 0x%08lx\n", addr);
 		return 0;

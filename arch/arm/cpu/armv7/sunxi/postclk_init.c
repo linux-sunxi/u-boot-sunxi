@@ -1,7 +1,6 @@
 /*
- * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
- *
- * Configuration settings for the Allwinner A10 (sun4i) CPU
+ * (C) Copyright 2013
+ * Carl van Schaik <carl@ok-labs.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -13,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -22,20 +21,16 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#include <common.h>
+#if defined(CONFIG_SYS_SECONDARY_ON)
+#include <asm/arch/smp.h>
+#endif
 
-/*
- * A10 specific configuration
- */
-#define CONFIG_SUN4I		/* sun4i SoC generation */
 
-#define CONFIG_SYS_PROMPT		"sun4i# "
-#define CONFIG_MACH_TYPE		4104
-
-/*
- * Include common sunxi configuration where most the settings are
- */
-#include <configs/sunxi-common.h>
-
-#endif /* __CONFIG_H */
+int board_postclk_init(void)
+{
+#if defined(CONFIG_SYS_SECONDARY_ON)
+	startup_secondaries();
+#endif
+	return 0;
+}
