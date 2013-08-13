@@ -1,8 +1,9 @@
 /*
- * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
- * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
+ * A lowlevel_init function that sets up the stack to call a C function to
+ * perform further init.
  *
- * Configuration settings for the Allwinner A20 (sun7i) CPU
+ * (C) Copyright 2013
+ * Carl van Schaik <carl@ok-labs.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -14,7 +15,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -23,24 +24,25 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#include <asm-offsets.h>
+#include <config.h>
+#include <linux/linkage.h>
 
-/*
- * A20 specific configuration
- */
-#define CONFIG_SUN7I		/* sun7i SoC generation */
+ENTRY(secondary_init)
+	/* Get cpu number : r5 */
+	mrc	p15, 0, r5, c0, c0, 5
+	and	r5, r5, #0xff
 
-#define CONFIG_SYS_PROMPT		"sun7i# "
-#define CONFIG_MACH_TYPE		4283
+	/*
+	 * Setup a secondary stack, each core gets 128 bytes.
+	 */
+	ldr	sp, =secondary_stack
+	mov	r0, #0x80
+	add	sp, sp, r0, lsl r5
 
-#if defined(CONFIG_SYS_SECONDARY_ON)
-#define CONFIG_BOARD_POSTCLK_INIT 1
-#endif
+	/*
+	 * Jump to C
+	 */
+	bl	secondary_start
+ENDPROC(secondary_init)
 
-/*
- * Include common sunxi configuration where most the settings are
- */
-#include <configs/sunxi-common.h>
-
-#endif /* __CONFIG_H */
