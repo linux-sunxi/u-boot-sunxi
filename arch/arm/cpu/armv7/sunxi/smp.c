@@ -37,9 +37,16 @@ extern void secondary_init(void);
 
 static void secondary_pen(void)
 {
+	volatile struct sunxi_cpucfg *cpucfg =
+			(struct sunxi_cpucfg *)SUNXI_CPUCFG_BASE;
+
 	while (1) {
+		__asm__ __volatile__("wfe");
+
 		__asm__ __volatile__(
-			"wfi"
+			"mov	r14, %0	    \n"
+			"bx	r14	    \n"
+			: : "r" (cpucfg->boot_addr)
 		);
 	};
 }
@@ -48,7 +55,7 @@ u32 secondary_stack[32*(NUM_CORES-1)];
 
 void secondary_start(void)
 {
-    secondary_pen();
+	secondary_pen();
 }
 
 /* Power on secondaries */
