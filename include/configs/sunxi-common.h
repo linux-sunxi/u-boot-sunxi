@@ -37,6 +37,7 @@
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
+/* Put u-boot at 160MB from start of SDRAM */
 #define CONFIG_SYS_TEXT_BASE		0x4a000000
 
 /*
@@ -188,6 +189,7 @@
 	"extraargs=\0" \
 	"loglevel=8\0" \
 	"scriptaddr=0x44000000\0" \
+	"loadaddr=0x4b000000\0" \
 	"device=mmc\0" \
 	"partition=0:1\0" \
 	"setargs=" \
@@ -224,19 +226,19 @@
 	    " && " \
 	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
 	    " && " \
-	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
+	    "ext2load $device $partition ${loadaddr} ${bootpath}${kernel}" \
 	  ";then true; elif " \
 	    "bootpath=/" \
 	    " && " \
 	    "fatload $device $partition 0x43000000 script.bin" \
 	    " && " \
-	    "fatload $device $partition 0x48000000 ${kernel}" \
+	    "fatload $device $partition ${loadaddr} ${kernel}" \
 	  ";then true; elif " \
 	    "bootpath=/" \
 	    " && " \
 	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
 	    " && " \
-	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
+	    "ext2load $device $partition ${loadaddr} ${bootpath}${kernel}" \
 	  ";then true; else "\
 	    "false" \
 	  ";fi" \
@@ -248,7 +250,7 @@
 	  " && " \
 	  RESET_WATCHDOG \
 	  " && " \
-	  "bootm 0x48000000" \
+	  "bootm ${loadaddr}" \
 	  "\0" \
 	"boot_ram=" \
 	  "saved_stdout=$stdout;setenv stdout nc;"\
