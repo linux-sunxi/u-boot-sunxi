@@ -75,10 +75,10 @@ void startup_secondaries(void)
 
 		/* Ramp up power to CPU1 */
 		assert(i == 1);
-		u32 j = 0xff;
+		u32 j = 0xff << 1;
 		do {
-			cpucfg->cpu1_power_clamp = j;
 			j = j >> 1;
+			cpucfg->cpu1_power_clamp = j;
 		} while (j != 0);
 
 		udelay(10*1000); /* 10ms */
