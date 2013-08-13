@@ -86,6 +86,7 @@
 
 #define SUNXI_TP_BASE			0x01c25000
 #define SUNXI_PMU_BASE			0x01c25400
+#define SUNXI_CPUCFG_BASE		0x01c25c00	/* sun7i only ? */
 
 #define SUNXI_UART0_BASE		0x01c28000
 #define SUNXI_UART1_BASE		0x01c28400
