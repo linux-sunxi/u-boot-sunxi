@@ -2,6 +2,8 @@
  * (C) Copyright 2013
  * Carl van Schaik <carl@ok-labs.com>
  *
+ * CPU configuration registers for the sun7i (A20).
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -21,16 +23,16 @@
  * MA 02111-1307 USA
  */
 
-#include <common.h>
-#if defined(CONFIG_SYS_SECONDARY_ON)
-#include <asm/arch/smp.h>
-#endif
+#ifndef _SUNXI_SMP_H_
+#define _SUNXI_SMP_H_
 
+#ifndef __ASSEMBLY__
 
-int board_postclk_init(void)
-{
-#if defined(CONFIG_SYS_SECONDARY_ON)
-	startup_secondaries();
-#endif
-	return 0;
-}
+void startup_secondaries(void);
+
+/* Assembly entry point */
+extern void secondary_init(void);
+
+#endif /* __ASSEMBLY__ */
+
+#endif /* _SUNXI_SMP_H_ */

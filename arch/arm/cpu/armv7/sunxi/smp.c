@@ -23,6 +23,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/smp.h>
 #include <asm/arch/cpucfg.h>
 
 /* Right now we assume only a single secondary as in sun7i */
@@ -31,9 +32,6 @@
 #else
 #error unsupported SoC
 #endif
-
-/* Assembly entry point */
-extern void secondary_init(void);
 
 static void secondary_pen(void)
 {
