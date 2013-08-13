@@ -279,7 +279,6 @@
 #define CONFIG_FAT_WRITE	/* enable write access */
 #define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
-#define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
