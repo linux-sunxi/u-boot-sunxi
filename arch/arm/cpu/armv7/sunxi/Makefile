@@ -30,6 +30,9 @@ obj-y	+= board.o
 obj-y	+= clock.o
 obj-y	+= pinmux.o
 obj-y	+= watchdog.o
+obj-$(CONFIG_BOARD_POSTCLK_INIT) += postclk_init.o
+obj-$(CONFIG_SYS_SECONDARY_ON) += secondary_init.o
+obj-$(CONFIG_SYS_SECONDARY_ON) += smp.o
 
 ifdef CONFIG_SPL_BUILD
 ifdef CONFIG_SPL_FEL
