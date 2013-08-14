@@ -1,8 +1,8 @@
 /*
- * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
- * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
+ * (C) Copyright 2013
+ * Carl van Schaik <carl@ok-labs.com>
  *
- * Configuration settings for the Allwinner A20 (sun7i) CPU
+ * CPU configuration registers for the sun7i (A20).
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -14,7 +14,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -23,24 +23,16 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef _SUNXI_SMP_H_
+#define _SUNXI_SMP_H_
 
-/*
- * A20 specific configuration
- */
-#define CONFIG_SUN7I		/* sun7i SoC generation */
+#ifndef __ASSEMBLY__
 
-#define CONFIG_SYS_PROMPT		"sun7i# "
-#define CONFIG_MACH_TYPE		4283
+void startup_secondaries(void);
 
-#if defined(CONFIG_SYS_SECONDARY_ON)
-#define CONFIG_BOARD_POSTCLK_INIT 1
-#endif
+/* Assembly entry point */
+extern void secondary_init(void);
 
-/*
- * Include common sunxi configuration where most the settings are
- */
-#include <configs/sunxi-common.h>
+#endif /* __ASSEMBLY__ */
 
-#endif /* __CONFIG_H */
+#endif /* _SUNXI_SMP_H_ */
