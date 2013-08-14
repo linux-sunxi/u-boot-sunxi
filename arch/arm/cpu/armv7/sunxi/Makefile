@@ -39,6 +39,13 @@ COBJS	+= watchdog.o
 ifdef DEBUG
 COBJS	+= early_print.o
 endif
+ifdef CONFIG_BOARD_POSTCLK_INIT
+COBJS	+= postclk_init.o
+endif
+ifdef CONFIG_SYS_SECONDARY_ON
+COBJS	+= secondary_init.o
+COBJS	+= smp.o
+endif
 
 ifndef CONFIG_SPL_BUILD
 COBJS	+= key.o
