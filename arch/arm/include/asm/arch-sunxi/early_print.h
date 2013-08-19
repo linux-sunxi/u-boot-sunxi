@@ -31,36 +31,32 @@
 
 #define SUNXI_UART_BASE SUNXI_UART0_BASE
 
+#define UART_OFFSET 0x400
+
 /* receive buffer register */
-#define UART_RBR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
+#define UART_RBR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x0)
 /* transmit holding register */
-#define UART_THR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
+#define UART_THR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x0)
 /* divisor latch low register */
-#define UART_DLL(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
+#define UART_DLL(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x0)
 
 /* divisor latch high register */
-#define UART_DLH(n) (SUNXI_UART_BASE + (n)*0x400 + 0x4)
+#define UART_DLH(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x4)
 /* interrupt enable reigster */
-#define UART_IER(n) (SUNXI_UART_BASE + (n)*0x400 + 0x4)
+#define UART_IER(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x4)
 
 /* interrupt identity register */
-#define UART_IIR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x8)
+#define UART_IIR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x8)
 /* fifo control register */
-#define UART_FCR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x8)
+#define UART_FCR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x8)
 
 /* line control register */
-#define UART_LCR(n) (SUNXI_UART_BASE + (n)*0x400 + 0xc)
+#define UART_LCR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0xc)
 #define UART_LCR_DLAB (0x1 << 7)
 
 /* line status register */
-#define UART_LSR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x14)
+#define UART_LSR(n) (SUNXI_UART_BASE + (n) * UART_OFFSET + 0x14)
 #define UART_LSR_TEMT (0x1 << 6)
-/* receive buffer register */
-#define UART_RBR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
-/* transmit holding register */
-#define UART_THR(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
-/* divisor latch low register */
-#define UART_DLL(n) (SUNXI_UART_BASE + (n)*0x400 + 0x0)
 
 
 #define BAUD_115200    (0xd) /* 24 * 1000 * 1000 / 16 / 115200 = 13 */

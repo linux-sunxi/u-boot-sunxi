@@ -22,6 +22,19 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#ifdef FTRACE
+#define CONFIG_TRACE
+#define CONFIG_CMD_TRACE
+#define CONFIG_TRACE_BUFFER_SIZE	(16 << 20)
+#define CONFIG_TRACE_EARLY_SIZE		(8 << 20)
+#define CONFIG_TRACE_EARLY
+#define CONFIG_TRACE_EARLY_ADDR		0x00100000
+
+#endif
+
+#define CONFIG_BOOTSTAGE
+#define CONFIG_BOOTSTAGE_REPORT
+
 /* Number of bits in a C 'long' on this architecture */
 #define CONFIG_SANDBOX_BITS_PER_LONG	64
 
@@ -30,6 +43,8 @@
 #define CONFIG_OF_LIBFDT
 #define CONFIG_LMB
 #define CONFIG_FIT
+#define CONFIG_FIT_SIGNATURE
+#define CONFIG_RSA
 #define CONFIG_CMD_FDT
 
 #define CONFIG_FS_FAT

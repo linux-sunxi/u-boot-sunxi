@@ -23,10 +23,10 @@
 #include <common.h>
 #include <i2c.h>
 #include <asm/io.h>
-#include <asm/arch/cpu.h>
-#include <asm/arch/i2c.h>
-#include <asm/arch/gpio.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/cpu.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/i2c.h>
 
 static struct i2c __attribute__ ((section(".data"))) *i2c_base =
 	(struct i2c *)0x1c2ac00;

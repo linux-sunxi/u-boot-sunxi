@@ -1,5 +1,6 @@
 /*
  * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
+ * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
  *
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
@@ -17,7 +18,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -27,15 +28,15 @@
  */
 
 #include <common.h>
-#include <asm/arch/dram.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/mmc.h>
 #ifdef CONFIG_AXP152_POWER
 #include <axp152.h>
 #endif
 #ifdef CONFIG_AXP209_POWER
 #include <axp209.h>
 #endif
+#include <asm/arch/clock.h>
+#include <asm/arch/dram.h>
+#include <asm/arch/mmc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -61,7 +62,7 @@ int checkboard(void)
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, 1 << 30);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
 
 	return 0;
 }
@@ -91,7 +92,7 @@ void sunxi_board_init(void)
 		printf(" ?");
 		ramsize = sunxi_dram_init();
 	}
-	printf(" %dMB\n", ramsize>>20);
+	printf(" %d MiB\n", ramsize >> 20);
 	if (!ramsize)
 		hang();
 
@@ -116,9 +117,13 @@ void sunxi_board_init(void)
 	 * assured it's being powered with suitable core voltage
 	 */
 	if (!power_failed)
+#ifdef CONFIG_SUN7I
+		clock_set_pll1(912000000);
+#else
 		clock_set_pll1(1008000000);
+#endif
 	else
-		printf("Failed to set core voltage!. Can't set CPU frequency\n");
+		printf("Failed to set core voltage! Can't set CPU frequency\n");
 }
 
 #ifdef CONFIG_SPL_DISPLAY_PRINT

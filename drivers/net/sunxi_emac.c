@@ -15,10 +15,10 @@
  */
 
 #include <common.h>
-#include <malloc.h>
-#include <net.h>
-#include <miiphy.h>
 #include <linux/err.h>
+#include <malloc.h>
+#include <miiphy.h>
+#include <net.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
@@ -513,7 +513,7 @@ int sunxi_emac_initialize(void)
 	/* Set MII clock */
 	clrsetbits_le32(&regs->mac_mcfg, 0xf << 2, 0xd << 2);
 
-	dev->iobase = regs;
+	dev->iobase = (int)regs;
 	dev->priv = priv;
 	dev->init = sunxi_emac_eth_init;
 	dev->halt = sunxi_emac_eth_halt;

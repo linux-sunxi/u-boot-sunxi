@@ -35,14 +35,22 @@ COBJS-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 COBJS-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 COBJS-$(CONFIG_A13_MID)		+= dram_a13_mid.o
+COBJS-$(CONFIG_A20_OLINUXINO_M)	+= dram_a20_olinuxino_m.o
+COBJS-$(CONFIG_AUXTEK_T003)	+= dram_auxtek_t003.o
+# This is not a typo, uses the same mem settings as the a10s-olinuxino-m
+COBJS-$(CONFIG_AUXTEK_T004)	+= dram_a10s_olinuxino_m.o
 COBJS-$(CONFIG_BA10_TV_BOX)	+= dram_sun4i_384_1024_iow8.o
 COBJS-$(CONFIG_COBY_MID7042)	+= dram_sun4i_408_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID8042)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_COBY_MID9742)	+= dram_sun4i_408_1024_iow16.o
+COBJS-$(CONFIG_MARSBOARD_A10)	+= dram_sun4i_360_1024_iow16.o
+COBJS-$(CONFIG_MARSBOARD_A20)	+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 COBJS-$(CONFIG_CUBIEBOARD_512)	+= dram_cubieboard_512.o
+COBJS-$(CONFIG_CUBIEBOARD2)	+= dram_cubieboard2.o
 COBJS-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
+COBJS-$(CONFIG_EOMA68_A20)	+= dram_eoma68_a20.o
 COBJS-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 COBJS-$(CONFIG_H6)		+= dram_h6.o
 COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
@@ -66,6 +74,7 @@ COBJS-$(CONFIG_R7DONGLE)	+= dram_r7dongle.o
 COBJS-$(CONFIG_SANEI_N90)	+= dram_sanei_n90.o
 COBJS-$(CONFIG_UHOST_U1A)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
+COBJS-$(CONFIG_XZPAD700)	+= dram_xzpad700.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

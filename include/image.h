@@ -320,13 +320,16 @@ typedef struct bootm_headers {
 	int		verify;		/* getenv("verify")[0] != 'n' */
 
 #define	BOOTM_STATE_START	(0x00000001)
-#define	BOOTM_STATE_LOADOS	(0x00000002)
-#define	BOOTM_STATE_RAMDISK	(0x00000004)
-#define	BOOTM_STATE_FDT		(0x00000008)
-#define	BOOTM_STATE_OS_CMDLINE	(0x00000010)
-#define	BOOTM_STATE_OS_BD_T	(0x00000020)
-#define	BOOTM_STATE_OS_PREP	(0x00000040)
-#define	BOOTM_STATE_OS_GO	(0x00000080)
+#define	BOOTM_STATE_FINDOS	(0x00000002)
+#define	BOOTM_STATE_FINDOTHER	(0x00000004)
+#define	BOOTM_STATE_LOADOS	(0x00000008)
+#define	BOOTM_STATE_RAMDISK	(0x00000010)
+#define	BOOTM_STATE_FDT		(0x00000020)
+#define	BOOTM_STATE_OS_CMDLINE	(0x00000040)
+#define	BOOTM_STATE_OS_BD_T	(0x00000080)
+#define	BOOTM_STATE_OS_PREP	(0x00000100)
+#define	BOOTM_STATE_OS_FAKE_GO	(0x00000200)	/* 'Almost' run the OS */
+#define	BOOTM_STATE_OS_GO	(0x00000400)
 	int		state;
 
 #ifdef CONFIG_LMB
@@ -436,8 +439,9 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
  * @param fit_unamep	On entry this is the requested image name
  *			(e.g. "kernel@1") or NULL to use the default. On exit
  *			points to the selected image name
- * @param fit_uname_config	Requested configuration name, or NULL for the
- *			default
+ * @param fit_uname_configp	On entry this is the requested configuration
+ *			name (e.g. "conf@1") or NULL to use the default. On
+ *			exit points to the selected configuration name.
  * @param arch		Expected architecture (IH_ARCH_...)
  * @param image_type	Required image type (IH_TYPE_...). If this is
  *			IH_TYPE_KERNEL then we allow IH_TYPE_KERNEL_NOLOAD
@@ -450,7 +454,7 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
  * @param lenp		Returns length of loaded image
  */
 int fit_image_load(bootm_headers_t *images, const char *prop_name, ulong addr,
-		   const char **fit_unamep, const char *fit_uname_config,
+		   const char **fit_unamep, const char **fit_uname_configp,
 		   int arch, int image_type, int bootstage_id,
 		   enum fit_load_op load_op, ulong *datap, ulong *lenp);
 
@@ -659,6 +663,17 @@ int image_setup_libfdt(bootm_headers_t *images, void *blob,
  */
 int image_setup_linux(bootm_headers_t *images);
 
+/**
+ * bootz_setup() - Extract stat and size of a Linux xImage
+ *
+ * @image: Address of image
+ * @start: Returns start address of image
+ * @end : Returns end address of image
+ * @return 0 if OK, 1 if the image was not recognised
+ */
+int bootz_setup(ulong image, ulong *start, ulong *end);
+
+
 /*******************************************************************/
 /* New uImage format specific code (prefixed with fit_) */
 /*******************************************************************/
@@ -667,11 +682,12 @@ int image_setup_linux(bootm_headers_t *images);
 #define FIT_IMAGES_PATH		"/images"
 #define FIT_CONFS_PATH		"/configurations"
 
-/* hash node */
+/* hash/signature node */
 #define FIT_HASH_NODENAME	"hash"
 #define FIT_ALGO_PROP		"algo"
 #define FIT_VALUE_PROP		"value"
 #define FIT_IGNORE_PROP		"uboot-ignore"
+#define FIT_SIG_NODENAME	"signature"
 
 /* image node */
 #define FIT_DATA_PROP		"data"
@@ -759,12 +775,26 @@ int fit_image_hash_get_value(const void *fit, int noffset, uint8_t **value,
 int fit_set_timestamp(void *fit, int noffset, time_t timestamp);
 
 /**
- * fit_add_verification_data() - Calculate and add hashes to FIT
+ * fit_add_verification_data() - add verification data to FIT image nodes
  *
- * @fit:	Fit image to process
- * @return 0 if ok, <0 for error
+ * @keydir:	Directory containing keys
+ * @kwydest:	FDT blob to write public key information to
+ * @fit:	Pointer to the FIT format image header
+ * @comment:	Comment to add to signature nodes
+ * @require_keys: Mark all keys as 'required'
+ *
+ * Adds hash values for all component images in the FIT blob.
+ * Hashes are calculated for all component images which have hash subnodes
+ * with algorithm property set to one of the supported hash algorithms.
+ *
+ * Also add signatures if signature nodes are present.
+ *
+ * returns
+ *     0, on success
+ *     libfdt error code, on failure
  */
-int fit_add_verification_data(void *fit);
+int fit_add_verification_data(const char *keydir, void *keydest, void *fit,
+			      const char *comment, int require_keys);
 
 int fit_image_verify(const void *fit, int noffset);
 int fit_config_verify(const void *fit, int conf_noffset);
@@ -801,15 +831,19 @@ int calculate_hash(const void *data, int data_len, const char *algo,
 			uint8_t *value, int *value_len);
 
 /*
- * At present we only support verification on the device
+ * At present we only support signing on the host, and verification on the
+ * device
  */
 #if defined(CONFIG_FIT_SIGNATURE)
 # ifdef USE_HOSTCC
+#  define IMAGE_ENABLE_SIGN	1
 #  define IMAGE_ENABLE_VERIFY	0
 #else
+#  define IMAGE_ENABLE_SIGN	0
 #  define IMAGE_ENABLE_VERIFY	1
 # endif
 #else
+# define IMAGE_ENABLE_SIGN	0
 # define IMAGE_ENABLE_VERIFY	0
 #endif
 
@@ -824,6 +858,137 @@ int calculate_hash(const void *data, int data_len, const char *algo,
 #else
 #define IMAGE_ENABLE_BEST_MATCH	0
 #endif
+
+/* Information passed to the signing routines */
+struct image_sign_info {
+	const char *keydir;		/* Directory conaining keys */
+	const char *keyname;		/* Name of key to use */
+	void *fit;			/* Pointer to FIT blob */
+	int node_offset;		/* Offset of signature node */
+	struct image_sig_algo *algo;	/* Algorithm information */
+	const void *fdt_blob;		/* FDT containing public keys */
+	int required_keynode;		/* Node offset of key to use: -1=any */
+	const char *require_keys;	/* Value for 'required' property */
+};
+
+/* A part of an image, used for hashing */
+struct image_region {
+	const void *data;
+	int size;
+};
+
+struct image_sig_algo {
+	const char *name;		/* Name of algorithm */
+
+	/**
+	 * sign() - calculate and return signature for given input data
+	 *
+	 * @info:	Specifies key and FIT information
+	 * @data:	Pointer to the input data
+	 * @data_len:	Data length
+	 * @sigp:	Set to an allocated buffer holding the signature
+	 * @sig_len:	Set to length of the calculated hash
+	 *
+	 * This computes input data signature according to selected algorithm.
+	 * Resulting signature value is placed in an allocated buffer, the
+	 * pointer is returned as *sigp. The length of the calculated
+	 * signature is returned via the sig_len pointer argument. The caller
+	 * should free *sigp.
+	 *
+	 * @return: 0, on success, -ve on error
+	 */
+	int (*sign)(struct image_sign_info *info,
+		    const struct image_region region[],
+		    int region_count, uint8_t **sigp, uint *sig_len);
+
+	/**
+	 * add_verify_data() - Add verification information to FDT
+	 *
+	 * Add public key information to the FDT node, suitable for
+	 * verification at run-time. The information added depends on the
+	 * algorithm being used.
+	 *
+	 * @info:	Specifies key and FIT information
+	 * @keydest:	Destination FDT blob for public key data
+	 * @return: 0, on success, -ve on error
+	 */
+	int (*add_verify_data)(struct image_sign_info *info, void *keydest);
+
+	/**
+	 * verify() - Verify a signature against some data
+	 *
+	 * @info:	Specifies key and FIT information
+	 * @data:	Pointer to the input data
+	 * @data_len:	Data length
+	 * @sig:	Signature
+	 * @sig_len:	Number of bytes in signature
+	 * @return 0 if verified, -ve on error
+	 */
+	int (*verify)(struct image_sign_info *info,
+		      const struct image_region region[], int region_count,
+		      uint8_t *sig, uint sig_len);
+};
+
+/**
+ * image_get_sig_algo() - Look up a signature algortihm
+ *
+ * @param name		Name of algorithm
+ * @return pointer to algorithm information, or NULL if not found
+ */
+struct image_sig_algo *image_get_sig_algo(const char *name);
+
+/**
+ * fit_image_verify_required_sigs() - Verify signatures marked as 'required'
+ *
+ * @fit:		FIT to check
+ * @image_noffset:	Offset of image node to check
+ * @data:		Image data to check
+ * @size:		Size of image data
+ * @sig_blob:		FDT containing public keys
+ * @no_sigsp:		Returns 1 if no signatures were required, and
+ *			therefore nothing was checked. The caller may wish
+ *			to fall back to other mechanisms, or refuse to
+ *			boot.
+ * @return 0 if all verified ok, <0 on error
+ */
+int fit_image_verify_required_sigs(const void *fit, int image_noffset,
+		const char *data, size_t size, const void *sig_blob,
+		int *no_sigsp);
+
+/**
+ * fit_image_check_sig() - Check a single image signature node
+ *
+ * @fit:		FIT to check
+ * @noffset:		Offset of signature node to check
+ * @data:		Image data to check
+ * @size:		Size of image data
+ * @required_keynode:	Offset in the control FDT of the required key node,
+ *			if any. If this is given, then the image wil not
+ *			pass verification unless that key is used. If this is
+ *			-1 then any signature will do.
+ * @err_msgp:		In the event of an error, this will be pointed to a
+ *			help error string to display to the user.
+ * @return 0 if all verified ok, <0 on error
+ */
+int fit_image_check_sig(const void *fit, int noffset, const void *data,
+		size_t size, int required_keynode, char **err_msgp);
+
+/**
+ * fit_region_make_list() - Make a list of regions to hash
+ *
+ * Given a list of FIT regions (offset, size) provided by libfdt, create
+ * a list of regions (void *, size) for use by the signature creationg
+ * and verification code.
+ *
+ * @fit:		FIT image to process
+ * @fdt_regions:	Regions as returned by libfdt
+ * @count:		Number of regions returned by libfdt
+ * @region:		Place to put list of regions (NULL to allocate it)
+ * @return pointer to list of regions, or NULL if out of memory
+ */
+struct image_region *fit_region_make_list(const void *fit,
+		struct fdt_region *fdt_regions, int count,
+		struct image_region *region);
 
 static inline int fit_image_check_target_arch(const void *fdt, int node)
 {

@@ -3,6 +3,8 @@
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
+ * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -21,6 +23,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
@@ -40,6 +43,10 @@ static void clock_init_safe(void)
 	sdelay(200);
 	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
 	       CPU_CLK_SRC_PLL1 << 16, &ccm->cpu_ahb_apb0_cfg);
+#ifdef CONFIG_SUN7I
+	writel(0x1 << 6 | readl(&ccm->ahb_gate0), &ccm->ahb_gate0);
+	writel(0x1 << 31 | readl(&ccm->pll6_cfg), &ccm->pll6_cfg);
+#endif
 }
 #endif
 

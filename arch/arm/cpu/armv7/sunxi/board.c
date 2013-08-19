@@ -27,19 +27,19 @@
  */
 
 #include <common.h>
-#include <asm/io.h>
-#include <serial.h>
 #include <i2c.h>
-#include <asm/gpio.h>
-#include <asm/arch/clock.h>
-#include <asm/arch/timer.h>
-#include <asm/arch/gpio.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/arch/watchdog.h>
 #include <netdev.h>
+#include <serial.h>
 #ifdef CONFIG_SPL_BUILD
 #include <spl.h>
 #endif
+#include <asm/gpio.h>
+#include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/timer.h>
+#include <asm/arch/watchdog.h>
 
 #ifdef CONFIG_SPL_BUILD
 /* Pointer to the global data structure for SPL */
@@ -55,7 +55,7 @@ u32 spl_boot_device(void)
 	return BOOT_DEVICE_MMC1;
 }
 
-/* No confiration data available in SPL yet. Hardcode bootmode */
+/* No confirmation data available in SPL yet. Hardcode bootmode */
 u32 spl_boot_mode(void)
 {
 	return MMCSD_MODE_RAW;
@@ -65,7 +65,7 @@ u32 spl_boot_mode(void)
 int gpio_init(void)
 {
 #if CONFIG_CONS_INDEX == 1 && defined(CONFIG_UART0_PORT_F)
-#ifdef CONFIG_SUN4I
+#if defined(CONFIG_SUN4I) || defined(CONFIG_SUN7I)
 	/* disable GPB22,23 as uart0 tx,rx to avoid conflict */
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUNXI_GPIO_INPUT);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUNXI_GPIO_INPUT);
@@ -73,7 +73,7 @@ int gpio_init(void)
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(2), SUNXI_GPF2_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPF(4), SUNXI_GPF4_UART0_RX);
 	sunxi_gpio_set_pull(SUNXI_GPF(4), 1);
-#elif CONFIG_CONS_INDEX == 1 && defined(CONFIG_SUN4I)
+#elif CONFIG_CONS_INDEX == 1 && (defined(CONFIG_SUN4I) || defined(CONFIG_SUN7I))
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUN4I_GPB22_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUN4I_GPB23_UART0_RX);
 	sunxi_gpio_set_pull(SUNXI_GPB(23), 1);
@@ -101,6 +101,14 @@ void reset_cpu(ulong addr)
 /* do some early init */
 void s_init(void)
 {
+#if !defined CONFIG_SPL_BUILD && defined CONFIG_SUN7I
+	/* Enable SMP mode for CPU0, by setting bit 6 of Auxiliary Ctl reg */
+	asm volatile(
+		"mrc p15, 0, r0, c1, c0, 1\n"
+		"orr r0, r0, #0x40\n"
+		"mcr p15, 0, r0, c1, c0, 1\n");
+#endif
+
 	watchdog_init();
 	clock_init();
 	gpio_init();

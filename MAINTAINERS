@@ -160,8 +160,9 @@ egnite GmbH <info@egnite.de>
 
 Dirk Eibach <eibach@gdsys.de>
 
+	controlcenterd	P1022
 	devconcenter	PPC460EX
-	dlvision        PPC405EP
+	dlvision	PPC405EP
 	dlvision-10g	PPC405EP
 	gdppc440etx	PPC440EP/GR
 	intip		PPC460EX
@@ -664,6 +665,9 @@ Wolfgang Denk <wd@denx.de>
 	imx27lite	i.MX27
 	qong		i.MX31
 
+Mike Dunn <mikedunn@newsguy.com>
+	palmtreo680	pxa270
+
 Kristoffer Ericson <kristoffer.ericson@gmail.com>
 
 	jornada	SA1110
@@ -675,9 +679,9 @@ Fabio Estevam <fabio.estevam@freescale.com>
 	mx31pdk		i.MX31
 	mx53ard		i.MX53
 	mx53smd		i.MX53
-	mx6qsabresd	i.MX6Q
+	mx6sabresd	i.MX6Q/DL
 	mx6qsabreauto	i.MX6Q
-	wandboard	i.MX6DL/S
+	wandboard	i.MX6DL/S/Q
 	mx6slevk	i.MX6SL
 
 Daniel Gorsulowski <daniel.gorsulowski@esd.eu>
@@ -1142,10 +1146,6 @@ Vlad Lungu <vlad.lungu@windriver.com>
 Stefan Roese <sr@denx.de>
 
 	vct_xxx		MIPS32 4Kc
-
-Xiangfu Liu <xiangfu@openmobilefree.net>
-
-	qi_lb60		MIPS32 (XBurst Jz4740 SoC)
 
 -------------------------------------------------------------------------
 

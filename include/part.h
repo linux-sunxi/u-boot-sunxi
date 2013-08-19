@@ -43,15 +43,15 @@ typedef struct block_dev_desc {
 	char		product[20+1];	/* IDE Serial no, SCSI product */
 	char		revision[8+1];	/* firmware revision */
 	unsigned long	(*block_read)(int dev,
-				      unsigned long start,
+				      lbaint_t start,
 				      lbaint_t blkcnt,
 				      void *buffer);
 	unsigned long	(*block_write)(int dev,
-				       unsigned long start,
+				       lbaint_t start,
 				       lbaint_t blkcnt,
 				       const void *buffer);
 	unsigned long   (*block_erase)(int dev,
-				       unsigned long start,
+				       lbaint_t start,
 				       lbaint_t blkcnt);
 	void		*priv;		/* driver private struct pointer */
 }block_dev_desc_t;
@@ -97,8 +97,8 @@ typedef struct block_dev_desc {
 #define DEV_TYPE_OPDISK		0x07	/* optical disk */
 
 typedef struct disk_partition {
-	ulong	start;		/* # of first block in partition	*/
-	ulong	size;		/* number of blocks in partition	*/
+	lbaint_t	start;	/* # of first block in partition	*/
+	lbaint_t	size;	/* number of blocks in partition	*/
 	ulong	blksz;		/* block size in bytes			*/
 	uchar	name[32];	/* partition name			*/
 	uchar	type[32];	/* string type description		*/

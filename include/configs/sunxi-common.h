@@ -1,13 +1,11 @@
 /*
  * (C) Copyright 2012-2012 Henrik Nordstrom <henrik@henriknordstrom.net>
  *
- * Based on older sun4i config
- *
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
  *
- * Configuration settings for the Allwinner A10-evb board.
+ * Configuration settings for the Allwinner sunxi series of boards.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -19,7 +17,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -39,7 +37,7 @@
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
-#define CONFIG_SYS_TEXT_BASE		0x4A000000
+#define CONFIG_SYS_TEXT_BASE		0x4a000000
 
 /*
  * Display CPU and Board information
@@ -61,16 +59,17 @@
 /* DRAM Base */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define CONFIG_SYS_INIT_RAM_ADDR	0x0
-#define CONFIG_SYS_INIT_RAM_SIZE	0x8000	/* 32K */
+#define CONFIG_SYS_INIT_RAM_SIZE	0x8000	/* 32 KiB */
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
-/* A10-EVB has 1 banks of DRAM, we use only one in U-Boot */
+/* A10 has 1 banks of DRAM, we use only bank 1 in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			CONFIG_SYS_SDRAM_BASE
+#define PHYS_SDRAM_1_SIZE		0x40000000
 #if 0
 /* Nand config */
 #define CONFIG_NAND
@@ -142,20 +141,26 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /* The stack sizes are set up in start.S using the settings below */
-#define CONFIG_STACKSIZE		(256 << 10)	/* 256 KB */
+#define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
 
 /* FLASH and environment organization */
 
 #define CONFIG_SYS_NO_FLASH
 
-#define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KB */
+#define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KiB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology"
 
-#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512)KB */
-#define CONFIG_ENV_SIZE			(128 << 10)	/* 128KB */
+#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512) KiB */
+#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
+
+#ifdef CONFIG_SPL_FEL
+#define RUN_BOOT_RAM	"run boot_ram;"
+#else
+#define RUN_BOOT_RAM	""
+#endif
 
 #define CONFIG_BOOTCOMMAND \
-	"run boot_ram;" \
+	RUN_BOOT_RAM \
 	"if run loadbootenv; then " \
 	  "echo Loaded environment from ${bootenv};" \
 	  "env import -t ${scriptaddr} ${filesize};" \
@@ -187,7 +192,7 @@
 	"partition=0:1\0" \
 	"setargs=" \
 	  "if test -z \\\\\"$root\\\\\"; then"\
-	    " if test \\\\\"$bootpath\\\\\" = \"boot/\"; then"\
+	    " if test \\\\\"$bootpath\\\\\" = \"/boot/\"; then"\
 	      " root=\"/dev/mmcblk0p1 rootwait\";"\
 	    " else" \
 	      " root=\"/dev/mmcblk0p2 rootwait\";"\
@@ -272,7 +277,6 @@
 #define CONFIG_FAT_WRITE	/* enable write access */
 #define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
-#define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
@@ -286,28 +290,28 @@
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl-fel.lds"
 #define CONFIG_SPL_START_S_PATH "arch/arm/cpu/armv7/sunxi"
 #define CONFIG_SPL_TEXT_BASE		0x2000
-#define CONFIG_SPL_MAX_SIZE		0x4000		/* 24 KB */
+#define CONFIG_SPL_MAX_SIZE		0x4000		/* 24 KiB */
 
 #else /* CONFIG_SPL */
 
 #define CONFIG_SPL_BSS_START_ADDR	0x50000000
-#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
+#define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KiB */
 
 #define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
-#define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KB */
+#define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KiB */
 
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
-/* 32KB offset */
+/* 32KiB offset */
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	64
-/* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
+/* SPL starts at offset 8 KiB im MMC and has the size of 24 KiB */
 #define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
 
 #endif /* CONFIG_SPL */
-/* end of 24KB in sram */
+/* end of 24 KiB in sram */
 #define LOW_LEVEL_SRAM_STACK		0x00006000
 #define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 
@@ -418,6 +422,7 @@
 #define CONFIG_BOOTP_MAY_FAIL
 #define CONFIG_BOOTP_SERVERIP
 #define CONFIG_BOOTP_DHCP_REQUEST_DELAY		50000
+#define CONFIG_CMD_ELF
 #endif
 
 #if !defined CONFIG_ENV_IS_IN_MMC && \

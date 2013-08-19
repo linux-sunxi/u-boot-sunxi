@@ -18,8 +18,8 @@
  */
 
 #include <common.h>
-#include <asm/arch/watchdog.h>
 #include <asm/io.h>
+#include <asm/arch/watchdog.h>
 
 int do_sunxi_watchdog(cmd_tbl_t *cmdtp, int flag, int argc, const char *argv[])
 {
