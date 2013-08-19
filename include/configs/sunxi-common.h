@@ -277,7 +277,6 @@
 #define CONFIG_FAT_WRITE	/* enable write access */
 #define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
 #define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
-#define CONFIG_CMD_ZFS		/* with this we can access ZFS bootfs */
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
@@ -423,6 +422,7 @@
 #define CONFIG_BOOTP_MAY_FAIL
 #define CONFIG_BOOTP_SERVERIP
 #define CONFIG_BOOTP_DHCP_REQUEST_DELAY		50000
+#define CONFIG_CMD_ELF
 #endif
 
 #if !defined CONFIG_ENV_IS_IN_MMC && \

@@ -55,7 +55,7 @@ u32 spl_boot_device(void)
 	return BOOT_DEVICE_MMC1;
 }
 
-/* No confiration data available in SPL yet. Hardcode bootmode */
+/* No confirmation data available in SPL yet. Hardcode bootmode */
 u32 spl_boot_mode(void)
 {
 	return MMCSD_MODE_RAW;

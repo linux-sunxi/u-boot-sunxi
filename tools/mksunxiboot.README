@@ -1,4 +1,4 @@
-This program make a arm binary file can be loaded by Allwinner A10 and releated
+This program make a arm binary file can be loaded by Allwinner A10 and related
 chips from storage media such as nand and mmc.
 
 More information about A10 boot, please refer to

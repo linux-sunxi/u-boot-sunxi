@@ -27,12 +27,16 @@
 #define __CONFIG_H
 
 /*
- * A10 specific configuration
+ * A20 specific configuration
  */
 #define CONFIG_SUN7I		/* sun7i SoC generation */
 
-#define CONFIG_SYS_PROMPT		"sun7i#"
+#define CONFIG_SYS_PROMPT		"sun7i# "
 #define CONFIG_MACH_TYPE		4283
+
+#if defined(CONFIG_SYS_SECONDARY_ON)
+#define CONFIG_BOARD_POSTCLK_INIT 1
+#endif
 
 /*
  * Include common sunxi configuration where most the settings are
