@@ -8,23 +8,7 @@
  * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -34,7 +18,7 @@
 #include "spi_flash_internal.h"
 
 /* M25Pxx-specific commands */
-#define CMD_M25PXX_RES		0xab	/* Release from DP, and Read Signature */
+#define CMD_M25PXX_RES	0xab	/* Release from DP, and Read Signature */
 
 struct stmicro_spi_flash_params {
 	u16 id;
@@ -166,7 +150,7 @@ static const struct stmicro_spi_flash_params stmicro_spi_flash_table[] = {
 	},
 };
 
-struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
+struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 *idcode)
 {
 	const struct stmicro_spi_flash_params *params;
 	struct spi_flash *flash;
@@ -182,17 +166,17 @@ struct spi_flash *spi_flash_probe_stmicro(struct spi_slave *spi, u8 * idcode)
 			idcode[0] = 0x20;
 			idcode[1] = 0x20;
 			idcode[2] = idcode[3] + 1;
-		} else
+		} else {
 			return NULL;
+		}
 	}
 
 	id = ((idcode[1] << 8) | idcode[2]);
 
 	for (i = 0; i < ARRAY_SIZE(stmicro_spi_flash_table); i++) {
 		params = &stmicro_spi_flash_table[i];
-		if (params->id == id) {
+		if (params->id == id)
 			break;
-		}
 	}
 
 	if (i == ARRAY_SIZE(stmicro_spi_flash_table)) {

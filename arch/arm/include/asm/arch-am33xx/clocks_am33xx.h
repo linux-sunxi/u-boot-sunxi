@@ -5,15 +5,7 @@
  *
  * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CLOCKS_AM33XX_H_
@@ -24,8 +16,10 @@
 #define CONFIG_SYS_MPUCLK	550
 #endif
 
-extern void pll_init(void);
-extern void enable_emif_clocks(void);
+#define UART_RESET		(0x1 << 1)
+#define UART_CLK_RUNNING_MASK	0x1
+#define UART_SMART_IDLE_EN	(0x1 << 0x3)
+
 extern void enable_dmm_clocks(void);
 
 #endif	/* endif _CLOCKS_AM33XX_H_ */

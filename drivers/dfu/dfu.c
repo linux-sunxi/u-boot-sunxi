@@ -4,19 +4,7 @@
  * Copyright (C) 2012 Samsung Electronics
  * author: Lukasz Majewski <l.majewski@samsung.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -28,8 +16,19 @@
 #include <linux/list.h>
 #include <linux/compiler.h>
 
+static bool dfu_reset_request;
 static LIST_HEAD(dfu_list);
 static int dfu_alt_num;
+
+bool dfu_reset(void)
+{
+	return dfu_reset_request;
+}
+
+void dfu_trigger_reset()
+{
+	dfu_reset_request = true;
+}
 
 static int dfu_find_alt_num(const char *s)
 {

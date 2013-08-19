@@ -1,24 +1,8 @@
 #
-# (C) Copyright 2000-2012
+# (C) Copyright 2000-2013
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundatio; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
+# SPDX-License-Identifier:	GPL-2.0+
 #
 
 VERSION = 2013
@@ -338,7 +322,7 @@ LIBS-y += api/libapi.o
 LIBS-y += post/libpost.o
 LIBS-y += test/libtest.o
 
-ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX)$(CONFIG_TI814X),)
+ifneq ($(CONFIG_OMAP_COMMON),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
 endif
 
@@ -429,7 +413,7 @@ endif
 
 all:		$(ALL-y) $(SUBDIR_EXAMPLES)
 
-$(obj)u-boot.dtb:	$(obj)u-boot
+$(obj)u-boot.dtb:	checkdtc $(obj)u-boot
 		$(MAKE) -C dts binary
 		mv $(obj)dts/dt.dtb $@
 
@@ -690,6 +674,12 @@ checkthumb:
 checkgcc4:
 	@if test $(call cc-version) -lt 0400; then \
 		echo -n '*** Your GCC is too old, please upgrade to GCC 4.x or newer'; \
+		false; \
+	fi
+
+checkdtc:
+	@if test $(call dtc-version) -lt 0104; then \
+		echo '*** Your dtc is too old, please upgrade to dtc 1.4 or newer'; \
 		false; \
 	fi
 

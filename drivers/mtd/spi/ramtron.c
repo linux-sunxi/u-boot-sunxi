@@ -2,23 +2,7 @@
  * (C) Copyright 2010
  * Reinhard Meyer, EMK Elektronik, reinhard.meyer@emk-elektronik.de
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -246,7 +230,8 @@ struct spi_flash *spi_fram_probe_ramtron(struct spi_slave *spi, u8 *idcode)
 		/* JEDEC conformant RAMTRON id */
 		for (i = 0; i < ARRAY_SIZE(ramtron_spi_fram_table); i++) {
 			params = &ramtron_spi_fram_table[i];
-			if (idcode[1] == params->id1 && idcode[2] == params->id2)
+			if (idcode[1] == params->id1 &&
+			    idcode[2] == params->id2)
 				goto found;
 		}
 		break;
@@ -267,7 +252,8 @@ struct spi_flash *spi_fram_probe_ramtron(struct spi_slave *spi, u8 *idcode)
 		/* now find the device */
 		for (i = 0; i < ARRAY_SIZE(ramtron_spi_fram_table); i++) {
 			params = &ramtron_spi_fram_table[i];
-			if (!strcmp(params->name, CONFIG_SPI_FRAM_RAMTRON_NON_JEDEC))
+			if (!strcmp(params->name,
+				    CONFIG_SPI_FRAM_RAMTRON_NON_JEDEC))
 				goto found;
 		}
 		debug("SF: Unsupported non-JEDEC RAMTRON device "
@@ -280,7 +266,7 @@ struct spi_flash *spi_fram_probe_ramtron(struct spi_slave *spi, u8 *idcode)
 
 	/* arriving here means no method has found a device we can handle */
 	debug("SF/ramtron: unsupported device id0=%02x id1=%02x id2=%02x\n",
-		idcode[0], idcode[1], idcode[2]);
+	      idcode[0], idcode[1], idcode[2]);
 	return NULL;
 
 found:

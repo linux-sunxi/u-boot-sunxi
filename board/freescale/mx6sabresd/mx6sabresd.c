@@ -3,18 +3,7 @@
  *
  * Author: Fabio Estevam <fabio.estevam@freescale.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <asm/arch/clock.h>
@@ -29,7 +18,12 @@
 #include <fsl_esdhc.h>
 #include <miiphy.h>
 #include <netdev.h>
-
+#include <asm/arch/mxc_hdmi.h>
+#include <asm/arch/crm_regs.h>
+#include <linux/fb.h>
+#include <ipu_pixfmt.h>
+#include <asm/io.h>
+#include <asm/arch/sys_proto.h>
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
@@ -239,6 +233,60 @@ int board_phy_config(struct phy_device *phydev)
 	return 0;
 }
 
+#if defined(CONFIG_VIDEO_IPUV3)
+static struct fb_videomode const hdmi = {
+	.name           = "HDMI",
+	.refresh        = 60,
+	.xres           = 1024,
+	.yres           = 768,
+	.pixclock       = 15385,
+	.left_margin    = 220,
+	.right_margin   = 40,
+	.upper_margin   = 21,
+	.lower_margin   = 7,
+	.hsync_len      = 60,
+	.vsync_len      = 10,
+	.sync           = FB_SYNC_EXT,
+	.vmode          = FB_VMODE_NONINTERLACED
+};
+
+int board_video_skip(void)
+{
+	int ret;
+
+	ret = ipuv3_fb_init(&hdmi, 0, IPU_PIX_FMT_RGB24);
+
+	if (ret)
+		printf("HDMI cannot be configured: %d\n", ret);
+
+	imx_enable_hdmi_phy();
+	return ret;
+}
+
+static void setup_display(void)
+{
+	struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+	int reg;
+
+	enable_ipu_clock();
+	imx_setup_hdmi();
+
+	reg = readl(&mxc_ccm->chsccdr);
+	reg |= (CHSCCDR_CLK_SEL_LDB_DI0
+		<< MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET);
+	writel(reg, &mxc_ccm->chsccdr);
+}
+#endif /* CONFIG_VIDEO_IPUV3 */
+
+/*
+ * Do not overwrite the console
+ * Use always serial for U-Boot console
+ */
+int overwrite_console(void)
+{
+	return 1;
+}
+
 int board_eth_init(bd_t *bis)
 {
 	int ret;
@@ -255,6 +303,9 @@ int board_eth_init(bd_t *bis)
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
+#if defined(CONFIG_VIDEO_IPUV3)
+	setup_display();
+#endif
 
 	return 0;
 }

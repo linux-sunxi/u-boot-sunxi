@@ -6,23 +6,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -60,10 +44,10 @@ int checkcpu (void)
 	uint major, minor;
 	struct cpu_type *cpu;
 	char buf1[32], buf2[32];
-#if (defined(CONFIG_DDR_CLK_FREQ) || \
-	defined(CONFIG_FSL_CORENET)) && !defined(CONFIG_SYS_FSL_QORIQ_CHASSIS2)
-	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
-#endif /* CONFIG_FSL_CORENET */
+#if defined(CONFIG_DDR_CLK_FREQ) || defined(CONFIG_FSL_CORENET)
+	ccsr_gur_t __iomem *gur =
+		(void __iomem *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+#endif
 
 	/*
 	 * Cornet platforms use ddr sync bit in RCW to indicate sync vs async
@@ -226,6 +210,21 @@ int checkcpu (void)
 #endif
 
 	puts("L1:    D-cache 32 kB enabled\n       I-cache 32 kB enabled\n");
+
+#ifdef CONFIG_FSL_CORENET
+	/* Display the RCW, so that no one gets confused as to what RCW
+	 * we're actually using for this boot.
+	 */
+	puts("Reset Configuration Word (RCW):");
+	for (i = 0; i < ARRAY_SIZE(gur->rcwsr); i++) {
+		u32 rcw = in_be32(&gur->rcwsr[i]);
+
+		if ((i % 4) == 0)
+			printf("\n       %08x:", i * 4);
+		printf(" %08x", rcw);
+	}
+	puts("\n");
+#endif
 
 	return 0;
 }

@@ -1,23 +1,7 @@
 /*
  * (C) Copyright 2012 Michal Simek <monstr@monstr.eu>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+ 
  */
 
 #include <common.h>
@@ -36,6 +20,7 @@ Xilinx_desc fpga010 = XILINX_XC7Z010_DESC(0x10);
 Xilinx_desc fpga020 = XILINX_XC7Z020_DESC(0x20);
 Xilinx_desc fpga030 = XILINX_XC7Z030_DESC(0x30);
 Xilinx_desc fpga045 = XILINX_XC7Z045_DESC(0x45);
+Xilinx_desc fpga100 = XILINX_XC7Z100_DESC(0x100);
 #endif
 
 int board_init(void)
@@ -57,6 +42,9 @@ int board_init(void)
 		break;
 	case XILINX_ZYNQ_7045:
 		fpga = fpga045;
+		break;
+	case XILINX_ZYNQ_7100:
+		fpga = fpga100;
 		break;
 	}
 #endif

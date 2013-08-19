@@ -7,23 +7,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -38,6 +22,7 @@
 #include <asm/fsl_law.h>
 #include <asm/fsl_serdes.h>
 #include <asm/fsl_srio.h>
+#include <fsl_usb.h>
 #include <hwconfig.h>
 #include <linux/compiler.h>
 #include "mp.h"
@@ -415,6 +400,14 @@ int cpu_init_r(void)
 		sync();
 	}
 #endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_A005812
+	/*
+	 * A-005812 workaround sets bit 32 of SPR 976 for SoCs running
+	 * in write shadow mode. Checking DCWS before setting SPR 976.
+	 */
+	if (mfspr(L1CSR2) & L1CSR2_DCWS)
+		mtspr(SPRN_HDBCR0, (mfspr(SPRN_HDBCR0) | 0x80000000));
+#endif
 
 #if defined(CONFIG_PPC_SPINTABLE_COMPATIBLE) && defined(CONFIG_MP)
 	spin = getenv("spin_table_compat");
@@ -548,8 +541,10 @@ skip_l2:
 
 	enable_cpc();
 
+#ifndef CONFIG_SYS_FSL_NO_SERDES
 	/* needs to be in ram since code uses global static vars */
 	fsl_serdes_init();
+#endif
 
 #ifdef CONFIG_SYS_FSL_ERRATUM_A005871
 	if (IS_SVR_REV(svr, 1, 0)) {
@@ -611,7 +606,7 @@ skip_l2:
 
 #ifdef CONFIG_SYS_FSL_USB1_PHY_ENABLE
 	{
-		ccsr_usb_phy_t *usb_phy1 =
+		struct ccsr_usb_phy __iomem *usb_phy1 =
 			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
 		out_be32(&usb_phy1->usb_enable_override,
 				CONFIG_SYS_FSL_USB_ENABLE_OVERRIDE);
@@ -619,7 +614,7 @@ skip_l2:
 #endif
 #ifdef CONFIG_SYS_FSL_USB2_PHY_ENABLE
 	{
-		ccsr_usb_phy_t *usb_phy2 =
+		struct ccsr_usb_phy __iomem *usb_phy2 =
 			(void *)CONFIG_SYS_MPC85xx_USB2_PHY_ADDR;
 		out_be32(&usb_phy2->usb_enable_override,
 				CONFIG_SYS_FSL_USB_ENABLE_OVERRIDE);
@@ -641,7 +636,7 @@ skip_l2:
 #endif
 
 #if defined(CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE)
-		ccsr_usb_phy_t *usb_phy =
+		struct ccsr_usb_phy __iomem *usb_phy =
 			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
 		setbits_be32(&usb_phy->pllprg[1],
 			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY2_CLK_EN |

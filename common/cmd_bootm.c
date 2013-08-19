@@ -2,23 +2,7 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 
@@ -652,7 +636,7 @@ static int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc,
 			goto err;
 		else if (ret == BOOTM_ERR_OVERLAP)
 			ret = 0;
-#ifdef CONFIG_SILENT_CONSOLE
+#if defined(CONFIG_SILENT_CONSOLE) && !defined(CONFIG_SILENT_U_BOOT_ONLY)
 		if (images->os.os == IH_OS_LINUX)
 			fixup_silent_linux();
 #endif
@@ -1400,9 +1384,19 @@ static void fixup_silent_linux(void)
 	char *buf;
 	const char *env_val;
 	char *cmdline = getenv("bootargs");
+	int want_silent;
 
-	/* Only fix cmdline when requested */
-	if (!(gd->flags & GD_FLG_SILENT))
+	/*
+	 * Only fix cmdline when requested. The environment variable can be:
+	 *
+	 *	no - we never fixup
+	 *	yes - we always fixup
+	 *	unset - we rely on the console silent flag
+	 */
+	want_silent = getenv_yesno("silent_linux");
+	if (want_silent == 0)
+		return;
+	else if (want_silent == -1 && !(gd->flags & GD_FLG_SILENT))
 		return;
 
 	debug("before silent fix-up: %s\n", cmdline);

@@ -1,21 +1,7 @@
 /*
  * Copyright 2011-2012 Freescale Semiconductor, Inc.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_MPC85xx_CONFIG_H_
@@ -317,6 +303,7 @@
 
 #elif defined(CONFIG_PPC_P2041) /* also supports P2040 */
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS1
+#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MAX_CPUS			4
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	2
 #define CONFIG_SYS_FSL_NUM_LAWS		32
@@ -350,6 +337,7 @@
 
 #elif defined(CONFIG_PPC_P3041)
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS1
+#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MAX_CPUS			4
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	2
 #define CONFIG_SYS_FSL_NUM_LAWS		32
@@ -380,9 +368,11 @@
 #define CONFIG_SYS_FSL_CORENET_SNOOPVEC_COREONLY 0xf0000000
 #define CONFIG_SYS_FSL_ERRATUM_SRIO_A004034
 #define CONFIG_SYS_FSL_ERRATUM_A004849
+#define CONFIG_SYS_FSL_ERRATUM_A005812
 
 #elif defined(CONFIG_PPC_P4080) /* also supports P4040 */
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS1
+#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MAX_CPUS			8
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	4
 #define CONFIG_SYS_FSL_NUM_LAWS		32
@@ -424,10 +414,12 @@
 #define CONFIG_SYS_FSL_ERRATUM_A004849
 #define CONFIG_SYS_FSL_ERRATUM_A004580
 #define CONFIG_SYS_P4080_ERRATUM_PCIE_A003
+#define CONFIG_SYS_FSL_ERRATUM_A005812
 
 #elif defined(CONFIG_PPC_P5020) /* also supports P5010 */
 #define CONFIG_SYS_PPC64		/* 64-bit core */
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS1
+#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MAX_CPUS			2
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	2
 #define CONFIG_SYS_FSL_NUM_LAWS		32
@@ -458,6 +450,7 @@
 #elif defined(CONFIG_PPC_P5040)
 #define CONFIG_SYS_PPC64
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS1
+#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MAX_CPUS			4
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	3
 #define CONFIG_SYS_FSL_NUM_LAWS		32
@@ -483,6 +476,7 @@
 #define CONFIG_SYS_FSL_ERRATUM_A004510
 #define CONFIG_SYS_FSL_ERRATUM_A004510_SVR_REV	0x10
 #define CONFIG_SYS_FSL_CORENET_SNOOPVEC_COREONLY 0xf0000000
+#define CONFIG_SYS_FSL_ERRATUM_A005812
 
 #elif defined(CONFIG_BSC9131)
 #define CONFIG_MAX_CPUS			1
@@ -506,6 +500,10 @@
 #define CONFIG_TSECV2
 #define CONFIG_SYS_FSL_SEC_COMPAT	4
 #define CONFIG_NUM_DDR_CONTROLLERS	2
+#define CONFIG_SYS_FSL_DSP_DDR_ADDR	0x40000000
+#define CONFIG_SYS_FSL_DSP_M2_RAM_ADDR	0xb0000000
+#define CONFIG_SYS_FSL_DSP_M3_RAM_ADDR	0xc0000000
+#define CONFIG_SYS_FSL_DSP_CCSRBAR_DEFAULT	0xff600000
 #define CONFIG_SYS_FSL_IFC_BANK_COUNT	3
 #define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000
 #define CONFIG_NAND_FSL_IFC
@@ -537,6 +535,8 @@
 #endif
 #define CONFIG_SYS_FSL_NUM_CC_PLLS	5
 #define CONFIG_SYS_FSL_NUM_LAWS		32
+#define CONFIG_SYS_FSL_SRDS_1
+#define CONFIG_SYS_FSL_SRDS_2
 #define CONFIG_SYS_FSL_SRDS_3
 #define CONFIG_SYS_FSL_SRDS_4
 #define CONFIG_SYS_FSL_SEC_COMPAT	4
@@ -550,6 +550,7 @@
 #define CONFIG_SYS_FSL_SRIO_MAX_PORTS	2
 #define CONFIG_SYS_FSL_SRIO_OB_WIN_NUM	9
 #define CONFIG_SYS_FSL_SRIO_IB_WIN_NUM	5
+#define CONFIG_SYS_FSL_SRIO_LIODN
 #define CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE
 #define CONFIG_SYS_FSL_USB_INTERNAL_UTMI_PHY
 #define CONFIG_SYS_FSL_ERRATUM_A004468
@@ -566,6 +567,8 @@
 #define CONFIG_SYS_FSL_QORIQ_CHASSIS2	/* Freescale Chassis generation 2 */
 #define CONFIG_SYS_FSL_QMAN_V3		/* QMAN version 3 */
 #define CONFIG_SYS_FSL_NUM_LAWS		32
+#define CONFIG_SYS_FSL_SRDS_1
+#define CONFIG_SYS_FSL_SRDS_2
 #define CONFIG_SYS_FSL_SEC_COMPAT	4
 #define CONFIG_SYS_NUM_FMAN		1
 #define CONFIG_SYS_FSL_DDR_VER		FSL_DDR_VER_4_7
@@ -590,6 +593,7 @@
 #define CONFIG_SYS_FSL_SRIO_MAX_PORTS	2
 #define CONFIG_SYS_FSL_SRIO_OB_WIN_NUM	9
 #define CONFIG_SYS_FSL_SRIO_IB_WIN_NUM	5
+#define CONFIG_SYS_FSL_SRIO_LIODN
 #else
 #define CONFIG_MAX_CPUS			2
 #define CONFIG_SYS_FSL_CORES_PER_CLUSTER 2
@@ -625,6 +629,18 @@
 #define CONFIG_SYS_FSL_USB2_PHY_ENABLE
 #define CONFIG_SYS_FSL_USB_INTERNAL_UTMI_PHY
 #define CONFIG_SYS_CCSRBAR_DEFAULT	0xfe000000
+
+#elif defined(CONFIG_PPC_C29X)
+#define CONFIG_MAX_CPUS			1
+#define CONFIG_FSL_SDHC_V2_3
+#define CONFIG_SYS_FSL_NUM_LAWS		12
+#define CONFIG_SYS_PPC_E500_DEBUG_TLB	3
+#define CONFIG_TSECV2_1
+#define CONFIG_SYS_FSL_SEC_COMPAT	6
+#define CONFIG_SYS_FSL_ERRATUM_ESDHC111
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_SYS_FSL_IFC_BANK_COUNT	8
+#define CONFIG_SYS_CCSRBAR_DEFAULT	0xff700000
 
 #else
 #error Processor type not defined for this platform

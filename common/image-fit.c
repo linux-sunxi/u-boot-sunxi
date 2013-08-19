@@ -6,23 +6,7 @@
  * (C) Copyright 2000-2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifdef USE_HOSTCC
@@ -358,6 +342,17 @@ void fit_image_print(const void *fit, int image_noffset, const char *p)
 		printf("unavailable\n");
 	else
 		printf("%s\n", desc);
+
+	if (IMAGE_ENABLE_TIMESTAMP) {
+		time_t timestamp;
+
+		ret = fit_get_timestamp(fit, 0, &timestamp);
+		printf("%s  Created:      ", p);
+		if (ret)
+			printf("unavailable\n");
+		else
+			genimg_print_time(timestamp);
+	}
 
 	fit_image_get_type(fit, image_noffset, &type);
 	printf("%s  Type:         %s\n", p, genimg_get_type_name(type));

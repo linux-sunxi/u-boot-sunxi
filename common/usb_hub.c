@@ -1,5 +1,4 @@
 /*
- *
  * Most of this source has been derived from the Linux USB
  * project:
  * (C) Copyright Linus Torvalds 1999
@@ -15,24 +14,7 @@
  * Adapted for U-Boot:
  * (C) Copyright 2001 Denis Peter, MPL AG Switzerland
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /****************************************************************************
@@ -128,7 +110,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 		ret = usb_get_port_status(dev, i + 1, portsts);
 		if (ret < 0) {
 			debug("port %d: get_port_status failed\n", i + 1);
-			return;
+			continue;
 		}
 
 		/*
@@ -143,7 +125,7 @@ static void usb_hub_power_on(struct usb_hub_device *hub)
 		portstatus = le16_to_cpu(portsts->wPortStatus);
 		if (portstatus & (USB_PORT_STAT_POWER << 1)) {
 			debug("port %d: Port power change failed\n", i + 1);
-			return;
+			continue;
 		}
 	}
 
