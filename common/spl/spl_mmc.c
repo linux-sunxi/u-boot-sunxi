@@ -30,8 +30,10 @@ static int mmc_load_image_raw(struct mmc *mmc, unsigned long sector)
 	if (err == 0)
 		goto end;
 
-	if (image_get_magic(header) != IH_MAGIC)
+	if (image_get_magic(header) != IH_MAGIC) {
+		printf("spl: not an uImage at %lu\n", sector);
 		return -1;
+	}
 
 	spl_parse_image_header(header);
 
