@@ -175,14 +175,11 @@ int axp209_init(void)
 	if (rc)
 		return rc;
 
-	/* Seems there is some unexpected variance in this register.
-	 * blindly assume it is the correct chip for now
-	 * 0x21 and 0x41 have been observed.
-	 */
-#if 0
-	if (ver != 0x21)
+	/* Low 4 bits is chip version */
+	ver &= 0x0f;
+
+	if (ver != 0x1)
 		return -1;
-#endif
 
 	return 0;
 }
