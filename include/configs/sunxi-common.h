@@ -290,8 +290,8 @@
 #define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
 
 #endif /* CONFIG_SPL */
-/* end of 24KB in sram */
-#define LOW_LEVEL_SRAM_STACK		0x00006000
+/* end of 32 KiB in sram */
+#define LOW_LEVEL_SRAM_STACK		0x00008000
 #define CONFIG_SPL_STACK		LOW_LEVEL_SRAM_STACK
 
 #ifdef CONFIG_SPL_OS_BOOT
