@@ -121,6 +121,17 @@ void sunxi_board_init(void)
 		printf("Failed to set core voltage!. Can't set CPU frequency\n");
 }
 
+#if defined(CONFIG_SPL_OS_BOOT) && defined(CONFIG_AXP209_POWER)
+int spl_start_uboot(void)
+{
+	if (axp209_poweron_by_dc())
+		return 0;
+	axp209_power_button(); /* Clear any pending button event */
+	mdelay(100);
+	return axp209_power_button();
+}
+#endif
+
 #ifdef CONFIG_SPL_DISPLAY_PRINT
 void spl_display_print(void)
 {
