@@ -27,3 +27,5 @@ extern int axp209_set_ldo3(int mvolt);
 extern int axp209_set_ldo4(int mvolt);
 extern void axp209_poweroff(void);
 extern int axp209_init(void);
+extern int axp209_poweron_by_dc(void);
+extern int axp209_power_button(void);
