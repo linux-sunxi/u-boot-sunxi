@@ -26,13 +26,24 @@
 #include <axp209.h>
 
 enum axp209_reg {
-	AXP209_CHIP_VERSION = 0x3,
+	AXP209_POWER_STATUS = 0x00,
+	AXP209_CHIP_VERSION = 0x03,
 	AXP209_DCDC2_VOLTAGE = 0x23,
 	AXP209_DCDC3_VOLTAGE = 0x27,
 	AXP209_LDO24_VOLTAGE = 0x28,
 	AXP209_LDO3_VOLTAGE = 0x29,
+	AXP209_IRQ_STATUS3 = 0x4a,
+	AXP209_IRQ_STATUS5 = 0x4c,
 	AXP209_SHUTDOWN = 0x32,
 };
+
+#define AXP209_POWER_STATUS_ON_BY_DC	(1<<0)
+
+#define AXP209_IRQ3_PEK_SHORT		(1<<1)
+#define AXP209_IRQ3_PEK_LONG		(1<<0)
+
+#define AXP209_IRQ5_PEK_UP		(1<<6)
+#define AXP209_IRQ5_PEK_DOWN		(1<<5)
 
 int axp209_write(enum axp209_reg reg, u8 val)
 {
@@ -182,4 +193,23 @@ int axp209_init(void)
 		return -1;
 
 	return 0;
+}
+
+int axp209_poweron_by_dc(void)
+{
+	u8 v;
+
+	if (axp209_read(AXP209_POWER_STATUS, &v))
+		return 0;
+	return (v & AXP209_POWER_STATUS_ON_BY_DC);
+}
+
+int axp209_power_button(void)
+{
+	u8 v;
+
+	if (axp209_read(AXP209_IRQ_STATUS5, &v))
+		return 0;
+	axp209_write(AXP209_IRQ_STATUS5, AXP209_IRQ5_PEK_DOWN);
+	return v & AXP209_IRQ5_PEK_DOWN;
 }
