@@ -119,23 +119,24 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	fd_out = open(argv[2], O_WRONLY | O_CREAT, 0666);
-	if (fd_out < 0) {
-		perror("Open output file:");
-		return EXIT_FAILURE;
-	}
-
 	memset((void *)img.pad, 0, BLOCK_SIZE);
 
 	/* get input file size */
 	file_size = lseek(fd_in, 0, SEEK_END);
 	printf("File size: 0x%x\n", file_size);
 
-	if (file_size > SRAM_LOAD_MAX_SIZE)
-		load_size = SRAM_LOAD_MAX_SIZE;
-	else
+	if (file_size > SRAM_LOAD_MAX_SIZE) {
+		fprintf(stderr, "ERROR: File too large!\n");
+		return EXIT_FAILURE;
+	} else
 		load_size = ALIGN(file_size, sizeof(int));
 	printf("Load size: 0x%x\n", load_size);
+
+	fd_out = open(argv[2], O_WRONLY | O_CREAT, 0666);
+	if (fd_out < 0) {
+		perror("Open output file:");
+		return EXIT_FAILURE;
+	}
 
 	/* read file to buffer to calculate checksum */
 	lseek(fd_in, 0, SEEK_SET);
