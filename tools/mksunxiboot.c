@@ -89,7 +89,7 @@ int gen_check_sum(void *boot_buf)
 #define ALIGN(x, a) __ALIGN_MASK((x), (typeof(x))(a)-1)
 #define __ALIGN_MASK(x, mask) (((x)+(mask))&~(mask))
 
-#define SUN4I_SRAM_SIZE (24 * 1024)
+#define SUN4I_SRAM_SIZE 0x7600	/* 0x7748+ is used by BROM */
 #define SRAM_LOAD_MAX_SIZE (SUN4I_SRAM_SIZE - sizeof(struct boot_file_head))
 #define BLOCK_SIZE 512
 

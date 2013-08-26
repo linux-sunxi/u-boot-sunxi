@@ -269,7 +269,7 @@
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl-fel.lds"
 #define CONFIG_SPL_START_S_PATH "arch/arm/cpu/armv7/sunxi"
 #define CONFIG_SPL_TEXT_BASE		0x2000
-#define CONFIG_SPL_MAX_SIZE		0x4000		/* 24 KB */
+#define CONFIG_SPL_MAX_SIZE		0x4000		/* 16 KiB */
 
 #else /* CONFIG_SPL */
 
@@ -277,17 +277,15 @@
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 #define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
-#define CONFIG_SPL_MAX_SIZE		0x6000		/* 24 KB */
+#define CONFIG_SPL_MAX_SIZE		0x75e0		/* 7748+ is used */
 
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
-/* 32KB offset */
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	64
-/* SPL starts at offset 8KiB im MMC and has the size of 24KiB */
-#define CONFIG_SPL_PAD_TO		24576		/* decimal for 'dd' */
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	80	/* 40KiB */
+#define CONFIG_SPL_PAD_TO		32768		/* decimal for 'dd' */
 
 #endif /* CONFIG_SPL */
 /* end of 32 KiB in sram */
