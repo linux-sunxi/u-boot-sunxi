@@ -634,6 +634,9 @@ $(obj)u-boot-nand.bin:	nand_spl $(obj)u-boot.bin
 $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
 
+$(obj)spl/sunxi-spl.bin:	$(SUBDIR_TOOLS) depend
+		$(MAKE) -C spl all
+
 updater:
 		$(MAKE) -C tools/updater all
 
