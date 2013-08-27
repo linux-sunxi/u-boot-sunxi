@@ -543,6 +543,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		}
 		if (ret) {
 			error = readl(&mmchost->reg->rint) & 0xbfc2;
+			error = TIMEOUT;
 			goto out;
 		}
 	}
@@ -553,6 +554,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		if (!timeout-- || (status & 0xbfc2)) {
 			error = status & 0xbfc2;
 			debug("cmd timeout %x\n", error);
+			error = TIMEOUT;
 			goto out;
 		}
 	} while (!(status & 0x4));
@@ -566,6 +568,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			if (!timeout-- || (status & 0xbfc2)) {
 				error = status & 0xbfc2;
 				debug("data timeout %x\n", error);
+				error = TIMEOUT;
 				goto out;
 			}
 			if (data->blocks > 1)
@@ -580,8 +583,8 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		do {
 			status = readl(&mmchost->reg->status);
 			if (!timeout--) {
-				error = -1;
 				debug("busy timeout\n");
+				error = TIMEOUT;
 				goto out;
 			}
 		} while (status & (1 << 9));
@@ -617,18 +620,14 @@ out:
 		writel(readl(&mmchost->reg->gctrl) & ~(0x1 << 5),
 		       &mmchost->reg->gctrl);
 	}
-	if (error) {
+	if (error < 0) {
 		writel(0x7, &mmchost->reg->gctrl);
 		mmc_update_clk(mmc);
-		debug("mmc cmd %d err 0x%08x\n", cmd->cmdidx, error);
 	}
 	writel(0xffffffff, &mmchost->reg->rint);
 	writel(readl(&mmchost->reg->gctrl) | (1 << 1), &mmchost->reg->gctrl);
 
-	if (error)
-		return -1;
-	else
-		return 0;
+	return error;
 }
 
 int sunxi_mmc_init(int sdc_no)
