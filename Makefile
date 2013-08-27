@@ -635,6 +635,9 @@ $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 $(obj)tpl/u-boot-tpl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all CONFIG_TPL_BUILD=y
 
+$(obj)spl/sunxi-spl.bin:	$(SUBDIR_TOOLS) depend
+		$(MAKE) -C spl all
+
 updater:
 		$(MAKE) -C tools/updater all
 
