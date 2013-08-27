@@ -588,6 +588,9 @@ $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 $(obj)tpl/u-boot-tpl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all CONFIG_TPL_BUILD=y
 
+$(obj)spl/sunxi-spl.bin:	$(SUBDIR_TOOLS) depend
+		$(MAKE) -C spl all
+
 # Explicitly make _depend in subdirs containing multiple targets to prevent
 # parallel sub-makes creating .depend files simultaneously.
 depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
