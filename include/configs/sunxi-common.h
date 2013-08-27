@@ -285,9 +285,7 @@
 #define CONFIG_SPL_DISPLAY_PRINT
 
 /* Falcon boot mode support */
-#if 1
 #define CONFIG_SPL_OS_BOOT
-#endif
 
 #ifdef CONFIG_SPL_FEL
 
