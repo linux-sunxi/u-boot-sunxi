@@ -70,6 +70,9 @@ int dram_init(void)
 int board_mmc_init(bd_t *bis)
 {
 	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT);
+#ifdef CONFIG_MMC_SUNXI_SLOT_EXTRA
+	sunxi_mmc_init(CONFIG_MMC_SUNXI_SLOT_EXTRA);
+#endif
 
 	return 0;
 }
