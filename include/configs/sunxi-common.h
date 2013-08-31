@@ -264,7 +264,13 @@
 #define CONFIG_SPL_DISPLAY_PRINT
 
 /* Falcon boot mode support */
+/* Disabled by default on sun4i/sun7i. Many GCC versions produces a too
+ * large SPL for A10/A20 with this on. sun5i however accepts a much larger
+ * SPL
+ */
+#ifdef CONFIG_SUN5I
 #define CONFIG_SPL_OS_BOOT
+#endif
 
 #ifdef CONFIG_SPL_FEL
 
@@ -280,7 +286,11 @@
 #define CONFIG_SPL_BSS_MAX_SIZE		0x80000		/* 512 KB */
 
 #define CONFIG_SPL_TEXT_BASE		0x20		/* sram start+header */
+#ifdef CONFIG_SUN5I
 #define CONFIG_SPL_MAX_SIZE		0x75e0		/* 7748+ is used */
+#else
+#define CONFIG_SPL_MAX_SIZE		0x5fe0		/* 24KB on sun4i/sun7i */
+#endif
 
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
