@@ -36,6 +36,7 @@
  */
 #define CONFIG_ALLWINNER	/* It's a Allwinner chip */
 #define CONFIG_SUNXI		/* which is sunxi family */
+#define CONFIG_SYS_THUMB_BUILD	/* Thumbs mode to save space in SPL */
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
@@ -268,7 +269,7 @@
  * large SPL for A10/A20 with this on. sun5i however accepts a much larger
  * SPL
  */
-#ifdef CONFIG_SUN5I
+#if defined( CONFIG_SUN5I ) || defined ( CONFIG_SYS_THUMB_BUILD )
 #define CONFIG_SPL_OS_BOOT
 #endif
 
