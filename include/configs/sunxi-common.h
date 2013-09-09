@@ -34,7 +34,6 @@
  */
 #define CONFIG_ALLWINNER	/* It's a Allwinner chip */
 #define CONFIG_SUNXI		/* which is sunxi family */
-#define CONFIG_SYS_THUMB_BUILD	/* Thumbs mode to save space in SPL */
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 
@@ -285,15 +284,6 @@
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
 #define CONFIG_SPL_DISPLAY_PRINT
 
-/* Falcon boot mode support */
-/* Disabled by default on sun4i/sun7i. Many GCC versions produces a too
- * large SPL for A10/A20 with this on. sun5i however accepts a much larger
- * SPL
- */
-#if defined( CONFIG_SUN5I ) || defined ( CONFIG_SYS_THUMB_BUILD )
-#define CONFIG_SPL_OS_BOOT
-#endif
-
 #ifdef CONFIG_SPL_FEL
 
 #define CONFIG_SPL
@@ -313,6 +303,12 @@
 #else
 #define CONFIG_SPL_MAX_SIZE		0x5fe0		/* 24KB on sun4i/sun7i */
 #endif
+
+/* Thumbs mode to save space in SPL */
+#define CONFIG_SYS_THUMB_BUILD
+
+/* Falcon boot mode support */
+#define CONFIG_SPL_OS_BOOT
 
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
