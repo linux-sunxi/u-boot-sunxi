@@ -56,6 +56,9 @@ int board_init(void)
 		asm volatile("mcr p15, 0, %0, c14, c0, 0" : : "r"(24000000));
 	}
 
+	/* CNTFRQ == 24 MHz */
+	asm volatile("mcr p15, 0, %0, c14, c0, 0" : : "r"(24000000));
+
 #ifdef CONFIG_STATUS_LED
 	status_led_set(STATUS_LED_BOOT, STATUS_LED_ON);
 #endif
