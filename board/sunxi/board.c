@@ -43,10 +43,18 @@ DECLARE_GLOBAL_DATA_PTR;
 /* add board specific code here */
 int board_init(void)
 {
+	int id_pfr1;
+
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
 
-	/* CNTFRQ == 24 MHz */
-	asm volatile("mcr p15, 0, %0, c14, c0, 0" : : "r"(24000000));
+	asm volatile("mrc p15, 0, %0, c0, c1, 1" : "=r"(id_pfr1));
+	debug("id_pfr1: 0x%08x\n", id_pfr1);
+	/* Generic Timer Extension available? */
+	if ((id_pfr1 >> 16) & 0xf) {
+		printf("Setting CNTFRQ\n");
+		/* CNTFRQ == 24 MHz */
+		asm volatile("mcr p15, 0, %0, c14, c0, 0" : : "r"(24000000));
+	}
 
 #ifdef CONFIG_STATUS_LED
 	status_led_set(STATUS_LED_BOOT, STATUS_LED_ON);
