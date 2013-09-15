@@ -851,8 +851,8 @@ unconfig:
 
 sinclude $(obj).boards.depend
 $(obj).boards.depend:	boards.cfg
-	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
-	@awk '(NF && $$1 !~ /^#/ && tolower($$1) != $$1) { print tolower($$1) ": " $$1 "_config; $$(MAKE)" }' $< >> $@
+	@awk '(NF && $$1 !~ /^#/) { print $$7 ": " $$7 "_config; $$(MAKE)" }' $< > $@
+	@awk '(NF && $$1 !~ /^#/ && tolower($$7) != $$7) { print tolower($$7) ": " $$7 "_config; $$(MAKE)" }' $< >> $@
 
 #
 # Functions to generate common board directory names
@@ -881,7 +881,7 @@ clean:
 	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
 	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
-	       $(obj)tools/mk{smdk5250,}spl				  \
+	       $(obj)tools/mk{$(BOARD),}spl				  \
 	       $(obj)tools/mksunxiboot					  \
 	       $(obj)tools/mxsboot					  \
 	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
