@@ -51,7 +51,7 @@ int board_init(void)
 	debug("id_pfr1: 0x%08x\n", id_pfr1);
 	/* Generic Timer Extension available? */
 	if ((id_pfr1 >> 16) & 0xf) {
-		printf("Setting CNTFRQ\n");
+		debug("Setting CNTFRQ\n");
 		/* CNTFRQ == 24 MHz */
 		asm volatile("mcr p15, 0, %0, c14, c0, 0" : : "r"(24000000));
 	}
