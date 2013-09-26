@@ -56,6 +56,15 @@ int clock_init(void)
 	clock_init_safe();
 #endif
 
+#if defined(CONFIG_SUN6I)
+	/* uart clock source is apb2 */
+	sr32(&ccm->apb2_div, 24, 2, APB2_CLK_SRC_OSC24M);
+	sr32(&ccm->apb2_div, 16, 2, APB2_FACTOR_N);
+	sr32(&ccm->apb2_div, 0, 5, APB2_FACTOR_M);
+
+	/* open the clock for uart */
+	sr32(&ccm->apb2_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+#else
 	/* uart clock source is apb1 */
 	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
 	sr32(&ccm->apb1_clk_div_cfg, 16, 2, APB1_FACTOR_N);
@@ -63,6 +72,7 @@ int clock_init(void)
 
 	/* open the clock for uart */
 	sr32(&ccm->apb1_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+#endif
 
 #ifdef CONFIG_NAND_SUNXI
 	/* nand clock source is osc24m */
