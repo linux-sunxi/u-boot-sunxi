@@ -71,7 +71,7 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	} else if (sub_cmd == GPIO_OSCILLATE) {
 		int i;
 		gpio_direction_output(gpio, 0);
-		for (i = 0; i < 10000; i++) {
+		for (i = 0; i < 100000000; i++) {
 			gpio_set_value(gpio, i&1);
 		}
 		gpio_direction_input(gpio);
