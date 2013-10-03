@@ -45,7 +45,7 @@ int board_init(void)
 {
 	int id_pfr1;
 
-	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100);
+	gd->bd->bi_boot_params = (PHYS_SDRAM_0 + 0x100);
 
 	asm volatile("mrc p15, 0, %0, c0, c1, 1" : "=r"(id_pfr1));
 	debug("id_pfr1: 0x%08x\n", id_pfr1);
@@ -73,7 +73,7 @@ int checkboard(void)
 
 int dram_init(void)
 {
-	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_1, PHYS_SDRAM_1_SIZE);
+	gd->ram_size = get_ram_size((long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
 
 	return 0;
 }
