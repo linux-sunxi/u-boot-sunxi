@@ -24,8 +24,7 @@ static struct dram_para dram_para = {
 	.emr2 = 0,
 	.emr3 = 0,
 };
-
-int sunxi_dram_init(void)
+unsigned long sunxi_dram_init(void)
 {
 	return dramc_init(&dram_para);
 }

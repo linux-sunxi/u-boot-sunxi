@@ -185,7 +185,7 @@ struct dram_para {
 
 #define DRAM_CSEL_MAGIC 0x16237495
 
-int sunxi_dram_init(void);
-int dramc_init(struct dram_para *para);
+unsigned long sunxi_dram_init(void);
+unsigned long dramc_init(struct dram_para *para);
 
 #endif /* _SUNXI_DRAM_H */
