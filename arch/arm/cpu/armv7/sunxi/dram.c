@@ -457,7 +457,7 @@ static void dramc_set_autorefresh_cycle(u32 clk)
 }
 #endif /* SUN5I */
 
-int dramc_init(struct dram_para *para)
+unsigned long dramc_init(struct dram_para *para)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
@@ -465,7 +465,7 @@ int dramc_init(struct dram_para *para)
 
 	/* check input dram parameter structure */
 	if (!para)
-		return -1;
+		return 0;
 
 	/* setup DRAM relative clock */
 	mctl_setup_dram_clock(para->clock);
@@ -669,5 +669,5 @@ int dramc_init(struct dram_para *para)
 	/* configure all host port */
 	mctl_configure_hostport();
 
-	return get_ram_size((long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
+	return get_ram_size((unsigned long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
 }
