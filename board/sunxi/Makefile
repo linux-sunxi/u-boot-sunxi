@@ -50,6 +50,7 @@ obj-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 obj-$(CONFIG_H6)		+= dram_h6.o
 obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
 obj-$(CONFIG_INET97F_II)	+= dram_sun4i_408_512.o
+obj-$(CONFIG_MEGAFEIS_A08)	+= dram_megafeis_a08.o
 obj-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_MELE_A1000G)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
