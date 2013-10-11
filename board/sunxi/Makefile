@@ -57,6 +57,7 @@ COBJS-$(CONFIG_H6)		+= dram_h6.o
 COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
 COBJS-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_INET97F_II)	+= dram_sun4i_408_512.o
+COBJS-$(CONFIG_MEFAFEIS_A08)	+= dram_megafeis_a08.o
 COBJS-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
 COBJS-$(CONFIG_MELE_A1000G)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
