@@ -52,6 +52,7 @@ COBJS-$(CONFIG_CUBIETRUCK)	+= dram_cubietruck.o
 COBJS-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
 COBJS-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
 COBJS-$(CONFIG_EOMA68_A20)	+= dram_eoma68_a20.o
+COBJS-$(CONFIG_EU3000)		+= dram_eu3000.o
 COBJS-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 COBJS-$(CONFIG_H6)		+= dram_h6.o
 COBJS-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
