@@ -29,6 +29,7 @@
 #include <common.h>
 #include <i2c.h>
 #include <netdev.h>
+#include <miiphy.h>
 #include <serial.h>
 #ifdef CONFIG_SPL_BUILD
 #include <spl.h>
@@ -134,14 +135,32 @@ void enable_caches(void)
 }
 #endif
 
-#if defined(CONFIG_SUNXI_EMAC)
+#if defined(CONFIG_SUNXI_EMAC) || defined(CONFIG_SUNXI_GMAC)
 /*
  * Initializes on-chip ethernet controllers.
  * to override, implement board_eth_init()
  */
 int cpu_eth_init(bd_t *bis)
 {
+#ifdef CONFIG_SUNXI_EMAC
 	sunxi_emac_initialize(bis);
+#else
+	int pin;
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	/* Set up clock gating */
+	setbits_le32(&ccm->ahb_gate1, 0x1 << AHB_GATE_OFFSET_GMAC);
+
+	/* Set MII clock */
+	setbits_le32(&ccm->gmac_clk_cfg, (0x1 << 2) | (0x2 << 0));
+
+	/* Configure pin mux settings for GMAC */
+	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++)
+		sunxi_gpio_set_cfgpin(pin, 5);
+
+	designware_initialize(0, SUNXI_GMAC_BASE, 0x1, PHY_INTERFACE_MODE_RGMII);
+#endif
 
 	return 0;
 }
