@@ -154,7 +154,7 @@ static int dw_eth_init(struct eth_device *dev, bd_t *bis)
 	/* Resore the HW MAC address as it has been lost during MAC reset */
 	dw_write_hwaddr(dev);
 
-	writel(FIXEDBURST | PRIORXTX_41 | BURST_16,
+	writel(FIXEDBURST | PRIORXTX_41 | BURST_8,
 			&dma_p->busmode);
 
 	writel(readl(&dma_p->opmode) | FLUSHTXFIFO | STOREFORWARD |
