@@ -104,6 +104,8 @@ struct sunxi_ccm_reg {
 	u32 mali_clk_cfg;	/* 0x154 */
 	u8 res7[0x4];
 	u32 mbus_clk_cfg;	/* 0x15c */
+	u8 res8[0x4];
+	u32 gmac_clk_cfg;	/* 0x164 */
 };
 
 /* apb1 bit field */
@@ -170,6 +172,7 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_USB_OHCI0	2
 #define AHB_GATE_OFFSET_USB_EHCI0	1
 #define AHB_GATE_OFFSET_USB		0
+#define AHB_GATE_OFFSET_GMAC		17
 
 #define CCM_AHB_GATE_GPS (0x1 << 26)
 #define CCM_AHB_GATE_SDRAM (0x1 << 14)

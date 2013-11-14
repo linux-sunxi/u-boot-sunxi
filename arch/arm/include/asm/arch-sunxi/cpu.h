@@ -109,6 +109,7 @@
 
 #define SUNXI_GPS_BASE			0x01c30000
 #define SUNXI_MALI400_BASE		0x01c40000
+#define SUNXI_GMAC_BASE			0x01c50000
 
 /* module sram */
 #define SUNXI_SRAM_C_BASE		0x01d00000
