@@ -153,7 +153,11 @@ int cpu_eth_init(bd_t *bis)
 	setbits_le32(&ccm->ahb_gate1, 0x1 << AHB_GATE_OFFSET_GMAC);
 
 	/* Set MII clock */
+#ifdef CONFIG_RGMII
 	setbits_le32(&ccm->gmac_clk_cfg, (0x1 << 2) | (0x2 << 0));
+#else
+	setbits_le32(&ccm->gmac_clk_cfg, 0);
+#endif
 
 	/* Configure pin mux settings for GMAC */
 	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++) {
@@ -161,7 +165,12 @@ int cpu_eth_init(bd_t *bis)
 		sunxi_gpio_set_drv(pin, 3);
 	}
 
+#ifdef CONFIG_RGMII
 	designware_initialize(0, SUNXI_GMAC_BASE, 0x1, PHY_INTERFACE_MODE_RGMII);
+#else
+	designware_initialize(0, SUNXI_GMAC_BASE, 0x1, PHY_INTERFACE_MODE_MII);
+#endif
+
 #endif
 
 	return 0;
