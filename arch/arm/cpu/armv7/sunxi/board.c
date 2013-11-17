@@ -62,6 +62,10 @@ int gpio_init(void)
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(22), SUN4I_GPB22_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(23), SUN4I_GPB23_UART0_RX);
 	sunxi_gpio_set_pull(SUNXI_GPB(23), 1);
+#elif CONFIG_CONS_INDEX == 1 && defined(CONFIG_SUN6I)
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(20), 2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPH(21), 2);
+	sunxi_gpio_set_pull(SUNXI_GPH(21), 1);
 #elif CONFIG_CONS_INDEX == 1 && defined(CONFIG_SUN5I)
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(19), SUN5I_GPB19_UART0_TX);
 	sunxi_gpio_set_cfgpin(SUNXI_GPB(20), SUN5I_GPB20_UART0_RX);
