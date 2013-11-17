@@ -18,6 +18,8 @@ int print_cpuinfo(void)
 #elif defined CONFIG_SUN5I
 	/* TODO: Distinguish A13/A10s */
 	puts("CPU:   Allwinner A13/A10s (SUN5I)\n");
+#elif defined CONFIG_SUN6I
+	puts("CPU:   Allwinner A31 (SUN6I)\n");
 #elif defined CONFIG_SUN7I
 	puts("CPU:   Allwinner A20 (SUN7I)\n");
 #else

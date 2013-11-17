@@ -81,6 +81,7 @@
 
 /* mmc config */
 /* Can't use MMC slot 0 if the UART is directed there */
+#ifndef CONFIG_SUN6I
 #if !defined CONFIG_UART0_PORT_F || CONFIG_MMC_SUNXI_SLOT != 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
@@ -92,6 +93,7 @@
 #define CONFIG_MMC_SUNXI_USE_DMA
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
+#endif
 #endif
 
 /* 4MB of malloc() pool */
