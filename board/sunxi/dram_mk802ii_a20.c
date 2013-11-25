@@ -4,7 +4,7 @@
 #include <asm/arch/dram.h>
 
 static struct dram_para dram_para = {
-	.clock = 384,
+	.clock = 360,
 	.type = 3,
 	.rank_num = 1,
 	.density = 4096,
@@ -25,7 +25,7 @@ static struct dram_para dram_para = {
 	.emr3 = 0,
 };
 
-unsigned long sunxi_dram_init(void)
+int sunxi_dram_init(void)
 {
 	return dramc_init(&dram_para);
 }

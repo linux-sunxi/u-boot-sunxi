@@ -453,7 +453,7 @@ const char *symbol_lookup(unsigned long addr, unsigned long *caddr);
 void	api_init (void);
 
 /* common/memsize.c */
-long	get_ram_size  (long *, long);
+unsigned long	get_ram_size  (unsigned long *, unsigned long);
 
 /* $(BOARD)/$(BOARD).c */
 void	reset_phy     (void);
