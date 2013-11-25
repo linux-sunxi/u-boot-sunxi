@@ -107,7 +107,6 @@
 #ifdef CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT               "$ "
 #else
-#define CONFIG_SYS_PROMPT               "=> "
 #endif
 #define CONFIG_SYS_CBSIZE               256
 #define CONFIG_SYS_PBSIZE               \
@@ -120,7 +119,6 @@
  * Clock Configuration
  */
 #undef  CONFIG_SYS_CLKS_IN_HZ
-#define CONFIG_SYS_HZ                   1000 /* decrementer freq: 1 ms ticks */
 #define CONFIG_SYS_CPUSPEED             0x210           /* 416MHz ; N=2,L=16 */
 
 /*

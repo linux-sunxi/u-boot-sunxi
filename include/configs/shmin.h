@@ -42,7 +42,6 @@
 
 #define CONFIG_SYS_TEXT_BASE	0x8DFB0000
 #define CONFIG_SYS_LONGHELP		/* undef to save memory	*/
-#define CONFIG_SYS_PROMPT	"=> "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE	256	/* Buffer size for input from the Console */
 #define CONFIG_SYS_PBSIZE	256	/* Buffer size for Console output */
 #define CONFIG_SYS_MAXARGS	16	/* max args accepted for monitor commands */
@@ -103,8 +102,9 @@
 #else
 #define CONFIG_SYS_CLK_FREQ 33333333
 #endif /* CONFIG_T_SH7706LSR */
+#define CONFIG_SH_TMU_CLK_FREQ CONFIG_SYS_CLK_FREQ
+#define CONFIG_SH_SCIF_CLK_FREQ CONFIG_SYS_CLK_FREQ
 #define CONFIG_SYS_TMU_CLK_DIV	4
-#define CONFIG_SYS_HZ	1000
 
 /* Network device */
 #define CONFIG_DRIVER_NE2000

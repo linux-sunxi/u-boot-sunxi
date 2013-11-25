@@ -67,7 +67,6 @@
 /* undef to save memory	*/
 #define CONFIG_SYS_LONGHELP
 /* Monitor Command Prompt */
-#define CONFIG_SYS_PROMPT		"=> "
 /* Buffer size for input from the Console */
 #define CONFIG_SYS_CBSIZE		256
 /* Buffer size for Console output */
@@ -158,7 +157,8 @@
 #else
 #define CONFIG_SYS_CLK_FREQ 44444444
 #endif
+#define CONFIG_SH_TMU_CLK_FREQ CONFIG_SYS_CLK_FREQ
+#define CONFIG_SH_SCIF_CLK_FREQ CONFIG_SYS_CLK_FREQ
 #define CONFIG_SYS_TMU_CLK_DIV      4
-#define CONFIG_SYS_HZ       1000
 
 #endif	/* __AP_SH4A_4A_H */

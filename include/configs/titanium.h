@@ -41,8 +41,8 @@
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_MXC
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_MXC
 #define CONFIG_SYS_I2C_SPEED		100000
 
 /* MMC Configs */
@@ -194,7 +194,6 @@
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
-#define CONFIG_SYS_HZ			1000
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1

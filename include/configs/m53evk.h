@@ -10,7 +10,6 @@
 
 #define CONFIG_MX53
 #define CONFIG_MXC_GPIO
-#define CONFIG_SYS_HZ		1000
 
 #include <asm/arch/imx-regs.h>
 
@@ -67,7 +66,6 @@
  * U-Boot general configurations
  */
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT	"=> "
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O buffer size */
 #define CONFIG_SYS_PBSIZE	\
 	(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
@@ -161,10 +159,9 @@
  * I2C
  */
 #ifdef CONFIG_CMD_I2C
-#define CONFIG_HARD_I2C
-#define CONFIG_I2C_MXC
-#define CONFIG_SYS_I2C_BASE		I2C2_BASE_ADDR
-#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_MXC
+#define CONFIG_SYS_SPD_BUS_NUM		1 /* I2C2 */
 #endif
 
 /*

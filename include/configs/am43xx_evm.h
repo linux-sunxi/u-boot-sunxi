@@ -24,6 +24,7 @@
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT		"U-Boot# "
 #define CONFIG_SYS_NO_FLASH
+#define CONFIG_SYS_CACHELINE_SIZE 32
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ
@@ -75,7 +76,6 @@
 
 #define CONFIG_SYS_TIMERBASE		0x48040000	/* Use Timer2 */
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
-#define CONFIG_SYS_HZ			1000
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550
@@ -131,5 +131,15 @@
 
 /* Unsupported features */
 #undef CONFIG_USE_IRQ
+
+#define CONFIG_CMD_USB
+#define CONFIG_USB_HOST
+#define CONFIG_USB_XHCI
+#define CONFIG_USB_XHCI_OMAP
+#define CONFIG_USB_STORAGE
+#define CONFIG_SYS_USB_XHCI_MAX_ROOT_PORTS 2
+
+#define CONFIG_OMAP_USB_PHY
+#define CONFIG_AM437X_USB2PHY2_HOST
 
 #endif	/* __CONFIG_AM43XX_EVM_H */

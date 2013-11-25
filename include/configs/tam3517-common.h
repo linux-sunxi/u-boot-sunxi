@@ -117,14 +117,13 @@
 #undef CONFIG_CMD_IMLS
 
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_HARD_I2C
-#define CONFIG_SYS_I2C_SPEED		400000
-#define CONFIG_SYS_I2C_SLAVE		1
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_OMAP24_I2C_SPEED	400000
+#define CONFIG_SYS_OMAP24_I2C_SLAVE	1
+#define CONFIG_SYS_I2C_OMAP34XX
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50		/* base address */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1		/* bytes of address */
 #define CONFIG_SYS_I2C_EEPROM_ADDR_OVERFLOW	0x07
-#define CONFIG_DRIVER_OMAP34XX_I2C
-
 
 /*
  * Board NAND Info.
@@ -169,7 +168,6 @@
  */
 #define CONFIG_SYS_TIMERBASE		OMAP34XX_GPT2
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
-#define CONFIG_SYS_HZ			1000
 
 /*
  * Physical Memory Map
@@ -370,7 +368,7 @@ struct tam3517_module_info {
 
 #define TAM3517_READ_EEPROM(info, ret) \
 do {								\
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);	\
+	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE); \
 	if (eeprom_read(CONFIG_SYS_I2C_EEPROM_ADDR, 0,		\
 		(void *)info, sizeof(*info)))			\
 		ret = 1;					\

@@ -65,7 +65,6 @@
 #endif
 
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT		"=> "
 #define CONFIG_SYS_CBSIZE		256
 #define CONFIG_SYS_PBSIZE		256
 #define CONFIG_SYS_MAXARGS		16
@@ -172,7 +171,8 @@
 /* Board Clock */
 /* The SCIF used external clock. system clock only used timer. */
 #define CONFIG_SYS_CLK_FREQ	50000000
+#define CONFIG_SH_TMU_CLK_FREQ CONFIG_SYS_CLK_FREQ
+#define CONFIG_SH_SCIF_CLK_FREQ CONFIG_SYS_CLK_FREQ
 #define CONFIG_SYS_TMU_CLK_DIV		4
-#define CONFIG_SYS_HZ		1000
 
 #endif	/* __SH7785LCR_H */

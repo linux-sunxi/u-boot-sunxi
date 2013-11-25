@@ -85,7 +85,6 @@
 					+ (8 * 1024 * 1024))
 
 #define CONFIG_SYS_LOAD_ADDR		0x81000000 /* Default load address */
-#define CONFIG_SYS_HZ			1000 /* 1ms clock */
 
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
@@ -113,7 +112,6 @@
  /* Platform/Board specific defs */
 #define CONFIG_SYS_TIMERBASE		0x48040000	/* Use Timer2 */
 #define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
-#define CONFIG_SYS_HZ			1000
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550
@@ -133,11 +131,10 @@
 /* I2C Configuration */
 #define CONFIG_I2C
 #define CONFIG_CMD_I2C
-#define CONFIG_HARD_I2C
-#define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_DRIVER_OMAP24XX_I2C
-
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_OMAP24_I2C_SPEED	OMAP_I2C_STANDARD
+#define CONFIG_SYS_OMAP24_I2C_SLAVE	1
+#define CONFIG_SYS_I2C_OMAP24XX
 
 /* Defines for SPL */
 #define CONFIG_SPL

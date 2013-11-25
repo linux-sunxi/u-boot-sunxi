@@ -655,7 +655,6 @@ unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_CMDLINE_EDITING			/* Command-line editing */
 #define CONFIG_AUTO_COMPLETE			/* add autocompletion support */
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt */
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size */
 #else
@@ -667,7 +666,6 @@ unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-#define CONFIG_SYS_HZ		1000		/* decrementer freq 1ms ticks */
 
 /*
  * For booting Linux, the board info and command line data
@@ -746,8 +744,6 @@ unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CONFIG_BOOTCOMMAND		CONFIG_HDBOOT
 
-#ifdef CONFIG_SECURE_BOOT
 #include <asm/fsl_secure_boot.h>
-#endif
 
 #endif	/* __CONFIG_H */

@@ -69,7 +69,11 @@ u8 spd_i2c_addr[CONFIG_NUM_DDR_CONTROLLERS][CONFIG_DIMM_SLOTS_PER_CTLR] = {
 
 static void __get_spd(generic_spd_eeprom_t *spd, u8 i2c_address)
 {
-	int ret = i2c_read(i2c_address, 0, 1, (uchar *)spd,
+	int ret;
+
+	i2c_set_bus_num(CONFIG_SYS_SPD_BUS_NUM);
+
+	ret = i2c_read(i2c_address, 0, 1, (uchar *)spd,
 				sizeof(generic_spd_eeprom_t));
 
 	if (ret) {
@@ -457,7 +461,7 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 			 * which is currently STEP_ASSIGN_ADDRESSES.
 			 */
 			populate_memctl_options(
-					timing_params[i].all_DIMMs_registered,
+					timing_params[i].all_dimms_registered,
 					&pinfo->memctl_opts[i],
 					pinfo->dimm_params[i], i);
 			/*
@@ -466,7 +470,7 @@ fsl_ddr_compute(fsl_ddr_info_t *pinfo, unsigned int start_step,
 			 * using fixed parameters, this function should be
 			 * be called from board init file.
 			 */
-			if (timing_params[i].all_DIMMs_registered)
+			if (timing_params[i].all_dimms_registered)
 				assert_reset = 1;
 		}
 		if (assert_reset) {
@@ -589,7 +593,7 @@ phys_size_t fsl_ddr_sdram(void)
 	 */
 	deassert_reset = board_need_mem_reset();
 	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {
-		if (info.common_timing_params[i].all_DIMMs_registered)
+		if (info.common_timing_params[i].all_dimms_registered)
 			deassert_reset = 1;
 	}
 	for (i = 0; i < CONFIG_NUM_DDR_CONTROLLERS; i++) {

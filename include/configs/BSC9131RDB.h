@@ -181,18 +181,18 @@ extern unsigned long get_sdram_size(void);
 				| CSOR_NAND_PB(64))	/*Pages Per Block = 64*/
 
 /* NAND Flash Timing Params */
-#define CONFIG_SYS_NAND_FTIM0		(FTIM0_NAND_TCCST(0x08)  \
-					| FTIM0_NAND_TWP(0x06)   \
-					| FTIM0_NAND_TWCHT(0x03) \
+#define CONFIG_SYS_NAND_FTIM0		(FTIM0_NAND_TCCST(0x03)  \
+					| FTIM0_NAND_TWP(0x05)   \
+					| FTIM0_NAND_TWCHT(0x02) \
 					| FTIM0_NAND_TWH(0x04))
-#define CONFIG_SYS_NAND_FTIM1		(FTIM1_NAND_TADLE(0x18) \
-					| FTIM1_NAND_TWBE(0x23) \
-					| FTIM1_NAND_TRR(0x08)  \
+#define CONFIG_SYS_NAND_FTIM1		(FTIM1_NAND_TADLE(0x1C) \
+					| FTIM1_NAND_TWBE(0x1E) \
+					| FTIM1_NAND_TRR(0x07)  \
 					| FTIM1_NAND_TRP(0x05))
 #define CONFIG_SYS_NAND_FTIM2		(FTIM2_NAND_TRAD(0x08)  \
 					| FTIM2_NAND_TREH(0x04) \
-					| FTIM2_NAND_TWHRE(0x3f))
-#define CONFIG_SYS_NAND_FTIM3		FTIM3_NAND_TWW(0x22)
+					| FTIM2_NAND_TWHRE(0x11))
+#define CONFIG_SYS_NAND_FTIM3		FTIM3_NAND_TWW(0x04)
 
 #define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND_BASE }
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -361,7 +361,6 @@ extern unsigned long get_sdram_size(void);
 #define CONFIG_CMDLINE_EDITING			/* Command-line editing */
 #define CONFIG_AUTO_COMPLETE			/* add autocompletion support */
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt */
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size */
@@ -372,7 +371,6 @@ extern unsigned long get_sdram_size(void);
 						/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE/* Boot Argument Buffer Size */
-#define CONFIG_SYS_HZ		1000	/* decrementer freq: 1ms ticks */
 
 /*
  * For booting Linux, the board info and command line data

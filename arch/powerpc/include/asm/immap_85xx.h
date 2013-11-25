@@ -282,7 +282,9 @@ typedef struct ccsr_pcix {
 	u32	int_ack;	/* PCIX IRQ Acknowledge */
 	u8	res000c[52];
 	u32	liodn_base;	/* PCIX LIODN base register */
-	u8	res0044[3004];
+	u8	res0044[2996];
+	u32	ipver1;		/* PCIX IP block revision register 1 */
+	u32	ipver2;		/* PCIX IP block revision register 2 */
 	u32	potar0;		/* PCIX Outbound Transaction Addr 0 */
 	u32	potear0;	/* PCIX Outbound Translation Extended Addr 0 */
 	u32	powbar0;	/* PCIX Outbound Window Base Addr 0 */
@@ -1671,6 +1673,7 @@ typedef struct cpc_corenet {
 #define CPC_HDBCR0_CDQ_SPEC_DIS	0x08000000
 #define CPC_HDBCR0_TAG_ECC_SCRUB_DIS	0x01000000
 #define CPC_HDBCR0_DATA_ECC_SCRUB_DIS	0x00400000
+#define CPC_HDBCR0_SPLRU_LEVEL_EN	0x003c0000
 #endif /* CONFIG_SYS_FSL_CPC */
 
 /* Global Utilities Block */
@@ -1846,7 +1849,8 @@ typedef struct ccsr_gur {
 #define FSL_CORENET2_RCWSR4_SRDS2_PRTCL	0x00ff0000
 #define FSL_CORENET2_RCWSR4_SRDS2_PRTCL_SHIFT	16
 #define FSL_CORENET_RCWSR6_BOOT_LOC	0x0f800000
-#elif defined(CONFIG_PPC_T1040)
+#elif defined(CONFIG_PPC_T1040) || defined(CONFIG_PPC_T1042) ||\
+defined(CONFIG_PPC_T1020) || defined(CONFIG_PPC_T1022)
 #define FSL_CORENET2_RCWSR4_SRDS1_PRTCL	0xff000000
 #define FSL_CORENET2_RCWSR4_SRDS1_PRTCL_SHIFT	24
 #define FSL_CORENET2_RCWSR4_SRDS2_PRTCL	0x00fe0000
@@ -2016,20 +2020,13 @@ typedef struct ccsr_clk {
 		u8  res_004[0x0c];
 		u32 clkcgnhwacsr;/* clock generator n hardware accelerator */
 		u8  res_014[0x0c];
-	} clkcsr[8];
-	u8	res_100[0x700]; /* 0x100 */
-	u32	pllc1gsr;	/* 0x800 Cluster PLL 1 General Status */
-	u8	res10[0x1c];
-	u32	pllc2gsr;	/* 0x820 Cluster PLL 2 General Status */
-	u8	res11[0x1c];
-	u32	pllc3gsr;	/* 0x840 Cluster PLL 3 General Status */
-	u8	res12[0x1c];
-	u32	pllc4gsr;	/* 0x860 Cluster PLL 4 General Status */
-	u8	res13[0x1c];
-	u32	pllc5gsr;	/* 0x880 Cluster PLL 5 General Status */
-	u8	res14[0x1c];
-	u32	pllc6gsr;	/* 0x8a0 Cluster PLL 6 General Status */
-	u8	res15[0x35c];
+	} clkcsr[12];
+	u8	res_100[0x680]; /* 0x100 */
+	struct {
+		u32 pllcngsr;
+		u8 res10[0x1c];
+	} pllcgsr[12];
+	u8	res21[0x280];
 	u32	pllpgsr;	/* 0xc00 Platform PLL General Status */
 	u8	res16[0x1c];
 	u32	plldgsr;	/* 0xc20 DDR PLL General Status */
@@ -2938,7 +2935,6 @@ struct ccsr_pman {
 #endif
 #define CONFIG_SYS_MPC85xx_USB1_OFFSET		0x210000
 #define CONFIG_SYS_MPC85xx_USB2_OFFSET		0x211000
-#define CONFIG_SYS_MPC85xx_USB_OFFSET		CONFIG_SYS_MPC85xx_USB1_OFFSET
 #define CONFIG_SYS_MPC85xx_USB1_PHY_OFFSET 0x214000
 #define CONFIG_SYS_MPC85xx_USB2_PHY_OFFSET 0x214100
 #define CONFIG_SYS_MPC85xx_SATA1_OFFSET		0x220000
@@ -2991,7 +2987,7 @@ struct ccsr_pman {
 #define CONFIG_SYS_MPC85xx_IFC_OFFSET		0x1e000
 #define CONFIG_SYS_MPC85xx_L2_OFFSET		0x20000
 #define CONFIG_SYS_MPC85xx_DMA_OFFSET		0x21000
-#define CONFIG_SYS_MPC85xx_USB_OFFSET		0x22000
+#define CONFIG_SYS_MPC85xx_USB1_OFFSET		0x22000
 #define CONFIG_SYS_MPC85xx_USB2_OFFSET		0x23000
 #ifdef CONFIG_TSECV2
 #define CONFIG_SYS_TSEC1_OFFSET			0xB0000
@@ -3092,8 +3088,10 @@ struct ccsr_pman {
 	(CONFIG_SYS_IMMR + CONFIG_SYS_FSL_CORENET_SERDES_OFFSET)
 #define CONFIG_SYS_FSL_CORENET_SERDES2_ADDR \
 	(CONFIG_SYS_IMMR + CONFIG_SYS_FSL_CORENET_SERDES2_OFFSET)
-#define CONFIG_SYS_MPC85xx_USB_ADDR \
-	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_USB_OFFSET)
+#define CONFIG_SYS_MPC85xx_USB1_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_USB1_OFFSET)
+#define CONFIG_SYS_MPC85xx_USB2_ADDR \
+	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_USB2_OFFSET)
 #define CONFIG_SYS_MPC85xx_USB1_PHY_ADDR \
 	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_USB1_PHY_OFFSET)
 #define CONFIG_SYS_MPC85xx_USB2_PHY_ADDR \

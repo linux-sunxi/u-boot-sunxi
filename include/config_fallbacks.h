@@ -48,6 +48,7 @@
 	defined(CONFIG_CMD_SCSI) || \
 	defined(CONFIG_CMD_USB) || \
 	defined(CONFIG_CMD_PART) || \
+	defined(CONFIG_CMD_GPT) || \
 	defined(CONFIG_MMC) || \
 	defined(CONFIG_SYSTEMACE)
 #define HAVE_BLOCK_DEVICE
@@ -55,6 +56,14 @@
 
 #ifndef CONFIG_SYS_BOARD_NAME
 #define CONFIG_SYS_BOARD_NAME CONFIG_SYS_TARGET
+#endif
+
+#ifndef CONFIG_SYS_PROMPT
+#define CONFIG_SYS_PROMPT	"=> "
+#endif
+
+#ifndef CONFIG_SYS_HZ
+#define CONFIG_SYS_HZ		1000
 #endif
 
 #endif	/* __CONFIG_FALLBACKS_H */

@@ -35,7 +35,6 @@
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_SLOW_CLOCK	32768		/* slow clock xtal */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	18432000	/* 18.432MHz crystal */
-#define CONFIG_SYS_HZ			1000		/* 1ms resolution */
 
 /* misc settings */
 #define CONFIG_CMDLINE_TAG		/* pass commandline to Kernel */
@@ -165,6 +164,7 @@
 
 /* USB configuration */
 #define CONFIG_USB_ATMEL
+#define CONFIG_USB_ATMEL_CLK_SEL_PLLB
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_USB_STORAGE
 #define CONFIG_DOS_PARTITION

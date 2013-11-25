@@ -11,6 +11,7 @@
 #include <mmc.h>
 #include <dwmmc.h>
 #include <asm-generic/errno.h>
+#include <asm/arch/dwmmc.h>
 
 #define PAGE_SIZE 4096
 
@@ -220,12 +221,12 @@ static int dwmci_setup_bus(struct dwmci_host *host, u32 freq)
 	if ((freq == host->clock) || (freq == 0))
 		return 0;
 	/*
-	 * If host->mmc_clk didn't define,
+	 * If host->get_mmc_clk didn't define,
 	 * then assume that host->bus_hz is source clock value.
 	 * host->bus_hz should be set from user.
 	 */
-	if (host->mmc_clk)
-		sclk = host->mmc_clk(host->dev_index);
+	if (host->get_mmc_clk)
+		sclk = host->get_mmc_clk(host->dev_index);
 	else if (host->bus_hz)
 		sclk = host->bus_hz;
 	else {
@@ -300,6 +301,16 @@ static int dwmci_init(struct mmc *mmc)
 {
 	struct dwmci_host *host = (struct dwmci_host *)mmc->priv;
 	u32 fifo_size;
+
+	if (host->quirks & DWMCI_QUIRK_DISABLE_SMU) {
+		dwmci_writel(host, EMMCP_MPSBEGIN0, 0);
+		dwmci_writel(host, EMMCP_SEND0, 0);
+		dwmci_writel(host, EMMCP_CTRL0,
+			     MPSCTRL_SECURE_READ_BIT |
+			     MPSCTRL_SECURE_WRITE_BIT |
+			     MPSCTRL_NON_SECURE_READ_BIT |
+			     MPSCTRL_NON_SECURE_WRITE_BIT | MPSCTRL_VALID);
+	}
 
 	dwmci_writel(host, DWMCI_PWREN, 1);
 

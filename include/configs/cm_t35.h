@@ -23,6 +23,7 @@
 #define CONFIG_OMAP	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX	/* which is a 34XX */
 #define CONFIG_OMAP_GPIO
+#define CONFIG_CMD_GPIO
 #define CONFIG_CM_T3X	/* working with CM-T35 and CM-T3730 */
 #define CONFIG_OMAP_COMMON
 
@@ -140,10 +141,10 @@
 #undef CONFIG_CMD_IMLS		/* List all found images	*/
 
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_HARD_I2C
-#define CONFIG_SYS_I2C_SPEED		100000
-#define CONFIG_SYS_I2C_SLAVE		1
-#define CONFIG_DRIVER_OMAP34XX_I2C
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_OMAP24_I2C_SPEED	100000
+#define CONFIG_SYS_OMAP24_I2C_SLAVE	1
+#define CONFIG_SYS_I2C_OMAP34XX
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 #define CONFIG_I2C_MULTI_BUS
@@ -169,7 +170,7 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND */
 							/* devices */
 /* Environment information */
-#define CONFIG_BOOTDELAY		10
+#define CONFIG_BOOTDELAY		3
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -258,7 +259,6 @@
  */
 #define CONFIG_SYS_TIMERBASE		(OMAP34XX_GPT2)
 #define CONFIG_SYS_PTV			2       /* Divisor: 2^(PTV+1) => 8 */
-#define CONFIG_SYS_HZ			1000
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map
@@ -325,5 +325,8 @@
 #define CONFIG_SPLASH_SCREEN
 #define CONFIG_CMD_BMP
 #define CONFIG_BMP_16BPP
+#define CONFIG_SCF0403_LCD
+
+#define CONFIG_OMAP3_SPI
 
 #endif /* __CONFIG_H */

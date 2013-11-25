@@ -105,7 +105,6 @@
 #ifdef	CONFIG_SYS_HUSH_PARSER
 #define	CONFIG_SYS_PROMPT		"$ "
 #else
-#define	CONFIG_SYS_PROMPT		"=> "
 #endif
 #define	CONFIG_SYS_CBSIZE		256
 #define	CONFIG_SYS_PBSIZE		\
@@ -115,11 +114,6 @@
 #define	CONFIG_SYS_DEVICE_NULLDEV	1
 #define	CONFIG_CMDLINE_EDITING		1
 #define	CONFIG_AUTO_COMPLETE		1
-
-/*
- * Clock Configuration
- */
-#define	CONFIG_SYS_HZ			1000		/* Timer @ 3250000 Hz */
 
 /*
  * DRAM Map

@@ -16,6 +16,8 @@
 
 #endif
 
+#define CONFIG_SYS_TIMER_RATE		1000000
+
 #define CONFIG_BOOTSTAGE
 #define CONFIG_BOOTSTAGE_REPORT
 
@@ -44,12 +46,15 @@
 #define CONFIG_SANDBOX_GPIO
 #define CONFIG_SANDBOX_GPIO_COUNT	20
 
+#define CONFIG_CMD_GPT
+#define CONFIG_PARTITION_UUIDS
+#define CONFIG_EFI_PARTITION
+
 /*
  * Size of malloc() pool, although we don't actually use this yet.
  */
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* 4MB  */
 
-#define CONFIG_SYS_PROMPT		"=>"	/* Command Prompt */
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_LONGHELP			/* #undef to save memory */
 #define CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size */
@@ -65,8 +70,6 @@
 
 #define CONFIG_ENV_SIZE		8192
 #define CONFIG_ENV_IS_NOWHERE
-
-#define CONFIG_SYS_HZ			1000
 
 /* Memory things - we don't really want a memory test */
 #define CONFIG_SYS_LOAD_ADDR		0x00000000

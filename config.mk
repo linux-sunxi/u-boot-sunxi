@@ -13,12 +13,6 @@ SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 export	SHELL
 
-ifeq ($(CONFIG_TPL_BUILD),y)
-SPL_BIN := u-boot-tpl
-else
-SPL_BIN := u-boot-spl
-endif
-
 ifeq ($(CURDIR),$(SRCTREE))
 dir :=
 else
@@ -257,10 +251,10 @@ endif
 endif
 
 ifneq ($(OBJTREE),$(SRCTREE))
-CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
+CPPFLAGS += -I$(OBJTREE)/include
 endif
 
-CPPFLAGS += -I$(TOPDIR)/include
+CPPFLAGS += -I$(TOPDIR)/include -I$(SRCTREE)/arch/$(ARCH)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 

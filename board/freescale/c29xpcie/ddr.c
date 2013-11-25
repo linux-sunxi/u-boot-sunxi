@@ -9,6 +9,9 @@
 #include <asm/fsl_ddr_sdram.h>
 #include <asm/fsl_ddr_dimm_params.h>
 
+#include "cpld.h"
+
+#define C29XPCIE_HARDWARE_REVA	0x40
 /*
  * Micron MT41J128M16HA-15E
  * */
@@ -26,20 +29,20 @@ dimm_params_t ddr_raw_timing = {
 	.edc_config = 2,
 	.burst_lengths_bitmask = 0x0c,
 
-	.tCKmin_X_ps = 1650,
-	.caslat_X = 0x7e << 4,	/* 5,6,7,8,9,10 */
-	.tAA_ps = 14050,
-	.tWR_ps = 15000,
-	.tRCD_ps = 13500,
-	.tRRD_ps = 75000,
-	.tRP_ps = 13500,
-	.tRAS_ps = 40000,
-	.tRC_ps = 49500,
-	.tRFC_ps = 160000,
-	.tWTR_ps = 75000,
-	.tRTP_ps = 75000,
+	.tckmin_x_ps = 1650,
+	.caslat_x = 0x7e << 4,	/* 5,6,7,8,9,10 */
+	.taa_ps = 14050,
+	.twr_ps = 15000,
+	.trcd_ps = 13500,
+	.trrd_ps = 75000,
+	.trp_ps = 13500,
+	.tras_ps = 40000,
+	.trc_ps = 49500,
+	.trfc_ps = 160000,
+	.twtr_ps = 75000,
+	.trtp_ps = 75000,
 	.refresh_rate_ps = 7800000,
-	.tFAW_ps = 30000,
+	.tfaw_ps = 30000,
 };
 
 int fsl_ddr_get_dimm_params(dimm_params_t *pdimm,
@@ -61,8 +64,10 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 				dimm_params_t *pdimm,
 				unsigned int ctrl_num)
 {
+	struct cpld_data *cpld_data = (void *)(CONFIG_SYS_CPLD_BASE);
 	int i;
-	popts->clk_adjust = 2;
+
+	popts->clk_adjust = 4;
 	popts->cpo_override = 0x1f;
 	popts->write_data_delay = 4;
 	popts->half_strength_driver_enable = 1;
@@ -78,6 +83,9 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 	popts->wrlvl_start = 0x4;
 	popts->trwt_override = 1;
 	popts->trwt = 0;
+
+	if (in_8(&cpld_data->hwver) == C29XPCIE_HARDWARE_REVA)
+		popts->ecc_mode = 0;
 
 	for (i = 0; i < CONFIG_CHIP_SELECTS_PER_CTRL; i++) {
 		popts->cs_local_opts[i].odt_rd_cfg = FSL_DDR_ODT_NEVER;

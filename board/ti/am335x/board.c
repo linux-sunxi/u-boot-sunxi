@@ -28,6 +28,8 @@
 #include <cpsw.h>
 #include <power/tps65217.h>
 #include <power/tps65910.h>
+#include <environment.h>
+#include <watchdog.h>
 #include "board.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -395,7 +397,7 @@ const struct dpll_params *get_dpll_ddr_params(void)
 	struct am335x_baseboard_id header;
 
 	enable_i2c0_pin_mux();
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
 	if (read_eeprom(&header) < 0)
 		puts("Could not get board ID.\n");
 
@@ -483,6 +485,10 @@ int board_init(void)
 	const u32 gpmc_nor[GPMC_MAX_REG] = { STNOR_GPMC_CONFIG1,
 		STNOR_GPMC_CONFIG2, STNOR_GPMC_CONFIG3, STNOR_GPMC_CONFIG4,
 		STNOR_GPMC_CONFIG5, STNOR_GPMC_CONFIG6, STNOR_GPMC_CONFIG7 };
+#endif
+
+#if defined(CONFIG_HW_WATCHDOG)
+	hw_watchdog_init();
 #endif
 
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;

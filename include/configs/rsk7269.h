@@ -27,7 +27,6 @@
 #define CONFIG_SYS_BAUDRATE_TABLE	{ CONFIG_BAUDRATE }
 
 #define CONFIG_SYS_LONGHELP		/* undef to save memory	*/
-#define CONFIG_SYS_PROMPT	"=> "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE	256	/* Boot Argument Buffer Size */
 #define CONFIG_SYS_PBSIZE	256	/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16	/* max number of command args */
@@ -64,6 +63,8 @@
 
 /* Board Clock */
 #define CONFIG_SYS_CLK_FREQ	66125000
+#define CONFIG_SH_TMU_CLK_FREQ CONFIG_SYS_CLK_FREQ
+#define CONFIG_SH_SCIF_CLK_FREQ CONFIG_SYS_CLK_FREQ
 #define CMT_CLK_DIVIDER		32	/* 8 (default), 32, 128 or 512 */
 #define CONFIG_SYS_HZ		(CONFIG_SYS_CLK_FREQ / CMT_CLK_DIVIDER)
 

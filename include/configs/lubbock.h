@@ -98,7 +98,6 @@
 #ifdef CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"$ "		/* Monitor Command Prompt */
 #else
-#define CONFIG_SYS_PROMPT		"=> "		/* Monitor Command Prompt */
 #endif
 #define CONFIG_SYS_CBSIZE		256		/* Console I/O Buffer Size	*/
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size */
@@ -111,7 +110,6 @@
 
 #define CONFIG_SYS_LOAD_ADDR	(CONFIG_SYS_DRAM_BASE + 0x8000) /* default load address */
 
-#define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_CPUSPEED		0x161		/* set core clock to 400/200/100 MHz */
 
 #ifdef CONFIG_MMC

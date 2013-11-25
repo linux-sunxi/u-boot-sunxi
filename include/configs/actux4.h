@@ -62,7 +62,6 @@
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT			"=> "
 /* Console I/O Buffer Size */
 #define CONFIG_SYS_CBSIZE			256
 /* Print Buffer Size */
@@ -77,7 +76,6 @@
 
 /* timer clock - 2* OSC_IN system clock */
 #define CONFIG_IXP425_TIMER_CLK                 66000000
-#define CONFIG_SYS_HZ				1000
 
 /* default load address */
 #define CONFIG_SYS_LOAD_ADDR			0x00010000
