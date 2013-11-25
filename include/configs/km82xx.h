@@ -2,7 +2,7 @@
  * (C) Copyright 2007-2011
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -271,7 +271,6 @@ int get_scl(void);
 #define CONFIG_DTT_LM75			/* ON Semi's LM75		*/
 #define CONFIG_DTT_SENSORS	{0}	/* Sensor addresses		*/
 #define CONFIG_SYS_DTT_MAX_TEMP	70
-#define CONFIG_SYS_DTT_LOW_TEMP	-30
 #define CONFIG_SYS_DTT_HYSTERESIS	3
 #define CONFIG_SYS_DTT_BUS_NUM		2
 

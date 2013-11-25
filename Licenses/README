@@ -37,6 +37,18 @@ replaced by a single line:
 
 	SPDX-License-Identifier:	GPL-2.0+
 
+Ideally, the license terms of all files in the source tree should be
+defined by such License Identifiers; in no case a file can contain
+more than one such License Identifier list.
+
+If a "SPDX-License-Identifier:" line references more than one Unique
+License Identifier, then this means that the respective file can be
+used under the terms of either of these licenses, i. e. with
+
+	SPDX-License-Identifier:	GPL-2.0+	BSD-3-Clause
+
+you can chose between GPL-2.0+ and BSD-3-Clause licensing.
+
 We use the SPDX Unique License Identifiers here; these are available
 at [2].
 
@@ -52,5 +64,5 @@ GNU Lesser General Public License v2.1 or later	LGPL-2.1+	Y		lgpl-2.1.txt		http:
 eCos license version 2.0			eCos-2.0			eCos-2.0.txt		http://www.gnu.org/licenses/ecos-license.html
 BSD 2-Clause License				BSD-2-Clause	Y		bsd-2-clause.txt	http://spdx.org/licenses/BSD-2-Clause
 BSD 3-clause "New" or "Revised" License		BSD-3-Clause	Y		bsd-3-clause.txt	http://spdx.org/licenses/BSD-3-Clause#licenseText
-IBM PIBS (PowerPC Initialization and		ibm-pibs			ibm-pibs.txt
+IBM PIBS (PowerPC Initialization and		IBM-pibs			ibm-pibs.txt
 	Boot Software) license

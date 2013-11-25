@@ -41,6 +41,29 @@ static int dfu_find_alt_num(const char *s)
 	return ++i;
 }
 
+int dfu_init_env_entities(char *interface, int dev)
+{
+	const char *str_env;
+	char *env_bkp;
+	int ret;
+
+	str_env = getenv("dfu_alt_info");
+	if (!str_env) {
+		error("\"dfu_alt_info\" env variable not defined!\n");
+		return -EINVAL;
+	}
+
+	env_bkp = strdup(str_env);
+	ret = dfu_config_entities(env_bkp, interface, dev);
+	if (ret) {
+		error("DFU entities configuration failed!\n");
+		return ret;
+	}
+
+	free(env_bkp);
+	return 0;
+}
+
 static unsigned char *dfu_buf;
 static unsigned long dfu_buf_size = CONFIG_SYS_DFU_DATA_BUF_SIZE;
 
@@ -153,8 +176,8 @@ int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 
 	/* we should be in buffer now (if not then size too large) */
 	if ((dfu->i_buf + size) > dfu->i_buf_end) {
-		printf("%s: Wrong size! [%d] [%d] - %d\n",
-		       __func__, dfu->i_blk_seq_num, blk_seq_num, size);
+		error("Buffer overflow! (0x%p + 0x%x > 0x%p)\n", dfu->i_buf,
+		      size, dfu->i_buf_end);
 		return -1;
 	}
 
@@ -325,6 +348,9 @@ static int dfu_fill_entity(struct dfu_entity *dfu, char *s, int alt,
 	} else if (strcmp(interface, "nand") == 0) {
 		if (dfu_fill_entity_nand(dfu, s))
 			return -1;
+	} else if (strcmp(interface, "ram") == 0) {
+		if (dfu_fill_entity_ram(dfu, s))
+			return -1;
 	} else {
 		printf("%s: Device %s not (yet) supported!\n",
 		       __func__,  interface);
@@ -374,14 +400,14 @@ int dfu_config_entities(char *env, char *interface, int num)
 
 const char *dfu_get_dev_type(enum dfu_device_type t)
 {
-	const char *dev_t[] = {NULL, "eMMC", "OneNAND", "NAND" };
+	const char *dev_t[] = {NULL, "eMMC", "OneNAND", "NAND", "RAM" };
 	return dev_t[t];
 }
 
 const char *dfu_get_layout(enum dfu_layout l)
 {
 	const char *dfu_layout[] = {NULL, "RAW_ADDR", "FAT", "EXT2",
-					   "EXT3", "EXT4" };
+					   "EXT3", "EXT4", "RAM_ADDR" };
 	return dfu_layout[l];
 }
 

@@ -8,7 +8,7 @@
 VERSION = 2013
 PATCHLEVEL = 10
 SUBLEVEL =
-EXTRAVERSION = -rc2
+EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -45,13 +45,13 @@ endif
 
 #########################################################################
 #
-# U-boot build supports producing a object files to the separate external
+# U-boot build supports generating object files in a separate external
 # directory. Two use cases are supported:
 #
 # 1) Add O= to the make command line
 # 'make O=/tmp/build all'
 #
-# 2) Set environement variable BUILD_DIR to point to the desired location
+# 2) Set environment variable BUILD_DIR to point to the desired location
 # 'export BUILD_DIR=/tmp/build'
 # 'make'
 #
@@ -59,7 +59,7 @@ endif
 # 'export BUILD_DIR=/tmp/build'
 # './MAKEALL'
 #
-# Command line 'O=' setting overrides BUILD_DIR environent variable.
+# Command line 'O=' setting overrides BUILD_DIR environment variable.
 #
 # When none of the above methods is used the local build is performed and
 # the object files are placed in the source directory.
@@ -284,6 +284,7 @@ LIBS-y += drivers/pci/libpci.o
 LIBS-y += drivers/pcmcia/libpcmcia.o
 LIBS-y += drivers/power/libpower.o \
 	drivers/power/fuel_gauge/libfuel_gauge.o \
+	drivers/power/mfd/libmfd.o \
 	drivers/power/pmic/libpmic.o \
 	drivers/power/battery/libbattery.o
 LIBS-y += drivers/spi/libspi.o
@@ -852,7 +853,7 @@ unconfig:
 sinclude $(obj).boards.depend
 $(obj).boards.depend:	boards.cfg
 	@awk '(NF && $$1 !~ /^#/) { print $$7 ": " $$7 "_config; $$(MAKE)" }' $< > $@
-	@awk '(NF && $$1 !~ /^#/ && tolower($$7) != $$7) { print tolower($$7) ": " $$7 "_config; $$(MAKE)" }' $< > $@
+	@awk '(NF && $$1 !~ /^#/ && tolower($$7) != $$7) { print tolower($$7) ": " $$7 "_config; $$(MAKE)" }' $< >> $@
 	@awk '(NF && $$1 !~ /^#/ && tolower($$7) != $$7) { print ".PHONY: " tolower($$7) "_config"; print tolower($$7)"_config: " $$7 "_config" }' $< >> $@
 
 #

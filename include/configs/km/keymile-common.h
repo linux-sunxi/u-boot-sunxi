@@ -2,7 +2,7 @@
  * (C) Copyright 2008-2011
  * Heiko Schocher, DENX Software Engineering, hs@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_KEYMILE_H
@@ -18,6 +18,7 @@
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_DEFAULTENV_VARS
+#define CONFIG_CMD_GREPENV
 #define CONFIG_CMD_ECHO
 #define CONFIG_CMD_IMMAP
 #define CONFIG_CMD_MII

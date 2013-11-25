@@ -12,7 +12,7 @@
  *
  * Configuration settings for the SACSng 8260 board.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -305,7 +305,7 @@
 #define CONFIG_ENV_IN_OWN_SECT	1
 
 /* Define this to contain any number of null terminated strings that
- * will be part of the default enviroment compiled into the boot image.
+ * will be part of the default environment compiled into the boot image.
  */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 "quiet=0\0" \

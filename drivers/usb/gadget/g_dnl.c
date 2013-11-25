@@ -7,7 +7,6 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#include <errno.h>
 #include <common.h>
 #include <malloc.h>
 
@@ -15,11 +14,11 @@
 #include <part.h>
 
 #include <g_dnl.h>
-#include "f_dfu.h"
+#include <usb_mass_storage.h>
+#include <dfu.h>
 
 #include "gadget_chips.h"
 #include "composite.c"
-#include "f_mass_storage.c"
 
 /*
  * One needs to define the following:

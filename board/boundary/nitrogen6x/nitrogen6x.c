@@ -2,7 +2,7 @@
  * Copyright (C) 2010-2013 Freescale Semiconductor, Inc.
  * Copyright (C) 2013, Boundary Devices <info@boundarydevices.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -593,6 +593,7 @@ int board_video_skip(void)
 		if (!panel) {
 			panel = displays[0].mode.name;
 			printf("No panel detected: default to %s\n", panel);
+			i = 0;
 		}
 	} else {
 		for (i = 0; i < ARRAY_SIZE(displays); i++) {
@@ -609,9 +610,10 @@ int board_video_skip(void)
 			       displays[i].mode.name,
 			       displays[i].mode.xres,
 			       displays[i].mode.yres);
-		} else
+		} else {
 			printf("LCD %s cannot be configured: %d\n",
 			       displays[i].mode.name, ret);
+		}
 	} else {
 		printf("unsupported panel %s\n", panel);
 		ret = -EINVAL;

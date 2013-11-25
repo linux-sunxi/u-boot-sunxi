@@ -22,7 +22,7 @@
 
 ENTRY(relocate_code)
 	ldr	r1, =__image_copy_start	/* r1 <- SRC &__image_copy_start */
-	subs	r9, r0, r1		/* r9 <- relocation offset */
+	subs	r4, r0, r1		/* r4 <- relocation offset */
 	beq	relocate_done		/* skip relocation */
 	ldr	r2, =__image_copy_end	/* r2 <- SRC &__image_copy_end */
 
@@ -44,9 +44,9 @@ fixloop:
 	bne	fixnext
 
 	/* relative fix: increase location by offset */
-	add	r0, r0, r9
+	add	r0, r0, r4
 	ldr	r1, [r0]
-	add	r1, r1, r9
+	add	r1, r1, r4
 	str	r1, [r0]
 fixnext:
 	cmp	r2, r3
@@ -66,9 +66,9 @@ relocate_done:
 	/* ARMv4- don't know bx lr but the assembler fails to see that */
 
 #ifdef __ARM_ARCH_4__
-        mov        pc, lr
+	mov        pc, lr
 #else
-        bx        lr
+	bx        lr
 #endif
 
 ENDPROC(relocate_code)

@@ -46,7 +46,7 @@
 		"nandboot=echo Booting from nand ...; " \
 		"run nandargs; " \
 		"nand read ${loadaddr} ${nandsrcaddr} ${nandimgsize}; " \
-		"bootm ${loadaddr}\0" \
+		"bootz ${loadaddr}\0" \
 	"nandimgsize=0x500000\0"
 #else
 #define NANDARGS ""
@@ -61,8 +61,9 @@
 	"fdt_high=0xffffffff\0" \
 	"boot_fdt=try\0" \
 	"rdaddr=0x81000000\0" \
+	"bootpart=0:2\0" \
 	"bootdir=/boot\0" \
-	"bootfile=uImage\0" \
+	"bootfile=zImage\0" \
 	"fdtfile=undefined\0" \
 	"console=ttyO0,115200n8\0" \
 	"optargs=\0" \
@@ -71,7 +72,6 @@
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
 	"mmcrootfstype=ext4 rootwait\0" \
-	"bootpart=0:2\0" \
 	"rootpath=/export/rootfs\0" \
 	"nfsopts=nolock\0" \
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
@@ -100,26 +100,27 @@
 	"loadbootenv=load mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
 	"importbootenv=echo Importing environment from mmc ...; " \
 		"env import -t $loadaddr $filesize\0" \
+	"dfu_alt_info_ram=" DFU_ALT_INFO_RAM "\0" \
 	"ramargs=setenv bootargs console=${console} " \
 		"${optargs} " \
 		"root=${ramroot} " \
 		"rootfstype=${ramrootfstype}\0" \
 	"loadramdisk=load mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
-	"loaduimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
+	"loadimage=load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
 	"loadfdt=load mmc ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
 	"mmcloados=run mmcargs; " \
 		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
 			"if run loadfdt; then " \
-				"bootm ${loadaddr} - ${fdtaddr}; " \
+				"bootz ${loadaddr} - ${fdtaddr}; " \
 			"else " \
 				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
+					"bootz; " \
 				"else " \
 					"echo WARN: Cannot load the DT; " \
 				"fi; " \
 			"fi; " \
 		"else " \
-			"bootm; " \
+			"bootz; " \
 		"fi;\0" \
 	"mmcboot=mmc dev ${mmcdev}; " \
 		"if mmc rescan; then " \
@@ -132,7 +133,7 @@
 				"echo Running uenvcmd ...;" \
 				"run uenvcmd;" \
 			"fi;" \
-			"if run loaduimage; then " \
+			"if run loadimage; then " \
 				"run mmcloados;" \
 			"fi;" \
 		"fi;\0" \
@@ -140,17 +141,17 @@
 		"run spiargs; " \
 		"sf probe ${spibusno}:0; " \
 		"sf read ${loadaddr} ${spisrcaddr} ${spiimgsize}; " \
-		"bootm ${loadaddr}\0" \
+		"bootz ${loadaddr}\0" \
 	"netboot=echo Booting from network ...; " \
 		"setenv autoload no; " \
 		"dhcp; " \
 		"tftp ${loadaddr} ${bootfile}; " \
 		"tftp ${fdtaddr} ${fdtfile}; " \
 		"run netargs; " \
-		"bootm ${loadaddr} - ${fdtaddr}\0" \
+		"bootz ${loadaddr} - ${fdtaddr}\0" \
 	"ramboot=echo Booting from ramdisk ...; " \
 		"run ramargs; " \
-		"bootm ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
+		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"findfdt="\
 		"if test $board_name = A335BONE; then " \
 			"setenv fdtfile am335x-bone.dtb; fi; " \
@@ -189,8 +190,13 @@
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	2
 #define CONFIG_SYS_I2C_MULTI_EEPROMS
 
+/* PMIC support */
+#define CONFIG_POWER_TPS65217
+#define CONFIG_POWER_TPS65910
+
 /* SPL */
 #ifndef CONFIG_NOR_BOOT
+#define CONFIG_SPL_POWER_SUPPORT
 #define CONFIG_SPL_YMODEM_SUPPORT
 
 /* CPSW support */
@@ -321,6 +327,11 @@
 	"kernel part 0 8;" \
 	"rootfs part 0 9"
 #endif
+#define CONFIG_DFU_RAM
+#define DFU_ALT_INFO_RAM \
+	"kernel ram 0x80200000 0xD80000;" \
+	"fdt ram 0x80F80000 0x80000;" \
+	"ramdisk ram 0x81000000 0x4000000"
 
 /*
  * Default to using SPI for environment, etc.
@@ -348,6 +359,9 @@
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		1
 #define CONFIG_SYS_MMC_ENV_PART		2
+#define CONFIG_ENV_OFFSET		0x0
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #endif
 
 /* SPI flash. */

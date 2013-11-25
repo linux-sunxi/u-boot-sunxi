@@ -4,7 +4,7 @@
  *
  * (C) Copyright 2002 Scott McNutt <smcnutt@artesyncp.com>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /************************************************************************
@@ -129,7 +129,7 @@
 	"flash_self=run ramargs addip addtty;"				\
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"net_nfs=tftp 200000 ${bootfile};run nfsargs addip addtty;"     \
-	        "bootm\0"						\
+		"bootm\0"						\
 	"rootpath=/opt/eldk/ppc_4xx\0"					\
 	"bootfile=/tftpboot/p3p440/uImage\0"				\
 	"kernel_addr=ff800000\0"					\

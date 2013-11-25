@@ -58,7 +58,7 @@ static int fit_parse_spec(const char *spec, char sepc, ulong addr_curr,
  * @conf_name double pointer to a char, will hold pointer to a configuration
  * unit name
  *
- * fit_parse_conf() expects configuration spec in the for of [<addr>]#<conf>,
+ * fit_parse_conf() expects configuration spec in the form of [<addr>]#<conf>,
  * where <addr> is a FIT image address that contains configuration
  * with a <conf> unit name.
  *
@@ -84,7 +84,7 @@ int fit_parse_conf(const char *spec, ulong addr_curr,
  * subimage
  * @image_name: double pointer to a char, will hold pointer to a subimage name
  *
- * fit_parse_subimage() expects subimage spec in the for of
+ * fit_parse_subimage() expects subimage spec in the form of
  * [<addr>]:<subimage>, where <addr> is a FIT image address that contains
  * subimage with a <subimg> unit name.
  *
@@ -1331,7 +1331,7 @@ int fit_conf_find_compat(const void *fit, const void *fdt)
  *
  * When NULL is provided in second argument fit_conf_get_node() will search
  * for a default configuration node instead. Default configuration node unit
- * name is retrived from FIT_DEFAULT_PROP property of the '/configurations'
+ * name is retrieved from FIT_DEFAULT_PROP property of the '/configurations'
  * node.
  *
  * returns:
@@ -1596,7 +1596,7 @@ int fit_image_load(bootm_headers_t *images, const char *prop_name, ulong addr,
 	len = (ulong)size;
 
 	/* verify that image data is a proper FDT blob */
-	if (image_type == IH_TYPE_FLATDT && fdt_check_header((char *)buf)) {
+	if (image_type == IH_TYPE_FLATDT && fdt_check_header(buf)) {
 		puts("Subimage data is not a FDT");
 		return -ENOEXEC;
 	}

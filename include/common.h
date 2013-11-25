@@ -2,7 +2,7 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __COMMON_H_
@@ -383,7 +383,7 @@ int setenv_hex(const char *varname, ulong value);
 /**
  * setenv_addr - Set an environment variable to an address in hex
  *
- * @varname:	Environmet variable to set
+ * @varname:	Environment variable to set
  * @addr:	Value to set it to
  * @return 0 if ok, 1 on error
  */
@@ -596,6 +596,12 @@ void ddr_enable_ecc(unsigned int dram_size);
 #endif
 #endif
 
+/*
+ * Return the current value of a monotonically increasing microsecond timer.
+ * Granularity may be larger than 1us if hardware does not support this.
+ */
+ulong timer_get_us(void);
+
 /* $(CPU)/cpu.c */
 static inline int cpumask_next(int cpu, unsigned int mask)
 {
@@ -627,6 +633,8 @@ void ft_pci_setup(void *blob, bd_t *bd);
 #endif
 #endif
 
+void smp_set_core_boot_addr(unsigned long addr, int corenr);
+void smp_kick_all_cpus(void);
 
 /* $(CPU)/serial.c */
 int	serial_init   (void);
@@ -1015,10 +1023,10 @@ static inline phys_addr_t map_to_sysmem(void *ptr)
  * of a function scoped static buffer.  It can not be used to create a cache
  * line aligned global buffer.
  */
-#define PAD_COUNT(s, pad) ((s - 1) / pad + 1)
+#define PAD_COUNT(s, pad) (((s) - 1) / (pad) + 1)
 #define PAD_SIZE(s, pad) (PAD_COUNT(s, pad) * pad)
 #define ALLOC_ALIGN_BUFFER_PAD(type, name, size, align, pad)		\
-	char __##name[ROUND(PAD_SIZE(size * sizeof(type), pad), align)  \
+	char __##name[ROUND(PAD_SIZE((size) * sizeof(type), pad), align)  \
 		      + (align - 1)];					\
 									\
 	type *name = (type *) ALIGN((uintptr_t)__##name, align)

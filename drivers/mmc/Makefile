@@ -35,6 +35,8 @@ COBJS-$(CONFIG_MMC_SUNXI) += sunxi_mmc.o
 COBJS-$(CONFIG_ZYNQ_SDHCI) += zynq_sdhci.o
 ifdef CONFIG_SPL_BUILD
 COBJS-$(CONFIG_SPL_MMC_BOOT) += fsl_esdhc_spl.o
+else
+COBJS-$(CONFIG_GENERIC_MMC) += mmc_write.o
 endif
 
 COBJS	:= $(COBJS-y)

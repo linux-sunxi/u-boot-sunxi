@@ -286,12 +286,6 @@ struct prcm_regs const omap5_es1_prcm = {
 	.prm_vc_val_bypass = 0x4ae07ba0,
 	.prm_vc_cfg_i2c_mode = 0x4ae07bb4,
 	.prm_vc_cfg_i2c_clk = 0x4ae07bb8,
-	.prm_sldo_core_setup = 0x4ae07bc4,
-	.prm_sldo_core_ctrl = 0x4ae07bc8,
-	.prm_sldo_mpu_setup = 0x4ae07bcc,
-	.prm_sldo_mpu_ctrl = 0x4ae07bd0,
-	.prm_sldo_mm_setup = 0x4ae07bd4,
-	.prm_sldo_mm_ctrl = 0x4ae07bd8,
 
 	/* SCRM stuff, used by some boards */
 	.scrm_auxclk0 = 0x4ae0a310,
@@ -532,8 +526,6 @@ struct prcm_regs const omap5_es2_prcm = {
 	.cm1_abe_timer8_clkctrl = 0x4a004580,
 	.cm1_abe_wdt3_clkctrl = 0x4a004588,
 
-
-
 	/* cm2.ckgen */
 	.cm_clksel_mpu_m3_iss_root = 0x4a008100,
 	.cm_clksel_usb_60mhz = 0x4a008104,
@@ -735,12 +727,6 @@ struct prcm_regs const omap5_es2_prcm = {
 	.prm_vc_cfg_i2c_mode = 0x4ae07cb4,
 	.prm_vc_cfg_i2c_clk = 0x4ae07cb8,
 
-	.prm_sldo_core_setup = 0x4ae07cc4,
-	.prm_sldo_core_ctrl = 0x4ae07cc8,
-	.prm_sldo_mpu_setup = 0x4ae07ccc,
-	.prm_sldo_mpu_ctrl = 0x4ae07cd0,
-	.prm_sldo_mm_setup = 0x4ae07cd4,
-	.prm_sldo_mm_ctrl = 0x4ae07cd8,
 	.prm_abbldo_mpu_setup = 0x4ae07cdc,
 	.prm_abbldo_mpu_ctrl = 0x4ae07ce0,
 
@@ -933,6 +919,7 @@ struct prcm_regs const dra7xx_prcm = {
 	.cm_l4per_gpio8_clkctrl			= 0x4a009818,
 	.cm_l4per_mmcsd3_clkctrl		= 0x4a009820,
 	.cm_l4per_mmcsd4_clkctrl		= 0x4a009828,
+	.cm_l4per_qspi_clkctrl			= 0x4a009838,
 	.cm_l4per_uart1_clkctrl			= 0x4a009840,
 	.cm_l4per_uart2_clkctrl			= 0x4a009848,
 	.cm_l4per_uart3_clkctrl			= 0x4a009850,

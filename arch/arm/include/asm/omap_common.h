@@ -266,6 +266,7 @@ struct prcm_regs {
 	u32 cm_l4per_mmcsd4_clkctrl;
 	u32 cm_l4per_msprohg_clkctrl;
 	u32 cm_l4per_slimbus2_clkctrl;
+	u32 cm_l4per_qspi_clkctrl;
 	u32 cm_l4per_uart1_clkctrl;
 	u32 cm_l4per_uart2_clkctrl;
 	u32 cm_l4per_uart3_clkctrl;
@@ -310,12 +311,6 @@ struct prcm_regs {
 	u32 prm_vc_val_bypass;
 	u32 prm_vc_cfg_i2c_mode;
 	u32 prm_vc_cfg_i2c_clk;
-	u32 prm_sldo_core_setup;
-	u32 prm_sldo_core_ctrl;
-	u32 prm_sldo_mpu_setup;
-	u32 prm_sldo_mpu_ctrl;
-	u32 prm_sldo_mm_setup;
-	u32 prm_sldo_mm_ctrl;
 	u32 prm_abbldo_mpu_setup;
 	u32 prm_abbldo_mpu_ctrl;
 

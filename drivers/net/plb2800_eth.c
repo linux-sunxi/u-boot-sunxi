@@ -4,7 +4,7 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -260,7 +260,7 @@ static int plb2800_eth_recv(struct eth_device *dev)
 			printf("Received %d bytes\n", length);
 #endif
 			NetReceive((void*)(NetRxPackets[rx_new]),
-			            length - 4);
+				    length - 4);
 		}
 		else
 		{

@@ -22,7 +22,7 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Alex Zuepke <azu@sysgo.de>
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -57,7 +57,7 @@ int timer_init(void)
 			SCUTIMER_CONTROL_ENABLE_MASK;
 
 	/* Load the timer counter register */
-	writel(0xFFFFFFFF, &timer_base->counter);
+	writel(0xFFFFFFFF, &timer_base->load);
 
 	/*
 	 * Start the A9Timer device
