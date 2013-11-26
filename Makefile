@@ -5,10 +5,10 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
-VERSION = 2013
-PATCHLEVEL = 10
+VERSION = 2014
+PATCHLEVEL = 01
 SUBLEVEL =
-EXTRAVERSION =
+EXTRAVERSION = -rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -136,7 +136,6 @@ unexport CDPATH
 # The "examples" conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
 # is "yes"), so compile examples after U-Boot is compiled.
 SUBDIR_TOOLS = tools
-SUBDIR_EXAMPLES = examples/standalone examples/api
 SUBDIRS = $(SUBDIR_TOOLS)
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
@@ -150,8 +149,10 @@ all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
 
+SUBDIR_EXAMPLES-y := examples/standalone
+SUBDIR_EXAMPLES-$(CONFIG_API) += examples/api
 ifndef CONFIG_SANDBOX
-SUBDIRS += $(SUBDIR_EXAMPLES)
+SUBDIRS += $(SUBDIR_EXAMPLES-y)
 endif
 
 # load ARCH, BOARD, and CPU configuration
@@ -230,11 +231,6 @@ OBJS := $(addprefix $(obj),$(OBJS))
 HAVE_VENDOR_COMMON_LIB = $(if $(wildcard board/$(VENDOR)/common/Makefile),y,n)
 
 LIBS-y += lib/
-LIBS-$(CONFIG_RSA) += lib/rsa/
-LIBS-$(CONFIG_LZMA) += lib/lzma/
-LIBS-$(CONFIG_LZO) += lib/lzo/
-LIBS-$(CONFIG_ZLIB) += lib/zlib/
-LIBS-$(CONFIG_TIZEN) += lib/tizen/
 LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/
 LIBS-y += $(CPUDIR)/
 ifdef SOC
@@ -277,7 +273,7 @@ LIBS-y += drivers/usb/phy/
 LIBS-y += drivers/usb/ulpi/
 LIBS-y += common/
 LIBS-y += lib/libfdt/
-LIBS-y += api/
+LIBS-$(CONFIG_API) += api/
 LIBS-y += post/
 LIBS-y += test/
 
@@ -362,7 +358,7 @@ endif
 
 build := -f $(TOPDIR)/scripts/Makefile.build -C
 
-all:		$(ALL-y) $(SUBDIR_EXAMPLES)
+all:		$(ALL-y) $(SUBDIR_EXAMPLES-y)
 
 $(obj)u-boot.dtb:	checkdtc $(obj)u-boot
 		$(MAKE) $(build) dts binary
@@ -560,7 +556,7 @@ $(LIBS):	depend $(SUBDIR_TOOLS)
 $(SUBDIRS):	depend
 		$(MAKE) -C $@ all
 
-$(SUBDIR_EXAMPLES): $(obj)u-boot
+$(SUBDIR_EXAMPLES-y): $(obj)u-boot
 
 $(LDSCRIPT):	depend
 		$(MAKE) -C $(dir $@) $(notdir $@)
@@ -582,9 +578,6 @@ $(obj)tpl/u-boot-tpl.bin:	$(SUBDIR_TOOLS) depend
 
 $(obj)spl/sunxi-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
-
-updater:
-		$(MAKE) -C tools/updater all
 
 # Explicitly make _depend in subdirs containing multiple targets to prevent
 # parallel sub-makes creating .depend files simultaneously.
@@ -728,7 +721,7 @@ else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
 $(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
 $(filter-out tools,$(SUBDIRS)) \
-updater depend dep tags ctags etags cscope $(obj)System.map:
+depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
 	@ exit 1
 
