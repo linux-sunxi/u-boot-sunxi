@@ -26,3 +26,4 @@
 #
 
 obj-y	+= board.o
+obj-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
