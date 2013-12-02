@@ -24,38 +24,16 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
-
-LIB	=  $(obj)lib$(SOC).o
-
-TARGETS =  $(obj).depend $(LIB)
-
-COBJS	+= timer.o
-COBJS	+= dram.o
-COBJS	+= board.o
-COBJS	+= clock.o
-COBJS	+= pinmux.o
-COBJS	+= watchdog.o
+obj-y	+= timer.o
+obj-y	+= dram.o
+obj-y	+= board.o
+obj-y	+= clock.o
+obj-y	+= pinmux.o
+obj-y	+= watchdog.o
 
 ifdef CONFIG_SPL_BUILD
 ifdef CONFIG_SPL_FEL
-TARGETS	+= $(obj)start.o
+obj-y	+= $(obj)start.o
 endif
 endif
 
-SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS) $(COBJS-y) $(SOBJS))
-
-all:	$(TARGETS)
-
-$(LIB):	$(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
-
-#########################################################################
-
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
-
-sinclude $(obj).depend
-
-#########################################################################
