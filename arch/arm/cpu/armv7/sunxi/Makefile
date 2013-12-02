@@ -36,7 +36,7 @@ obj-$(CONFIG_SYS_SECONDARY_ON) += smp.o
 
 ifdef CONFIG_SPL_BUILD
 ifdef CONFIG_SPL_FEL
-obj-y	+= $(obj)start.o
+obj-y	+= start.o
 endif
 endif
 
