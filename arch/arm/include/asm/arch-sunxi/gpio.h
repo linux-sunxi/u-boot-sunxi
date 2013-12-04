@@ -71,6 +71,9 @@ struct sunxi_gpio_reg {
 #define GPIO_CFG_INDEX(pin)	(((pin) & 0x1f) >> 3)
 #define GPIO_CFG_OFFSET(pin)	((((pin) & 0x1f) & 0x7) << 2)
 
+#define GPIO_DRV_INDEX(pin)   (((pin) & 0x1f) >> 4)
+#define GPIO_DRV_OFFSET(pin)	((((pin) & 0x1f) & 0xf) << 1)
+
 #define GPIO_PULL_INDEX(pin)	(((pin) & 0x1f) >> 4)
 #define GPIO_PULL_OFFSET(pin)	((((pin) & 0x1f) & 0xf) << 1)
 
@@ -168,6 +171,7 @@ enum sunxi_gpio_number {
 
 int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
 int sunxi_gpio_get_cfgpin(u32 pin);
+int sunxi_gpio_set_drv(u32 pin, u32 val);
 int sunxi_gpio_set_pull(u32 pin, u32 val);
 int name_to_gpio(const char *name);
 #define name_to_gpio	name_to_gpio
