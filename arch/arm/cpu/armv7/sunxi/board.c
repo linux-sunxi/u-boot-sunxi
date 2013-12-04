@@ -156,8 +156,10 @@ int cpu_eth_init(bd_t *bis)
 	setbits_le32(&ccm->gmac_clk_cfg, (0x1 << 2) | (0x2 << 0));
 
 	/* Configure pin mux settings for GMAC */
-	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++)
+	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++) {
 		sunxi_gpio_set_cfgpin(pin, 5);
+		sunxi_gpio_set_drv(pin, 3);
+	}
 
 	designware_initialize(0, SUNXI_GMAC_BASE, 0x1, PHY_INTERFACE_MODE_RGMII);
 #endif
