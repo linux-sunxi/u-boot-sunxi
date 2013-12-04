@@ -160,7 +160,12 @@ int cpu_eth_init(bd_t *bis)
 #endif
 
 	/* Configure pin mux settings for GMAC */
-	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(17); pin++) {
+	for (pin = SUNXI_GPA(0); pin <= SUNXI_GPA(16); pin++) {
+#ifdef CONFIG_RGMII
+		/* skip unused pins in RGMII mode */
+		if (pin == SUNXI_GPA(9) || pin == SUNXI_GPA(14))
+		    continue;
+#endif
 		sunxi_gpio_set_cfgpin(pin, 5);
 		sunxi_gpio_set_drv(pin, 3);
 	}
