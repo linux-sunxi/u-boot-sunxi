@@ -77,5 +77,5 @@ obj-$(CONFIG_SANEI_N90)	+= dram_sanei_n90.o
 obj-$(CONFIG_UHOST_U1A)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
 obj-$(CONFIG_XZPAD700)	+= dram_xzpad700.o
-obj-$(CONFIG_ITEADA10)	+= dram_iteada10.o
-obj-$(CONFIG_ITEADA20)	+= dram_iteada20.o
+obj-$(CONFIG_ITEADA10)	+= dram_cubieboard.o
+obj-$(CONFIG_ITEADA20)	+= dram_cubieboard2.o
