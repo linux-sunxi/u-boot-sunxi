@@ -212,7 +212,7 @@ struct sunxi_ccm_reg {
 #define CCM_MBUS_CTRL_M_X(n) ((n) - 1)
 #define CCM_MBUS_CTRL_N(n) (((n) & 0xf) << 16)
 #define CCM_MBUS_CTRL_N_MASK CCM_MBUS_CTRL_N(0xf)
-#define CCM_MBUS_CTRL_N_X(n) ((n) - 1)
+#define CCM_MBUS_CTRL_N_X(n) (((n) >> 3) ? 3 : (((n) >> 2) ? 2 : (((n) >> 1) ? 1 : 0)))
 #define CCM_MBUS_CTRL_CLK_SRC(n) (((n) & 0x3) << 24)
 #define CCM_MBUS_CTRL_CLK_SRC_MASK CCM_MBUS_CTRL_CLK_SRC(0x3)
 #define CCM_MBUS_CTRL_CLK_SRC_HOSC 0x0
