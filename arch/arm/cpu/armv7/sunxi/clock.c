@@ -43,6 +43,11 @@ static void clock_init_safe(void)
 	sdelay(200);
 	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
 	       CPU_CLK_SRC_PLL1 << 16, &ccm->cpu_ahb_apb0_cfg);
+#ifdef CONFIG_SUN5I
+	/* Power on reset default for PLL6 is 2400 MHz, which is faster then
+	 * it can reliable do :|  Set it to a 600 MHz instead. */
+	writel(0x21009900, &ccm->pll6_cfg);
+#endif
 #ifdef CONFIG_SUN7I
 	writel(0x1 << 6 | readl(&ccm->ahb_gate0), &ccm->ahb_gate0);
 	writel(0x1 << 31 | readl(&ccm->pll6_cfg), &ccm->pll6_cfg);
