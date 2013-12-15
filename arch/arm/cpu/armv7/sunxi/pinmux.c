@@ -69,7 +69,7 @@ int sunxi_gpio_set_drv(u32 pin, u32 val)
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank];
 
 	drv = readl(&pio->drv[0] + index);
-	drv &= ~(0xf << offset);
+	drv &= ~(0x3 << offset);
 	drv |= val << offset;
 
 	writel(drv, &pio->drv[0] + index);
