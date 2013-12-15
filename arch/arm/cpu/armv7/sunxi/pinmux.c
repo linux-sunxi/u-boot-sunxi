@@ -69,7 +69,7 @@ int sunxi_gpio_set_pull(u32 pin, u32 val)
 	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank];
 
 	pull = readl(&pio->pull[0] + index);
-	pull &= ~(0xf << offset);
+	pull &= ~(0x3 << offset);
 	pull |= val << offset;
 
 	writel(pull, &pio->pull[0] + index);
