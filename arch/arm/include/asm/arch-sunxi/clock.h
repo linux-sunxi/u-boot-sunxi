@@ -172,6 +172,8 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_USB_OHCI0	2
 #define AHB_GATE_OFFSET_USB_EHCI0	1
 #define AHB_GATE_OFFSET_USB		0
+
+/* ahb clock gate bit offset (second register) */
 #define AHB_GATE_OFFSET_GMAC		17
 
 #define CCM_AHB_GATE_GPS (0x1 << 26)
@@ -222,6 +224,12 @@ struct sunxi_ccm_reg {
 #define CCM_MBUS_CTRL_CLK_SRC_PLL6 0x1
 #define CCM_MBUS_CTRL_CLK_SRC_PLL5 0x2
 #define CCM_MBUS_CTRL_GATE (0x1 << 31)
+
+#define CCM_GMAC_CTRL_TX_CLK_SRC_MII 0x0
+#define CCM_GMAC_CTRL_TX_CLK_SRC_EXT_RGMII 0x1
+#define CCM_GMAC_CTRL_TX_CLK_SRC_INT_RGMII 0x2
+#define CCM_GMAC_CTRL_GPIT_MII (0x0 << 2)
+#define CCM_GMAC_CTRL_GPIT_RGMII (0x1 << 2)
 
 
 #ifndef __ASSEMBLY__
