@@ -86,7 +86,7 @@ ulong get_timer_masked(void)
 /* delay x useconds */
 void __udelay(unsigned long usec)
 {
-	long tmo = usec * (TIMER_CLOCK / 1000) / 1000;
+	long tmo = USEC_TO_COUNT(usec);
 	ulong now, last = READ_TIMER();
 
 	while (tmo > 0) {
