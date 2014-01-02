@@ -60,13 +60,13 @@ static void mctl_ddr3_reset(void)
 	if ((reg_val & CPU_CFG_CHIP_VER_MASK) !=
 	    CPU_CFG_CHIP_VER(CPU_CFG_CHIP_REV_A)) {
 		setbits_le32(&dram->mcr, DRAM_MCR_RESET);
-		sdelay(0x100);
+		udelay(2);
 		clrbits_le32(&dram->mcr, DRAM_MCR_RESET);
 	} else
 #endif
 	{
 		clrbits_le32(&dram->mcr, DRAM_MCR_RESET);
-		sdelay(0x100);
+		udelay(2);
 		setbits_le32(&dram->mcr, DRAM_MCR_RESET);
 	}
 }
@@ -105,13 +105,13 @@ static void mctl_enable_dll0(u32 phase)
 	clrsetbits_le32(&dram->dllcr[0], 0x3f << 6,
 			((phase >> 16) & 0x3f) << 6);
 	clrsetbits_le32(&dram->dllcr[0], DRAM_DLLCR_NRESET, DRAM_DLLCR_DISABLE);
-	sdelay(0x100);
+	udelay(2);
 
 	clrbits_le32(&dram->dllcr[0], DRAM_DLLCR_NRESET | DRAM_DLLCR_DISABLE);
-	sdelay(0x1000);
+	udelay(22);
 
 	clrsetbits_le32(&dram->dllcr[0], DRAM_DLLCR_DISABLE, DRAM_DLLCR_NRESET);
-	sdelay(0x1000);
+	udelay(22);
 }
 
 /*
@@ -141,17 +141,17 @@ static void mctl_enable_dllx(u32 phase)
 				DRAM_DLLCR_DISABLE);
 		phase >>= 4;
 	}
-	sdelay(0x100);
+	udelay(2);
 
 	for (i = 1; i < n; i++)
 		clrbits_le32(&dram->dllcr[i], DRAM_DLLCR_NRESET |
 			     DRAM_DLLCR_DISABLE);
-	sdelay(0x1000);
+	udelay(22);
 
 	for (i = 1; i < n; i++)
 		clrsetbits_le32(&dram->dllcr[i], DRAM_DLLCR_DISABLE,
 				DRAM_DLLCR_NRESET);
-	sdelay(0x1000);
+	udelay(22);
 }
 
 static u32 hpcr_value[32] = {
@@ -219,7 +219,7 @@ static void mctl_setup_dram_clock(u32 clk)
 	reg_val &= ~CCM_PLL5_CTRL_VCO_GAIN;		/* PLL VCO Gain off */
 	reg_val |= CCM_PLL5_CTRL_EN;			/* PLL On */
 	writel(reg_val, &ccm->pll5_cfg);
-	sdelay(0x100000);
+	udelay(5500);
 
 	setbits_le32(&ccm->pll5_cfg, CCM_PLL5_CTRL_DDR_CLK);
 
@@ -227,7 +227,7 @@ static void mctl_setup_dram_clock(u32 clk)
 	/* reset GPS */
 	clrbits_le32(&ccm->gps_clk_cfg, CCM_GPS_CTRL_RESET | CCM_GPS_CTRL_GATE);
 	setbits_le32(&ccm->ahb_gate0, CCM_AHB_GATE_GPS);
-	sdelay(0x20);
+	udelay(1);
 	clrbits_le32(&ccm->ahb_gate0, CCM_AHB_GATE_GPS);
 #endif
 
@@ -257,7 +257,7 @@ static void mctl_setup_dram_clock(u32 clk)
 #else
 	clrbits_le32(&ccm->ahb_gate0, CCM_AHB_GATE_SDRAM);
 #endif
-	sdelay(0x1000);
+	udelay(22);
 
 	/* then open it */
 #if defined(CONFIG_SUN5I) || defined(CONFIG_SUN7I)
@@ -265,7 +265,7 @@ static void mctl_setup_dram_clock(u32 clk)
 #else
 	setbits_le32(&ccm->ahb_gate0, CCM_AHB_GATE_SDRAM);
 #endif
-	sdelay(0x1000);
+	udelay(22);
 }
 
 static int dramc_scan_readpipe(void)
@@ -313,7 +313,7 @@ static int dramc_scan_dll_para(void)
 						0x4f << 14,
 						(dqs_dly[clk_i] & 0x4f) << 14);
 			}
-			sdelay(0x100);
+			udelay(2);
 			if (dramc_scan_readpipe() == 0)
 				clk_dqs_count[clk_i]++;
 		}
@@ -366,7 +366,7 @@ static int dramc_scan_dll_para(void)
 					0x4f << 14,
 					(dqs_dly[dqs_i] & 0x4f) << 14);
 		}
-		sdelay(0x100);
+		udelay(2);
 		if (dramc_scan_readpipe() == 0) {
 			clk_dqs_count[dqs_i] = 1;
 			max_val = dqs_i;
@@ -388,7 +388,7 @@ static int dramc_scan_dll_para(void)
 					0x4f << 14,
 					(dqs_dly[dqs_index] & 0x4f) << 14);
 		}
-		sdelay(0x100);
+		udelay(2);
 		return dramc_scan_readpipe();
 	}
 
@@ -396,7 +396,7 @@ fail:
 	clrbits_le32(&dram->dllcr[0], 0x3f << 6);
 	for (cr_i = 1; cr_i < 5; cr_i++)
 		clrbits_le32(&dram->dllcr[cr_i], 0x4f << 14);
-	sdelay(0x100);
+	udelay(2);
 
 	return dramc_scan_readpipe();
 }
@@ -555,7 +555,7 @@ unsigned long dramc_init(struct dram_para *para)
 	dramc_clock_output_en(1);
 #endif
 
-	sdelay(0x10);
+	udelay(1);
 
 	while (readl(&dram->ccr) & DRAM_CCR_INIT);
 
@@ -631,7 +631,7 @@ unsigned long dramc_init(struct dram_para *para)
 		/* check whether command has been executed */
 		while (readl(&dram->dcr) & (0x1 << 31));
 
-		sdelay(0x100);
+		udelay(2);
 
 		/* dram pad hold off */
 		setbits_le32(&dram->ppwrsctl, 0x16510000);
@@ -643,13 +643,13 @@ unsigned long dramc_init(struct dram_para *para)
 
 		/* check whether command has been executed */
 		while (readl(&dram->dcr) & (0x1 << 31));
-		sdelay(0x100);;
+		udelay(2);;
 
 		/* issue a refresh command */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x13 << 27);
 		while (readl(&dram->dcr) & (0x1 << 31));
 
-		sdelay(0x100);
+		udelay(2);
 	}
 #endif
 

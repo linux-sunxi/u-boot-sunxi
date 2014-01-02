@@ -112,6 +112,7 @@ void s_init(void)
 
 	watchdog_init();
 	clock_init();
+	timer_init();
 	gpio_init();
 
 #ifdef CONFIG_SPL_BUILD
