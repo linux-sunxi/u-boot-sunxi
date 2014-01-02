@@ -113,6 +113,8 @@ void s_init(void)
 	watchdog_init();
 	clock_init();
 	gpio_init();
+	/* Initialize the timer now, so we get udelay early on */
+	timer_init();
 
 #ifdef CONFIG_SPL_BUILD
 	gd = &gdata;
