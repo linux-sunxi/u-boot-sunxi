@@ -292,7 +292,7 @@ __s32  SCN_AnalyzeNandSystem(void)
     result |= PHY_SynchBank(BOOT_CHIP_SELECT_NUM, SYNC_CHIP_MODE);
     if(result)
     {
-        SCAN_ERR("[SCAN_ERR] Reset boot nand flash chip failed!\n");
+        printf("[SCAN_ERR] Reset boot nand flash chip failed!\n");
         return -1;
     }
 
@@ -300,7 +300,7 @@ __s32  SCN_AnalyzeNandSystem(void)
     result = PHY_ReadNandId(BOOT_CHIP_SELECT_NUM, tmpChipID);
     if(result)
     {
-        SCAN_ERR("[SCAN_ERR] Read chip ID from boot chip failed!\n");
+        printf("[SCAN_ERR] Read chip ID from boot chip failed!\n");
         return -1;
     }
     SCAN_DBG("[SCAN_DBG] Nand flash chip id is:0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
@@ -310,7 +310,7 @@ __s32  SCN_AnalyzeNandSystem(void)
     result = _SearchNandArchi(tmpChipID, &tmpNandPhyInfo);
     if(result)
     {
-        SCAN_ERR("[SCAN_ERR] search nand physical architecture parameter failed!\n");
+        printf("[SCAN_ERR] search nand physical architecture parameter failed!\n");
         return -1;
     }
 
@@ -445,7 +445,7 @@ __s32  SCN_AnalyzeNandSystem(void)
 
 		if( NandStorageInfo.RbConnectMode == 0xff)
             {
-        	    SCAN_ERR("%s : check nand rb connect fail, ChipCnt =  %x, ChipConnectInfo = %x \n",__FUNCTION__, NandStorageInfo.ChipCnt, NandStorageInfo.ChipConnectInfo);
+		    printf("%s : check nand rb connect fail, ChipCnt =  %x, ChipConnectInfo = %x \n",__FUNCTION__, NandStorageInfo.ChipCnt, NandStorageInfo.ChipConnectInfo);
         	    return -1;
 		}
 

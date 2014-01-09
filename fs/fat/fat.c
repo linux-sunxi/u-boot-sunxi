@@ -81,8 +81,10 @@ int fat_register_device (block_dev_desc_t * dev_desc, int part_no)
 
 	disk_partition_t info;
 
-	if (!dev_desc->block_read)
+	if (!dev_desc->block_read) {
+		printf("** block device lacks block_read **\n");
 		return -1;
+	}
 
 	cur_dev = dev_desc;
 	/* check if we have a MBR (on floppies we have only a PBR) */
@@ -94,6 +96,8 @@ int fat_register_device (block_dev_desc_t * dev_desc, int part_no)
 	if (buffer[DOS_PART_MAGIC_OFFSET] != 0x55 ||
 	    buffer[DOS_PART_MAGIC_OFFSET + 1] != 0xaa) {
 		/* no signature found */
+		printf("** no FAT signature found on part %d of device %d**\n",
+		       part_no, dev_desc->dev);
 		return -1;
 	}
 #if (defined(CONFIG_CMD_IDE) || \

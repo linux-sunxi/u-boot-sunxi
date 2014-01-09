@@ -224,20 +224,20 @@ int NAND_PhyInit(void)
 	ret = PHY_Init();
 	if (ret)
 	{
-		OSAL_printf("NB1 : nand phy init fail\n");
+		printf("NB1 : nand phy init fail\n");
 		return ret;
 	}
 
 	ret = SCN_AnalyzeNandSystem();
 	if (ret)
 	{
-		OSAL_printf("NB1 : nand scan fail\n");
+		printf("NB1 : nand scan fail\n");
 		return ret;
 	}
 	//modify ValidBlkRatio
     //NAND_SetValidBlkRatio(nand_good_blk_ratio);
 
-	OSAL_printf("NB1 : nand phy init ok\n");
+	printf("NB1 : nand phy init ok\n");
 	return(PHY_ChangeMode(1));
 }
 
@@ -326,7 +326,7 @@ int NAND_Init(void)
 	result = NAND_PhyInit();
 	if (result < 0)
 	{
-		OSAL_printf("NB1 : phy init fail\n");
+		printf("NB1 : phy init fail\n");
 		return -1;
 	}
 
@@ -334,20 +334,21 @@ int NAND_Init(void)
     result = FMT_Init();
     if(result < 0)
     {
-    	OSAL_printf("NB1 : format init fail\n");
+	    printf("NB1 : format init fail\n");
 		return -5;
     }
 
     result = FMT_FormatNand();
     if(result < 0)
     {
-    	OSAL_printf("NB1 : format fail\n");
+	printf("NB1 : format fail\n");
         return -6;
     }
 
     result = FMT_Exit();
     if(result < 0)
     {
+	printf("FMT_Exit failed\n");
         return -7;
     }
 
@@ -355,6 +356,7 @@ int NAND_Init(void)
     result = LML_Init();
     if(result < 0)
     {
+	 printf("LML_Init failed\n");
          return -8;
     }
 #ifdef BOOT_CACHE_OPEN
