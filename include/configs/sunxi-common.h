@@ -213,6 +213,7 @@
 	"kernel=uImage\0" \
 	"bootenv=uEnv.txt\0" \
 	"bootscr=boot.scr\0" \
+	"script=script.bin\0" \
 	"loadbootscr=" \
 	  "fatload $device $partition $scriptaddr ${bootscr}" \
 	  " || " \
@@ -231,19 +232,19 @@
 	  "if "\
 	    "bootpath=/boot/" \
 	    " && " \
-	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
+	    "ext2load $device $partition 0x43000000 ${bootpath}${script}" \
 	    " && " \
 	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
 	  ";then true; elif " \
 	    "bootpath=/" \
 	    " && " \
-	    "fatload $device $partition 0x43000000 script.bin" \
+	    "fatload $device $partition 0x43000000 ${script}" \
 	    " && " \
 	    "fatload $device $partition 0x48000000 ${kernel}" \
 	  ";then true; elif " \
 	    "bootpath=/" \
 	    " && " \
-	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
+	    "ext2load $device $partition 0x43000000 ${bootpath}${script}" \
 	    " && " \
 	    "ext2load $device $partition 0x48000000 ${bootpath}${kernel}" \
 	  ";then true; else "\
