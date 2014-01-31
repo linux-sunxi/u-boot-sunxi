@@ -75,6 +75,7 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			gpio_set_value(gpio, i&1);
 		}
 		gpio_direction_input(gpio);
+		value = 0;
 	} else {
 		switch (sub_cmd) {
 			case GPIO_SET:    value = 1; break;
