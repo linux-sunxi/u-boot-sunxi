@@ -141,7 +141,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #endif
 
 /* DDR Setup */
-#define CONFIG_FSL_DDR2
+#define CONFIG_SYS_FSL_DDR2
 #undef CONFIG_FSL_DDR_INTERACTIVE
 #undef CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup */
 
@@ -606,7 +606,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 /*

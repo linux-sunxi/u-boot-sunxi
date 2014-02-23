@@ -3,14 +3,15 @@
 /gen_eth_addr
 /img2srec
 /kwboot
+/dumpimage
 /mkenvimage
 /mkimage
 /mpc86x_clk
 /mxsboot
 /mksunxiboot
 /ncb
-/ncp
 /proftool
+/relocate-rela
 /ubsha1
 /xway-swap-bytes
 /*.exe

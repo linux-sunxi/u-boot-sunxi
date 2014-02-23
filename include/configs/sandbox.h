@@ -39,6 +39,9 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT4
 #define CONFIG_CMD_EXT4_WRITE
+#define CONFIG_CMD_PART
+#define CONFIG_DOS_PARTITION
+#define CONFIG_HOST_MAX_DEVICES 4
 
 #define CONFIG_SYS_VSNPRINTF
 
@@ -70,6 +73,16 @@
 
 #define CONFIG_ENV_SIZE		8192
 #define CONFIG_ENV_IS_NOWHERE
+
+/* SPI */
+#define CONFIG_SANDBOX_SPI
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_SF_TEST
+#define CONFIG_CMD_SPI
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SANDBOX
+#define CONFIG_SPI_FLASH_STMICRO
+#define CONFIG_SPI_FLASH_WINBOND
 
 /* Memory things - we don't really want a memory test */
 #define CONFIG_SYS_LOAD_ADDR		0x00000000
@@ -115,5 +128,7 @@
 #define CONFIG_BZIP2
 #define CONFIG_LZO
 #define CONFIG_LZMA
+
+#define CONFIG_TPM_TIS_SANDBOX
 
 #endif

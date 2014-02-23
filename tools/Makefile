@@ -50,9 +50,11 @@ BIN_FILES-$(CONFIG_BUILD_ENVCRC) += envcrc$(SFX)
 BIN_FILES-$(CONFIG_CMD_NET) += gen_eth_addr$(SFX)
 BIN_FILES-$(CONFIG_CMD_LOADS) += img2srec$(SFX)
 BIN_FILES-$(CONFIG_XWAY_SWAP_BYTES) += xway-swap-bytes$(SFX)
+BIN_FILES-y += dumpimage$(SFX)
 BIN_FILES-y += mkenvimage$(SFX)
 BIN_FILES-y += mkimage$(SFX)
 BIN_FILES-$(CONFIG_EXYNOS5250) += mk$(BOARD)spl$(SFX)
+BIN_FILES-$(CONFIG_EXYNOS5420) += mk$(BOARD)spl$(SFX)
 BIN_FILES-$(CONFIG_MX23) += mxsboot$(SFX)
 BIN_FILES-$(CONFIG_SUNXI) += mksunxiboot$(SFX)
 BIN_FILES-$(CONFIG_MX28) += mxsboot$(SFX)
@@ -60,6 +62,7 @@ BIN_FILES-$(CONFIG_NETCONSOLE) += ncb$(SFX)
 BIN_FILES-$(CONFIG_SHA1_CHECK_UB_IMG) += ubsha1$(SFX)
 BIN_FILES-$(CONFIG_KIRKWOOD) += kwboot$(SFX)
 BIN_FILES-y += proftool(SFX)
+BIN_FILES-$(CONFIG_STATIC_RELA) += relocate-rela$(SFX)
 
 # Source files which exist outside the tools directory
 EXT_OBJ_FILES-$(CONFIG_BUILD_ENVCRC) += common/env_embedded.o
@@ -73,10 +76,12 @@ EXT_OBJ_FILES-y += lib/sha1.o
 # Source files located in the tools directory
 NOPED_OBJ_FILES-y += aisimage.o
 NOPED_OBJ_FILES-y += default_image.o
+NOPED_OBJ_FILES-y += dumpimage.o
 NOPED_OBJ_FILES-y += fit_image.o
 NOPED_OBJ_FILES-y += image-host.o
 NOPED_OBJ_FILES-y += imximage.o
 NOPED_OBJ_FILES-y += kwbimage.o
+NOPED_OBJ_FILES-y += imagetool.o
 NOPED_OBJ_FILES-y += mkenvimage.o
 NOPED_OBJ_FILES-y += mkimage.o
 NOPED_OBJ_FILES-y += mxsimage.o
@@ -85,10 +90,11 @@ NOPED_OBJ_FILES-y += os_support.o
 NOPED_OBJ_FILES-y += pblimage.o
 NOPED_OBJ_FILES-y += proftool.o
 NOPED_OBJ_FILES-y += ublimage.o
+NOPED_OBJ_FILES-y += relocate-rela.o
 OBJ_FILES-$(CONFIG_BUILD_ENVCRC) += envcrc.o
 OBJ_FILES-$(CONFIG_CMD_LOADS) += img2srec.o
 OBJ_FILES-$(CONFIG_CMD_NET) += gen_eth_addr.o
-OBJ_FILES-$(CONFIG_EXYNOS5250) += mkexynosspl.o
+OBJ_FILES-$(CONFIG_EXYNOS_SPL) += mkexynosspl.o
 OBJ_FILES-$(CONFIG_KIRKWOOD) += kwboot.o
 OBJ_FILES-$(CONFIG_LCD_LOGO) += bmp_logo.o
 OBJ_FILES-$(CONFIG_MX23) += mxsboot.o
@@ -201,6 +207,30 @@ $(obj)xway-swap-bytes$(SFX):	$(obj)xway-swap-bytes.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 
+$(obj)dumpimage$(SFX):	$(obj)aisimage.o \
+			$(FIT_SIG_OBJS) \
+			$(obj)crc32.o \
+			$(obj)default_image.o \
+			$(obj)fit_image.o \
+			$(obj)image-fit.o \
+			$(obj)image.o \
+			$(obj)image-host.o \
+			$(obj)imagetool.o \
+			$(obj)imximage.o \
+			$(obj)kwbimage.o \
+			$(obj)dumpimage.o \
+			$(obj)md5.o \
+			$(obj)mxsimage.o \
+			$(obj)omapimage.o \
+			$(obj)os_support.o \
+			$(obj)pblimage.o \
+			$(obj)sha1.o \
+			$(obj)ublimage.o \
+			$(LIBFDT_OBJS) \
+			$(RSA_OBJS)
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^ $(HOSTLIBS)
+	$(HOSTSTRIP) $@
+
 $(obj)mkenvimage$(SFX):	$(obj)crc32.o $(obj)mkenvimage.o \
 	$(obj)os_support.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
@@ -214,6 +244,7 @@ $(obj)mkimage$(SFX):	$(obj)aisimage.o \
 			$(obj)image-fit.o \
 			$(obj)image-host.o \
 			$(obj)image.o \
+			$(obj)imagetool.o \
 			$(obj)imximage.o \
 			$(obj)kwbimage.o \
 			$(obj)md5.o \
@@ -253,6 +284,10 @@ $(obj)ubsha1$(SFX):	$(obj)os_support.o $(obj)sha1.o $(obj)ubsha1.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 
 $(obj)kwboot$(SFX): $(obj)kwboot.o
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+	$(HOSTSTRIP) $@
+
+$(obj)relocate-rela$(SFX): $(obj)relocate-rela.o
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
 	$(HOSTSTRIP) $@
 

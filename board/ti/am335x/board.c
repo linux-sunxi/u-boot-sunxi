@@ -107,21 +107,16 @@ static const struct ddr_data ddr2_data = {
 			  (MT47H128M16RT25E_PHY_WR_DATA<<20) |
 			  (MT47H128M16RT25E_PHY_WR_DATA<<10) |
 			  (MT47H128M16RT25E_PHY_WR_DATA<<0)),
-	.datauserank0delay = MT47H128M16RT25E_PHY_RANK0_DELAY,
-	.datadldiff0 = PHY_DLL_LOCK_DIFF,
 };
 
 static const struct cmd_control ddr2_cmd_ctrl_data = {
 	.cmd0csratio = MT47H128M16RT25E_RATIO,
-	.cmd0dldiff = MT47H128M16RT25E_DLL_LOCK_DIFF,
 	.cmd0iclkout = MT47H128M16RT25E_INVERT_CLKOUT,
 
 	.cmd1csratio = MT47H128M16RT25E_RATIO,
-	.cmd1dldiff = MT47H128M16RT25E_DLL_LOCK_DIFF,
 	.cmd1iclkout = MT47H128M16RT25E_INVERT_CLKOUT,
 
 	.cmd2csratio = MT47H128M16RT25E_RATIO,
-	.cmd2dldiff = MT47H128M16RT25E_DLL_LOCK_DIFF,
 	.cmd2iclkout = MT47H128M16RT25E_INVERT_CLKOUT,
 };
 
@@ -139,7 +134,6 @@ static const struct ddr_data ddr3_data = {
 	.datawdsratio0 = MT41J128MJT125_WR_DQS,
 	.datafwsratio0 = MT41J128MJT125_PHY_FIFO_WE,
 	.datawrsratio0 = MT41J128MJT125_PHY_WR_DATA,
-	.datadldiff0 = PHY_DLL_LOCK_DIFF,
 };
 
 static const struct ddr_data ddr3_beagleblack_data = {
@@ -147,7 +141,6 @@ static const struct ddr_data ddr3_beagleblack_data = {
 	.datawdsratio0 = MT41K256M16HA125E_WR_DQS,
 	.datafwsratio0 = MT41K256M16HA125E_PHY_FIFO_WE,
 	.datawrsratio0 = MT41K256M16HA125E_PHY_WR_DATA,
-	.datadldiff0 = PHY_DLL_LOCK_DIFF,
 };
 
 static const struct ddr_data ddr3_evm_data = {
@@ -155,48 +148,38 @@ static const struct ddr_data ddr3_evm_data = {
 	.datawdsratio0 = MT41J512M8RH125_WR_DQS,
 	.datafwsratio0 = MT41J512M8RH125_PHY_FIFO_WE,
 	.datawrsratio0 = MT41J512M8RH125_PHY_WR_DATA,
-	.datadldiff0 = PHY_DLL_LOCK_DIFF,
 };
 
 static const struct cmd_control ddr3_cmd_ctrl_data = {
 	.cmd0csratio = MT41J128MJT125_RATIO,
-	.cmd0dldiff = MT41J128MJT125_DLL_LOCK_DIFF,
 	.cmd0iclkout = MT41J128MJT125_INVERT_CLKOUT,
 
 	.cmd1csratio = MT41J128MJT125_RATIO,
-	.cmd1dldiff = MT41J128MJT125_DLL_LOCK_DIFF,
 	.cmd1iclkout = MT41J128MJT125_INVERT_CLKOUT,
 
 	.cmd2csratio = MT41J128MJT125_RATIO,
-	.cmd2dldiff = MT41J128MJT125_DLL_LOCK_DIFF,
 	.cmd2iclkout = MT41J128MJT125_INVERT_CLKOUT,
 };
 
 static const struct cmd_control ddr3_beagleblack_cmd_ctrl_data = {
 	.cmd0csratio = MT41K256M16HA125E_RATIO,
-	.cmd0dldiff = MT41K256M16HA125E_DLL_LOCK_DIFF,
 	.cmd0iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
 
 	.cmd1csratio = MT41K256M16HA125E_RATIO,
-	.cmd1dldiff = MT41K256M16HA125E_DLL_LOCK_DIFF,
 	.cmd1iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
 
 	.cmd2csratio = MT41K256M16HA125E_RATIO,
-	.cmd2dldiff = MT41K256M16HA125E_DLL_LOCK_DIFF,
 	.cmd2iclkout = MT41K256M16HA125E_INVERT_CLKOUT,
 };
 
 static const struct cmd_control ddr3_evm_cmd_ctrl_data = {
 	.cmd0csratio = MT41J512M8RH125_RATIO,
-	.cmd0dldiff = MT41J512M8RH125_DLL_LOCK_DIFF,
 	.cmd0iclkout = MT41J512M8RH125_INVERT_CLKOUT,
 
 	.cmd1csratio = MT41J512M8RH125_RATIO,
-	.cmd1dldiff = MT41J512M8RH125_DLL_LOCK_DIFF,
 	.cmd1iclkout = MT41J512M8RH125_INVERT_CLKOUT,
 
 	.cmd2csratio = MT41J512M8RH125_RATIO,
-	.cmd2dldiff = MT41J512M8RH125_DLL_LOCK_DIFF,
 	.cmd2iclkout = MT41J512M8RH125_INVERT_CLKOUT,
 };
 
@@ -443,6 +426,38 @@ void set_mux_conf_regs(void)
 	enable_board_pin_mux(&header);
 }
 
+const struct ctrl_ioregs ioregs_evmsk = {
+	.cm0ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+	.cm1ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+	.cm2ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+	.dt0ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+	.dt1ioctl		= MT41J128MJT125_IOCTRL_VALUE,
+};
+
+const struct ctrl_ioregs ioregs_bonelt = {
+	.cm0ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
+	.cm1ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
+	.cm2ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
+	.dt0ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
+	.dt1ioctl		= MT41K256M16HA125E_IOCTRL_VALUE,
+};
+
+const struct ctrl_ioregs ioregs_evm15 = {
+	.cm0ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
+	.cm1ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
+	.cm2ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
+	.dt0ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
+	.dt1ioctl		= MT41J512M8RH125_IOCTRL_VALUE,
+};
+
+const struct ctrl_ioregs ioregs = {
+	.cm0ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
+	.cm1ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
+	.cm2ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
+	.dt0ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
+	.dt1ioctl		= MT47H128M16RT25E_IOCTRL_VALUE,
+};
+
 void sdram_init(void)
 {
 	__maybe_unused struct am335x_baseboard_id header;
@@ -460,18 +475,18 @@ void sdram_init(void)
 	}
 
 	if (board_is_evm_sk(&header))
-		config_ddr(303, MT41J128MJT125_IOCTRL_VALUE, &ddr3_data,
+		config_ddr(303, &ioregs_evmsk, &ddr3_data,
 			   &ddr3_cmd_ctrl_data, &ddr3_emif_reg_data, 0);
 	else if (board_is_bone_lt(&header))
-		config_ddr(400, MT41K256M16HA125E_IOCTRL_VALUE,
+		config_ddr(400, &ioregs_bonelt,
 			   &ddr3_beagleblack_data,
 			   &ddr3_beagleblack_cmd_ctrl_data,
 			   &ddr3_beagleblack_emif_reg_data, 0);
 	else if (board_is_evm_15_or_later(&header))
-		config_ddr(303, MT41J512M8RH125_IOCTRL_VALUE, &ddr3_evm_data,
+		config_ddr(303, &ioregs_evm15, &ddr3_evm_data,
 			   &ddr3_evm_cmd_ctrl_data, &ddr3_evm_emif_reg_data, 0);
 	else
-		config_ddr(266, MT47H128M16RT25E_IOCTRL_VALUE, &ddr2_data,
+		config_ddr(266, &ioregs, &ddr2_data,
 			   &ddr2_cmd_ctrl_data, &ddr2_emif_reg_data, 0);
 }
 #endif

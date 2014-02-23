@@ -423,15 +423,54 @@ The following options need to be configured:
 		CONFIG_SYS_FSL_DSP_CCSRBAR_DEFAULT
 		This value denotes start offset of DSP CCSR space.
 
-		CONFIG_SYS_FSL_DDR_EMU
-		Specify emulator support for DDR. Some DDR features such as
-		deskew training are not available.
+		CONFIG_SYS_FSL_SINGLE_SOURCE_CLK
+		Single Source Clock is clocking mode present in some of FSL SoC's.
+		In this mode, a single differential clock is used to supply
+		clocks to the sysclock, ddrclock and usbclock.
 
 - Generic CPU options:
 		CONFIG_SYS_BIG_ENDIAN, CONFIG_SYS_LITTLE_ENDIAN
 
 		Defines the endianess of the CPU. Implementation of those
 		values is arch specific.
+
+		CONFIG_SYS_FSL_DDR
+		Freescale DDR driver in use. This type of DDR controller is
+		found in mpc83xx, mpc85xx, mpc86xx as well as some ARM core
+		SoCs.
+
+		CONFIG_SYS_FSL_DDR_ADDR
+		Freescale DDR memory-mapped register base.
+
+		CONFIG_SYS_FSL_DDR_EMU
+		Specify emulator support for DDR. Some DDR features such as
+		deskew training are not available.
+
+		CONFIG_SYS_FSL_DDRC_GEN1
+		Freescale DDR1 controller.
+
+		CONFIG_SYS_FSL_DDRC_GEN2
+		Freescale DDR2 controller.
+
+		CONFIG_SYS_FSL_DDRC_GEN3
+		Freescale DDR3 controller.
+
+		CONFIG_SYS_FSL_DDRC_ARM_GEN3
+		Freescale DDR3 controller for ARM-based SoCs.
+
+		CONFIG_SYS_FSL_DDR1
+		Board config to use DDR1. It can be enabled for SoCs with
+		Freescale DDR1 or DDR2 controllers, depending on the board
+		implemetation.
+
+		CONFIG_SYS_FSL_DDR2
+		Board config to use DDR2. It can be eanbeld for SoCs with
+		Freescale DDR2 or DDR3 controllers, depending on the board
+		implementation.
+
+		CONFIG_SYS_FSL_DDR3
+		Board config to use DDR3. It can be enabled for SoCs with
+		Freescale DDR3 controllers.
 
 - Intel Monahans options:
 		CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO
@@ -783,6 +822,22 @@ The following options need to be configured:
 		"ramboot" and "nfsboot" respectively, and can be used
 		as a convenience, when switching between booting from
 		RAM and NFS.
+
+- Bootcount:
+		CONFIG_BOOTCOUNT_LIMIT
+		Implements a mechanism for detecting a repeating reboot
+		cycle, see:
+		http://www.denx.de/wiki/view/DULG/UBootBootCountLimit
+
+		CONFIG_BOOTCOUNT_ENV
+		If no softreset save registers are found on the hardware
+		"bootcount" is stored in the environment. To prevent a
+		saveenv on all reboots, the environment variable
+		"upgrade_available" is used. If "upgrade_available" is
+		0, "bootcount" is always 0, if "upgrade_available" is
+		1 "bootcount" is incremented in the environment.
+		So the Userspace Applikation must set the "upgrade_available"
+		and "bootcount" variable to 0, if a boot was successfully.
 
 - Pre-Boot Commands:
 		CONFIG_PREBOOT
@@ -2091,6 +2146,12 @@ CBFS (Coreboot Filesystem) support
 		  - set CONFIG_SYS_I2C_ZYNQ_SPEED for speed setting
 		  - set CONFIG_SYS_I2C_ZYNQ_SLAVE for slave addr
 
+		- drivers/i2c/s3c24x0_i2c.c:
+		  - activate this driver with CONFIG_SYS_I2C_S3C24X0
+		  - This driver adds i2c buses (11 for Exynos5250, Exynos5420
+		    9 i2c buses for Exynos4 and 1 for S3C24X0 SoCs from Samsung)
+		    with a fix speed from 100000 and the slave addr 0!
+
 		additional defines:
 
 		CONFIG_SYS_NUM_I2C_BUSES
@@ -2695,6 +2756,12 @@ CBFS (Coreboot Filesystem) support
 		Define this option to use the Bank addr/Extended addr
 		support on SPI flashes which has size > 16Mbytes.
 
+		CONFIG_SF_DUAL_FLASH		Dual flash memories
+
+		Define this option to use dual flash support where two flash
+		memories can be connected with a given cs line.
+		currently Xilinx Zynq qspi support these type of connections.
+
 - SystemACE Support:
 		CONFIG_SYSTEMACE
 
@@ -3197,7 +3264,7 @@ FIT uImage format:
 
 		CONFIG_SPL_MPC8XXX_INIT_DDR_SUPPORT
 		Set for the SPL on PPC mpc8xxx targets, support for
-		arch/powerpc/cpu/mpc8xxx/ddr/libddr.o in SPL binary.
+		drivers/ddr/fsl/libddr.o in SPL binary.
 
 		CONFIG_SPL_COMMON_INIT_DDR
 		Set for common ddr init with serial presence detect in
@@ -3210,6 +3277,9 @@ FIT uImage format:
 		CONFIG_SYS_NAND_ECCBYTES
 		Defines the size and behavior of the NAND that SPL uses
 		to read U-Boot
+
+		CONFIG_SPL_NAND_BOOT
+		Add support NAND boot
 
 		CONFIG_SYS_NAND_U_BOOT_OFFS
 		Location in NAND to read U-Boot from
@@ -4354,6 +4424,9 @@ Low Level (hardware related) configuration options:
 
 		NOTE : currently only supported on AM335x platforms.
 
+- CONFIG_SPL_AM33XX_ENABLE_RTC32K_OSC:
+		Enables the RTC32K OSC on AM33xx based plattforms
+
 Freescale QE/FMAN Firmware Support:
 -----------------------------------
 
@@ -5192,6 +5265,15 @@ when your kernel is intended to use an initial ramdisk:
 	Data Size:    566530 Bytes = 553.25 kB = 0.54 MB
 	Load Address: 0x00000000
 	Entry Point:  0x00000000
+
+The "dumpimage" is a tool to disassemble images built by mkimage. Its "-i"
+option performs the converse operation of the mkimage's second form (the "-d"
+option). Given an image built by mkimage, the dumpimage extracts a "data file"
+from the image:
+
+	tools/dumpimage -i image -p position data_file
+	  -i ==> extract from the 'image' a specific 'data_file', \
+	   indexed by 'position'
 
 
 Installing a Linux Image:

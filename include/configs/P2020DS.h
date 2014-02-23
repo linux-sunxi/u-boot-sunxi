@@ -109,9 +109,9 @@
 /* DDR Setup */
 #define CONFIG_VERY_BIG_RAM
 #ifdef CONFIG_DDR2
-#define CONFIG_FSL_DDR2
+#define CONFIG_SYS_FSL_DDR2
 #else
-#define CONFIG_FSL_DDR3		1
+#define CONFIG_SYS_FSL_DDR3		1
 #endif
 
 /* ECC will be enabled based on perf_mode environment variable */
@@ -670,7 +670,6 @@
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 /*

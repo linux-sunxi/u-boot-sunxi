@@ -9,6 +9,7 @@ obj-$(CONFIG_BFIN_SDH) += bfin_sdh.o
 obj-$(CONFIG_DAVINCI_MMC) += davinci_mmc.o
 obj-$(CONFIG_FSL_ESDHC) += fsl_esdhc.o
 obj-$(CONFIG_FTSDC010) += ftsdc010_mci.o
+obj-$(CONFIG_FTSDC021) += ftsdc021_sdhci.o
 obj-$(CONFIG_GENERIC_MMC) += mmc.o
 obj-$(CONFIG_GENERIC_ATMEL_MCI) += gen_atmel_mci.o
 obj-$(CONFIG_MMC_SPI) += mmc_spi.o
@@ -28,6 +29,7 @@ obj-$(CONFIG_DWMMC) += dw_mmc.o
 obj-$(CONFIG_EXYNOS_DWMMC) += exynos_dw_mmc.o
 obj-$(CONFIG_MMC_SUNXI) += sunxi_mmc.o
 obj-$(CONFIG_ZYNQ_SDHCI) += zynq_sdhci.o
+obj-$(CONFIG_SOCFPGA_DWMMC) += socfpga_dw_mmc.o
 ifdef CONFIG_SPL_BUILD
 obj-$(CONFIG_SPL_MMC_BOOT) += fsl_esdhc_spl.o
 else

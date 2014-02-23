@@ -58,6 +58,11 @@
  */
 
 /*
+ * OMAP GPIO configuration
+ */
+#define CONFIG_OMAP_GPIO
+
+/*
  * NS16550 Configuration
  */
 #define V_NS16550_CLK			48000000	/* 48MHz (APLL96/2) */
@@ -141,8 +146,18 @@
 #define CONFIG_SYS_OMAP24_I2C_SLAVE	1
 #define CONFIG_SYS_I2C_OMAP34XX
 
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
+/*
+ * Ethernet
+ */
+#define CONFIG_DRIVER_TI_EMAC
+#define CONFIG_DRIVER_TI_EMAC_USE_RMII
+#define CONFIG_MII
+#define CONFIG_BOOTP_DEFAULT
+#define CONFIG_BOOTP_DNS
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_NET_RETRY_COUNT		10
+
 /*
  * Board NAND Info.
  */
