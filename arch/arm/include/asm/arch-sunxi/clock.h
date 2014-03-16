@@ -98,20 +98,24 @@ struct sunxi_ccm_reg {
 #define APB1_FACTOR_N			0
 
 /* clock divide */
-#define CPU_CLK_SRC_OSC24M		1
-#define CPU_CLK_SRC_PLL1		2
+#define AXI_DIV_SHIFT		(0)
 #define AXI_DIV_1			0
 #define AXI_DIV_2			1
 #define AXI_DIV_3			2
 #define AXI_DIV_4			3
+#define AHB_DIV_SHIFT		(4)
 #define AHB_DIV_1			0
 #define AHB_DIV_2			1
 #define AHB_DIV_4			2
 #define AHB_DIV_8			3
+#define APB0_DIV_SHIFT		(8)
 #define APB0_DIV_1			0
 #define APB0_DIV_2			1
 #define APB0_DIV_4			2
 #define APB0_DIV_8			3
+#define CPU_CLK_SRC_SHIFT	(16)
+#define CPU_CLK_SRC_OSC24M		1
+#define CPU_CLK_SRC_PLL1		2
 
 #ifdef CONFIG_SUN5I
 #define AHB_CLK_SRC_AXI			0

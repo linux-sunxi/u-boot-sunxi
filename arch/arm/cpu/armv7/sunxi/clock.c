@@ -21,12 +21,18 @@ static void clock_init_safe(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* Set safe defaults until PMU is configured */
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
-	       CPU_CLK_SRC_OSC24M << 16, &ccm->cpu_ahb_apb0_cfg);
+	writel(AXI_DIV_1 << AXI_DIV_SHIFT |
+	       AHB_DIV_2 << AHB_DIV_SHIFT |
+	       APB0_DIV_1 << APB0_DIV_SHIFT |
+	       CPU_CLK_SRC_OSC24M << CPU_CLK_SRC_SHIFT,
+	       &ccm->cpu_ahb_apb0_cfg);
 	writel(0xa1005000, &ccm->pll1_cfg);
 	sdelay(200);
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
-	       CPU_CLK_SRC_PLL1 << 16, &ccm->cpu_ahb_apb0_cfg);
+	writel(AXI_DIV_1 << AXI_DIV_SHIFT |
+	       AHB_DIV_2 << AHB_DIV_SHIFT |
+	       APB0_DIV_1 << APB0_DIV_SHIFT |
+	       CPU_CLK_SRC_PLL1 << CPU_CLK_SRC_SHIFT,
+	       &ccm->cpu_ahb_apb0_cfg);
 #ifdef CONFIG_SUN5I
 	/* Power on reset default for PLL6 is 2400 MHz, which is faster then
 	 * it can reliable do :|  Set it to a 600 MHz instead. */
@@ -158,12 +164,18 @@ void clock_set_pll1(int hz)
 	apb0 = apb0 - 1;
 
 	/* Switch to 24MHz clock while changing PLL1 */
-	writel(AXI_DIV_1 << 0 | AHB_DIV_2 << 4 | APB0_DIV_1 << 8 |
-	       CPU_CLK_SRC_OSC24M << 16, &ccm->cpu_ahb_apb0_cfg);
+	writel(AXI_DIV_1 << AXI_DIV_SHIFT |
+	       AHB_DIV_2 << AHB_DIV_SHIFT |
+	       APB0_DIV_1 << APB0_DIV_SHIFT |
+	       CPU_CLK_SRC_OSC24M << CPU_CLK_SRC_SHIFT,
+	       &ccm->cpu_ahb_apb0_cfg);
 	sdelay(20);
 
 	/* Configure sys clock divisors */
-	writel(axi << 0 | ahb << 4 | apb0 << 8 | CPU_CLK_SRC_OSC24M << 16,
+	writel(axi << AXI_DIV_SHIFT |
+	       ahb << AHB_DIV_SHIFT |
+	       apb0 << APB0_DIV_SHIFT |
+	       CPU_CLK_SRC_OSC24M << CPU_CLK_SRC_SHIFT,
 	       &ccm->cpu_ahb_apb0_cfg);
 
 	/* Configure PLL1 at the desired frequency */
@@ -171,7 +183,10 @@ void clock_set_pll1(int hz)
 	sdelay(200);
 
 	/* Switch CPU to PLL1 */
-	writel(axi << 0 | ahb << 4 | apb0 << 8 | CPU_CLK_SRC_PLL1 << 16,
+	writel(axi << AXI_DIV_SHIFT |
+	       ahb << AHB_DIV_SHIFT |
+	       apb0 << APB0_DIV_SHIFT |
+	       CPU_CLK_SRC_PLL1 << CPU_CLK_SRC_SHIFT,
 	       &ccm->cpu_ahb_apb0_cfg);
 	sdelay(20);
 }
