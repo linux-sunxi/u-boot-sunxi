@@ -21,7 +21,6 @@ obj-$(CONFIG_SYS_SECONDARY_ON)	+= secondary_init.o
 obj-$(CONFIG_SYS_SECONDARY_ON)	+= smp.o
 
 ifndef CONFIG_SPL_BUILD
-obj-y	+= key.o
 obj-y	+= cpu_info.o
 ifdef CONFIG_CMD_WATCHDOG
 obj-$(CONFIG_CMD_WATCHDOG)	+= cmd_watchdog.o
