@@ -16,8 +16,7 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_ALLWINNER	/* It's a Allwinner chip */
-#define CONFIG_SUNXI		/* which is sunxi family */
+#define CONFIG_SUNXI		/* sunxi family */
 #ifdef CONFIG_SPL_BUILD
 #ifndef CONFIG_SPL_FEL
 #define CONFIG_SYS_THUMB_BUILD	/* Thumbs mode to save space in SPL */
