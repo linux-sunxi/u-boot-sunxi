@@ -12,6 +12,8 @@
 #include <common.h>
 #include <net.h>
 #include <config.h>
+#include <fdtdec.h>
+#include <libfdt.h>
 #include <malloc.h>
 #include <asm/io.h>
 #include <phy.h>
@@ -89,6 +91,11 @@
 #define ZYNQ_GEM_TXBUF_FRMLEN_MASK	0x000007ff
 #define ZYNQ_GEM_TXBUF_EXHAUSTED	0x08000000
 #define ZYNQ_GEM_TXBUF_UNDERRUN		0x10000000
+
+/* Clock frequencies for different speeds */
+#define ZYNQ_GEM_FREQUENCY_10	2500000UL
+#define ZYNQ_GEM_FREQUENCY_100	25000000UL
+#define ZYNQ_GEM_FREQUENCY_1000	125000000UL
 
 /* Device registers */
 struct zynq_gem_regs {
@@ -270,7 +277,8 @@ static int zynq_gem_setup_mac(struct eth_device *dev)
 
 static int zynq_gem_init(struct eth_device *dev, bd_t * bis)
 {
-	u32 i, rclk, clk = 0;
+	u32 i;
+	unsigned long clk_rate = 0;
 	struct phy_device *phydev;
 	const u32 stat_size = (sizeof(struct zynq_gem_regs) -
 				offsetof(struct zynq_gem_regs, stat)) / 4;
@@ -339,30 +347,31 @@ static int zynq_gem_init(struct eth_device *dev, bd_t * bis)
 	phy_config(phydev);
 	phy_startup(phydev);
 
+	if (!phydev->link) {
+		printf("%s: No link.\n", phydev->dev->name);
+		return -1;
+	}
+
 	switch (phydev->speed) {
 	case SPEED_1000:
 		writel(ZYNQ_GEM_NWCFG_INIT | ZYNQ_GEM_NWCFG_SPEED1000,
 		       &regs->nwcfg);
-		rclk = (0 << 4) | (1 << 0);
-		clk = (1 << 20) | (8 << 8) | (0 << 4) | (1 << 0);
+		clk_rate = ZYNQ_GEM_FREQUENCY_1000;
 		break;
 	case SPEED_100:
 		clrsetbits_le32(&regs->nwcfg, ZYNQ_GEM_NWCFG_SPEED1000,
 				ZYNQ_GEM_NWCFG_INIT | ZYNQ_GEM_NWCFG_SPEED100);
-		rclk = 1 << 0;
-		clk = (5 << 20) | (8 << 8) | (0 << 4) | (1 << 0);
+		clk_rate = ZYNQ_GEM_FREQUENCY_100;
 		break;
 	case SPEED_10:
-		rclk = 1 << 0;
-		/* FIXME untested */
-		clk = (5 << 20) | (8 << 8) | (0 << 4) | (1 << 0);
+		clk_rate = ZYNQ_GEM_FREQUENCY_10;
 		break;
 	}
 
 	/* Change the rclk and clk only not using EMIO interface */
 	if (!priv->emio)
 		zynq_slcr_gem_clk_setup(dev->iobase !=
-					ZYNQ_GEM_BASEADDR0, rclk, clk);
+					ZYNQ_GEM_BASEADDR0, clk_rate);
 
 	setbits_le32(&regs->nwctrl, ZYNQ_GEM_NWCTRL_RXEN_MASK |
 					ZYNQ_GEM_NWCTRL_TXEN_MASK);
@@ -527,3 +536,43 @@ int zynq_gem_initialize(bd_t *bis, int base_addr, int phy_addr, u32 emio)
 
 	return 1;
 }
+
+#ifdef CONFIG_OF_CONTROL
+int zynq_gem_of_init(const void *blob)
+{
+	int offset = 0;
+	u32 ret = 0;
+	u32 reg, phy_reg;
+
+	debug("ZYNQ GEM: Initialization\n");
+
+	do {
+		offset = fdt_node_offset_by_compatible(blob, offset,
+					"xlnx,ps7-ethernet-1.00.a");
+		if (offset != -1) {
+			reg = fdtdec_get_addr(blob, offset, "reg");
+			if (reg != FDT_ADDR_T_NONE) {
+				offset = fdtdec_lookup_phandle(blob, offset,
+							       "phy-handle");
+				if (offset != -1)
+					phy_reg = fdtdec_get_addr(blob, offset,
+								  "reg");
+				else
+					phy_reg = 0;
+
+				debug("ZYNQ GEM: addr %x, phyaddr %x\n",
+				      reg, phy_reg);
+
+				ret |= zynq_gem_initialize(NULL, reg,
+							   phy_reg, 0);
+
+			} else {
+				debug("ZYNQ GEM: Can't get base address\n");
+				return -1;
+			}
+		}
+	} while (offset != -1);
+
+	return ret;
+}
+#endif

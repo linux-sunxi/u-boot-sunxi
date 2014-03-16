@@ -2,7 +2,7 @@
 ifdef CONFIG_SPL
 ifndef CONFIG_SPL_BUILD
 ifndef CONFIG_SPL_FEL
-ALL-y = $(obj)u-boot-sunxi-with-spl.bin
+ALL-y += u-boot-sunxi-with-spl.bin
 endif
 endif
 endif

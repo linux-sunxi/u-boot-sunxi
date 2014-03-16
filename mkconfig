@@ -23,7 +23,7 @@ options=""
 
 if [ \( $# -eq 2 \) -a \( "$1" = "-A" \) ] ; then
 	# Automatic mode
-	line=`awk '($0 !~ /^#/ && $7 ~ /^'"$2"'$/) { print $1, $2, $3, $4, $5, $6, $7, $8 }' boards.cfg`
+	line=`awk '($0 !~ /^#/ && $7 ~ /^'"$2"'$/) { print $1, $2, $3, $4, $5, $6, $7, $8 }' $srctree/boards.cfg`
 	if [ -z "$line" ] ; then
 		echo "make: *** No rule to make target \`$2_config'.  Stop." >&2
 		exit 1
@@ -55,7 +55,9 @@ CONFIG_NAME="${7%_config}"
 arch="$2"
 cpu=`echo $3 | awk 'BEGIN {FS = ":"} ; {print $1}'`
 spl_cpu=`echo $3 | awk 'BEGIN {FS = ":"} ; {print $2}'`
-if [ "$6" = "-" ] ; then
+if [ "$6" = "<none>" ] ; then
+	board=
+elif [ "$6" = "-" ] ; then
 	board=${BOARD_NAME}
 else
 	board="$6"
@@ -178,8 +180,8 @@ echo "#define CONFIG_SYS_TARGET \"${BOARD_NAME}\"" >> config.h
 
 [ "${soc}"    ] && echo "#define CONFIG_SYS_SOC    \"${soc}\""    >> config.h
 
+[ "${board}"  ] && echo "#define CONFIG_BOARDDIR board/$BOARDDIR" >> config.h
 cat << EOF >> config.h
-#define CONFIG_BOARDDIR board/$BOARDDIR
 #include <config_cmd_defaults.h>
 #include <config_defaults.h>
 #include <configs/${CONFIG_NAME}.h>

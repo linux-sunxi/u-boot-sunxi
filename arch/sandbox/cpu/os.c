@@ -92,6 +92,11 @@ int os_close(int fd)
 	return close(fd);
 }
 
+int os_unlink(const char *pathname)
+{
+	return unlink(pathname);
+}
+
 void os_exit(int exit_code)
 {
 	exit(exit_code);
@@ -143,7 +148,7 @@ void *os_malloc(size_t length)
 	return hdr + 1;
 }
 
-void *os_free(void *ptr)
+void os_free(void *ptr)
 {
 	struct os_mem_hdr *hdr = ptr;
 

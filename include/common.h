@@ -8,9 +8,6 @@
 #ifndef __COMMON_H_
 #define __COMMON_H_	1
 
-#undef	_LINUX_CONFIG_H
-#define _LINUX_CONFIG_H 1	/* avoid reading Linux autoconf.h file	*/
-
 #ifndef __ASSEMBLY__		/* put C only stuff in this section */
 
 typedef unsigned char		uchar;
@@ -55,15 +52,12 @@ typedef volatile unsigned char	vu_char;
 #include <mpc5xxx.h>
 #elif defined(CONFIG_MPC512X)
 #include <asm/immap_512x.h>
-#elif defined(CONFIG_8260)
+#elif defined(CONFIG_MPC8260)
 #if   defined(CONFIG_MPC8247) \
    || defined(CONFIG_MPC8248) \
    || defined(CONFIG_MPC8271) \
    || defined(CONFIG_MPC8272)
 #define CONFIG_MPC8272_FAMILY	1
-#endif
-#if defined(CONFIG_MPC8272_FAMILY)
-#define CONFIG_MPC8260	1
 #endif
 #include <asm/immap_8260.h>
 #endif
@@ -98,6 +92,10 @@ typedef volatile unsigned char	vu_char;
 #include <part.h>
 #include <flash.h>
 #include <image.h>
+
+#ifdef __LP64__
+#define CONFIG_SYS_SUPPORT_64BIT_DATA
+#endif
 
 #ifdef DEBUG
 #define _DEBUG	1
@@ -305,9 +303,16 @@ int	checkdram     (void);
 int	last_stage_init(void);
 extern ulong monitor_flash_len;
 int mac_read_from_eeprom(void);
-extern u8 _binary_dt_dtb_start[];	/* embedded device tree blob */
+extern u8 __dtb_dt_begin[];	/* embedded device tree blob */
 int set_cpu_clk_info(void);
+#if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void);
+#else
+static inline int print_cpuinfo(void)
+{
+	return 0;
+}
+#endif
 int update_flash_size(int flash_size);
 
 /**
@@ -411,6 +416,9 @@ static inline int setenv_addr(const char *varname, const void *addr)
 #ifdef CONFIG_MIPS
 # include <asm/u-boot-mips.h>
 #endif /* CONFIG_MIPS */
+#ifdef CONFIG_ARC
+# include <asm/u-boot-arc.h>
+#endif /* CONFIG_ARC */
 
 #ifdef CONFIG_AUTO_COMPLETE
 int env_complete(char *var, int maxv, char *cmdv[], int maxsz, char *buf);
@@ -454,6 +462,7 @@ void	api_init (void);
 
 /* common/memsize.c */
 unsigned long	get_ram_size  (unsigned long *, unsigned long);
+phys_size_t get_effective_memsize(void);
 
 /* $(BOARD)/$(BOARD).c */
 void	reset_phy     (void);
@@ -657,7 +666,7 @@ int	get_clocks (void);
 int	get_clocks_866 (void);
 int	sdram_adjust_866 (void);
 int	adjust_sdram_tbs_8xx (void);
-#if defined(CONFIG_8260)
+#if defined(CONFIG_MPC8260)
 int	prt_8260_clks (void);
 #elif defined(CONFIG_MPC5xxx)
 int	prt_mpc5xxx_clks (void);
@@ -725,7 +734,7 @@ void	get_sys_info  ( sys_info_t * );
 #endif
 
 /* $(CPU)/cpu_init.c */
-#if defined(CONFIG_8xx) || defined(CONFIG_8260)
+#if defined(CONFIG_8xx) || defined(CONFIG_MPC8260)
 void	cpu_init_f    (volatile immap_t *immr);
 #endif
 #if defined(CONFIG_4xx) || defined(CONFIG_MPC85xx) || defined(CONFIG_MCF52x2) ||defined(CONFIG_MPC86xx)
@@ -733,7 +742,7 @@ void	cpu_init_f    (void);
 #endif
 
 int	cpu_init_r    (void);
-#if defined(CONFIG_8260)
+#if defined(CONFIG_MPC8260)
 int	prt_8260_rsr  (void);
 #elif defined(CONFIG_MPC83xx)
 int	prt_83xx_rsr  (void);
@@ -963,6 +972,22 @@ static inline phys_addr_t map_to_sysmem(const void *ptr)
 #define DIV_ROUND(n,d)		(((n) + ((d)/2)) / (d))
 #define DIV_ROUND_UP(n,d)	(((n) + (d) - 1) / (d))
 #define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
+
+/*
+ * Divide positive or negative dividend by positive divisor and round
+ * to closest integer. Result is undefined for negative divisors and
+ * for negative dividends if the divisor variable type is unsigned.
+ */
+#define DIV_ROUND_CLOSEST(x, divisor)(			\
+{							\
+	typeof(x) __x = x;				\
+	typeof(divisor) __d = divisor;			\
+	(((typeof(x))-1) > 0 ||				\
+	 ((typeof(divisor))-1) > 0 || (__x) > 0) ?	\
+		(((__x) + ((__d) / 2)) / (__d)) :	\
+		(((__x) - ((__d) / 2)) / (__d));	\
+}							\
+)
 
 #define ALIGN(x,a)		__ALIGN_MASK((x),(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))

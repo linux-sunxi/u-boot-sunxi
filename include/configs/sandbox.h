@@ -20,6 +20,14 @@
 
 #define CONFIG_BOOTSTAGE
 #define CONFIG_BOOTSTAGE_REPORT
+#define CONFIG_DM
+#define CONFIG_CMD_DEMO
+#define CONFIG_CMD_DM
+#define CONFIG_DM_DEMO
+#define CONFIG_DM_DEMO_SIMPLE
+#define CONFIG_DM_DEMO_SHAPE
+#define CONFIG_DM_GPIO
+#define CONFIG_DM_TEST
 
 /* Number of bits in a C 'long' on this architecture */
 #define CONFIG_SANDBOX_BITS_PER_LONG	64
@@ -32,6 +40,7 @@
 #define CONFIG_FIT_SIGNATURE
 #define CONFIG_RSA
 #define CONFIG_CMD_FDT
+#define CONFIG_DEFAULT_DEVICE_TREE	sandbox
 
 #define CONFIG_FS_FAT
 #define CONFIG_FS_EXT4
@@ -42,6 +51,7 @@
 #define CONFIG_CMD_PART
 #define CONFIG_DOS_PARTITION
 #define CONFIG_HOST_MAX_DEVICES 4
+#define CONFIG_CMD_FS_GENERIC
 
 #define CONFIG_SYS_VSNPRINTF
 
