@@ -110,7 +110,6 @@
 #define CONFIG_SYS_LONGHELP	/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER	/* use "hush" command parser    */
 #define CONFIG_CMD_ECHO
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16	/* max number of command args */
@@ -118,9 +117,6 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
-/* memtest works on */
-#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
-#define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + (256 << 20))
 #define CONFIG_SYS_LOAD_ADDR		0x50000000 /* default load address */
 
 /* standalone support */
@@ -128,9 +124,8 @@
 
 #define CONFIG_SYS_HZ			1000
 
-/* valid baudrates */
+/* baudrate */
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /* The stack sizes are set up in start.S using the settings below */
 #define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
