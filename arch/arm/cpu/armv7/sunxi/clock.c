@@ -26,7 +26,7 @@ static void clock_init_safe(void)
 	       APB0_DIV_1 << APB0_DIV_SHIFT |
 	       CPU_CLK_SRC_OSC24M << CPU_CLK_SRC_SHIFT,
 	       &ccm->cpu_ahb_apb0_cfg);
-	writel(0xa1005000, &ccm->pll1_cfg);
+	writel(PLL1_CFG_DEFAULT, &ccm->pll1_cfg);
 	sdelay(200);
 	writel(AXI_DIV_1 << AXI_DIV_SHIFT |
 	       AHB_DIV_2 << AHB_DIV_SHIFT |
@@ -36,11 +36,13 @@ static void clock_init_safe(void)
 #ifdef CONFIG_SUN5I
 	/* Power on reset default for PLL6 is 2400 MHz, which is faster then
 	 * it can reliable do :|  Set it to a 600 MHz instead. */
-	writel(0x21009911, &ccm->pll6_cfg);
+	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
 #endif
 #ifdef CONFIG_SUN7I
-	writel(0x1 << 6 | readl(&ccm->ahb_gate0), &ccm->ahb_gate0);
-	writel(0x1 << 31 | readl(&ccm->pll6_cfg), &ccm->pll6_cfg);
+	writel(0x1 << AHB_GATE_OFFSET_DMA | readl(&ccm->ahb_gate0),
+	       &ccm->ahb_gate0);
+	writel(0x1 << PLL6_ENABLE_OFFSET | readl(&ccm->pll6_cfg),
+	       &ccm->pll6_cfg);
 #endif
 }
 #endif
