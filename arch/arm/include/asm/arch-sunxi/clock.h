@@ -232,7 +232,7 @@ struct sunxi_ccm_reg {
 #ifndef __ASSEMBLY__
 int clock_init(void);
 int clock_twi_onoff(int port, int state);
-void clock_set_pll1(int mhz);
+void clock_set_pll1(int hz);
 unsigned int clock_get_pll5(void);
 #endif
 
