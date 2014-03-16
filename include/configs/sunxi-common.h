@@ -102,7 +102,7 @@
 
 /* Flat Device Tree (FDT/DT) support */
 #define CONFIG_OF_LIBFDT
-#define CONFIG_SYS_BOOTMAPSZ		(16 << 20)
+#define CONFIG_SYS_BOOTMAPSZ		(256 << 20)
 
 /*
  * Miscellaneous configurable options
