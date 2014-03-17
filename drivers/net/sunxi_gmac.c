@@ -31,7 +31,7 @@ int sunxi_gmac_initialize(bd_t *bis)
 		if (pin == SUNXI_GPA(9) || pin == SUNXI_GPA(14))
 		    continue;
 #endif
-		sunxi_gpio_set_cfgpin(pin, 5);
+		sunxi_gpio_set_cfgpin(pin, SUN7I_GPA0_GMAC);
 		sunxi_gpio_set_drv(pin, 3);
 	}
 
