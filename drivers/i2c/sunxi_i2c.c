@@ -19,8 +19,8 @@ void i2c_init(int speed, int slaveaddr)
 {
 	int timeout = 0x2ff;
 
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), 2);
-	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), 2);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(0), SUNXI_GPB0_TWI0);
+	sunxi_gpio_set_cfgpin(SUNXI_GPB(1), SUNXI_GPB0_TWI0);
 	clock_twi_onoff(0, 1);
 
 	/* Enable the i2c bus */
