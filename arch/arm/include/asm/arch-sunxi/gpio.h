@@ -102,20 +102,10 @@ enum sunxi_gpio_number {
 #define SUNXI_GPIO_INPUT	0
 #define SUNXI_GPIO_OUTPUT	1
 
-#define SUNXI_GPA0_ERXD3	2
-#define SUNXI_GPA0_SPI1_CS0	3
-#define SUNXI_GPA0_UART2_RTS	4
+#define SUNXI_GPA0_EMAC		2
+#define SUN7I_GPA0_GMAC		5
 
-#define SUNXI_GPA1_ERXD2	2
-#define SUNXI_GPA1_SPI1_CLK	3
-#define SUNXI_GPA1_UART2_CTS	4
-
-#define SUNXI_GPA2_ERXD1	2
-#define SUNXI_GPA2_SPI1_MOSI	3
-#define SUNXI_GPA2_UART2_TX	4
-
-#define SUNXI_GPA10_UART1_TX	4
-#define SUNXI_GPA11_UART1_RX	4
+#define SUNXI_GPB0_TWI0		2
 
 #define SUN4I_GPB22_UART0_TX	2
 #define SUN4I_GPB23_UART0_RX	2
@@ -126,32 +116,24 @@ enum sunxi_gpio_number {
 #define SUN5I_GPG3_UART0_TX	4
 #define SUN5I_GPG4_UART0_RX	4
 
-#define SUNXI_GPC2_NCLE		2
-#define SUNXI_GPC2_SPI0_CLK	3
+#define SUNXI_GPC6_SDC2		3
 
-#define SUNXI_GPC6_NRB0		2
-#define SUNXI_GPC6_SDC2_CMD	3
+#define SUNXI_GPF0_SDC0		2
 
-#define SUNXI_GPC7_NRB1		2
-#define SUNXI_GPC7_SDC2_CLK	3
-
-#define SUNXI_GPC8_NDQ0		2
-#define SUNXI_GPC8_SDC2_D0	3
-
-#define SUNXI_GPC9_NDQ1		2
-#define SUNXI_GPC9_SDC2_D1	3
-
-#define SUNXI_GPC10_NDQ2	2
-#define SUNXI_GPC10_SDC2_D2	3
-
-#define SUNXI_GPC11_NDQ3	2
-#define SUNXI_GPC11_SDC2_D3	3
-
-#define SUNXI_GPF2_SDC0_CLK	2
+#define SUNXI_GPF2_SDC0		2
 #define SUNXI_GPF2_UART0_TX	4
-
-#define SUNXI_GPF4_SDC0_D3	2
 #define SUNXI_GPF4_UART0_RX	4
+
+#define SUN4I_GPG0_SDC1		4
+
+#define SUN4I_GPH22_SDC1	5
+
+#define SUN4I_GPI4_SDC3		2
+
+/* GPIO pin pull-up/down config */
+#define SUNXI_GPIO_PULL_DISABLE	0
+#define SUNXI_GPIO_PULL_UP	1
+#define SUNXI_GPIO_PULL_DOWN	2
 
 int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
 int sunxi_gpio_get_cfgpin(u32 pin);
