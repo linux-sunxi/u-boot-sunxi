@@ -138,22 +138,11 @@ static int mmc_resource_init(int sdc_no)
 
 static int mmc_clk_io_on(int sdc_no)
 {
+	unsigned int pin;
 	unsigned int rval;
 	unsigned int pll5_clk;
 	unsigned int divider;
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
-	static struct sunxi_gpio *gpio_c =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_C];
-	static struct sunxi_gpio *gpio_f =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_F];
-#if CONFIG_MMC1_PG
-	static struct sunxi_gpio *gpio_g =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_G];
-#endif
-	static struct sunxi_gpio *gpio_h =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_H];
-	static struct sunxi_gpio *gpio_i =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[SUNXI_GPIO_I];
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	debug("init mmc %d clock and io\n", sdc_no);
@@ -162,40 +151,47 @@ static int mmc_clk_io_on(int sdc_no)
 	switch (sdc_no) {
 	case 0:
 		/* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
-		writel(0x222222, &gpio_f->cfg[0]);
-		writel(0x555, &gpio_f->pull[0]);
-		writel(0xaaa, &gpio_f->drv[0]);
+		for (pin = SUNXI_GPF(0); pin <= SUNXI_GPF(5); pin++) {
+			sunxi_gpio_set_cfgpin(pin, SUNXI_GPF0_SDC0);
+			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
+			sunxi_gpio_set_drv(pin, 2);
+		}
 		break;
 
 	case 1:
 #if CONFIG_MMC1_PG
 		/* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
-		writel(0x444444, &gpio_g->cfg[0]);
-		writel(0x555, &gpio_g->pull[0]);
-		writel(0xaaa, &gpio_g->drv[0]);
+		for (pin = SUNXI_GPG(0); pin <= SUNXI_GPG(5); pin++) {
+			sunxi_gpio_set_cfgpin(pin, SUN4I_GPG0_SDC1);
+			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
+			sunxi_gpio_set_drv(pin, 2);
+		}
 #else
 		/* PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5 */
-		writel(0x55 << 24, &gpio_h->cfg[2]);
-		writel(0x5555, &gpio_h->cfg[3]);
-		writel(0x555 << 12, &gpio_h->pull[1]);
-		writel(0xaaa << 12, &gpio_h->drv[1]);
+		for (pin = SUNXI_GPH(22); pin <= SUNXI_GPH(27); pin++) {
+			sunxi_gpio_set_cfgpin(pin, SUN4I_GPH22_SDC1);
+			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
+			sunxi_gpio_set_drv(pin, 2);
+		}
 #endif
 		break;
 
 	case 2:
 		/* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
-		writel(0x33 << 24, &gpio_c->cfg[0]);
-		writel(0x3333, &gpio_c->cfg[1]);
-		writel(0x555 << 12, &gpio_c->pull[0]);
-		writel(0xaaa << 12, &gpio_c->drv[0]);
+		for (pin = SUNXI_GPC(6); pin <= SUNXI_GPC(11); pin++) {
+			sunxi_gpio_set_cfgpin(pin, SUNXI_GPC6_SDC2);
+			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
+			sunxi_gpio_set_drv(pin, 2);
+		}
 		break;
 
 	case 3:
 		/* PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2 */
-		writel(0x2222 << 16, &gpio_i->cfg[0]);
-		writel(0x22, &gpio_i->cfg[1]);
-		writel(0x555 << 8, &gpio_i->pull[0]);
-		writel(0x555 << 8, &gpio_i->drv[0]);
+		for (pin = SUNXI_GPI(4); pin <= SUNXI_GPI(9); pin++) {
+			sunxi_gpio_set_cfgpin(pin, SUN4I_GPI4_SDC3);
+			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
+			sunxi_gpio_set_drv(pin, 2);
+		}
 		break;
 
 	default:
