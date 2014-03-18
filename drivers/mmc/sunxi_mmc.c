@@ -279,11 +279,12 @@ static void mmc_set_ios(struct mmc *mmc)
 
 	/* Change clock first */
 	clkdiv = (mmchost->mod_clk + (mmc->clock >> 1)) / mmc->clock / 2;
-	if (mmc->clock)
+	if (mmc->clock) {
 		if (mmc_config_clock(mmc, clkdiv)) {
 			mmchost->fatal_err = 1;
 			return;
 		}
+	}
 
 	/* Change bus width */
 	if (mmc->bus_width == 8)
