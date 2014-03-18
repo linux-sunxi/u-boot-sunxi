@@ -14,6 +14,13 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
+/*
+ * Unfortunately the only documentation we have on the sun7i DRAM
+ * controller is Allwinner boot0 + boot1 code, and that code uses
+ * magic numbers & shifts with no explanations. Hence this code is
+ * rather undocumented and full of magic.
+ */
+
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
