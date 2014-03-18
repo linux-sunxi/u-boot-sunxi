@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
 	fd_in = open(argv[1], O_RDONLY);
 	if (fd_in < 0) {
-		perror("Open input file:");
+		perror("Open input file");
 		return EXIT_FAILURE;
 	}
 
@@ -109,25 +109,26 @@ int main(int argc, char *argv[])
 
 	/* get input file size */
 	file_size = lseek(fd_in, 0, SEEK_END);
-	printf("File size: 0x%x\n", file_size);
 
 	if (file_size > SRAM_LOAD_MAX_SIZE) {
 		fprintf(stderr, "ERROR: File too large!\n");
 		return EXIT_FAILURE;
 	} else
 		load_size = ALIGN(file_size, sizeof(int));
-	printf("Load size: 0x%x\n", load_size);
 
 	fd_out = open(argv[2], O_WRONLY | O_CREAT, 0666);
 	if (fd_out < 0) {
-		perror("Open output file:");
+		perror("Open output file");
 		return EXIT_FAILURE;
 	}
 
 	/* read file to buffer to calculate checksum */
 	lseek(fd_in, 0, SEEK_SET);
 	count = read(fd_in, img.code, load_size);
-	printf("Read 0x%x bytes\n", count);
+	if (count != load_size) {
+		perror("Reading input image");
+		return EXIT_FAILURE;
+	}
 
 	/* fill the header */
 	img.header.jump_instruction =	/* b instruction */
@@ -140,7 +141,10 @@ int main(int argc, char *argv[])
 	gen_check_sum((void *)&img);
 
 	count = write(fd_out, (void *)&img, img.header.length);
-	printf("Write 0x%x bytes\n", count);
+	if (count != img.header.length) {
+		perror("Writing output");
+		return EXIT_FAILURE;
+	}
 
 	close(fd_in);
 	close(fd_out);
