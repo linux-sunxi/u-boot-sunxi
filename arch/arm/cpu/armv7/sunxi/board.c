@@ -31,7 +31,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* The sunxi internal brom will try to loader external bootloader
- * from mmc0, nannd flash, mmc2.
+ * from mmc0, nand flash, mmc2.
  * Unfortunately we can't check how SPL was loaded so assume
  * it's always the first SD/MMC controller
  */
