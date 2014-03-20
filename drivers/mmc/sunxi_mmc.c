@@ -227,12 +227,15 @@ static int mmc_update_clk(struct mmc *mmc)
 	unsigned int cmd;
 	unsigned timeout = 0xfffff;
 
-	cmd = (0x1 << 31) | (0x1 << 21) | (0x1 << 13);
+	cmd = SUNXI_MMC_CMD_START |
+	      SUNXI_MMC_CMD_UPCLK_ONLY |
+	      SUNXI_MMC_CMD_WAIT_PRE_OVER;
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & (0x1 << 31)) && timeout--);
+	while ((readl(&mmchost->reg->cmd) & SUNXI_MMC_CMD_START) && timeout--);
 	if (!timeout)
 		return -1;
 
+	/* clock update sets various irq status bits, clear these */
 	writel(readl(&mmchost->reg->rint), &mmchost->reg->rint);
 
 	return 0;
@@ -420,7 +423,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
-	unsigned int cmdval = 0x80000000;
+	unsigned int cmdval = SUNXI_MMC_CMD_START;
 	signed int timeout = 0;
 	int error = 0;
 	unsigned int status = 0;
@@ -434,30 +437,14 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	if (cmd->cmdidx == 12)
 		return 0;
 
-	/*
-	 * CMDREG
-	 * CMD[5:0]     : Command index
-	 * CMD[6]       : Has response
-	 * CMD[7]       : Long response
-	 * CMD[8]       : Check response CRC
-	 * CMD[9]       : Has data
-	 * CMD[10]      : Write
-	 * CMD[11]      : Steam mode
-	 * CMD[12]      : Auto stop
-	 * CMD[13]      : Wait previous over
-	 * CMD[14]      : About cmd
-	 * CMD[15]      : Send initialization
-	 * CMD[21]      : Update clock
-	 * CMD[31]      : Load cmd
-	 */
 	if (!cmd->cmdidx)
-		cmdval |= (0x1 << 15);
+		cmdval |= SUNXI_MMC_CMD_SEND_INIT_SEQ;
 	if (cmd->resp_type & MMC_RSP_PRESENT)
-		cmdval |= (0x1 << 6);
+		cmdval |= SUNXI_MMC_CMD_RESP_EXPIRE;
 	if (cmd->resp_type & MMC_RSP_136)
-		cmdval |= (0x1 << 7);
+		cmdval |= SUNXI_MMC_CMD_LONG_RESPONSE;
 	if (cmd->resp_type & MMC_RSP_CRC)
-		cmdval |= (0x1 << 8);
+		cmdval |= SUNXI_MMC_CMD_CHK_RESPONSE_CRC;
 
 	if (data) {
 		if ((u32) data->dest & 0x3) {
@@ -465,11 +452,11 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			goto out;
 		}
 
-		cmdval |= (0x1 << 9) | (0x1 << 13);
+		cmdval |= SUNXI_MMC_CMD_DATA_EXPIRE | SUNXI_MMC_CMD_WAIT_PRE_OVER;
 		if (data->flags & MMC_DATA_WRITE)
-			cmdval |= (0x1 << 10);
+			cmdval |= SUNXI_MMC_CMD_WRITE;
 		if (data->blocks > 1)
-			cmdval |= (0x1 << 12);
+			cmdval |= SUNXI_MMC_CMD_AUTO_STOP;
 		writel(data->blocksize, &mmchost->reg->blksz);
 		writel(data->blocks * data->blocksize, &mmchost->reg->bytecnt);
 	}
