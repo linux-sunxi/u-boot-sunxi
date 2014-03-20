@@ -102,7 +102,6 @@
 
 /* Flat Device Tree (FDT/DT) support */
 #define CONFIG_OF_LIBFDT
-#define CONFIG_SYS_BOOTMAPSZ		(256 << 20)
 
 /*
  * Miscellaneous configurable options
@@ -170,6 +169,7 @@
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootm_size=0x20000000\0" \
 	"console=ttyS0,115200\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
