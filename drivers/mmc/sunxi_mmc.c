@@ -419,6 +419,18 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	return 0;
 }
 
+static void mmc_enable_dma_accesses(struct mmc *mmc, int dma)
+{
+	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+
+	unsigned int gctrl = readl(&mmchost->reg->gctrl);
+	if (dma)
+		gctrl &= ~SUNXI_MMC_GCTRL_ACCESS_BY_AHB;
+	else
+		gctrl |= SUNXI_MMC_GCTRL_ACCESS_BY_AHB;
+	writel(gctrl, &mmchost->reg->gctrl);
+}
+
 static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
@@ -484,13 +496,11 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		if (0) {
 #endif
 			usedma = 1;
-			writel(readl(&mmchost->reg->gctrl) & ~(0x1 << 31),
-			       &mmchost->reg->gctrl);
+			mmc_enable_dma_accesses(mmc, 1);
 			ret = mmc_trans_data_by_dma(mmc, data);
 			writel(cmdval | cmd->cmdidx, &mmchost->reg->cmd);
 		} else {
-			writel(readl(&mmchost->reg->gctrl) | 0x1 << 31,
-			       &mmchost->reg->gctrl);
+			mmc_enable_dma_accesses(mmc, 0);
 			writel(cmdval | cmd->cmdidx, &mmchost->reg->cmd);
 			ret = mmc_trans_data_by_cpu(mmc, data);
 		}
