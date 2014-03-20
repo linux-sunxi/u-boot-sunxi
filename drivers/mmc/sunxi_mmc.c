@@ -231,7 +231,8 @@ static int mmc_update_clk(struct mmc *mmc)
 	      SUNXI_MMC_CMD_UPCLK_ONLY |
 	      SUNXI_MMC_CMD_WAIT_PRE_OVER;
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & SUNXI_MMC_CMD_START) && timeout--);
+	while ((readl(&mmchost->reg->cmd) & SUNXI_MMC_CMD_START) && timeout--)
+		;
 	if (!timeout)
 		return -1;
 
@@ -317,7 +318,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout &&
 			       (readl(&mmchost->reg->status) &
-				SUNXI_MMC_STATUS_FIFO_EMPTY));
+				SUNXI_MMC_STATUS_FIFO_EMPTY))
+				;
 			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
@@ -328,7 +330,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout &&
 			       (readl(&mmchost->reg->status) &
-				SUNXI_MMC_STATUS_FIFO_FULL));
+				SUNXI_MMC_STATUS_FIFO_FULL))
+				;
 			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
@@ -485,7 +488,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			goto out;
 		}
 
-		cmdval |= SUNXI_MMC_CMD_DATA_EXPIRE | SUNXI_MMC_CMD_WAIT_PRE_OVER;
+		cmdval |= SUNXI_MMC_CMD_DATA_EXPIRE|SUNXI_MMC_CMD_WAIT_PRE_OVER;
 		if (data->flags & MMC_DATA_WRITE)
 			cmdval |= SUNXI_MMC_CMD_WRITE;
 		if (data->blocks > 1)
