@@ -200,7 +200,7 @@ static int mmc_clk_io_on(int sdc_no)
 
 	/* config ahb clock */
 	rval = readl(&ccm->ahb_gate0);
-	rval |= (1 << (8 + sdc_no));
+	rval |= 1 << AHB_GATE_OFFSET_MMC(sdc_no);
 	writel(rval, &ccm->ahb_gate0);
 
 	/* config mod clock */
@@ -209,7 +209,8 @@ static int mmc_clk_io_on(int sdc_no)
 		divider = 4;
 	else
 		divider = 3;
-	writel((0x1 << 31) | (0x2 << 24) | divider, mmchost->mclkreg);
+	writel(CCM_MMC_CTRL_ENABLE | CCM_MMC_CTRL_PLL5 | divider,
+	       mmchost->mclkreg);
 	mmchost->mod_clk = pll5_clk / (divider + 1);
 
 	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);

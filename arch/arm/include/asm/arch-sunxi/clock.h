@@ -161,6 +161,7 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_MMC2		10
 #define AHB_GATE_OFFSET_MMC1		9
 #define AHB_GATE_OFFSET_MMC0		8
+#define AHB_GATE_OFFSET_MMC(n)		(AHB_GATE_OFFSET_MMC0 + (n))
 #define AHB_GATE_OFFSET_BIST		7
 #define AHB_GATE_OFFSET_DMA		6
 #define AHB_GATE_OFFSET_SS		5
@@ -221,6 +222,12 @@ struct sunxi_ccm_reg {
 #define CCM_MBUS_CTRL_CLK_SRC_PLL6 0x1
 #define CCM_MBUS_CTRL_CLK_SRC_PLL5 0x2
 #define CCM_MBUS_CTRL_GATE (0x1 << 31)
+
+#define CCM_MMC_CTRL_OSCM24 (0x0 << 24)
+#define CCM_MMC_CTRL_PLL6   (0x1 << 24)
+#define CCM_MMC_CTRL_PLL5   (0x2 << 24)
+
+#define CCM_MMC_CTRL_ENABLE (0x1 << 31)
 
 #define CCM_GMAC_CTRL_TX_CLK_SRC_MII 0x0
 #define CCM_GMAC_CTRL_TX_CLK_SRC_EXT_RGMII 0x1
