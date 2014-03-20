@@ -316,7 +316,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->dest;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout &&
-				 (readl(&mmchost->reg->status) & (0x1 << 2)));
+			       (readl(&mmchost->reg->status) &
+				SUNXI_MMC_STATUS_FIFO_EMPTY));
 			if (timeout <= 0)
 				goto out;
 			buff[i] = readl(mmchost->database);
@@ -326,7 +327,8 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 		buff = (unsigned int *)data->src;
 		for (i = 0; i < (byte_cnt >> 2); i++) {
 			while (--timeout &&
-				 (readl(&mmchost->reg->status) & (0x1 << 3)));
+			       (readl(&mmchost->reg->status) &
+				SUNXI_MMC_STATUS_FIFO_FULL));
 			if (timeout <= 0)
 				goto out;
 			writel(buff[i], mmchost->database);
@@ -553,7 +555,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 				error = TIMEOUT;
 				goto out;
 			}
-		} while (status & (1 << 9));
+		} while (status & SUNXI_MMC_STATUS_CARD_DATA_BUSY);
 	}
 
 	if (cmd->resp_type & MMC_RSP_136) {
