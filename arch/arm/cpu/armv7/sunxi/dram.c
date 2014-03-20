@@ -179,7 +179,7 @@ static u32 hpcr_value[32] = {
 	 * 0x1031, 0x0301, 0x0301, 0x0731
 	 * but boot0 code skips #28 and #30, and sets #29 and #31 to the
 	 * value from #28 entry (0x1031)
-         */
+	 */
 #endif
 };
 
@@ -271,7 +271,8 @@ static int dramc_scan_readpipe(void)
 	setbits_le32(&dram->ccr, DRAM_CCR_DATA_TRAINING);
 
 	/* check whether data training process has completed */
-	while (readl(&dram->ccr) & DRAM_CCR_DATA_TRAINING);
+	while (readl(&dram->ccr) & DRAM_CCR_DATA_TRAINING)
+		;
 
 	/* check data training result */
 	reg_val = readl(&dram->csr);
@@ -548,7 +549,8 @@ unsigned long dramc_init(struct dram_para *para)
 
 	udelay(1);
 
-	while (readl(&dram->ccr) & DRAM_CCR_INIT);
+	while (readl(&dram->ccr) & DRAM_CCR_INIT)
+		;
 
 	mctl_enable_dllx(para->tpr3);
 
@@ -604,7 +606,8 @@ unsigned long dramc_init(struct dram_para *para)
 #endif
 	/* reset external DRAM */
 	setbits_le32(&dram->ccr, DRAM_CCR_INIT);
-	while (readl(&dram->ccr) & DRAM_CCR_INIT);
+	while (readl(&dram->ccr) & DRAM_CCR_INIT)
+		;
 
 #ifdef CONFIG_SUN7I
 	/* setup zq calibration manual */
@@ -620,25 +623,29 @@ unsigned long dramc_init(struct dram_para *para)
 		/* exit self-refresh state */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
 		/* check whether command has been executed */
-		while (readl(&dram->dcr) & (0x1 << 31));
+		while (readl(&dram->dcr) & (0x1 << 31))
+			;
 
 		udelay(2);
 
 		/* dram pad hold off */
 		setbits_le32(&dram->ppwrsctl, 0x16510000);
 
-		while (readl(&dram->ppwrsctl) & 0x1);
+		while (readl(&dram->ppwrsctl) & 0x1)
+			;
 
 		/* exit self-refresh state */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
 
 		/* check whether command has been executed */
-		while (readl(&dram->dcr) & (0x1 << 31));
-		udelay(2);;
+		while (readl(&dram->dcr) & (0x1 << 31))
+			;
+		udelay(2);
 
 		/* issue a refresh command */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x13 << 27);
-		while (readl(&dram->dcr) & (0x1 << 31));
+		while (readl(&dram->dcr) & (0x1 << 31))
+			;
 
 		udelay(2);
 	}
