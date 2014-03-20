@@ -46,5 +46,24 @@ struct sunxi_mmc {
 	u32 fifo;		/* (0x100) SMC FIFO Access Address */
 };
 
+#define SUNXI_MMC_CLK_POWERSAVE		(0x1 << 17)
+#define SUNXI_MMC_CLK_ENABLE		(0x1 << 16)
+#define SUNXI_MMC_CLK_DIVIDER_MASK 	(0xff)
+
+#define SUNXI_MMC_GCTRL_SOFT_RESET	(0x1 << 0)
+#define SUNXI_MMC_GCTRL_FIFO_RESET	(0x1 << 1)
+#define SUNXI_MMC_GCTRL_DMA_RESET	(0x1 << 2)
+#define SUNXI_MMC_GCTRL_RESET		(SUNXI_MMC_GCTRL_SOFT_RESET|\
+					 SUNXI_MMC_GCTRL_FIFO_RESET|\
+					 SUNXI_MMC_GCTRL_DMA_RESET)
+#define SUNXI_MMC_GCTRL_DMA_ENABLE	(0x1 << 5)
+
+#define SUNXI_MMC_IDMAC_RESET		(0x1 << 0)
+#define SUNXI_MMC_IDMAC_FIXBURST	(0x1 << 1)
+#define SUNXI_MMC_IDMAC_ENABLE		(0x1 << 7)
+
+#define SUNXI_MMC_IDIE_TXIRQ		(0x1 << 0)
+#define SUNXI_MMC_IDIE_RXIRQ		(0x1 << 1)
+
 int sunxi_mmc_init(int sdc_no);
 #endif /* _SUNXI_MMC_H */

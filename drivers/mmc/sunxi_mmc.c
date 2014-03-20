@@ -242,25 +242,20 @@ static int mmc_config_clock(struct mmc *mmc, unsigned div)
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned rval = readl(&mmchost->reg->clkcr);
 
-	/*
-	 * CLKCREG[7:0]: divider
-	 * CLKCREG[16]:  on/off
-	 * CLKCREG[17]:  power save
-	 */
 	/* Disable Clock */
-	rval &= ~(0x1 << 16);
+	rval &= ~SUNXI_MMC_CLK_ENABLE;
 	writel(rval, &mmchost->reg->clkcr);
 	if (mmc_update_clk(mmc))
 		return -1;
 
 	/* Change Divider Factor */
-	rval &= ~(0xff);
+	rval &= ~SUNXI_MMC_CLK_DIVIDER_MASK;
 	rval |= div;
 	writel(rval, &mmchost->reg->clkcr);
 	if (mmc_update_clk(mmc))
 		return -1;
 	/* Re-enable Clock */
-	rval |= (0x1 << 16);
+	rval |= SUNXI_MMC_CLK_ENABLE;
 	writel(rval, &mmchost->reg->clkcr);
 
 	if (mmc_update_clk(mmc))
@@ -300,7 +295,7 @@ static int mmc_core_init(struct mmc *mmc)
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 
 	/* Reset controller */
-	writel(0x7, &mmchost->reg->gctrl);
+	writel(SUNXI_MMC_GCTRL_RESET, &mmchost->reg->gctrl);
 
 	return 0;
 }
@@ -397,32 +392,21 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	flush_cache((unsigned long)pdes,
 		    sizeof(struct sunxi_mmc_des) * (des_idx + 1));
 
-	/*
-	 * GCTRLREG
-	 * GCTRL[2]     : DMA reset
-	 * GCTRL[5]     : DMA enable
-	 *
-	 * IDMACREG
-	 * IDMAC[0]     : IDMA soft reset
-	 * IDMAC[1]     : IDMA fix burst flag
-	 * IDMAC[7]     : IDMA on
-	 *
-	 * IDIECREG
-	 * IDIE[0]      : IDMA transmit interrupt flag
-	 * IDIE[1]      : IDMA receive interrupt flag
-	 */
 	rval = readl(&mmchost->reg->gctrl);
 	/* Enable DMA */
-	writel(rval | (0x1 << 5) | (0x1 << 2), &mmchost->reg->gctrl);
+	writel(rval | SUNXI_MMC_GCTRL_DMA_RESET | SUNXI_MMC_GCTRL_DMA_ENABLE,
+	       &mmchost->reg->gctrl);
 	/* Reset iDMA */
-	writel((0x1 << 0), &mmchost->reg->dmac);
+	writel(SUNXI_MMC_IDMAC_RESET, &mmchost->reg->dmac);
 	/* Enable iDMA */
-	writel((0x1 << 1) | (1 << 7), &mmchost->reg->dmac);
-	rval = readl(&mmchost->reg->idie) & (~3);
+	writel(SUNXI_MMC_IDMAC_FIXBURST | SUNXI_MMC_IDMAC_ENABLE,
+	       &mmchost->reg->dmac);
+	rval = readl(&mmchost->reg->idie) &
+		~(SUNXI_MMC_IDIE_TXIRQ|SUNXI_MMC_IDIE_RXIRQ);
 	if (data->flags & MMC_DATA_WRITE)
-		rval |= (0x1 << 0);
+		rval |= SUNXI_MMC_IDIE_TXIRQ;
 	else
-		rval |= (0x1 << 1);
+		rval |= SUNXI_MMC_IDIE_RXIRQ;
 	writel(rval, &mmchost->reg->idie);
 	writel((u32) pdes, &mmchost->reg->dlba);
 	writel((0x2 << 28) | (0x7 << 16) | (0x01 << 3),
@@ -598,15 +582,16 @@ out:
 		writel(status, &mmchost->reg->idst);
 		writel(0, &mmchost->reg->idie);
 		writel(0, &mmchost->reg->dmac);
-		writel(readl(&mmchost->reg->gctrl) & ~(0x1 << 5),
+		writel(readl(&mmchost->reg->gctrl) & ~SUNXI_MMC_GCTRL_DMA_ENABLE,
 		       &mmchost->reg->gctrl);
 	}
 	if (error < 0) {
-		writel(0x7, &mmchost->reg->gctrl);
+		writel(SUNXI_MMC_GCTRL_RESET, &mmchost->reg->gctrl);
 		mmc_update_clk(mmc);
 	}
 	writel(0xffffffff, &mmchost->reg->rint);
-	writel(readl(&mmchost->reg->gctrl) | (1 << 1), &mmchost->reg->gctrl);
+	writel(readl(&mmchost->reg->gctrl) | SUNXI_MMC_GCTRL_FIFO_RESET,
+	       &mmchost->reg->gctrl);
 
 	return error;
 }
