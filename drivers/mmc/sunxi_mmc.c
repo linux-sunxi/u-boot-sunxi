@@ -433,6 +433,25 @@ static void mmc_enable_dma_accesses(struct mmc *mmc, int dma)
 	writel(gctrl, &mmchost->reg->gctrl);
 }
 
+static int mmc_rint_wait(struct mmc *mmc, signed int timeout,
+			 unsigned int done_bit, const char *what)
+{
+	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	unsigned int status;
+
+	do {
+		status = readl(&mmchost->reg->rint);
+		if (!timeout-- ||
+		    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
+			debug("%s timeout %x\n", what,
+			      status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT);
+			return TIMEOUT;
+		}
+	} while (!(status & done_bit));
+
+	return 0;
+}
+
 static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
@@ -514,36 +533,20 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		}
 	}
 
-	timeout = 0xfffff;
-	do {
-		status = readl(&mmchost->reg->rint);
-		if (!timeout-- ||
-		    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
-			error = status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT;
-			debug("cmd timeout %x\n", error);
-			error = TIMEOUT;
-			goto out;
-		}
-	} while (!(status & SUNXI_MMC_RINT_COMMAND_DONE));
+	error = mmc_rint_wait(mmc, 0xfffff, SUNXI_MMC_RINT_COMMAND_DONE, "cmd");
+	if (error)
+		goto out;
 
 	if (data) {
-		unsigned done = 0;
 		timeout = usedma ? 0xffff * bytecnt : 0xffff;
 		debug("cacl timeout %x\n", timeout);
-		do {
-			status = readl(&mmchost->reg->rint);
-			if (!timeout-- ||
-			    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
-				error = status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT;
-				debug("data timeout %x\n", error);
-				error = TIMEOUT;
-				goto out;
-			}
-			if (data->blocks > 1)
-				done = status & SUNXI_MMC_RINT_AUTO_COMMAND_DONE;
-			else
-				done = status & SUNXI_MMC_RINT_DATA_OVER;
-		} while (!done);
+		error = mmc_rint_wait(mmc, timeout,
+				      data->blocks > 1 ?
+				      SUNXI_MMC_RINT_AUTO_COMMAND_DONE :
+				      SUNXI_MMC_RINT_DATA_OVER,
+				      "data");
+		if (error)
+			goto out;
 	}
 
 	if (cmd->resp_type & MMC_RSP_BUSY) {
