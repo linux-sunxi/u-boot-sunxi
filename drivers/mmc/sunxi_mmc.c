@@ -505,7 +505,8 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			ret = mmc_trans_data_by_cpu(mmc, data);
 		}
 		if (ret) {
-			error = readl(&mmchost->reg->rint) & 0xbfc2;
+			error = readl(&mmchost->reg->rint) & \
+				SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT;
 			error = TIMEOUT;
 			goto out;
 		}
@@ -514,13 +515,14 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	timeout = 0xfffff;
 	do {
 		status = readl(&mmchost->reg->rint);
-		if (!timeout-- || (status & 0xbfc2)) {
-			error = status & 0xbfc2;
+		if (!timeout-- ||
+		    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
+			error = status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT;
 			debug("cmd timeout %x\n", error);
 			error = TIMEOUT;
 			goto out;
 		}
-	} while (!(status & 0x4));
+	} while (!(status & SUNXI_MMC_RINT_COMMAND_DONE));
 
 	if (data) {
 		unsigned done = 0;
@@ -528,16 +530,17 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		debug("cacl timeout %x\n", timeout);
 		do {
 			status = readl(&mmchost->reg->rint);
-			if (!timeout-- || (status & 0xbfc2)) {
-				error = status & 0xbfc2;
+			if (!timeout-- ||
+			    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
+				error = status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT;
 				debug("data timeout %x\n", error);
 				error = TIMEOUT;
 				goto out;
 			}
 			if (data->blocks > 1)
-				done = status & (0x1 << 14);
+				done = status & SUNXI_MMC_RINT_AUTO_COMMAND_DONE;
 			else
-				done = status & (0x1 << 3);
+				done = status & SUNXI_MMC_RINT_DATA_OVER;
 		} while (!done);
 	}
 
