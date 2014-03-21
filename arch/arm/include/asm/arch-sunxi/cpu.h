@@ -125,7 +125,7 @@ enum sunxi_boot_type_t {
 };
 
 void sunxi_board_init(void);
-extern void sunxi_reset(void);
+void sunxi_reset(void);
 #endif /* __ASSEMBLY__ */
 
 #endif /* _CPU_H */

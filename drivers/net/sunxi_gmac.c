@@ -29,7 +29,7 @@ int sunxi_gmac_initialize(bd_t *bis)
 #ifdef CONFIG_RGMII
 		/* skip unused pins in RGMII mode */
 		if (pin == SUNXI_GPA(9) || pin == SUNXI_GPA(14))
-		    continue;
+			continue;
 #endif
 		sunxi_gpio_set_cfgpin(pin, SUN7I_GPA0_GMAC);
 		sunxi_gpio_set_drv(pin, 3);

@@ -113,8 +113,9 @@ int main(int argc, char *argv[])
 	if (file_size > SRAM_LOAD_MAX_SIZE) {
 		fprintf(stderr, "ERROR: File too large!\n");
 		return EXIT_FAILURE;
-	} else
+	} else {
 		load_size = ALIGN(file_size, sizeof(int));
+	}
 
 	fd_out = open(argv[2], O_WRONLY | O_CREAT, 0666);
 	if (fd_out < 0) {
