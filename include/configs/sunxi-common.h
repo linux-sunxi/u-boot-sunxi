@@ -414,7 +414,6 @@
 #define CONFIG_DW_AUTONEG
 #define CONFIG_PHY_GIGE			/* GMAC can use gigabit PHY	*/
 #define CONFIG_PHY_ADDR		1
-#define CONFIG_SYS_DCACHE_OFF		/* dw driver doesn't support dcache */
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_PHYLIB
 #define CONFIG_CMD_MII
