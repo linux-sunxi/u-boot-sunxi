@@ -94,11 +94,8 @@
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
 #endif
 
-/*
- * Size of malloc() pool
- * 1MB = 0x100000, 0x100000 = 1024 * 1024
- */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (1 << 20))
+/* 4MB of malloc() pool */
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (4 << 20))
 
 /* Flat Device Tree (FDT/DT) support */
 #define CONFIG_OF_LIBFDT
