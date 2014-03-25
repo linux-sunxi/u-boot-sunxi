@@ -13,7 +13,7 @@
 #include <asm/arch/i2c.h>
 
 static struct i2c __attribute__ ((section(".data"))) *i2c_base =
-	(struct i2c *)0x1c2ac00;
+	(struct i2c *)SUNXI_TWI0_BASE;
 
 void i2c_init(int speed, int slaveaddr)
 {
