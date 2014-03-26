@@ -134,6 +134,10 @@ struct dram_para {
 
 #define DRAM_CSR_FAILED (0x1 << 20)
 
+#define DRAM_DRR_TRFC(n) ((n) & 0xff)
+#define DRAM_DRR_TREFI(n) (((n) & 0xffff) << 8)
+#define DRAM_DRR_BURST(n) ((((n) - 1) & 0xf) << 24)
+
 #define DRAM_MCR_MODE_NORM(n) (((n) & 0x3) << 0)
 #define DRAM_MCR_MODE_NORM_MASK DRAM_MCR_MOD_NORM(0x3)
 #define DRAM_MCR_MODE_DQ_OUT(n) (((n) & 0x3) << 2)

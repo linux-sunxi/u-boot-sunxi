@@ -412,53 +412,30 @@ static void dramc_clock_output_en(u32 on)
 #endif
 }
 
-#ifdef CONFIG_SUN4I
-static void dramc_set_autorefresh_cycle(u32 clk)
+static const u16 tRFC_table[2][6] = {
+	/*       256Mb    512Mb    1Gb      2Gb      4Gb      8Gb      */
+	/* DDR2  75ns     105ns    127.5ns  195ns    327.5ns  invalid  */
+	{        77,      108,     131,     200,     336,     336 },
+	/* DDR3  invalid  90ns     110ns    160ns    300ns    350ns    */
+	{        93,      93,      113,     164,     308,     359 }
+};
+
+static void dramc_set_autorefresh_cycle(u32 clk, u32 type, u32 density)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
-	u32 reg_val;
-	u32 tmp_val;
-	u32 reg_dcr;
+	u32 tRFC, tREFI;
 
-	if (clk < 600) {
-		reg_dcr = readl(&dram->dcr);
-		if ((reg_dcr & DRAM_DCR_CHIP_DENSITY_MASK) <=
-		    DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_1024M))
-			reg_val = (131 * clk) >> 10;
-		else
-			reg_val = (336 * clk) >> 10;
+	tRFC = (tRFC_table[type][density] * clk + 1023) >> 10;
+	tREFI = (7987 * clk) >> 10;	/* <= 7.8us */
 
-		tmp_val = (7987 * clk) >> 10;
-		tmp_val = tmp_val * 9 - 200;
-		reg_val |= tmp_val << 8;
-		reg_val |= 0x8 << 24;
-		writel(reg_val, &dram->drr);
-	} else {
-		writel(0x0, &dram->drr);
-	}
+	writel(DRAM_DRR_TREFI(tREFI) | DRAM_DRR_TRFC(tRFC), &dram->drr);
 }
-#endif /* SUN4I */
-
-#if defined(CONFIG_SUN5I) || defined(CONFIG_SUN7I)
-static void dramc_set_autorefresh_cycle(u32 clk)
-{
-	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
-	u32 reg_val;
-	u32 tmp_val;
-	reg_val = 0x83;
-
-	tmp_val = (7987 * clk) >> 10;
-	tmp_val = tmp_val * 9 - 200;
-	reg_val |= tmp_val << 8;
-	reg_val |= 0x8 << 24;
-	writel(reg_val, &dram->drr);
-}
-#endif /* SUN5I */
 
 unsigned long dramc_init(struct dram_para *para)
 {
 	struct sunxi_dram_reg *dram = (struct sunxi_dram_reg *)SUNXI_DRAMC_BASE;
 	u32 reg_val;
+	u32 density;
 	int ret_val;
 
 	/* check input dram parameter structure */
@@ -497,20 +474,21 @@ unsigned long dramc_init(struct dram_para *para)
 	reg_val |= DRAM_DCR_IO_WIDTH(para->io_width >> 3);
 
 	if (para->density == 256)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_256M);
+		density = DRAM_DCR_CHIP_DENSITY_256M;
 	else if (para->density == 512)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_512M);
+		density = DRAM_DCR_CHIP_DENSITY_512M;
 	else if (para->density == 1024)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_1024M);
+		density = DRAM_DCR_CHIP_DENSITY_1024M;
 	else if (para->density == 2048)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_2048M);
+		density = DRAM_DCR_CHIP_DENSITY_2048M;
 	else if (para->density == 4096)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_4096M);
+		density = DRAM_DCR_CHIP_DENSITY_4096M;
 	else if (para->density == 8192)
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_8192M);
+		density = DRAM_DCR_CHIP_DENSITY_8192M;
 	else
-		reg_val |= DRAM_DCR_CHIP_DENSITY(DRAM_DCR_CHIP_DENSITY_256M);
+		density = DRAM_DCR_CHIP_DENSITY_256M;
 
+	reg_val |= DRAM_DCR_CHIP_DENSITY(density);
 	reg_val |= DRAM_DCR_BUS_WIDTH((para->bus_width >> 3) - 1);
 	reg_val |= DRAM_DCR_RANK_SEL(para->rank_num - 1);
 	reg_val |= DRAM_DCR_CMD_RANK_ALL;
@@ -571,7 +549,7 @@ unsigned long dramc_init(struct dram_para *para)
 #endif
 
 	/* set refresh period */
-	dramc_set_autorefresh_cycle(para->clock);
+	dramc_set_autorefresh_cycle(para->clock, para->type - 2, density);
 
 	/* set timing parameters */
 	writel(para->tpr0, &dram->tpr0);
