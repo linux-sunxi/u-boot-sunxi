@@ -90,7 +90,7 @@ void s_init(void)
 	/* Enable SMP mode for CPU0, by setting bit 6 of Auxiliary Ctl reg */
 	asm volatile(
 		"mrc p15, 0, r0, c1, c0, 1\n"
-		"orr r0, r0, #0x40\n"
+		"orr r0, r0, #1 << 6\n"
 		"mcr p15, 0, r0, c1, c0, 1\n");
 #endif
 
