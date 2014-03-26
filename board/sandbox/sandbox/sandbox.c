@@ -4,7 +4,7 @@
  */
 
 #include <common.h>
-
+#include <dm.h>
 #include <os.h>
 
 /*
@@ -14,6 +14,11 @@
  */
 gd_t *gd;
 
+/* Add a simple GPIO device */
+U_BOOT_DEVICE(gpio_sandbox) = {
+	.name = "gpio_sandbox",
+};
+
 void flush_cache(unsigned long start, unsigned long size)
 {
 }
@@ -21,11 +26,6 @@ void flush_cache(unsigned long start, unsigned long size)
 unsigned long timer_read_counter(void)
 {
 	return os_get_nsec() / 1000;
-}
-
-int timer_init(void)
-{
-	return 0;
 }
 
 int dram_init(void)

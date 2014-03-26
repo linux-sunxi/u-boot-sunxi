@@ -31,7 +31,7 @@
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_MISC_INIT_R
 #define CONFIG_MXC_GPIO
-#define CONFIG_MV_UDC
+#define CONFIG_CI_UDC
 #define CONFIG_USBD_HS
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_ETHER
@@ -351,5 +351,16 @@
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_SUPPORT_RAW_INITRD
 #define CONFIG_CMD_FS_GENERIC
+
+/*
+ * PCI express
+ */
+#define CONFIG_CMD_PCI
+#ifdef CONFIG_CMD_PCI
+#define CONFIG_PCI
+#define CONFIG_PCI_PNP
+#define CONFIG_PCI_SCAN_SHOW
+#define CONFIG_PCIE_IMX
+#endif
 
 #endif	       /* __CONFIG_H */

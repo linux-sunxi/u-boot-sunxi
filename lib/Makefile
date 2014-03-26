@@ -66,5 +66,4 @@ obj-$(CONFIG_RANDOM_MACADDR) += rand.o
 obj-$(CONFIG_BOOTP_RANDOM_DELAY) += rand.o
 obj-$(CONFIG_CMD_LINK_LOCAL) += rand.o
 
-# SEE README.arm-unaligned-accesses
-$(obj)bzlib.o: CFLAGS += $(PLATFORM_NO_UNALIGNED)
+subdir-ccflags-$(CONFIG_CC_OPTIMIZE_LIBS_FOR_SPEED) += -O2
