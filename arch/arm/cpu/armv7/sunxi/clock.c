@@ -33,17 +33,11 @@ static void clock_init_safe(void)
 	       APB0_DIV_1 << APB0_DIV_SHIFT |
 	       CPU_CLK_SRC_PLL1 << CPU_CLK_SRC_SHIFT,
 	       &ccm->cpu_ahb_apb0_cfg);
-#ifdef CONFIG_SUN5I
-	/* Power on reset default for PLL6 is 2400 MHz, which is faster then
-	 * it can reliable do :|  Set it to a 600 MHz instead. */
-	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
-#endif
 #ifdef CONFIG_SUN7I
 	writel(0x1 << AHB_GATE_OFFSET_DMA | readl(&ccm->ahb_gate0),
 	       &ccm->ahb_gate0);
-	writel(0x1 << PLL6_ENABLE_OFFSET | readl(&ccm->pll6_cfg),
-	       &ccm->pll6_cfg);
 #endif
+	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
 }
 #endif
 
@@ -99,6 +93,16 @@ unsigned int clock_get_pll5(void)
 	int k = ((rval >> 4) & 3) + 1;
 	int p = 1 << ((rval >> 16) & 3);
 	return 24000000 * n * k / p;
+}
+
+unsigned int clock_get_pll6(void)
+{
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	uint32_t rval = readl(&ccm->pll6_cfg);
+	int n = (rval >> 8) & 0x1f;
+	int k = ((rval >> 4) & 3) + 1;
+	return 24000000 * n * k / 2;
 }
 
 int clock_twi_onoff(int port, int state)
