@@ -140,7 +140,7 @@ static int mmc_clk_io_on(int sdc_no)
 {
 	unsigned int pin;
 	unsigned int rval;
-	unsigned int pll5_clk;
+	unsigned int pll_clk;
 	unsigned int divider;
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
@@ -204,14 +204,12 @@ static int mmc_clk_io_on(int sdc_no)
 	writel(rval, &ccm->ahb_gate0);
 
 	/* config mod clock */
-	pll5_clk = clock_get_pll5();
-	if (pll5_clk > 400000000)
-		divider = 4;
-	else
-		divider = 3;
+	pll_clk = clock_get_pll5();
+	/* should be close to 100 MHz but no more, so round up */
+	divider = ((pll_clk + 99999999) / 100000000) - 1;
 	writel(CCM_MMC_CTRL_ENABLE | CCM_MMC_CTRL_PLL5 | divider,
 	       mmchost->mclkreg);
-	mmchost->mod_clk = pll5_clk / (divider + 1);
+	mmchost->mod_clk = pll_clk / (divider + 1);
 
 	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);
 	dumphex32("gpio", (char *)SUNXI_PIO_BASE, 0x100);
