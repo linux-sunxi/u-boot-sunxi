@@ -204,10 +204,10 @@ static int mmc_clk_io_on(int sdc_no)
 	writel(rval, &ccm->ahb_gate0);
 
 	/* config mod clock */
-	pll_clk = clock_get_pll5();
+	pll_clk = clock_get_pll6();
 	/* should be close to 100 MHz but no more, so round up */
 	divider = ((pll_clk + 99999999) / 100000000) - 1;
-	writel(CCM_MMC_CTRL_ENABLE | CCM_MMC_CTRL_PLL5 | divider,
+	writel(CCM_MMC_CTRL_ENABLE | CCM_MMC_CTRL_PLL6 | divider,
 	       mmchost->mclkreg);
 	mmchost->mod_clk = pll_clk / (divider + 1);
 
