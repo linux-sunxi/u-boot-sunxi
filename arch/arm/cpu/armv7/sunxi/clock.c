@@ -109,7 +109,6 @@ int clock_twi_onoff(int port, int state)
 #define PLL1_CFG(N, K, M, P)	(1 << 31 | 0 << 30 | 8 << 26 | 0 << 25 | \
 				 16 << 20 | (P) << 16 | 2 << 13 | (N) << 8 | \
 				 (K) << 4 | 0 << 3 | 0 << 2 | (M) << 0)
-#define RDIV(a, b)		((a + (b) - 1) / (b))
 
 struct {
 	u32 pll1_cfg;
@@ -146,8 +145,8 @@ void clock_set_pll1(int hz)
 	hz = pll1_para[i].freq;
 
 	/* Calculate system clock divisors */
-	axi = RDIV(hz, 432000000);		/* Max 450MHz */
-	ahb = RDIV(hz/axi, 204000000);		/* Max 250MHz */
+	axi = DIV_ROUND_UP(hz, 432000000);	/* Max 450MHz */
+	ahb = DIV_ROUND_UP(hz/axi, 204000000);	/* Max 250MHz */
 	apb0 = 2;				/* Max 150MHz */
 
 	printf("CPU: %dHz, AXI/AHB/APB: %d/%d/%d\n", hz, axi, ahb, apb0);
