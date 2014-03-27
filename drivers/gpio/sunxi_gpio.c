@@ -81,7 +81,7 @@ int gpio_set_value(unsigned gpio, int value)
 	return sunxi_gpio_output(gpio, value);
 }
 
-int name_to_gpio(const char *name)
+int sunxi_name_to_gpio(const char *name)
 {
 	int group = 0;
 	int groupsize = 9 * 32;
