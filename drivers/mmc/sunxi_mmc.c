@@ -346,8 +346,6 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 	buff = data->flags & MMC_DATA_READ ?
 	    (unsigned char *)data->dest : (unsigned char *)data->src;
 	remain = byte_cnt & (SDXC_DES_BUFFER_MAX_LEN - 1);
-	if (!remain)
-		remain = SDXC_DES_BUFFER_MAX_LEN;
 
 	flush_cache((unsigned long)buff, (unsigned long)byte_cnt);
 	for (i = 0; i < buff_frag_num; i++, des_idx++) {
@@ -356,9 +354,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		pdes[des_idx].own = 1;
 		pdes[des_idx].dic = 1;
 		if (buff_frag_num > 1 && i != buff_frag_num - 1)
-			pdes[des_idx].data_buf1_sz =
-			    (SDXC_DES_BUFFER_MAX_LEN -
-			     1) & SDXC_DES_BUFFER_MAX_LEN;
+			pdes[des_idx].data_buf1_sz = 0; /* 0 == max_len */
 		else
 			pdes[des_idx].data_buf1_sz = remain;
 
