@@ -15,7 +15,7 @@ obj-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
 obj-$(CONFIG_A13_OLINUXINO)	+= dram_a13_olinuxino.o
 obj-$(CONFIG_A13_OLINUXINOM)	+= dram_a13_oli_micro.o
 obj-$(CONFIG_A13_MID)		+= dram_a13_mid.o
-obj-$(CONFIG_A20_OLINUXINO_M)	+= dram_a20_olinuxino_m.o
+obj-$(CONFIG_A20_OLINUXINO_M)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_AUXTEK_T003)	+= dram_auxtek_t003.o
 # This is not a typo, uses the same mem settings as the a10s-olinuxino-m
 obj-$(CONFIG_AUXTEK_T004)	+= dram_a10s_olinuxino_m.o
@@ -31,7 +31,7 @@ obj-$(CONFIG_CUBIEBOARD2)	+= dram_cubieboard2.o
 obj-$(CONFIG_CUBIETRUCK)	+= dram_cubietruck.o
 obj-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
-obj-$(CONFIG_EOMA68_A20)	+= dram_eoma68_a20.o
+obj-$(CONFIG_EOMA68_A20)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_EU3000)		+= dram_eu3000.o
 obj-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 obj-$(CONFIG_H6)		+= dram_h6.o
