@@ -77,7 +77,7 @@ struct sunxi_mmc_des {
 	u32 data_buf1_sz:13;
 	u32 data_buf2_sz:13;
 	u32 reserverd2_1:6;
-#elif defined(CONFIG_SUN5I) || defined(CONFIG_SUN7I)
+#elif defined(CONFIG_SUN5I) || defined(CONFIG_SUN6I) || defined(CONFIG_SUN7I)
 #define SDXC_DES_NUM_SHIFT 16
 #define SDXC_DES_BUFFER_MAX_LEN	(1 << SDXC_DES_NUM_SHIFT)
 	u32 data_buf1_sz:16;
@@ -202,6 +202,13 @@ static int mmc_clk_io_on(int sdc_no)
 	rval = readl(&ccm->ahb_gate0);
 	rval |= 1 << AHB_GATE_OFFSET_MMC(sdc_no);
 	writel(rval, &ccm->ahb_gate0);
+
+#if defined(CONFIG_SUN6I)
+	/* unassert reset */
+	rval = readl(SUN6I_ABP1_RESET_BASE);
+	rval |= 1 << ABP1_RESET_OFFSET_MMC(sdc_no);
+	writel(rval, SUN6I_ABP1_RESET_BASE);
+#endif
 
 	/* config mod clock */
 	pll_clk = clock_get_pll6();

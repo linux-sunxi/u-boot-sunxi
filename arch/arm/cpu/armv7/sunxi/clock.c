@@ -58,6 +58,9 @@ int clock_init(void)
 
 	/* open the clock for uart */
 	sr32(&ccm->apb2_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+
+	/* Dup with clock_init_safe(), drop once sun6i SPL support lands */
+	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
 #else
 	/* uart clock source is apb1 */
 	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
