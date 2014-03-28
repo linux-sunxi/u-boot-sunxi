@@ -116,8 +116,12 @@ int clock_twi_onoff(int port, int state)
 	if (port > 2)
 		return -1;
 
-	/* set the apb1 clock gate for twi */
+	/* set the apb clock gate for twi */
+#if defined(CONFIG_SUN6I)
+	sr32(&ccm->apb2_gate, 0 + port, 1, state);
+#else
 	sr32(&ccm->apb1_gate, 0 + port, 1, state);
+#endif
 
 	return 0;
 }
