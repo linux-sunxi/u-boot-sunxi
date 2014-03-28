@@ -12,6 +12,10 @@ obj-y	+= board.o
 obj-y	+= clock.o
 obj-y	+= pinmux.o
 obj-y	+= watchdog.o
+obj-$(CONFIG_SUN4I)	+= clock_sun4i.o
+obj-$(CONFIG_SUN5I)	+= clock_sun4i.o
+obj-$(CONFIG_SUN6I)	+= clock_sun6i.o
+obj-$(CONFIG_SUN7I)	+= clock_sun4i.o
 ifdef DEBUG
 obj-y	+= early_print.o
 endif
