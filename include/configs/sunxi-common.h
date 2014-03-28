@@ -326,7 +326,9 @@
 #undef CONFIG_CMD_NFS
 
 /* I2C */
+#ifndef CONFIG_SUN6I
 #define CONFIG_SPL_I2C_SUPPORT
+#endif
 #define CONFIG_SYS_I2C_SPEED		400000
 #define CONFIG_HARD_I2C
 #define CONFIG_SUNXI_I2C

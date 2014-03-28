@@ -112,7 +112,12 @@ void s_init(void)
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
 
+#ifdef CONFIG_SUN6I
+	printf("sun6i SPL support is not yet complete\n");
+	hang();
+#else
 	sunxi_board_init();
+#endif
 #endif
 }
 

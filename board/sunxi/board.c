@@ -74,7 +74,7 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
-#ifdef CONFIG_SPL_BUILD
+#if defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SUN6I)
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
@@ -119,6 +119,7 @@ void sunxi_board_init(void)
 	else
 		printf("Failed to set core voltage! Can't set CPU frequency\n");
 }
+#endif
 
 #if defined(CONFIG_SPL_OS_BOOT) && defined(CONFIG_AXP209_POWER)
 int spl_start_uboot(void)
@@ -136,6 +137,4 @@ void spl_display_print(void)
 {
 	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
 }
-#endif
-
 #endif

@@ -21,6 +21,19 @@ static void clock_init_safe(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* Set safe defaults until PMU is configured */
+#if defined(CONFIG_SUN6I)
+	/* AXI and PLL1 settings from boot0 / boot1, PLL1 set to 486 Mhz */
+	writel(AXI_DIV_3 << AXI_DIV_SHIFT |
+	       ATB_DIV_2 << ATB_DIV_SHIFT |
+	       CPU_CLK_SRC_OSC24M << CPU_CLK_SRC_SHIFT,
+	       &ccm->cpu_axi_cfg);
+	writel(PLL1_CFG_DEFAULT, &ccm->pll1_cfg);
+	sdelay(200);
+	writel(AXI_DIV_3 << AXI_DIV_SHIFT |
+	       ATB_DIV_2 << ATB_DIV_SHIFT |
+	       CPU_CLK_SRC_PLL1 << CPU_CLK_SRC_SHIFT,
+	       &ccm->cpu_axi_cfg);
+#else
 	writel(AXI_DIV_1 << AXI_DIV_SHIFT |
 	       AHB_DIV_2 << AHB_DIV_SHIFT |
 	       APB0_DIV_1 << APB0_DIV_SHIFT |
@@ -33,6 +46,7 @@ static void clock_init_safe(void)
 	       APB0_DIV_1 << APB0_DIV_SHIFT |
 	       CPU_CLK_SRC_PLL1 << CPU_CLK_SRC_SHIFT,
 	       &ccm->cpu_ahb_apb0_cfg);
+#endif
 #ifdef CONFIG_SUN7I
 	writel(0x1 << AHB_GATE_OFFSET_DMA | readl(&ccm->ahb_gate0),
 	       &ccm->ahb_gate0);
@@ -58,6 +72,9 @@ int clock_init(void)
 
 	/* open the clock for uart */
 	sr32(&ccm->apb2_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+
+	/* deassert uart reset */
+	sr32((u32 *)SUN6I_ABP2_RESET_BASE, 16 + CONFIG_CONS_INDEX - 1, 1, 1);
 
 	/* Dup with clock_init_safe(), drop once sun6i SPL support lands */
 	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
@@ -126,7 +143,7 @@ int clock_twi_onoff(int port, int state)
 	return 0;
 }
 
-#ifdef CONFIG_SPL_BUILD
+#if defined(CONFIG_SPL_BUILD) && !defined(CONFIG_SUN6I)
 #define PLL1_CFG(N, K, M, P)	(1 << 31 | 0 << 30 | 8 << 26 | 0 << 25 | \
 				 16 << 20 | (P) << 16 | 2 << 13 | (N) << 8 | \
 				 (K) << 4 | 0 << 3 | 0 << 2 | (M) << 0)

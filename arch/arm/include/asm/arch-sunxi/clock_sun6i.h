@@ -141,6 +141,23 @@ struct sunxi_ccm_reg {
 #define APB2_FACTOR_M			0
 #define APB2_FACTOR_N			0
 
+/* cpu_axi_cfg bits */
+#define AXI_DIV_SHIFT			0
+#define ATB_DIV_SHIFT			8
+#define CPU_CLK_SRC_SHIFT		16
+
+#define AXI_DIV_1			0
+#define AXI_DIV_2			1
+#define AXI_DIV_3			2
+#define AXI_DIV_4			3
+#define ATB_DIV_1			0
+#define ATB_DIV_2			1
+#define ATB_DIV_4			2
+#define CPU_CLK_SRC_OSC24M		1
+#define CPU_CLK_SRC_PLL1		2
+
+#define PLL1_CFG_DEFAULT		0x90011b21
+
 #define PLL6_CFG_DEFAULT		0x90041911
 
 #define AHB_GATE_OFFSET_MMC3		11
@@ -155,6 +172,7 @@ struct sunxi_ccm_reg {
 #define CCM_MMC_CTRL_ENABLE (0x1 << 31)
 
 #define SUN6I_ABP1_RESET_BASE		0x01c202c0
+#define SUN6I_ABP2_RESET_BASE		0x01c202d8
 
 #define ABP1_RESET_OFFSET_MMC3		11
 #define ABP1_RESET_OFFSET_MMC2		10
