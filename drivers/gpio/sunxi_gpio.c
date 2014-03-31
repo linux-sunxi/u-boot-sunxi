@@ -19,8 +19,7 @@ static int sunxi_gpio_output(u32 pin, u32 val)
 	u32 dat;
 	u32 bank = GPIO_BANK(pin);
 	u32 num = GPIO_NUM(pin);
-	struct sunxi_gpio *pio =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank];
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
 
 	dat = readl(&pio->dat);
 	if (val)
@@ -38,8 +37,7 @@ static int sunxi_gpio_input(u32 pin)
 	u32 dat;
 	u32 bank = GPIO_BANK(pin);
 	u32 num = GPIO_NUM(pin);
-	struct sunxi_gpio *pio =
-	    &((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank];
+	struct sunxi_gpio *pio = BANK_TO_GPIO(bank);
 
 	dat = readl(&pio->dat);
 	dat >>= num;

@@ -10,6 +10,7 @@
 #define _SUNXI_GPIO_H
 
 #include <linux/types.h>
+#include <asm/arch/cpu.h>
 
 /*
  * sunxi has 9 banks of gpio, they are:
@@ -27,6 +28,15 @@
 #define SUNXI_GPIO_G	6
 #define SUNXI_GPIO_H	7
 #define SUNXI_GPIO_I	8
+#define SUNXI_GPIO_BANKS 9
+
+/*
+ * sun6i has atleast 1 additional bank, note banks J K don't exist!
+ * PL0 - PL1 at the very least is known.
+ *
+ * Note this bank is at a different register offset!
+ */
+#define SUNXI_GPIO_L	9
 
 struct sunxi_gpio {
 	u32 cfg[4];
@@ -44,10 +54,14 @@ struct sunxi_gpio_int {
 };
 
 struct sunxi_gpio_reg {
-	struct sunxi_gpio gpio_bank[9];
+	struct sunxi_gpio gpio_bank[SUNXI_GPIO_BANKS];
 	u8 res[0xbc];
 	struct sunxi_gpio_int gpio_int;
 };
+
+#define BANK_TO_GPIO(bank)	(((bank) < SUNXI_GPIO_BANKS) ? \
+	&((struct sunxi_gpio_reg *)SUNXI_PIO_BASE)->gpio_bank[bank] : \
+	(struct sunxi_gpio *)SUNXI_R_PIO_BASE)
 
 #define GPIO_BANK(pin)		((pin) >> 5)
 #define GPIO_NUM(pin)		((pin) & 0x1f)
@@ -71,6 +85,7 @@ struct sunxi_gpio_reg {
 #define SUNXI_GPIO_G_NR		32
 #define SUNXI_GPIO_H_NR		32
 #define SUNXI_GPIO_I_NR		32
+#define SUNXI_GPIO_L_NR		32
 
 #define SUNXI_GPIO_NEXT(__gpio) \
 	((__gpio##_START) + (__gpio##_NR) + 0)
@@ -85,6 +100,7 @@ enum sunxi_gpio_number {
 	SUNXI_GPIO_G_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_F),
 	SUNXI_GPIO_H_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_G),
 	SUNXI_GPIO_I_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_H),
+	SUNXI_GPIO_L_START = SUNXI_GPIO_NEXT(SUNXI_GPIO_I),
 };
 
 /* SUNXI GPIO number definitions */
@@ -97,6 +113,7 @@ enum sunxi_gpio_number {
 #define SUNXI_GPG(_nr)	(SUNXI_GPIO_G_START + (_nr))
 #define SUNXI_GPH(_nr)	(SUNXI_GPIO_H_START + (_nr))
 #define SUNXI_GPI(_nr)	(SUNXI_GPIO_I_START + (_nr))
+#define SUNXI_GPL(_nr)	(SUNXI_GPIO_L_START + (_nr))
 
 /* GPIO pin function config */
 #define SUNXI_GPIO_INPUT	0
