@@ -57,7 +57,7 @@
 /* A10 has 1 banks of DRAM, we use only bank 1 in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_0			CONFIG_SYS_SDRAM_BASE
-#ifdef CONFIG_SUN7I
+#if defined(CONFIG_SUN6I) || defined(CONFIG_SUN7I)
 #define PHYS_SDRAM_0_SIZE		0x80000000 /* 2 GiB */
 #else
 #define PHYS_SDRAM_0_SIZE		0x40000000 /* 1 GiB */
