@@ -34,6 +34,23 @@ int axp221_set_dcdc5(unsigned int mvolt)
 	return p2wi_write(AXP221_DCDC5_CTRL, (mvolt - 600) / 20);
 }
 
+int axp221_set_dldo1(unsigned int mvolt)
+{
+	int ret;
+	u8 val;
+
+	ret = p2wi_write(AXP221_DLDO1_CTRL, (mvolt - 700) / 100);
+	if (ret)
+		return ret;
+
+	ret = p2wi_read(AXP221_OUTPUT_CTRL2, &val);
+	if (ret)
+		return ret;
+
+	val |= 1 << 3;
+	return p2wi_write(AXP221_OUTPUT_CTRL2, val);
+}
+
 int axp221_init(void)
 {
 	u8 axp_chip_id;

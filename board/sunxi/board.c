@@ -117,6 +117,9 @@ void sunxi_board_init(void)
 	power_failed |= axp221_set_dcdc3(1260);
 	power_failed |= axp221_set_dcdc4(1200);
 	power_failed |= axp221_set_dcdc5(1500);
+#ifdef CONFIG_ENABLE_DLDO1_POWER
+	power_failed |= axp221_set_dldo1(3300);
+#endif
 #endif
 
 #if !defined(CONFIG_SUN6I)

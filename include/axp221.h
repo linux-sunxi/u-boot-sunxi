@@ -11,6 +11,10 @@
 #define AXP221_INIT_DATA 0x3e
 
 #define AXP221_CHIP_ID		0x03
+#define AXP221_OUTPUT_CTRL1	0x10
+#define AXP221_OUTPUT_CTRL2	0x12
+#define AXP221_OUTPUT_CTRL3	0x13
+#define AXP221_DLDO1_CTRL	0x15
 #define AXP221_DCDC1_CTRL	0x21
 #define AXP221_DCDC2_CTRL	0x22
 #define AXP221_DCDC3_CTRL	0x23
@@ -22,4 +26,5 @@ int axp221_set_dcdc2(unsigned int mvolt);
 int axp221_set_dcdc3(unsigned int mvolt);
 int axp221_set_dcdc4(unsigned int mvolt);
 int axp221_set_dcdc5(unsigned int mvolt);
+int axp221_set_dldo1(unsigned int mvolt);
 int axp221_init(void);
