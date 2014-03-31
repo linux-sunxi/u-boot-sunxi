@@ -111,13 +111,10 @@ void s_init(void)
 	/* Needed early by sunxi_board_init if PMU is enabled */
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
-
-#ifdef CONFIG_SUN6I
-	printf("sun6i SPL support is not yet complete\n");
-	hang();
-#else
-	sunxi_board_init();
 #endif
+/* No SPL on sun6i, so we do sunxi_board_init() from non spl there */
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUN6I)
+	sunxi_board_init();
 #endif
 }
 
