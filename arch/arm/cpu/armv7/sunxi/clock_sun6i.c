@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
+#include <asm/arch/prcm.h>
 #include <asm/arch/sys_proto.h>
 
 #ifdef CONFIG_SPL_BUILD
@@ -21,6 +22,19 @@ void clock_init_safe(void)
 {
 	struct sunxi_ccm_reg * const ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	struct sunxi_prcm_reg * const prcm =
+		(struct sunxi_prcm_reg *)SUNXI_PRCM_BASE;
+
+	/* Set PLL ldo voltage without this PLL6 does not work properly */
+	writel(PRCM_PLL_CTRL_LDO_DIGITAL_EN | PRCM_PLL_CTRL_LDO_ANALOG_EN |
+		PRCM_PLL_CTRL_EXT_OSC_EN | PRCM_PLL_CTRL_LDO_OUT_L(1140) |
+		PRCM_PLL_CTRL_LDO_KEY, &prcm->pll_ctrl1);
+	writel(PRCM_PLL_CTRL_LDO_DIGITAL_EN | PRCM_PLL_CTRL_LDO_ANALOG_EN |
+		PRCM_PLL_CTRL_EXT_OSC_EN | PRCM_PLL_CTRL_LDO_OUT_L(1140) |
+		PRCM_PLL_CTRL_LDO_KEY, &prcm->pll_ctrl1);
+	writel(PRCM_PLL_CTRL_LDO_DIGITAL_EN | PRCM_PLL_CTRL_LDO_ANALOG_EN |
+		PRCM_PLL_CTRL_EXT_OSC_EN | PRCM_PLL_CTRL_LDO_OUT_L(1140),
+		&prcm->pll_ctrl1);
 
 	/* AXI and PLL1 settings from boot0 / boot1, PLL1 set to 486 Mhz */
 	writel(AXI_DIV_3 << AXI_DIV_SHIFT |
