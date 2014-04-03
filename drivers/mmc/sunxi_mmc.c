@@ -423,7 +423,7 @@ static void mmc_enable_dma_accesses(struct mmc *mmc, int dma)
 	writel(gctrl, &mmchost->reg->gctrl);
 }
 
-static int mmc_rint_wait(struct mmc *mmc, signed int timeout,
+static int mmc_rint_wait(struct mmc *mmc, unsigned int timeout_msecs,
 			 unsigned int done_bit, const char *what)
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
@@ -431,12 +431,13 @@ static int mmc_rint_wait(struct mmc *mmc, signed int timeout,
 
 	do {
 		status = readl(&mmchost->reg->rint);
-		if (!timeout-- ||
+		if (!timeout_msecs-- ||
 		    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
 			debug("%s timeout %x\n", what,
 			      status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT);
 			return TIMEOUT;
 		}
+		udelay(1000);
 	} while (!(status & done_bit));
 
 	return 0;
@@ -447,7 +448,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int cmdval = SUNXI_MMC_CMD_START;
-	signed int timeout = 0;
+	unsigned int timeout_msecs;
 	int error = 0;
 	unsigned int status = 0;
 	unsigned int usedma = 0;
@@ -528,9 +529,9 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		goto out;
 
 	if (data) {
-		timeout = usedma ? 0xffff * bytecnt : 0xffff;
-		debug("cacl timeout %x\n", timeout);
-		error = mmc_rint_wait(mmc, timeout,
+		timeout_msecs = usedma ? 120 * bytecnt : 120;
+		debug("cacl timeout %x msec\n", timeout_msecs);
+		error = mmc_rint_wait(mmc, timeout_msecs,
 				      data->blocks > 1 ?
 				      SUNXI_MMC_RINT_AUTO_COMMAND_DONE :
 				      SUNXI_MMC_RINT_DATA_OVER,
@@ -540,14 +541,15 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 
 	if (cmd->resp_type & MMC_RSP_BUSY) {
-		timeout = 0xfffff;
+		timeout_msecs = 2000;
 		do {
 			status = readl(&mmchost->reg->status);
-			if (!timeout--) {
+			if (!timeout_msecs--) {
 				debug("busy timeout\n");
 				error = TIMEOUT;
 				goto out;
 			}
+			udelay(1000);
 		} while (status & SUNXI_MMC_STATUS_CARD_DATA_BUSY);
 	}
 
