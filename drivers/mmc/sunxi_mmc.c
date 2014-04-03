@@ -225,16 +225,17 @@ static int mmc_update_clk(struct mmc *mmc)
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
 	unsigned int cmd;
-	unsigned timeout = 0xfffff;
+	unsigned timeout_msecs = 2000;
 
 	cmd = SUNXI_MMC_CMD_START |
 	      SUNXI_MMC_CMD_UPCLK_ONLY |
 	      SUNXI_MMC_CMD_WAIT_PRE_OVER;
 	writel(cmd, &mmchost->reg->cmd);
-	while ((readl(&mmchost->reg->cmd) & SUNXI_MMC_CMD_START) && timeout--)
-		;
-	if (!timeout)
-		return -1;
+	while (readl(&mmchost->reg->cmd) & SUNXI_MMC_CMD_START) {
+		if (!timeout_msecs--)
+			return -1;
+		udelay(1000);
+	}
 
 	/* clock update sets various irq status bits, clear these */
 	writel(readl(&mmchost->reg->rint), &mmchost->reg->rint);
