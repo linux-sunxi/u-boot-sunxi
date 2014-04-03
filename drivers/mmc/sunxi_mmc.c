@@ -313,14 +313,15 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 					      SUNXI_MMC_STATUS_FIFO_FULL;
 	unsigned i;
 	unsigned byte_cnt = data->blocksize * data->blocks;
-	unsigned timeout = 0xfffff;
+	unsigned timeout_msecs = 2000;
 	unsigned *buff = (unsigned int *)(reading ? data->dest : data->src);
 
 	for (i = 0; i < (byte_cnt >> 2); i++) {
-		while (--timeout && (readl(&mmchost->reg->status) & status_bit))
-			;
-		if (timeout <= 0)
-			return -1;
+		while (readl(&mmchost->reg->status) & status_bit) {
+			if (!timeout_msecs--)
+				return -1;
+			udelay(1000);
+		}
 
 		if (reading)
 			buff[i] = readl(mmchost->database);
