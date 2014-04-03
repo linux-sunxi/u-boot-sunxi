@@ -77,7 +77,6 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_INITRD_TAG
-#define CONFIG_CMDLINE_EDITING
 
 /* mmc config */
 /* Can't use MMC slot 0 if the UART is directed there */
@@ -97,14 +96,9 @@
 /* 4MB of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (4 << 20))
 
-/* Flat Device Tree (FDT/DT) support */
-#define CONFIG_OF_LIBFDT
-
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP	/* undef to save memory */
-#define CONFIG_SYS_HUSH_PARSER	/* use "hush" command parser    */
 #define CONFIG_CMD_ECHO
 #define CONFIG_SYS_CBSIZE	256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
@@ -248,21 +242,11 @@
 	  "\0" \
 	""
 
-#define CONFIG_BOOTDELAY	3
 #define CONFIG_SYS_BOOT_GET_CMDLINE
-#define CONFIG_AUTO_COMPLETE
 
 #include <config_cmd_default.h>
 
-/* Accept zimage + raw ramdisk without mkimage headers */
-#define CONFIG_CMD_BOOTZ
-#define CONFIG_SUPPORT_RAW_INITRD
-
-#define CONFIG_DOS_PARTITION
-#define CONFIG_CMD_FAT		/* with this we can access fat bootfs */
 #define CONFIG_FAT_WRITE	/* enable write access */
-#define CONFIG_CMD_EXT2		/* with this we can access ext2 bootfs */
-#define CONFIG_CMD_EXT4		/* with this we can access ext4 bootfs */
 
 #define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
@@ -407,8 +391,6 @@
 /* Ethernet support */
 #ifdef CONFIG_SUNXI_EMAC
 #define CONFIG_MII			/* MII PHY management		*/
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
 #endif
 
 #ifdef CONFIG_SUNXI_GMAC
@@ -418,25 +400,16 @@
 #define CONFIG_PHY_ADDR		1
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_PHYLIB
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
 #endif
 
 #ifdef CONFIG_CMD_NET
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_SNTP
 #define CONFIG_TIMESTAMP		/* Needed by SNTP */
 #define CONFIG_CMD_DNS
 #define CONFIG_NETCONSOLE
-#define CONFIG_BOOTP_SUBNETMASK
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 #define CONFIG_BOOTP_NISDOMAIN
-#define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_BOOTP_NTPSERVER
@@ -444,7 +417,6 @@
 #define CONFIG_BOOTP_MAY_FAIL
 #define CONFIG_BOOTP_SERVERIP
 #define CONFIG_BOOTP_DHCP_REQUEST_DELAY		50000
-#define CONFIG_CMD_ELF
 #endif
 
 #if !defined CONFIG_ENV_IS_IN_MMC && \
@@ -452,6 +424,10 @@
     !defined CONFIG_ENV_IS_IN_FAT && \
     !defined CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_IS_NOWHERE
+#endif
+
+#ifndef CONFIG_SPL_BUILD
+#include <config_distro_defaults.h>
 #endif
 
 #endif /* _SUNXI_COMMON_CONFIG_H */
