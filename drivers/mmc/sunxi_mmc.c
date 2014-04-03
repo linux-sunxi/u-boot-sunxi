@@ -308,40 +308,25 @@ static int mmc_core_init(struct mmc *mmc)
 static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 {
 	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	const int reading = !!(data->flags & MMC_DATA_READ);
+	const uint32_t status_bit = reading ? SUNXI_MMC_STATUS_FIFO_EMPTY :
+					      SUNXI_MMC_STATUS_FIFO_FULL;
 	unsigned i;
 	unsigned byte_cnt = data->blocksize * data->blocks;
-	unsigned *buff;
 	unsigned timeout = 0xfffff;
+	unsigned *buff = (unsigned int *)(reading ? data->dest : data->src);
 
-	if (data->flags & MMC_DATA_READ) {
-		buff = (unsigned int *)data->dest;
-		for (i = 0; i < (byte_cnt >> 2); i++) {
-			while (--timeout &&
-			       (readl(&mmchost->reg->status) &
-				SUNXI_MMC_STATUS_FIFO_EMPTY))
-				;
-			if (timeout <= 0)
-				goto out;
+	for (i = 0; i < (byte_cnt >> 2); i++) {
+		while (--timeout && (readl(&mmchost->reg->status) & status_bit))
+			;
+		if (timeout <= 0)
+			return -1;
+
+		if (reading)
 			buff[i] = readl(mmchost->database);
-			timeout = 0xfffff;
-		}
-	} else {
-		buff = (unsigned int *)data->src;
-		for (i = 0; i < (byte_cnt >> 2); i++) {
-			while (--timeout &&
-			       (readl(&mmchost->reg->status) &
-				SUNXI_MMC_STATUS_FIFO_FULL))
-				;
-			if (timeout <= 0)
-				goto out;
+		else
 			writel(buff[i], mmchost->database);
-			timeout = 0xfffff;
-		}
 	}
-
-out:
-	if (timeout <= 0)
-		return -1;
 
 	return 0;
 }
