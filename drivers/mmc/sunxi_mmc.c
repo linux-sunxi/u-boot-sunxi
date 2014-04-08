@@ -96,10 +96,10 @@ struct sunxi_mmc_host {
 	unsigned fatal_err;
 	unsigned mod_clk;
 	struct sunxi_mmc *reg;
+	struct mmc_config cfg;
 };
 
 /* support 4 mmc hosts */
-struct mmc mmc_dev[4];
 struct sunxi_mmc_host mmc_host[4];
 
 static int mmc_resource_init(int sdc_no)
@@ -228,7 +228,7 @@ static int mmc_clk_io_on(int sdc_no)
 
 static int mmc_update_clk(struct mmc *mmc)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned int cmd;
 	unsigned timeout_msecs = 2000;
 
@@ -250,7 +250,7 @@ static int mmc_update_clk(struct mmc *mmc)
 
 static int mmc_config_clock(struct mmc *mmc, unsigned div)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned rval = readl(&mmchost->reg->clkcr);
 
 	/* Disable Clock */
@@ -277,7 +277,7 @@ static int mmc_config_clock(struct mmc *mmc, unsigned div)
 
 static void mmc_set_ios(struct mmc *mmc)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned int clkdiv = 0;
 
 	debug("set ios: bus_width: %x, clock: %d, mod_clk: %d\n",
@@ -303,7 +303,7 @@ static void mmc_set_ios(struct mmc *mmc)
 
 static int mmc_core_init(struct mmc *mmc)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 
 	/* Reset controller */
 	writel(SUNXI_MMC_GCTRL_RESET, &mmchost->reg->gctrl);
@@ -313,7 +313,7 @@ static int mmc_core_init(struct mmc *mmc)
 
 static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	const int reading = !!(data->flags & MMC_DATA_READ);
 	const uint32_t status_bit = reading ? SUNXI_MMC_STATUS_FIFO_EMPTY :
 					      SUNXI_MMC_STATUS_FIFO_FULL;
@@ -340,7 +340,7 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 
 static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned byte_cnt = data->blocksize * data->blocks;
 	unsigned char *buff;
 	unsigned des_idx = 0;
@@ -414,7 +414,7 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 
 static void mmc_enable_dma_accesses(struct mmc *mmc, int dma)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 
 	unsigned int gctrl = readl(&mmchost->reg->gctrl);
 	if (dma)
@@ -427,7 +427,7 @@ static void mmc_enable_dma_accesses(struct mmc *mmc, int dma)
 static int mmc_rint_wait(struct mmc *mmc, unsigned int timeout_msecs,
 			 unsigned int done_bit, const char *what)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned int status;
 
 	do {
@@ -447,7 +447,7 @@ static int mmc_rint_wait(struct mmc *mmc, unsigned int timeout_msecs,
 static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
-	struct sunxi_mmc_host *mmchost = (struct sunxi_mmc_host *)mmc->priv;
+	struct sunxi_mmc_host *mmchost = mmc->priv;
 	unsigned int cmdval = SUNXI_MMC_CMD_START;
 	unsigned int timeout_msecs;
 	int error = 0;
@@ -595,31 +595,34 @@ out:
 	return error;
 }
 
+static const struct mmc_ops sunxi_mmc_ops = {
+	.send_cmd	= mmc_send_cmd,
+	.set_ios	= mmc_set_ios,
+	.init		= mmc_core_init,
+};
+
 int sunxi_mmc_init(int sdc_no)
 {
-	struct mmc *mmc;
+	struct mmc_config *cfg = &mmc_host[sdc_no].cfg;
 
-	memset(&mmc_dev[sdc_no], 0, sizeof(struct mmc));
 	memset(&mmc_host[sdc_no], 0, sizeof(struct sunxi_mmc_host));
-	mmc = &mmc_dev[sdc_no];
 
-	sprintf(mmc->name, "SUNXI SD/MMC");
-	mmc->priv = &mmc_host[sdc_no];
-	mmc->send_cmd = mmc_send_cmd;
-	mmc->set_ios = mmc_set_ios;
-	mmc->init = mmc_core_init;
+	cfg->name = "SUNXI SD/MMC";
+	cfg->ops  = &sunxi_mmc_ops;
 
-	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
-	mmc->host_caps = MMC_MODE_4BIT;
-	mmc->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
+	cfg->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
+	cfg->host_caps = MMC_MODE_4BIT;
+	cfg->host_caps |= MMC_MODE_HS_52MHz | MMC_MODE_HS;
+	cfg->b_max = CONFIG_SYS_MMC_MAX_BLK_COUNT;
 
-	mmc->f_min = 400000;
-	mmc->f_max = 52000000;
+	cfg->f_min = 400000;
+	cfg->f_max = 52000000;
 
 	mmc_resource_init(sdc_no);
 	mmc_clk_io_on(sdc_no);
 
-	mmc_register(mmc);
+	if (mmc_create(cfg, &mmc_host[sdc_no]) == NULL)
+		return -1;
 
 	return 0;
 }
