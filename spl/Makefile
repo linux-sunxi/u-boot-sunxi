@@ -223,7 +223,7 @@ endif
 
 ifdef CONFIG_SUNXI
 quiet_cmd_mksunxiboot = MKSUNXI $@
-cmd_mksunxiboot = $(OBJTREE)/tools/mksunxiboot $< $@
+cmd_mksunxiboot = $(objtree)/tools/mksunxiboot $< $@
 $(obj)/sunxi-spl.bin: $(obj)/$(SPL_BIN).bin
 	$(call if_changed,mksunxiboot)
 endif
