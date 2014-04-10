@@ -114,10 +114,10 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
-#define CONFIG_SYS_LOAD_ADDR		0x50000000 /* default load address */
+#define CONFIG_SYS_LOAD_ADDR		0x48000000 /* default load address */
 
 /* standalone support */
-#define CONFIG_STANDALONE_LOAD_ADDR	0x50000000
+#define CONFIG_STANDALONE_LOAD_ADDR	0x48000000
 
 #define CONFIG_SYS_HZ			1000
 
