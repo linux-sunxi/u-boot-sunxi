@@ -28,18 +28,26 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define TIMER_NUM		0	/* we use timer 0 */
 
-static struct sunxi_timer *timer_base =
-	&((struct sunxi_timer_reg *)SUNXI_TIMER_BASE)->timer[TIMER_NUM];
-
-/* macro to read the 32 bit timer: since it decrements, we invert read value */
-#define READ_TIMER() (~readl(&timer_base->val))
+/* read the 32-bit timer */
+static ulong read_timer(void)
+{
+	struct sunxi_timer_reg *timers =
+		(struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	struct sunxi_timer *timer = &timers->timer[TIMER_NUM];
+	/* The hardware timer counts down, therefore we invert to
+	 * produce an incrementing timer. */
+	return ~readl(&timer->val);
+}
 
 /* init timer register */
 int timer_init(void)
 {
-	writel(TIMER_LOAD_VAL, &timer_base->inter);
+	struct sunxi_timer_reg *timers =
+		(struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
+	struct sunxi_timer *timer = &timers->timer[TIMER_NUM];
+	writel(TIMER_LOAD_VAL, &timer->inter);
 	writel(TIMER_MODE | TIMER_DIV | TIMER_SRC | TIMER_RELOAD | TIMER_EN,
-	       &timer_base->ctl);
+	       &timer->ctl);
 
 	return 0;
 }
@@ -53,7 +61,7 @@ ulong get_timer(ulong base)
 ulong get_timer_masked(void)
 {
 	/* current tick value */
-	ulong now = TICKS_TO_HZ(READ_TIMER());
+	ulong now = TICKS_TO_HZ(read_timer());
 
 	if (now >= gd->arch.lastinc)	/* normal (non rollover) */
 		gd->arch.tbl += (now - gd->arch.lastinc);
@@ -71,10 +79,10 @@ ulong get_timer_masked(void)
 void __udelay(unsigned long usec)
 {
 	long tmo = USEC_TO_COUNT(usec);
-	ulong now, last = READ_TIMER();
+	ulong now, last = read_timer();
 
 	while (tmo > 0) {
-		now = READ_TIMER();
+		now = read_timer();
 		if (now > last)	/* normal (non rollover) */
 			tmo -= now - last;
 		else		/* rollover */
