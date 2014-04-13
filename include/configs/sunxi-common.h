@@ -167,7 +167,7 @@
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootm_size=0x20000000\0" \
+	"bootm_size=0x10000000\0" \
 	"console=ttyS0,115200\0" \
 	"panicarg=panic=10\0" \
 	"extraargs=\0" \
