@@ -49,12 +49,14 @@ void clock_init_uart(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* uart clock source is apb1 */
-	sr32(&ccm->apb1_clk_div_cfg, 24, 2, APB1_CLK_SRC_OSC24M);
-	sr32(&ccm->apb1_clk_div_cfg, 16, 2, APB1_FACTOR_N);
-	sr32(&ccm->apb1_clk_div_cfg, 0, 5, APB1_FACTOR_M);
+	writel(APB1_CLK_SRC_OSC24M|
+	       APB1_CLK_RATE_N_1|
+	       APB1_CLK_RATE_M(1),
+	       &ccm->apb1_clk_div_cfg);
 
 	/* open the clock for uart */
-	sr32(&ccm->apb1_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+	setbits_le32(&ccm->apb1_gate,
+		CLK_GATE_OPEN << (APB1_GATE_UART_SHIFT+CONFIG_CONS_INDEX-1));
 }
 
 int clock_twi_onoff(int port, int state)
@@ -66,7 +68,12 @@ int clock_twi_onoff(int port, int state)
 		return -1;
 
 	/* set the apb clock gate for twi */
-	sr32(&ccm->apb1_gate, 0 + port, 1, state);
+	if (state)
+		setbits_le32(&ccm->apb1_gate,
+			     CLK_GATE_OPEN << (APB1_GATE_TWI_SHIFT+port));
+	else
+		clrbits_le32(&ccm->apb1_gate,
+			     CLK_GATE_OPEN << (APB1_GATE_TWI_SHIFT+port));
 
 	return 0;
 }

@@ -58,15 +58,18 @@ void clock_init_uart(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	/* uart clock source is apb2 */
-	sr32(&ccm->apb2_div, 24, 2, APB2_CLK_SRC_OSC24M);
-	sr32(&ccm->apb2_div, 16, 2, APB2_FACTOR_N);
-	sr32(&ccm->apb2_div, 0, 5, APB2_FACTOR_M);
+	writel(APB2_CLK_SRC_OSC24M|
+	       APB2_CLK_RATE_N_1|
+	       APB2_CLK_RATE_M(1),
+	       &ccm->apb2_div);
 
 	/* open the clock for uart */
-	sr32(&ccm->apb2_gate, 16 + CONFIG_CONS_INDEX - 1, 1, CLK_GATE_OPEN);
+	setbits_le32(&ccm->apb2_gate,
+		CLK_GATE_OPEN << (APB2_GATE_UART_SHIFT+CONFIG_CONS_INDEX-1));
 
 	/* deassert uart reset */
-	sr32((u32 *)SUN6I_ABP2_RESET_BASE, 16 + CONFIG_CONS_INDEX - 1, 1, 1);
+	setbits_le32((u32 *)SUN6I_ABP2_RESET_BASE,
+		     1 << (16 + CONFIG_CONS_INDEX - 1));
 
 	/* Dup with clock_init_safe(), drop once sun6i SPL support lands */
 	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);
@@ -81,7 +84,12 @@ int clock_twi_onoff(int port, int state)
 		return -1;
 
 	/* set the apb clock gate for twi */
-	sr32(&ccm->apb2_gate, 0 + port, 1, state);
+	if (state)
+		setbits_le32(&ccm->apb2_gate,
+			     CLK_GATE_OPEN << (APB2_GATE_TWI_SHIFT+port));
+	else
+		clrbits_le32(&ccm->apb2_gate,
+			     CLK_GATE_OPEN << (APB2_GATE_TWI_SHIFT+port));
 
 	return 0;
 }

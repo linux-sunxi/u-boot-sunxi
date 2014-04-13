@@ -137,9 +137,23 @@ struct sunxi_ccm_reg {
 };
 
 /* apb2 bit field */
-#define APB2_CLK_SRC_OSC24M		1
-#define APB2_FACTOR_M			0
-#define APB2_FACTOR_N			0
+#define APB2_CLK_SRC_LOSC		(0x0<<24)
+#define APB2_CLK_SRC_OSC24M		(0x1<<24)
+#define APB2_CLK_SRC_PLL6		(0x2<<24)
+#define APB2_CLK_SRC_MASK		(0x3<<24)
+#define APB2_CLK_RATE_N_1		(0x0<<16)
+#define APB2_CLK_RATE_N_2		(0x1<<16)
+#define APB2_CLK_RATE_N_4		(0x2<<16)
+#define APB2_CLK_RATE_N_8		(0x3<<16)
+#define APB2_CLK_RATE_N_MASK		(3<<16)
+#define APB2_CLK_RATE_M(m)		(((m)-1)<<0)
+#define APB2_CLK_RATE_M_MASK            (0x1f<<0)
+
+/* apb2 gate field */
+#define APB2_GATE_UART_SHIFT	(16)
+#define APB2_GATE_UART_MASK		(0xff<<APB2_GATE_UART_SHIFT)
+#define APB2_GATE_TWI_SHIFT	(0)
+#define APB2_GATE_TWI_MASK		(0xf<<APB2_GATE_TWI_SHIFT)
 
 /* cpu_axi_cfg bits */
 #define AXI_DIV_SHIFT			0

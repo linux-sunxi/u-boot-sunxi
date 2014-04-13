@@ -11,7 +11,6 @@
 
 #include <linux/types.h>
 
-void sr32(u32 *, u32, u32, u32);
 void sdelay(unsigned long);
 
 #endif
