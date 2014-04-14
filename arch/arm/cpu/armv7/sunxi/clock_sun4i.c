@@ -79,9 +79,18 @@ int clock_twi_onoff(int port, int state)
 }
 
 #ifdef CONFIG_SPL_BUILD
-#define PLL1_CFG(N, K, M, P)	(1 << 31 | 0 << 30 | 8 << 26 | 0 << 25 | \
-				 16 << 20 | (P) << 16 | 2 << 13 | (N) << 8 | \
-				 (K) << 4 | 0 << 3 | 0 << 2 | (M) << 0)
+#define PLL1_CFG(N, K, M, P)	( 1 << CCM_PLL1_CFG_ENABLE_SHIFT | \
+				  0 << CCM_PLL1_CFG_VCO_RST_SHIFT |  \
+				  8 << CCM_PLL1_CFG_VCO_BIAS_SHIFT | \
+				  0 << CCM_PLL1_CFG_PLL4_EXCH_SHIFT | \
+				 16 << CCM_PLL1_CFG_BIAS_CUR_SHIFT | \
+				 (P)<< CCM_PLL1_CFG_DIVP_SHIFT | \
+				  2 << CCM_PLL1_CFG_LCK_TMR_SHIFT | \
+				 (N)<< CCM_PLL1_CFG_FACTOR_N_SHIFT | \
+				 (K)<< CCM_PLL1_CFG_FACTOR_K_SHIFT | \
+				  0 << CCM_PLL1_CFG_SIG_DELT_PAT_IN_SHIFT | \
+				  0 << CCM_PLL1_CFG_SIG_DELT_PAT_EN_SHIFT | \
+				 (M)<< CCM_PLL1_CFG_FACTOR_M_SHIFT)
 
 struct {
 	u32 pll1_cfg;
