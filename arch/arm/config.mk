@@ -5,10 +5,6 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
-ifeq ($(CROSS_COMPILE),)
-CROSS_COMPILE := arm-linux-
-endif
-
 ifndef CONFIG_STANDALONE_LOAD_ADDR
 ifneq ($(CONFIG_OMAP_COMMON),)
 CONFIG_STANDALONE_LOAD_ADDR = 0x80300000
@@ -126,6 +122,10 @@ ifndef CONFIG_SPL_BUILD
 ALL-y += SPL
 endif
 else
+ifeq ($(CONFIG_OF_SEPARATE),y)
+ALL-y += u-boot-dtb.imx
+else
 ALL-y += u-boot.imx
+endif
 endif
 endif

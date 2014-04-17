@@ -221,16 +221,16 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 	 * 2)Timeout period should be minimum 0.250sec as per SD Card spec
 	 *  So, Number of SD Clock cycles for 0.25sec should be minimum
 	 *		(SD Clock/sec * 0.25 sec) SD Clock cycles
-	 *		= (mmc->tran_speed * 1/4) SD Clock cycles
+	 *		= (mmc->clock * 1/4) SD Clock cycles
 	 * As 1) >=  2)
-	 * => (2^(timeout+13)) >= mmc->tran_speed * 1/4
+	 * => (2^(timeout+13)) >= mmc->clock * 1/4
 	 * Taking log2 both the sides
-	 * => timeout + 13 >= log2(mmc->tran_speed/4)
+	 * => timeout + 13 >= log2(mmc->clock/4)
 	 * Rounding up to next power of 2
-	 * => timeout + 13 = log2(mmc->tran_speed/4) + 1
-	 * => timeout + 13 = fls(mmc->tran_speed/4)
+	 * => timeout + 13 = log2(mmc->clock/4) + 1
+	 * => timeout + 13 = fls(mmc->clock/4)
 	 */
-	timeout = fls(mmc->tran_speed/4);
+	timeout = fls(mmc->clock/4);
 	timeout -= 13;
 
 	if (timeout > 14)
@@ -244,6 +244,9 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 		timeout++;
 #endif
 
+#ifdef ESDHCI_QUIRK_BROKEN_TIMEOUT_VALUE
+	timeout = 0xE;
+#endif
 	esdhc_clrsetbits32(&regs->sysctl, SYSCTL_TIMEOUT_MASK, timeout << 16);
 
 	return 0;
@@ -265,6 +268,7 @@ static void check_and_invalidate_dcache_range
 static int
 esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 {
+	int	err = 0;
 	uint	xfertyp;
 	uint	irqstat;
 	struct fsl_esdhc_cfg *cfg = mmc->priv;
@@ -296,8 +300,6 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	/* Set up for a data transfer if we have one */
 	if (data) {
-		int err;
-
 		err = esdhc_setup_data(mmc, data);
 		if(err)
 			return err;
@@ -325,27 +327,15 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	irqstat = esdhc_read32(&regs->irqstat);
 
-	/* Reset CMD and DATA portions on error */
-	if (irqstat & (CMD_ERR | IRQSTAT_CTOE)) {
-		esdhc_write32(&regs->sysctl, esdhc_read32(&regs->sysctl) |
-			      SYSCTL_RSTC);
-		while (esdhc_read32(&regs->sysctl) & SYSCTL_RSTC)
-			;
-
-		if (data) {
-			esdhc_write32(&regs->sysctl,
-				      esdhc_read32(&regs->sysctl) |
-				      SYSCTL_RSTD);
-			while ((esdhc_read32(&regs->sysctl) & SYSCTL_RSTD))
-				;
-		}
+	if (irqstat & CMD_ERR) {
+		err = COMM_ERR;
+		goto out;
 	}
 
-	if (irqstat & CMD_ERR)
-		return COMM_ERR;
-
-	if (irqstat & IRQSTAT_CTOE)
-		return TIMEOUT;
+	if (irqstat & IRQSTAT_CTOE) {
+		err = TIMEOUT;
+		goto out;
+	}
 
 	/* Workaround for ESDHC errata ENGcm03648 */
 	if (!data && (cmd->resp_type & MMC_RSP_BUSY)) {
@@ -360,7 +350,8 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 		if (timeout <= 0) {
 			printf("Timeout waiting for DAT0 to go high!\n");
-			return TIMEOUT;
+			err = TIMEOUT;
+			goto out;
 		}
 	}
 
@@ -387,20 +378,41 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 		do {
 			irqstat = esdhc_read32(&regs->irqstat);
 
-			if (irqstat & IRQSTAT_DTOE)
-				return TIMEOUT;
+			if (irqstat & IRQSTAT_DTOE) {
+				err = TIMEOUT;
+				goto out;
+			}
 
-			if (irqstat & DATA_ERR)
-				return COMM_ERR;
+			if (irqstat & DATA_ERR) {
+				err = COMM_ERR;
+				goto out;
+			}
 		} while ((irqstat & DATA_COMPLETE) != DATA_COMPLETE);
 #endif
 		if (data->flags & MMC_DATA_READ)
 			check_and_invalidate_dcache_range(cmd, data);
 	}
 
+out:
+	/* Reset CMD and DATA portions on error */
+	if (err) {
+		esdhc_write32(&regs->sysctl, esdhc_read32(&regs->sysctl) |
+			      SYSCTL_RSTC);
+		while (esdhc_read32(&regs->sysctl) & SYSCTL_RSTC)
+			;
+
+		if (data) {
+			esdhc_write32(&regs->sysctl,
+				      esdhc_read32(&regs->sysctl) |
+				      SYSCTL_RSTD);
+			while ((esdhc_read32(&regs->sysctl) & SYSCTL_RSTD))
+				;
+		}
+	}
+
 	esdhc_write32(&regs->irqstat, -1);
 
-	return 0;
+	return err;
 }
 
 static void set_sysctl(struct mmc *mmc, uint clock)

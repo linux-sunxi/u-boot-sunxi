@@ -8,7 +8,7 @@
 VERSION = 2014
 PATCHLEVEL = 04
 SUBLEVEL =
-EXTRAVERSION = -rc3
+EXTRAVERSION =
 NAME =
 
 # *DOCUMENTATION*
@@ -750,6 +750,9 @@ dtbs dts/dt.dtb: checkdtc u-boot
 u-boot-dtb.bin: u-boot.bin dts/dt.dtb FORCE
 	$(call if_changed,cat)
 
+%.imx: %.bin
+	$(Q)$(MAKE) $(build)=arch/arm/imx-common $@
+
 quiet_cmd_copy = COPY    $@
       cmd_copy = cp $< $@
 
@@ -803,9 +806,6 @@ MKIMAGEFLAGS_u-boot.pbl = -n $(srctree)/$(CONFIG_SYS_FSL_PBL_RCW:"%"=%) \
 u-boot.img u-boot.kwb u-boot.pbl: u-boot.bin FORCE
 	$(call if_changed,mkimage)
 
-u-boot.imx: u-boot.bin
-	$(Q)$(MAKE) $(build)=arch/arm/imx-common $@
-
 u-boot.sha1:	u-boot.bin
 		tools/ubsha1 u-boot.bin
 
@@ -849,6 +849,8 @@ OBJCOPYFLAGS_u-boot.ais = -I binary -O binary --pad-to=$(CONFIG_SPL_MAX_SIZE)
 u-boot.ais: spl/u-boot-spl.ais u-boot.img FORCE
 	$(call if_changed,pad_cat)
 
+u-boot-signed.sb: u-boot.bin spl/u-boot-spl.bin
+	$(Q)$(MAKE) $(build)=arch/arm/cpu/arm926ejs/mxs u-boot-signed.sb
 u-boot.sb: u-boot.bin spl/u-boot-spl.bin
 	$(Q)$(MAKE) $(build)=arch/arm/cpu/arm926ejs/mxs u-boot.sb
 
@@ -1058,11 +1060,11 @@ depend dep:
 
 # ---------------------------------------------------------------------------
 quiet_cmd_cpp_lds = LDS     $@
-cmd_cpp_lds = $(CPP) $(cpp_flags) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ \
-		-x assembler-with-cpp -P -o $@ $<
+cmd_cpp_lds = $(CPP) -Wp,-MD,$(depfile) $(cpp_flags) $(LDPPFLAGS) -ansi \
+		-D__ASSEMBLY__ -x assembler-with-cpp -P -o $@ $<
 
 u-boot.lds: $(LDSCRIPT) prepare FORCE
-	$(call if_changed,cpp_lds)
+	$(call if_changed_dep,cpp_lds)
 
 PHONY += nand_spl
 nand_spl: prepare

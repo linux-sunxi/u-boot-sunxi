@@ -822,8 +822,7 @@ void	udelay        (unsigned long);
 void mdelay(unsigned long);
 
 /* lib/uuid.c */
-void uuid_str_to_bin(const char *uuid, unsigned char *out);
-int uuid_str_valid(const char *uuid);
+#include <uuid.h>
 
 /* lib/vsprintf.c */
 #include <vsprintf.h>
