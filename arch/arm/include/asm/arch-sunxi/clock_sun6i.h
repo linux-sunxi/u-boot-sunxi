@@ -137,23 +137,23 @@ struct sunxi_ccm_reg {
 };
 
 /* apb2 bit field */
-#define APB2_CLK_SRC_LOSC		(0x0<<24)
-#define APB2_CLK_SRC_OSC24M		(0x1<<24)
-#define APB2_CLK_SRC_PLL6		(0x2<<24)
-#define APB2_CLK_SRC_MASK		(0x3<<24)
-#define APB2_CLK_RATE_N_1		(0x0<<16)
-#define APB2_CLK_RATE_N_2		(0x1<<16)
-#define APB2_CLK_RATE_N_4		(0x2<<16)
-#define APB2_CLK_RATE_N_8		(0x3<<16)
-#define APB2_CLK_RATE_N_MASK		(3<<16)
-#define APB2_CLK_RATE_M(m)		(((m)-1)<<0)
-#define APB2_CLK_RATE_M_MASK            (0x1f<<0)
+#define APB2_CLK_SRC_LOSC		(0x0 << 24)
+#define APB2_CLK_SRC_OSC24M		(0x1 << 24)
+#define APB2_CLK_SRC_PLL6		(0x2 << 24)
+#define APB2_CLK_SRC_MASK		(0x3 << 24)
+#define APB2_CLK_RATE_N_1		(0x0 << 16)
+#define APB2_CLK_RATE_N_2		(0x1 << 16)
+#define APB2_CLK_RATE_N_4		(0x2 << 16)
+#define APB2_CLK_RATE_N_8		(0x3 << 16)
+#define APB2_CLK_RATE_N_MASK		(3 << 16)
+#define APB2_CLK_RATE_M(m)		(((m)-1) << 0)
+#define APB2_CLK_RATE_M_MASK            (0x1f << 0)
 
 /* apb2 gate field */
 #define APB2_GATE_UART_SHIFT	(16)
-#define APB2_GATE_UART_MASK		(0xff<<APB2_GATE_UART_SHIFT)
+#define APB2_GATE_UART_MASK		(0xff << APB2_GATE_UART_SHIFT)
 #define APB2_GATE_TWI_SHIFT	(0)
-#define APB2_GATE_TWI_MASK		(0xf<<APB2_GATE_TWI_SHIFT)
+#define APB2_GATE_TWI_MASK		(0xf << APB2_GATE_TWI_SHIFT)
 
 /* cpu_axi_cfg bits */
 #define AXI_DIV_SHIFT			0
@@ -175,9 +175,9 @@ struct sunxi_ccm_reg {
 #define PLL6_CFG_DEFAULT		0x90041911
 
 #define CCM_PLL6_CTRL_N_SHIFT		8
-#define CCM_PLL6_CTRL_N_MASK		(0x1f<<CCM_PLL6_CTRL_N_SHIFT)
+#define CCM_PLL6_CTRL_N_MASK		(0x1f << CCM_PLL6_CTRL_N_SHIFT)
 #define CCM_PLL6_CTRL_K_SHIFT		4
-#define CCM_PLL6_CTRL_K_MASK		(0x3<<CCM_PLL6_CTRL_K_SHIFT)
+#define CCM_PLL6_CTRL_K_MASK		(0x3 << CCM_PLL6_CTRL_K_SHIFT)
 
 #define AHB_GATE_OFFSET_MMC3		11
 #define AHB_GATE_OFFSET_MMC2		10
