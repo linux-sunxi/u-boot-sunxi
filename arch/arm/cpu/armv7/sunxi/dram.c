@@ -122,11 +122,7 @@ static void mctl_enable_dllx(u32 phase)
 		n = DRAM_DCR_NR_DLLCR_16BIT;
 
 	for (i = 1; i < n; i++) {
-#ifdef CONFIG_SUN7I
 		clrsetbits_le32(&dram->dllcr[i], 0xf << 14,
-#else
-		clrsetbits_le32(&dram->dllcr[i], 0x4 << 14,
-#endif
 				(phase & 0xf) << 14);
 		clrsetbits_le32(&dram->dllcr[i], DRAM_DLLCR_NRESET,
 				DRAM_DLLCR_DISABLE);
