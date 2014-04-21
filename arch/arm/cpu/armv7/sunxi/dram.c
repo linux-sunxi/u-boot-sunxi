@@ -200,13 +200,46 @@ static void mctl_setup_dram_clock(u32 clk)
 	/* setup DRAM PLL */
 	reg_val = readl(&ccm->pll5_cfg);
 	reg_val &= ~CCM_PLL5_CTRL_M_MASK;		/* set M to 0 (x1) */
-	reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(2));
 	reg_val &= ~CCM_PLL5_CTRL_K_MASK;		/* set K to 0 (x1) */
-	reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(2));
 	reg_val &= ~CCM_PLL5_CTRL_N_MASK;		/* set N to 0 (x0) */
-	reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(clk / 24));
 	reg_val &= ~CCM_PLL5_CTRL_P_MASK;		/* set P to 0 (x1) */
-	reg_val |= CCM_PLL5_CTRL_P(CCM_PLL5_CTRL_P_X(2));
+	if (clk >= 540 && clk < 552) {
+		/* dram = 540MHz, pll5p = 540MHz */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(2));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(3));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(15));
+		reg_val |= CCM_PLL5_CTRL_P(1);
+	} else if (clk >= 512 && clk < 528) {
+		/* dram = 512MHz, pll5p = 384MHz */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(3));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(4));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(16));
+		reg_val |= CCM_PLL5_CTRL_P(2);
+	} else if (clk >= 496 && clk < 504) {
+		/* dram = 496MHz, pll5p = 372MHz */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(3));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(2));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(31));
+		reg_val |= CCM_PLL5_CTRL_P(2);
+	} else if (clk >= 468 && clk < 480) {
+		/* dram = 468MHz, pll5p = 468MHz */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(2));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(3));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(13));
+		reg_val |= CCM_PLL5_CTRL_P(1);
+	} else if (clk >= 396 && clk < 408) {
+		/* dram = 396MHz, pll5p = 396MHz */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(2));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(3));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(11));
+		reg_val |= CCM_PLL5_CTRL_P(1);
+	} else 	{
+		/* any other frequency that is a multiple of 24 */
+		reg_val |= CCM_PLL5_CTRL_M(CCM_PLL5_CTRL_M_X(2));
+		reg_val |= CCM_PLL5_CTRL_K(CCM_PLL5_CTRL_K_X(2));
+		reg_val |= CCM_PLL5_CTRL_N(CCM_PLL5_CTRL_N_X(clk / 24));
+		reg_val |= CCM_PLL5_CTRL_P(CCM_PLL5_CTRL_P_X(2));
+	}
 	reg_val &= ~CCM_PLL5_CTRL_VCO_GAIN;		/* PLL VCO Gain off */
 	reg_val |= CCM_PLL5_CTRL_EN;			/* PLL On */
 	writel(reg_val, &ccm->pll5_cfg);
