@@ -29,7 +29,7 @@ void p2wi_init(void)
 	struct sunxi_p2wi_reg *p2wi = (struct sunxi_p2wi_reg *)SUNXI_P2WI_BASE;
 
 	/* Enable p2wi and PIO clk, and de-assert their resets */
-	prcm_init_apb0();
+	prcm_apb0_enable(PRCM_APB0_GATE_PIO | PRCM_APB0_GATE_P2WI);
 
 	sunxi_gpio_set_cfgpin(SUNXI_GPL(0), SUNXI_GPL0_R_P2WI_SCK);
 	sunxi_gpio_set_cfgpin(SUNXI_GPL(1), SUNXI_GPL1_R_P2WI_SDA);
