@@ -86,7 +86,7 @@ struct sunxi_ccm_reg {
 	u32 ps_clk_cfg;		/* 0x154 PS module clock */
 	u32 mtc_clk_cfg;	/* 0x158 MTC module clock */
 	u32 mbus0_clk_cfg;	/* 0x15c MBUS0 module clock */
-	u32 mbus1_clk_cfg;	/* 0x160 MBUS0 module clock */
+	u32 mbus1_clk_cfg;	/* 0x160 MBUS1 module clock */
 	u32 reserved16;
 	u32 mipi_dsi_clk_cfg;	/* 0x168 MIPI DSI clock control */
 	u32 mipi_csi_clk_cfg;	/* 0x16c MIPI CSI clock control */
