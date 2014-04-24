@@ -113,7 +113,7 @@ void s_init(void)
 #endif
 #endif
 /* No SPL on sun6i, so we do sunxi_board_init() from non spl there */
-#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUN6I)
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUN6I) || defined(CONFIG_SUN8I)
 	sunxi_board_init();
 #endif
 }

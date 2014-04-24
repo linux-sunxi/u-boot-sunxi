@@ -77,11 +77,11 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
-#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUN6I)
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUN6I) || defined(CONFIG_SUN8I)
 void sunxi_board_init(void)
 {
 	int power_failed = 0;
-#if !defined(CONFIG_SUN6I)
+#if !defined(CONFIG_SUN6I) && !defined(CONFIG_SUN8I)
 	unsigned long ramsize;
 
 	printf("DRAM:");
@@ -122,7 +122,7 @@ void sunxi_board_init(void)
 #endif
 #endif
 
-#if !defined(CONFIG_SUN6I)
+#if !defined(CONFIG_SUN6I) && !defined(CONFIG_SUN8I)
 	/*
 	 * Only clock up the CPU to full speed if we are reasonably
 	 * assured it's being powered with suitable core voltage
