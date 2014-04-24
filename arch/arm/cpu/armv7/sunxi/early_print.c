@@ -17,7 +17,13 @@
 
 static int uart_initialized = 0;
 
+#if CONFIG_CONS_INDEX < 5
 #define UART	CONFIG_CONS_INDEX-1
+#else
+/* SUNXI_R_UART_BASE */
+#define UART	2922
+#endif
+
 void uart_init(void) {
 
 	/* select dll dlh */
