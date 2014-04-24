@@ -68,8 +68,8 @@ void clock_init_uart(void)
 		CLK_GATE_OPEN << (APB2_GATE_UART_SHIFT+CONFIG_CONS_INDEX-1));
 
 	/* deassert uart reset */
-	setbits_le32((u32 *)SUN6I_ABP2_RESET_BASE,
-		     1 << (16 + CONFIG_CONS_INDEX - 1));
+	setbits_le32(&ccm->apb2_reset_cfg,
+		1 << (APB2_RESET_UART_SHIFT+CONFIG_CONS_INDEX-1));
 
 	/* Dup with clock_init_safe(), drop once sun6i SPL support lands */
 	writel(PLL6_CFG_DEFAULT, &ccm->pll6_cfg);

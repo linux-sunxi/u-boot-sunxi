@@ -139,7 +139,6 @@ static int mmc_resource_init(int sdc_no)
 static int mmc_clk_io_on(int sdc_no)
 {
 	unsigned int pin;
-	unsigned int rval;
 	unsigned int pll_clk;
 	unsigned int divider;
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
@@ -199,15 +198,11 @@ static int mmc_clk_io_on(int sdc_no)
 	}
 
 	/* config ahb clock */
-	rval = readl(&ccm->ahb_gate0);
-	rval |= 1 << AHB_GATE_OFFSET_MMC(sdc_no);
-	writel(rval, &ccm->ahb_gate0);
+	setbits_le32(&ccm->ahb_gate0, 1 << AHB_GATE_OFFSET_MMC(sdc_no));
 
 #if defined(CONFIG_SUN6I)
 	/* unassert reset */
-	rval = readl(SUN6I_ABP1_RESET_BASE);
-	rval |= 1 << ABP1_RESET_OFFSET_MMC(sdc_no);
-	writel(rval, SUN6I_ABP1_RESET_BASE);
+	setbits_le32(&ccm->ahb_reset0_cfg, 1 << AHB_RESET_OFFSET_MMC(sdc_no));
 #endif
 
 	/* config mod clock */
