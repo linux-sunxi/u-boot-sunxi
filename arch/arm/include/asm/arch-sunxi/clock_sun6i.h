@@ -172,7 +172,7 @@ struct sunxi_ccm_reg {
 
 #define PLL1_CFG_DEFAULT		0x90011b21
 
-#define PLL6_CFG_DEFAULT		0x90041911
+#define PLL6_CFG_DEFAULT		0x90041811
 
 #define CCM_PLL6_CTRL_N_SHIFT		8
 #define CCM_PLL6_CTRL_N_MASK		(0x1f << CCM_PLL6_CTRL_N_SHIFT)
