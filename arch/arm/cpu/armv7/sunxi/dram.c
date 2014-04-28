@@ -35,6 +35,19 @@
 #define CPU_CFG_CHIP_REV_C2 0x2
 #define CPU_CFG_CHIP_REV_B 0x3
 
+/*
+ * Wait up to 1s for mask to be clear in given reg.
+ */
+static void await_completion(u32 *reg, u32 mask)
+{
+	unsigned long tmo = timer_get_us() + 1000000;
+
+	while (readl(reg) & mask) {
+		if (timer_get_us() > tmo)
+			panic("Timeout initialising DRAM\n");
+	}
+}
+
 static void mctl_ddr3_reset(void)
 {
 	struct sunxi_dram_reg *dram =
@@ -300,8 +313,7 @@ static int dramc_scan_readpipe(void)
 	setbits_le32(&dram->ccr, DRAM_CCR_DATA_TRAINING);
 
 	/* check whether data training process has completed */
-	while (readl(&dram->ccr) & DRAM_CCR_DATA_TRAINING)
-		;
+	await_completion(&dram->ccr, DRAM_CCR_DATA_TRAINING);
 
 	/* check data training result */
 	reg_val = readl(&dram->csr);
@@ -556,8 +568,7 @@ unsigned long dramc_init(struct dram_para *para)
 
 	udelay(1);
 
-	while (readl(&dram->ccr) & DRAM_CCR_INIT)
-		;
+	await_completion(&dram->ccr, DRAM_CCR_INIT);
 
 	mctl_enable_dllx(para->tpr3);
 
@@ -613,8 +624,7 @@ unsigned long dramc_init(struct dram_para *para)
 #endif
 	/* reset external DRAM */
 	setbits_le32(&dram->ccr, DRAM_CCR_INIT);
-	while (readl(&dram->ccr) & DRAM_CCR_INIT)
-		;
+	await_completion(&dram->ccr, DRAM_CCR_INIT);
 
 #ifdef CONFIG_SUN7I
 	/* setup zq calibration manual */
@@ -630,29 +640,26 @@ unsigned long dramc_init(struct dram_para *para)
 		/* exit self-refresh state */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
 		/* check whether command has been executed */
-		while (readl(&dram->dcr) & (0x1 << 31))
-			;
+		await_completion(&dram->dcr, 0x1 << 31);
 
 		udelay(2);
 
 		/* dram pad hold off */
 		setbits_le32(&dram->ppwrsctl, 0x16510000);
 
-		while (readl(&dram->ppwrsctl) & 0x1)
-			;
+		await_completion(&dram->ppwrsctl, 0x1);
 
 		/* exit self-refresh state */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x12 << 27);
 
 		/* check whether command has been executed */
-		while (readl(&dram->dcr) & (0x1 << 31))
-			;
+		await_completion(&dram->dcr, 0x1 << 31);
+
 		udelay(2);
 
 		/* issue a refresh command */
 		clrsetbits_le32(&dram->dcr, 0x1f << 27, 0x13 << 27);
-		while (readl(&dram->dcr) & (0x1 << 31))
-			;
+		await_completion(&dram->dcr, 0x1 << 31);
 
 		udelay(2);
 	}
