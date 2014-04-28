@@ -34,8 +34,11 @@ static ulong read_timer(void)
 	struct sunxi_timer_reg *timers =
 		(struct sunxi_timer_reg *)SUNXI_TIMER_BASE;
 	struct sunxi_timer *timer = &timers->timer[TIMER_NUM];
-	/* The hardware timer counts down, therefore we invert to
-	 * produce an incrementing timer. */
+
+	/*
+	 * The hardware timer counts down, therefore we invert to
+	 * produce an incrementing timer.
+	 */
 	return ~readl(&timer->val);
 }
 
