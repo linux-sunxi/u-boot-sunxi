@@ -51,7 +51,6 @@ obj-$(CONFIG_SH_ETHER) += sh_eth.o
 obj-$(CONFIG_SMC91111) += smc91111.o
 obj-$(CONFIG_SMC911X) += smc911x.o
 obj-$(CONFIG_SUNXI_EMAC) += sunxi_emac.o
-obj-$(CONFIG_SUNXI_GMAC) += sunxi_gmac.o
 obj-$(CONFIG_DRIVER_TI_EMAC) += davinci_emac.o
 obj-$(CONFIG_TSEC_ENET) += tsec.o fsl_mdio.o
 obj-$(CONFIG_DRIVER_TI_CPSW) += cpsw.o

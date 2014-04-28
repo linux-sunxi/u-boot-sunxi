@@ -9,6 +9,7 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 obj-y	+= board.o
+obj-$(CONFIG_SUNXI_GMAC)	+= gmac.o
 obj-$(CONFIG_A10_MID_1GB)	+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_A10_OLINUXINO_L)	+= dram_a10_olinuxino_l.o
 obj-$(CONFIG_A10S_OLINUXINO_M)	+= dram_a10s_olinuxino_m.o
