@@ -35,20 +35,18 @@ struct boot_file_head {
 #define STAMP_VALUE                     0x5F0A6C39
 
 /* check sum functon from sun4i boot code */
-int gen_check_sum(void *boot_buf)
+int gen_check_sum(struct boot_file_head *head_p)
 {
-	struct boot_file_head *head_p;
 	uint32_t length;
 	uint32_t *buf;
 	uint32_t loop;
 	uint32_t i;
 	uint32_t sum;
 
-	head_p = (struct boot_file_head *)boot_buf;
 	length = head_p->length;
 	if ((length & 0x3) != 0)	/* must 4-byte-aligned */
 		return -1;
-	buf = (uint32_t *)boot_buf;
+	buf = (uint32_t *)head_p;
 	head_p->check_sum = STAMP_VALUE;	/* fill stamp */
 	loop = length >> 2;
 
@@ -95,7 +93,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	memset((void *)img.pad, 0, BLOCK_SIZE);
+	memset(img.pad, 0, BLOCK_SIZE);
 
 	/* get input file size */
 	file_size = lseek(fd_in, 0, SEEK_END);
@@ -129,9 +127,9 @@ int main(int argc, char *argv[])
 	memcpy(img.header.magic, BOOT0_MAGIC, 8);	/* no '0' termination */
 	img.header.length =
 		ALIGN(load_size + sizeof(struct boot_file_head), BLOCK_SIZE);
-	gen_check_sum((void *)&img);
+	gen_check_sum(&img.header);
 
-	count = write(fd_out, (void *)&img, img.header.length);
+	count = write(fd_out, &img, img.header.length);
 	if (count != img.header.length) {
 		perror("Writing output");
 		return EXIT_FAILURE;
