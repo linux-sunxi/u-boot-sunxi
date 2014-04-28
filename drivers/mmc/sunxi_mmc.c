@@ -14,7 +14,6 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/cpu.h>
-#include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
 
 static void dumphex32(char *name, char *base, int len)
@@ -139,64 +138,12 @@ static int mmc_resource_init(int sdc_no)
 
 static int mmc_clk_io_on(int sdc_no)
 {
-	unsigned int pin;
 	unsigned int pll_clk;
 	unsigned int divider;
 	struct sunxi_mmc_host *mmchost = &mmc_host[sdc_no];
 	struct sunxi_ccm_reg *ccm = (struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	debug("init mmc %d clock and io\n", sdc_no);
-
-	/* config gpio */
-	switch (sdc_no) {
-	case 0:
-		/* D1-PF0, D0-PF1, CLK-PF2, CMD-PF3, D3-PF4, D4-PF5 */
-		for (pin = SUNXI_GPF(0); pin <= SUNXI_GPF(5); pin++) {
-			sunxi_gpio_set_cfgpin(pin, SUNXI_GPF0_SDC0);
-			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-			sunxi_gpio_set_drv(pin, 2);
-		}
-		break;
-
-	case 1:
-#if CONFIG_MMC1_PG
-		/* PG0-CMD, PG1-CLK, PG2~5-D0~3 : 4 */
-		for (pin = SUNXI_GPG(0); pin <= SUNXI_GPG(5); pin++) {
-			sunxi_gpio_set_cfgpin(pin, SUN4I_GPG0_SDC1);
-			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-			sunxi_gpio_set_drv(pin, 2);
-		}
-#else
-		/* PH22-CMD, PH23-CLK, PH24~27-D0~D3 : 5 */
-		for (pin = SUNXI_GPH(22); pin <= SUNXI_GPH(27); pin++) {
-			sunxi_gpio_set_cfgpin(pin, SUN4I_GPH22_SDC1);
-			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-			sunxi_gpio_set_drv(pin, 2);
-		}
-#endif
-		break;
-
-	case 2:
-		/* CMD-PC6, CLK-PC7, D0-PC8, D1-PC9, D2-PC10, D3-PC11 */
-		for (pin = SUNXI_GPC(6); pin <= SUNXI_GPC(11); pin++) {
-			sunxi_gpio_set_cfgpin(pin, SUNXI_GPC6_SDC2);
-			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-			sunxi_gpio_set_drv(pin, 2);
-		}
-		break;
-
-	case 3:
-		/* PI4-CMD, PI5-CLK, PI6~9-D0~D3 : 2 */
-		for (pin = SUNXI_GPI(4); pin <= SUNXI_GPI(9); pin++) {
-			sunxi_gpio_set_cfgpin(pin, SUN4I_GPI4_SDC3);
-			sunxi_gpio_set_pull(pin, SUNXI_GPIO_PULL_UP);
-			sunxi_gpio_set_drv(pin, 2);
-		}
-		break;
-
-	default:
-		return -1;
-	}
 
 	/* config ahb clock */
 	setbits_le32(&ccm->ahb_gate0, 1 << AHB_GATE_OFFSET_MMC(sdc_no));
