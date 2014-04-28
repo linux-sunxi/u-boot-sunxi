@@ -36,10 +36,8 @@ int sunxi_gmac_initialize(bd_t *bis)
 	}
 
 #ifdef CONFIG_RGMII
-	designware_initialize(SUNXI_GMAC_BASE, PHY_INTERFACE_MODE_RGMII);
+	return designware_initialize(SUNXI_GMAC_BASE, PHY_INTERFACE_MODE_RGMII);
 #else
-	designware_initialize(SUNXI_GMAC_BASE, PHY_INTERFACE_MODE_MII);
+	return designware_initialize(SUNXI_GMAC_BASE, PHY_INTERFACE_MODE_MII);
 #endif
-
-	return 0;
 }

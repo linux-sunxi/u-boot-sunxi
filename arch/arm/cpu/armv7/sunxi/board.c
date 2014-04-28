@@ -137,11 +137,22 @@ void enable_caches(void)
  */
 int cpu_eth_init(bd_t *bis)
 {
+	int rc;
+
 #ifdef CONFIG_SUNXI_EMAC
-	sunxi_emac_initialize(bis);
+	rc = sunxi_emac_initialize(bis);
+	if (rc < 0) {
+		printf("sunxi: failed to initialize emac\n");
+		return rc;
+	}
 #endif
+
 #ifdef CONFIG_SUNXI_GMAC
-	sunxi_gmac_initialize(bis);
+	rc = sunxi_gmac_initialize(bis);
+	if (rc < 0) {
+		printf("sunxi: failed to initialize gmac\n");
+		return rc;
+	}
 #endif
 
 	return 0;
