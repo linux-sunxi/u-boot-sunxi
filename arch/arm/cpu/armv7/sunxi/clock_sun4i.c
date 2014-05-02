@@ -113,7 +113,7 @@ struct {
 	{ PLL1_CFG(31, 1, 0, 0), ~0},
 };
 
-void clock_set_pll1(int hz)
+void clock_set_pll1(unsigned int hz)
 {
 	int i = 0;
 	int axi, ahb, apb0;
@@ -131,7 +131,7 @@ void clock_set_pll1(int hz)
 	ahb = DIV_ROUND_UP(hz/axi, 204000000);	/* Max 250MHz */
 	apb0 = 2;				/* Max 150MHz */
 
-	printf("CPU: %dHz, AXI/AHB/APB: %d/%d/%d\n", hz, axi, ahb, apb0);
+	printf("CPU: %uHz, AXI/AHB/APB: %d/%d/%d\n", hz, axi, ahb, apb0);
 
 	/* Map divisors to register values */
 	axi = axi - 1;

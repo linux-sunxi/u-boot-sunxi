@@ -24,7 +24,7 @@
 #ifndef __ASSEMBLY__
 int clock_init(void);
 int clock_twi_onoff(int port, int state);
-void clock_set_pll1(int hz);
+void clock_set_pll1(unsigned int hz);
 unsigned int clock_get_pll6(void);
 void clock_init_safe(void);
 void clock_init_uart(void);
