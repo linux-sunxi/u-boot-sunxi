@@ -92,10 +92,11 @@ int clock_twi_onoff(int port, int state)
 				  0 << CCM_PLL1_CFG_SIG_DELT_PAT_EN_SHIFT | \
 				 (M)<< CCM_PLL1_CFG_FACTOR_M_SHIFT)
 
-struct {
+static struct {
 	u32 pll1_cfg;
 	unsigned int freq;
 } pll1_para[] = {
+	/* This array must be ordered by frequency. */
 	{ PLL1_CFG(16, 0, 0, 0), 384000000 },
 	{ PLL1_CFG(16, 1, 0, 0), 768000000 },
 	{ PLL1_CFG(20, 1, 0, 0), 960000000 },
@@ -110,6 +111,7 @@ struct {
 	{ PLL1_CFG(29, 1, 0, 0), 1392000000},
 	{ PLL1_CFG(30, 1, 0, 0), 1440000000},
 	{ PLL1_CFG(31, 1, 0, 0), 1488000000},
+	/* Final catchall entry */
 	{ PLL1_CFG(31, 1, 0, 0), ~0},
 };
 
