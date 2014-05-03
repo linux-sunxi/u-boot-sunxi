@@ -106,6 +106,7 @@ void s_init(void)
 	clock_init();
 	timer_init();
 	gpio_init();
+	i2c_init_board();
 
 #ifdef CONFIG_SPL_BUILD
 	gd = &gdata;
