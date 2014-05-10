@@ -264,6 +264,7 @@ static void mctl_setup_dram_clock(u32 clk)
 	clrbits_le32(&ccm->ahb_gate0, CCM_AHB_GATE_GPS);
 #endif
 
+#if defined(CONFIG_SUN5I) || defined(CONFIG_SUN7I)
 	/* setup MBUS clock */
 	reg_val = CCM_MBUS_CTRL_GATE |
 #if defined(CONFIG_SUN7I) && defined(CONFIG_FAST_MBUS)
@@ -280,6 +281,7 @@ static void mctl_setup_dram_clock(u32 clk)
 		  CCM_MBUS_CTRL_M(CCM_MBUS_CTRL_M_X(2));
 #endif
 	writel(reg_val, &ccm->mbus_clk_cfg);
+#endif
 
 	/*
 	 * open DRAMC AHB & DLL register clock
