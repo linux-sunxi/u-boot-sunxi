@@ -146,10 +146,6 @@ struct sunxi_ccm_reg {
 
 #define PLL6_CFG_DEFAULT	0xa1009911
 
-#ifdef CONFIG_SUN5I
-#define AHB_CLK_SRC_AXI			0
-#endif
-
 /* nand clock */
 #define NAND_CLK_SRC_OSC24		0
 #define NAND_CLK_DIV_N			0
