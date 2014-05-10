@@ -467,7 +467,7 @@ const char *symbol_lookup(unsigned long addr, unsigned long *caddr);
 void	api_init (void);
 
 /* common/memsize.c */
-unsigned long	get_ram_size  (unsigned long *, unsigned long);
+long	get_ram_size  (long *, long);
 phys_size_t get_effective_memsize(void);
 
 /* $(BOARD)/$(BOARD).c */

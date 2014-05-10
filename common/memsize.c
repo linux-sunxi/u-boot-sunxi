@@ -24,16 +24,16 @@ DECLARE_GLOBAL_DATA_PTR;
  * the actually available RAM size between addresses `base' and
  * `base + maxsize'.
  */
-unsigned long get_ram_size(unsigned long *base, unsigned long maxsize)
+long get_ram_size(long *base, long maxsize)
 {
-	volatile unsigned long *addr;
-	unsigned long           save[32];
-	unsigned long           cnt;
-	unsigned long           val;
-	unsigned long           size;
-	int                     i = 0;
+	volatile long *addr;
+	long           save[32];
+	long           cnt;
+	long           val;
+	long           size;
+	int            i = 0;
 
-	for (cnt = (maxsize / sizeof (unsigned long)) >> 1; cnt > 0; cnt >>= 1) {
+	for (cnt = (maxsize / sizeof (long)) >> 1; cnt > 0; cnt >>= 1) {
 		addr = base + cnt;	/* pointer arith! */
 		sync ();
 		save[i++] = *addr;
@@ -53,7 +53,7 @@ unsigned long get_ram_size(unsigned long *base, unsigned long maxsize)
 		 */
 		sync ();
 		*addr = save[i];
-		for (cnt = 1; cnt < maxsize / sizeof(unsigned long); cnt <<= 1) {
+		for (cnt = 1; cnt < maxsize / sizeof(long); cnt <<= 1) {
 			addr  = base + cnt;
 			sync ();
 			*addr = save[--i];
@@ -61,15 +61,15 @@ unsigned long get_ram_size(unsigned long *base, unsigned long maxsize)
 		return (0);
 	}
 
-	for (cnt = 1; cnt < maxsize / sizeof (unsigned long); cnt <<= 1) {
+	for (cnt = 1; cnt < maxsize / sizeof (long); cnt <<= 1) {
 		addr = base + cnt;	/* pointer arith! */
 		val = *addr;
 		*addr = save[--i];
 		if (val != ~cnt) {
-			size = cnt * sizeof (unsigned long);
+			size = cnt * sizeof (long);
 			/* Restore the original data before leaving the function.
 			 */
-			for (cnt <<= 1; cnt < maxsize / sizeof (unsigned long); cnt <<= 1) {
+			for (cnt <<= 1; cnt < maxsize / sizeof (long); cnt <<= 1) {
 				addr  = base + cnt;
 				*addr = save[--i];
 			}

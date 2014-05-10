@@ -689,5 +689,5 @@ unsigned long dramc_init(struct dram_para *para)
 	/* configure all host port */
 	mctl_configure_hostport();
 
-	return get_ram_size((unsigned long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
+	return get_ram_size((long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
 }
