@@ -16,46 +16,6 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/mmc.h>
 
-static void dumphex32(char *name, char *base, int len)
-{
-	__u32 i;
-
-	debug("dump %s registers:", name);
-	for (i = 0; i < len; i += 4) {
-		if (!(i & 0xf))
-			debug("\n0x%p : ", base + i);
-		debug("0x%08x ", readl(base + i));
-	}
-	debug("\n");
-}
-
-static void dumpmmcreg(struct sunxi_mmc *reg)
-{
-	debug("dump mmc registers:\n");
-	debug("gctrl     0x%08x\n", reg->gctrl);
-	debug("clkcr     0x%08x\n", reg->clkcr);
-	debug("timeout   0x%08x\n", reg->timeout);
-	debug("width     0x%08x\n", reg->width);
-	debug("blksz     0x%08x\n", reg->blksz);
-	debug("bytecnt   0x%08x\n", reg->bytecnt);
-	debug("cmd       0x%08x\n", reg->cmd);
-	debug("arg       0x%08x\n", reg->arg);
-	debug("resp0     0x%08x\n", reg->resp0);
-	debug("resp1     0x%08x\n", reg->resp1);
-	debug("resp2     0x%08x\n", reg->resp2);
-	debug("resp3     0x%08x\n", reg->resp3);
-	debug("imask     0x%08x\n", reg->imask);
-	debug("mint      0x%08x\n", reg->mint);
-	debug("rint      0x%08x\n", reg->rint);
-	debug("status    0x%08x\n", reg->status);
-	debug("ftrglevel 0x%08x\n", reg->ftrglevel);
-	debug("funcsel   0x%08x\n", reg->funcsel);
-	debug("dmac      0x%08x\n", reg->dmac);
-	debug("dlba      0x%08x\n", reg->dlba);
-	debug("idst      0x%08x\n", reg->idst);
-	debug("idie      0x%08x\n", reg->idie);
-}
-
 struct sunxi_mmc_des {
 	u32 reserved1_1:1;
 	u32 dic:1;		/* disable interrupt on completion */
@@ -160,11 +120,6 @@ static int mmc_clk_io_on(int sdc_no)
 	writel(CCM_MMC_CTRL_ENABLE | CCM_MMC_CTRL_PLL6 | divider,
 	       mmchost->mclkreg);
 	mmchost->mod_clk = pll_clk / (divider + 1);
-
-	dumphex32("ccmu", (char *)SUNXI_CCM_BASE, 0x100);
-	dumphex32("gpio", (char *)SUNXI_PIO_BASE, 0x100);
-	dumphex32("mmc", (char *)mmchost->reg, 0x100);
-	dumpmmcreg(mmchost->reg);
 
 	return 0;
 }
@@ -321,13 +276,6 @@ static int mmc_trans_data_by_dma(struct mmc *mmc, struct mmc_data *data)
 		} else {
 			pdes[des_idx].buf_addr_ptr2 = (u32)&pdes[des_idx + 1];
 		}
-		debug("frag %d, remain %d, des[%d](%08x): ",
-		      i, remain, des_idx, (u32)&pdes[des_idx]);
-		debug("[0] = %08x, [1] = %08x, [2] = %08x, [3] = %08x\n",
-		      (u32)((u32 *)&pdes[des_idx])[0],
-		      (u32)((u32 *)&pdes[des_idx])[1],
-		      (u32)((u32 *)&pdes[des_idx])[2],
-		      (u32)((u32 *)&pdes[des_idx])[3]);
 	}
 	flush_cache((unsigned long)pdes,
 		    sizeof(struct sunxi_mmc_des) * (des_idx + 1));
