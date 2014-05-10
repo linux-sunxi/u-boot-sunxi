@@ -42,4 +42,3 @@ ifdef CONFIG_SPL_FEL
 obj-y	+= start.o
 endif
 endif
-
