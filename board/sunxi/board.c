@@ -140,12 +140,6 @@ void sunxi_board_init(void)
 	int power_failed = 0;
 #if !defined(CONFIG_SUN6I) && !defined(CONFIG_SUN8I)
 	unsigned long ramsize;
-
-	printf("DRAM:");
-	ramsize = sunxi_dram_init();
-	printf(" %lu MiB\n", ramsize >> 20);
-	if (!ramsize)
-		hang();
 #endif
 
 #ifdef CONFIG_AXP152_POWER
@@ -180,6 +174,12 @@ void sunxi_board_init(void)
 #endif
 
 #if !defined(CONFIG_SUN6I) && !defined(CONFIG_SUN8I)
+	printf("DRAM:");
+	ramsize = sunxi_dram_init();
+	printf(" %lu MiB\n", ramsize >> 20);
+	if (!ramsize)
+		hang();
+
 	/*
 	 * Only clock up the CPU to full speed if we are reasonably
 	 * assured it's being powered with suitable core voltage
