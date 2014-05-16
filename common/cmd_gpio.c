@@ -20,7 +20,6 @@ enum gpio_cmd {
 	GPIO_SET,
 	GPIO_CLEAR,
 	GPIO_TOGGLE,
-	GPIO_OSCILLATE,
 };
 
 #if defined(CONFIG_DM_GPIO) && !defined(gpio_status)
@@ -139,7 +138,6 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		case 's': sub_cmd = GPIO_SET;    break;
 		case 'c': sub_cmd = GPIO_CLEAR;  break;
 		case 't': sub_cmd = GPIO_TOGGLE; break;
-		case 'o': sub_cmd = GPIO_OSCILLATE; break;
 		default:  goto show_usage;
 	}
 
@@ -170,14 +168,6 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (sub_cmd == GPIO_INPUT) {
 		gpio_direction_input(gpio);
 		value = gpio_get_value(gpio);
-	} else if (sub_cmd == GPIO_OSCILLATE) {
-		int i;
-		gpio_direction_output(gpio, 0);
-		for (i = 0; i < 100000000; i++) {
-			gpio_set_value(gpio, i&1);
-		}
-		gpio_direction_input(gpio);
-		value = 0;
 	} else {
 		switch (sub_cmd) {
 			case GPIO_SET:    value = 1; break;
