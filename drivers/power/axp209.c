@@ -122,8 +122,7 @@ int axp209_set_ldo3(int mvolt)
 
 int axp209_set_ldo4(int mvolt)
 {
-	int cfg = (mvolt - 1800) / 100;
-	int rc;
+	int cfg, rc;
 	static const int vindex[] = {
 		1250, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2500,
 		2700, 2800, 3000, 3100, 3200, 3300
@@ -131,7 +130,7 @@ int axp209_set_ldo4(int mvolt)
 	u8 reg;
 
 	/* Translate mvolt to register cfg value, requested <= selected */
-	for (cfg = 0; mvolt < vindex[cfg] && cfg < 15; cfg++);
+	for (cfg = 15; vindex[cfg] > mvolt && cfg > 0; cfg--);
 
 	rc = axp209_read(AXP209_LDO24_VOLTAGE, &reg);
 	if (rc)
