@@ -22,9 +22,12 @@
 #include <axp221.h>
 #endif
 #include <asm/arch/clock.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/dram.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
+#include <asm/io.h>
+#include <net.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -207,5 +210,30 @@ int spl_start_uboot(void)
 void spl_display_print(void)
 {
 	printf("Board: %s\n", CONFIG_SYS_BOARD_NAME);
+}
+#endif
+
+#ifdef CONFIG_MISC_INIT_R
+int misc_init_r(void)
+{
+	if (!getenv("ethaddr")) {
+		uint32_t reg_val = readl(SUNXI_SID_BASE);
+
+		if (reg_val) {
+			uint8_t mac_addr[6];
+
+			mac_addr[0] = 0x02; /* Non OUI / registered MAC address */
+			mac_addr[1] = (reg_val >>  0) & 0xff;
+			reg_val = readl(SUNXI_SID_BASE + 0x0c);
+			mac_addr[2] = (reg_val >> 24) & 0xff;
+			mac_addr[3] = (reg_val >> 16) & 0xff;
+			mac_addr[4] = (reg_val >>  8) & 0xff;
+			mac_addr[5] = (reg_val >>  0) & 0xff;
+
+			eth_setenv_enetaddr("ethaddr", mac_addr);
+		}
+	}
+
+	return 0;
 }
 #endif
