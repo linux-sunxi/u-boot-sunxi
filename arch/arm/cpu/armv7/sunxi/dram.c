@@ -575,7 +575,7 @@ unsigned long dramc_init(struct dram_para *para)
 	mctl_enable_dllx(para->tpr3);
 
 #ifdef CONFIG_SUN4I
-	/* set odt impendance divide ratio */
+	/* set odt impedance divide ratio */
 	reg_val = ((para->zq) >> 8) & 0xfffff;
 	reg_val |= ((para->zq) & 0xff) << 20;
 	reg_val |= (para->zq) & 0xf0000000;
