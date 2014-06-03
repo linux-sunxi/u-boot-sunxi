@@ -17,26 +17,35 @@ enum axp152_reg {
 	AXP152_SHUTDOWN = 0x32,
 };
 
-int axp152_write(enum axp152_reg reg, u8 val)
+#define AXP152_POWEROFF			(1 << 7)
+
+static int axp152_write(enum axp152_reg reg, u8 val)
 {
 	return i2c_write(0x30, reg, 1, &val, 1);
 }
 
-int axp152_read(enum axp152_reg reg, u8 *val)
+static int axp152_read(enum axp152_reg reg, u8 *val)
 {
 	return i2c_read(0x30, reg, 1, val, 1);
 }
 
+static int axp152_mvolt_to_target(int mvolt, int min, int max, int div)
+{
+	if (mvolt < min)
+		mvolt = min;
+	else if (mvolt > max)
+		mvolt = max;
+
+	return (mvolt - min) / div;
+}
+
 int axp152_set_dcdc2(int mvolt)
 {
-	int target = (mvolt - 700) / 25;
-	int rc;
+	int rc, target;
 	u8 current;
 
-	if (target < 0)
-		target = 0;
-	if (target > (1<<6)-1)
-		target = (1<<6)-1;
+	target = axp152_mvolt_to_target(mvolt, 700, 2275, 25);
+
 	/* Do we really need to be this gentle? It has built-in voltage slope */
 	while ((rc = axp152_read(AXP152_DCDC2_VOLTAGE, &current)) == 0 &&
 	       current != target) {
@@ -53,47 +62,23 @@ int axp152_set_dcdc2(int mvolt)
 
 int axp152_set_dcdc3(int mvolt)
 {
-	int target = (mvolt - 700) / 50;
-	u8 reg;
-	int rc;
+	int target = axp152_mvolt_to_target(mvolt, 700, 3500, 25);
 
-	if (target < 0)
-		target = 0;
-	if (target > (1<<6)-1)
-		target = (1<<6)-1;
-	rc = axp152_write(AXP152_DCDC3_VOLTAGE, target);
-	rc |= axp152_read(AXP152_DCDC3_VOLTAGE, &reg);
-	return rc;
+	return axp152_write(AXP152_DCDC3_VOLTAGE, target);
 }
 
 int axp152_set_dcdc4(int mvolt)
 {
-	int target = (mvolt - 700) / 25;
-	u8 reg;
-	int rc;
+	int target = axp152_mvolt_to_target(mvolt, 700, 3500, 25);
 
-	if (target < 0)
-		target = 0;
-	if (target > (1<<7)-1)
-		target = (1<<7)-1;
-	rc = axp152_write(AXP152_DCDC4_VOLTAGE, target);
-	rc |= axp152_read(AXP152_DCDC4_VOLTAGE, &reg);
-	return rc;
+	return axp152_write(AXP152_DCDC4_VOLTAGE, target);
 }
 
 int axp152_set_ldo2(int mvolt)
 {
-	int target = (mvolt - 700) / 100;
-	int rc;
-	u8 reg;
+	int target = axp152_mvolt_to_target(mvolt, 700, 3500, 100);
 
-	if (target < 0)
-		target = 0;
-	if (target > 31)
-		target = 31;
-	rc = axp152_write(AXP152_LDO2_VOLTAGE, target);
-	rc |= axp152_read(AXP152_LDO2_VOLTAGE, &reg);
-	return rc;
+	return axp152_write(AXP152_LDO2_VOLTAGE, target);
 }
 
 void axp152_poweroff(void)
@@ -102,9 +87,12 @@ void axp152_poweroff(void)
 
 	if (axp152_read(AXP152_SHUTDOWN, &val) != 0)
 		return;
-	val |= 1 << 7;
+
+	val |= AXP152_POWEROFF;
+
 	if (axp152_write(AXP152_SHUTDOWN, val) != 0)
 		return;
+
 	udelay(10000);	/* wait for power to drain */
 }
 
@@ -116,7 +104,9 @@ int axp152_init(void)
 	rc = axp152_read(AXP152_CHIP_VERSION, &ver);
 	if (rc)
 		return rc;
+
 	if (ver != 0x05)
 		return -1;
+
 	return 0;
 }
