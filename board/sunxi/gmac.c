@@ -6,12 +6,12 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
 
+
 int sunxi_gmac_initialize(bd_t *bis)
 {
 	int pin;
 	struct sunxi_ccm_reg *const ccm =
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
-
 	/* Set up clock gating */
 	setbits_le32(&ccm->ahb_gate1, 0x1 << AHB_GATE_OFFSET_GMAC);
 
