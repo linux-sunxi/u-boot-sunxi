@@ -418,8 +418,6 @@
 #define CONFIG_ENV_IS_NOWHERE
 #endif
 
-#define CONFIG_MISC_INIT_R
-
 #ifndef CONFIG_SPL_BUILD
 #include <config_distro_defaults.h>
 #endif
