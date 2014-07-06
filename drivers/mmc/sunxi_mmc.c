@@ -187,13 +187,9 @@ static int mmc_trans_data_by_cpu(struct mmc *mmc, struct mmc_data *data)
 	unsigned byte_cnt = data->blocksize * data->blocks;
 	unsigned timeout_msecs = 2000;
 	unsigned *buff = (unsigned int *)(reading ? data->dest : data->src);
-	unsigned int gctrl;
 
 	/* Always read / write data through the CPU */
-	gctrl = readl(&mmchost->reg->gctrl);
-	gctrl &= ~SUNXI_MMC_GCTRL_ACCESS_BY_AHB;
-	gctrl |= SUNXI_MMC_GCTRL_ACCESS_BY_AHB;
-	writel(gctrl, &mmchost->reg->gctrl);
+	setbits_le32(&mmchost->reg->gctrl, SUNXI_MMC_GCTRL_ACCESS_BY_AHB);
 
 	for (i = 0; i < (byte_cnt >> 2); i++) {
 		while (readl(&mmchost->reg->status) & status_bit) {
