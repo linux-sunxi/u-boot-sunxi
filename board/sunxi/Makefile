@@ -55,6 +55,7 @@ obj-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_MELE_A1000G)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MELE_A100D)	+= dram_sun7i_432_1024_iow16.o
+obj-$(CONFIG_MELE_A100D_OC)     += dram_sun7i_504_1024_iow16.o
 obj-$(CONFIG_MINI_X)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_MINI_X_1GB)	+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_MINI_X_A10S)	+= dram_mini_x_a10s.o
