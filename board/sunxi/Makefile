@@ -76,4 +76,6 @@ obj-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
 obj-$(CONFIG_XZPAD700)	+= dram_xzpad700.o
 obj-$(CONFIG_ZATAB)		+= dram_zatab.o
 obj-$(CONFIG_MERRII_M2)		+= dram_merrii_m2.o
-obj-$(CONFIG_A13_SOM)		+= dram_olimex_a13_som.o
+obj-$(CONFIG_OLIMEX_A13_SOM)		+= dram_olimex_a13_som.o
+obj-$(CONFIG_A20_OLINUXINO_L)   += dram_a20_olinuxino_l.o
+obj-$(CONFIG_A20_OLINUXINO_L2)   += dram_a20_olinuxino_l2.o
