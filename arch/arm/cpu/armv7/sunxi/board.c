@@ -138,7 +138,7 @@ void enable_caches(void)
  */
 int cpu_eth_init(bd_t *bis)
 {
-	int rc;
+	__maybe_unused int rc;
 
 #ifdef CONFIG_MACPWR
 	gpio_direction_output(CONFIG_MACPWR, 1);
