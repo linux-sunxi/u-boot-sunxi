@@ -140,6 +140,11 @@ int cpu_eth_init(bd_t *bis)
 {
 	int rc;
 
+#ifdef CONFIG_MACPWR
+	gpio_direction_output(CONFIG_MACPWR, 1);
+	mdelay(200);
+#endif
+
 #ifdef CONFIG_SUNXI_EMAC
 	rc = sunxi_emac_initialize(bis);
 	if (rc < 0) {
