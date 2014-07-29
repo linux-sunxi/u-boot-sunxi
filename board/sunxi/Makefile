@@ -29,6 +29,7 @@ obj-$(CONFIG_MARSBOARD_A10)	+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_MARSBOARD_A20)	+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_CUBIEBOARD)	+= dram_cubieboard.o
 obj-$(CONFIG_CUBIEBOARD2)	+= dram_cubieboard2.o
+obj-$(CONFIG_BANANAPI)	    += dram_bananapi.o
 obj-$(CONFIG_CUBIETRUCK)	+= dram_cubietruck.o
 obj-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
