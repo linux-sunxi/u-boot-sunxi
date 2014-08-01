@@ -42,8 +42,6 @@ struct sunxi_mmc {
 	u32 idie;		/* 0x8c internal DMA interrupt enable */
 	u32 chda;		/* 0x90 */
 	u32 cbda;		/* 0x94 */
-	u32 res1[26];
-	u32 fifo;		/* 0x100 FIFO access address */
 };
 
 #define SUNXI_MMC_CLK_POWERSAVE		(0x1 << 17)
