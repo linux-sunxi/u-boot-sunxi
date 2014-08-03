@@ -38,6 +38,7 @@ obj-$(CONFIG_EU3000)		+= dram_eu3000.o
 obj-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 obj-$(CONFIG_H6)		+= dram_h6.o
 obj-$(CONFIG_HACKBERRY)	+= dram_hackberry.o
+obj-$(CONFIG_HBD_MID_S906)	+= dram_sun7i_432_1024_iow16.o
 obj-$(CONFIG_HCORE_HC860)	+= dram_sun4i_384_1024_iow16.o
 obj-$(CONFIG_HYUNDAI_A7)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
