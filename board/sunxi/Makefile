@@ -45,6 +45,7 @@ obj-$(CONFIG_HCORE_HC860)	+= dram_sun4i_384_1024_iow16.o
 obj-$(CONFIG_HYUNDAI_A7)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_I12_TVBOX)		+= dram_sun7i_384_1024_iow16.o
+obj-$(CONFIG_ICOU_FATTY_I)	+= dram_icou_fatty_i.o
 obj-$(CONFIG_INTERRA3)		+= dram_mk802ii_a20.o
 obj-$(CONFIG_INET_86VZ)         += dram_a10s_olinuxino_m.o
 obj-$(CONFIG_INET97F_II)	+= dram_sun4i_408_512.o
