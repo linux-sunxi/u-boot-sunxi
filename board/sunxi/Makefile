@@ -20,6 +20,7 @@ obj-$(CONFIG_A20_OLINUXINO_L)	+= dram_a20_olinuxino_l.o
 obj-$(CONFIG_A20_OLINUXINO_L2)	+= dram_a20_olinuxino_l2.o
 obj-$(CONFIG_A20_OLINUXINO_M)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_A20_SOM)		+= dram_sun7i_384_1024_iow16.o
+obj-$(CONFIG_AINOL_AW1)		+= dram_ainol_aw1.o
 obj-$(CONFIG_AUXTEK_T003)	+= dram_auxtek_t003.o
 # This is not a typo, uses the same mem settings as the a10s-olinuxino-m
 obj-$(CONFIG_AUXTEK_T004)	+= dram_a10s_olinuxino_m.o
