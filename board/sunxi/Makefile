@@ -38,6 +38,7 @@ obj-$(CONFIG_DNS_M82)		+= dram_sun4i_360_1024_iow16.o
 obj-$(CONFIG_EOMA68_A10)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_EOMA68_A20)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_EU3000)		+= dram_eu3000.o
+obj-$(CONFIG_FORFUN_Q88DB)	+= dram_forfun_q88db.o
 obj-$(CONFIG_GOOSEBERRY_A721)	+= dram_gooseberry_a721.o
 obj-$(CONFIG_H6)		+= dram_h6.o
 obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
