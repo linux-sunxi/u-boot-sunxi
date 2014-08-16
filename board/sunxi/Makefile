@@ -73,6 +73,7 @@ obj-$(CONFIG_OLIMEX_A13_SOM)	+= dram_olimex_a13_som.o
 obj-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
 obj-$(CONFIG_PENGPOD700)	+= dram_sun4i_384_1024_iow8.o
 obj-$(CONFIG_PENGPOD1000)	+= dram_sun4i_408_1024_iow16.o
+obj-$(CONFIG_POV_TAB_P703)	+= dram_pov_tab_p703.o
 obj-$(CONFIG_POV_PROTAB2)	+= dram_pov_protab2.o
 obj-$(CONFIG_POV_PROTAB2_XXL)	+= dram_pov_protab2_xxl.o
 obj-$(CONFIG_QT840A)		+= dram_sun7i_384_512_busw16_iow16.o
