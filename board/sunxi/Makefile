@@ -56,6 +56,7 @@ obj-$(CONFIG_ITEADA10)		+= dram_cubieboard.o
 obj-$(CONFIG_ITEADA20)		+= dram_sun7i_460_1024_iow16.o
 obj-$(CONFIG_JESURUN_Q5)	+= dram_sun4i_312_1024_iow8.o
 obj-$(CONFIG_K1001L1C)		+= dram_sun7i_384_1024_iow16.o
+obj-$(CONFIG_LANGCENT_H6S)	+= dram_sun7i_360_512_busw16_iow16.o
 obj-$(CONFIG_LINKSPRITE_PCDUINO3)	+= dram_linksprite_pcduino3.o
 obj-$(CONFIG_MEFAFEIS_A08)	+= dram_megafeis_a08.o
 obj-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
