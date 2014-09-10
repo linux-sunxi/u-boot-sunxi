@@ -11,19 +11,18 @@ static struct dram_para dram_para = {
 	.io_width = 16,
 	.bus_width = 16,
 	.cas = 9,
-	.zq = 123,
+	.zq = 0x7b,
 	.odt_en = 0,
 	.size = 512,
 	.tpr0 = 0x42d899b7,
 	.tpr1 = 0xa090,
 	.tpr2 = 0x22a00,
-	.tpr3 = 0,
-	.tpr4 = 0,
-	.tpr5 = 0,
-	.emr1 = 0,
+	.tpr3 = 0x0,
+	.tpr4 = 0x0,
+	.tpr5 = 0x0,
+	.emr1 = 0x0,
 	.emr2 = 0x10,
-	.emr3 = 0,
-
+	.emr3 = 0x0,
 };
 
 unsigned long sunxi_dram_init(void)
