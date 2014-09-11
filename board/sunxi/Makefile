@@ -44,6 +44,7 @@ obj-$(CONFIG_H6)		+= dram_h6.o
 obj-$(CONFIG_HACKBERRY)		+= dram_hackberry.o
 obj-$(CONFIG_HBD_MID_S906)	+= dram_sun7i_432_1024_iow16.o
 obj-$(CONFIG_HCORE_HC860)	+= dram_sun4i_384_1024_iow16.o
+obj-$(CONFIG_HSG_H702)		+= dram_sun5i_432_512_busw16_iow16.o
 obj-$(CONFIG_HYUNDAI_A7)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_A7HD)		+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_I12_TVBOX)		+= dram_sun7i_384_1024_iow16.o
