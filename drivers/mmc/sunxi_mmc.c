@@ -57,7 +57,7 @@ static int mmc_resource_init(int sdc_no)
 		printf("Wrong mmc number %d\n", sdc_no);
 		return -1;
 	}
-#ifdef CONFIG_SUN6I
+#if defined(CONFIG_SUN6I) || defined(CONFIG_SUN8I)
 	mmchost->database = (unsigned int)mmchost->reg + 0x200;
 #else
 	mmchost->database = (unsigned int)mmchost->reg + 0x100;
