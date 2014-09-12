@@ -23,7 +23,6 @@ static struct dram_para dram_para = {
 	.emr1 = 0,
 	.emr2 = 0x10,
 	.emr3 = 0,
-
 };
 
 unsigned long sunxi_dram_init(void)
