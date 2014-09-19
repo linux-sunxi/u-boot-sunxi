@@ -64,6 +64,7 @@ obj-$(CONFIG_MELE_A1000)	+= dram_sun4i_360_512.o
 obj-$(CONFIG_MELE_A1000G)	+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_MELE_A210)		+= dram_mele_a210.o
 obj-$(CONFIG_MELE_A3700)	+= dram_sun4i_360_1024_iow8.o
+obj-$(CONFIG_MELE_M5)		+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_MERRII_HUMMINGBIRD_A20)	+= dram_sun7i_480_1024_iow16.o
 obj-$(CONFIG_MINI_X)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_MINI_X_1GB)	+= dram_sun4i_360_1024_iow16.o
