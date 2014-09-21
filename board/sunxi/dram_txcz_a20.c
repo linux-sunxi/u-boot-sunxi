@@ -4,18 +4,18 @@
 #include <asm/arch/dram.h>
 
 static struct dram_para dram_para = {
-	.clock = 480,
+	.clock = 384,
 	.type = 3,
 	.rank_num = 1,
-	.density = 4096,
+	.density = 2048,
 	.io_width = 16,
 	.bus_width = 32,
 	.cas = 9,
 	.zq = 0x7f,
 	.odt_en = 0,
-	.size = 1024,
-	.tpr0 = 0x42d899b7,
-	.tpr1 = 0xa090,
+	.size = 512,
+	.tpr0 = 0x38d48893,
+	.tpr1 = 0xa0a0,
 	.tpr2 = 0x22a00,
 	.tpr3 = 0,
 	.tpr4 = 0,
