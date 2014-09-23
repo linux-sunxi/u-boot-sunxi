@@ -96,5 +96,6 @@ obj-$(CONFIG_UHOST_U1A)		+= dram_sun4i_360_1024_iow8.o
 obj-$(CONFIG_WEXLER_TAB_7200)	+= dram_wexler_tab_7200.o
 obj-$(CONFIG_WOBO_I5)		+= dram_wobo_i5.o
 obj-$(CONFIG_XZPAD700)		+= dram_xzpad700.o
+obj-$(CONFIG_YBKJ_A20_JN)	+= dram_ybkj_a20_jn.o
 obj-$(CONFIG_ZATAB)		+= dram_zatab.o
 obj-$(CONFIG_MERRII_M2)		+= dram_merrii_m2.o
