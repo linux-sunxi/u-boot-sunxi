@@ -1,6 +1,11 @@
 #!/bin/bash
+#
+# Tool to find identical dram definition files in board/sunxi.
+#
+# Author: Julian Calaby <julian.calaby@gmail.com>
+#
 
-TMPFILE=$(tempfile)
+TMPFILE=tempfile
 
 find -wholename '*/sunxi/dram_*.c' \
        | while read r; do
