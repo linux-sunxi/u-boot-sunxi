@@ -89,6 +89,7 @@ obj-$(CONFIG_QT840A)		+= dram_sun7i_384_512_busw16_iow16.o
 obj-$(CONFIG_R7DONGLE)		+= dram_r7dongle.o
 obj-$(CONFIG_SANEI_N90)		+= dram_sanei_n90.o
 obj-$(CONFIG_SEMITIME_G2)	+= dram_semitime_g2.o
+obj-$(CONFIG_T702A)		+= dram_sun4i_360_512.o
 obj-$(CONFIG_TXCZ_A20)		+= dram_txcz_a20.o
 obj-$(CONFIG_TZX_Q8_713B6)	+= dram_sun5i_408_512_busw16_iow8.o
 obj-$(CONFIG_TZX_Q8_713B7)	+= dram_sun5i_408_512_busw16_iow8.o
