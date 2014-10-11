@@ -76,6 +76,7 @@ obj-$(CONFIG_MK802_A10S)	+= dram_mk802_a10s.o
 obj-$(CONFIG_MK802II)		+= dram_sun4i_408_1024_iow8.o
 obj-$(CONFIG_MK802II_A20)	+= dram_mk802ii_a20.o
 obj-$(CONFIG_MK808C_A20)	+= dram_sun7i_384_1024_iow16.o
+obj-$(CONFIG_MSI_PRIMO73)	+= dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_OLIMEX_A13_SOM)	+= dram_sun5i_408_512_busw16_iow16.o
 obj-$(CONFIG_OLIMEX_A20_SOM)    += dram_sun7i_384_1024_iow16.o
 obj-$(CONFIG_PCDUINO)		+= dram_sun4i_408_1024_iow8.o
