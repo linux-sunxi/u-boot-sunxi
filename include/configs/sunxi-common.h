@@ -69,8 +69,12 @@
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
-#define CONFIG_SYS_NAND_BASE            0x00
+#define CONFIG_SYS_NAND_BASE            0x01c03000
 #define CONFIG_DMA_SUNXI
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_DEBUG
+#define CONFIG_MTD_DEBUG_VERBOSE 3
+#define CONFIG_SYS_NAND_QUIET_TEST
 #endif
 
 #define CONFIG_CMD_MEMORY

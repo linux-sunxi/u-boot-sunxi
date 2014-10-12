@@ -27,9 +27,30 @@
 #include <asm/arch/nand_bsp.h>
 #include <nand.h>
 
+static void sunxi_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+{
+	struct nand_chip *this = mtd->priv;
+
+	if (cmd == NAND_CMD_NONE)
+		return;
+
+//	if (ctrl & NAND_CLE)
+//		NAND_PLAT_WRITE_CMD(this, cmd);
+//	else
+//		NAND_PLAT_WRITE_ADR(this, cmd);
+}
+
+static int plat_dev_ready(struct mtd_info *mtd)
+{
+	return 0;//NAND_PLAT_DEV_READY((struct nand_chip *)mtd->priv);
+}
+
 int board_nand_init(struct nand_chip *nand) {
 	NAND_Init();
-	return 1;
+	nand->cmd_ctrl = sunxi_cmd_ctrl;
+	nand->dev_ready = NULL;
+	nand->ecc.mode = NAND_ECC_SOFT;
+	return 0;
 }
 
 int sunxi_nand_read_opts(nand_info_t *nand, loff_t offset, size_t *length,

@@ -81,7 +81,7 @@ static void nand_init_chip(int i)
 	struct nand_chip *nand = &nand_chip[i];
 	ulong base_addr = base_address[i];
 	int maxchips = CONFIG_SYS_NAND_MAX_CHIPS;
-
+	
 	if (maxchips < 1)
 		maxchips = 1;
 
@@ -105,8 +105,10 @@ void nand_init(void)
 #else
 	int i;
 
-	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
+	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++) {
 		nand_init_chip(i);
+		printf( "nand %d : %d\n", i, (unsigned int)nand_info[i].size / 1024);
+	}
 #endif
 
 	printf("%lu MiB\n", total_nand_size / 1024);
