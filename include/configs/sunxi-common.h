@@ -63,13 +63,14 @@
 #else
 #define PHYS_SDRAM_0_SIZE		0x40000000 /* 1 GiB */
 #endif
-#if 0
+#if 1
 /* Nand config */
 #define CONFIG_NAND
 #define CONFIG_NAND_SUNXI
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
+#define CONFIG_DMA_SUNXI
 #endif
 
 #define CONFIG_CMD_MEMORY
@@ -81,6 +82,7 @@
 
 /* mmc config */
 /* Can't use MMC slot 0 if the UART is directed there */
+#if 0
 #if !defined CONFIG_UART0_PORT_F || CONFIG_MMC_SUNXI_SLOT != 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
@@ -91,6 +93,7 @@
 #endif
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
+#endif
 #endif
 
 /* 4MB of malloc() pool */
@@ -128,8 +131,14 @@
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KiB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology"
 
-#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512) KiB */
+#define CONFIG_ENV_IS_IN_NAND_SUNXI	    /* we store env in one partition of our nand */
+#define CONFIG_SUNXI_ENV_PARTITION		"env"	/* the partition name */
+
+/*#define CONFIG_ENV_ADDR				(256 << 20)*/
+#define CONFIG_ENV_OFFSET		(256 << 20) /*(544 << 10)  (8 + 24 + 512) KiB */
 #define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
+
+#define CONFIG_CMD_SAVEENV
 
 #ifdef CONFIG_SPL_FEL
 #define RUN_BOOT_RAM	"run boot_ram;"
@@ -414,7 +423,8 @@
 #if !defined CONFIG_ENV_IS_IN_MMC && \
     !defined CONFIG_ENV_IS_IN_NAND && \
     !defined CONFIG_ENV_IS_IN_FAT && \
-    !defined CONFIG_ENV_IS_IN_SPI_FLASH
+    !defined CONFIG_ENV_IS_IN_SPI_FLASH && \
+    !defined CONFIG_ENV_IS_IN_NAND_SUNXI
 #define CONFIG_ENV_IS_NOWHERE
 #endif
 
