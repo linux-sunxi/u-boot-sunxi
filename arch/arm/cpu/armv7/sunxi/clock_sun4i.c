@@ -59,6 +59,23 @@ void clock_init_uart(void)
 		CLK_GATE_OPEN << (APB1_GATE_UART_SHIFT+CONFIG_CONS_INDEX-1));
 }
 
+#ifdef CONFIG_NAND_SUNXI
+
+void clock_init_nand()
+{
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	/* nand clock source is osc24m */
+	sr32(&ccm->nand_sclk_cfg, 24, 2, NAND_CLK_SRC_OSC24);
+	sr32(&ccm->nand_sclk_cfg, 16, 2, NAND_CLK_DIV_N);
+	sr32(&ccm->nand_sclk_cfg, 0, 4, NAND_CLK_DIV_M);
+	sr32(&ccm->nand_sclk_cfg, 31, 1, CLK_GATE_OPEN);
+	/* open clock for nand */
+	sr32(&ccm->ahb_gate0, AHB_GATE_OFFSET_NAND, 1, CLK_GATE_OPEN);
+	
+}
+#endif
+
 int clock_twi_onoff(int port, int state)
 {
 	struct sunxi_ccm_reg *const ccm =
@@ -76,6 +93,20 @@ int clock_twi_onoff(int port, int state)
 			     CLK_GATE_OPEN << (APB1_GATE_TWI_SHIFT+port));
 
 	return 0;
+}
+
+/* Return PLL5 frequency in Hz
+ * Note: Assumes PLL5 reference is 24MHz clock
+ */
+unsigned int clock_get_pll5(void)
+{
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	uint32_t rval = readl(&ccm->pll5_cfg);
+	int n = (rval >> 8) & 0x1f;
+	int k = ((rval >> 4) & 3) + 1;
+	int p = 1 << ((rval >> 16) & 3);
+	return 24000000 * n * k / p;
 }
 
 #ifdef CONFIG_SPL_BUILD
@@ -186,3 +217,4 @@ unsigned int clock_get_pll6(void)
 	int k = ((rval & CCM_PLL6_CTRL_K_MASK) >> CCM_PLL6_CTRL_K_SHIFT) + 1;
 	return 24000000 * n * k / 2;
 }
+

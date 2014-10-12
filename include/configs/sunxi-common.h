@@ -20,6 +20,7 @@
 #ifdef CONFIG_SPL_BUILD
 #ifndef CONFIG_SPL_FEL
 #define CONFIG_SYS_THUMB_BUILD	/* Thumbs mode to save space in SPL */
+#define CONFIG_SPL_NAND_BOOT
 #endif
 #endif
 
@@ -27,6 +28,22 @@
 
 #define CONFIG_SYS_TEXT_BASE		0x4a000000
 
+/*asdfljsadf*/
+#define CONFIG_SPL_NAND_BOOT
+#define CONFIG_SYS_NAND_U_BOOT_OFFS     0x200000
+#define CONFIG_SYS_NAND_U_BOOT_DST	0x44000000
+#define CONFIG_SYS_NAND_U_BOOT_SIZE	0x100000
+#define CONFIG_SYS_NAND_U_BOOT_START	0x00
+
+#define MTDIDS_DEFAULT "nand0=mtd-nand-sunxi.0"
+#define MTDPARTS_DEFAULT "mtdparts=mtd-nand-sunxi.0:"       \
+        "2m(spl),"                                \
+        "2m(u-boot),"                                \
+        "2m(env),"                                \
+        "2m(dtb),"                                \
+        "8m(kernel),"                                    \
+        "-(rootfs)"
+ 
 /*
  * Display CPU and Board information
  */
@@ -63,13 +80,48 @@
 #else
 #define PHYS_SDRAM_0_SIZE		0x40000000 /* 1 GiB */
 #endif
-#if 0
+
+#ifdef CONFIG_NAND
 /* Nand config */
-#define CONFIG_NAND
-#define CONFIG_NAND_SUNXI
+#define CONFIG_LIB_RAND
+#define CONFIG_NAND_SUNXI 1
 #define CONFIG_CMD_NAND                         /* NAND support */
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
 #define CONFIG_SYS_NAND_BASE            0x00
+#define CONFIG_SUNXI_DMA
+
+#define CONFIG_RBTREE
+#define CONFIG_LZO
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_CMD_UBI
+#define CONFIG_CMD_UBIFS
+#define CONFIG_CMD_NAND_1K
+
+#define CONFIG_SPL_NAND_SUPPORT
+#define CONFIG_SPL_NAND_ECC
+#define CONFIG_SPL_NAND_BASE
+#define CONFIG_SPL_NAND_DRIVERS
+#define CONFIG_SPL_DMA_SUPPORT
+
+#define CONFIG_SYS_NAND_PAGE_SIZE sunxi_nand_spl_page_size
+#define CONFIG_SYS_NAND_BLOCK_SIZE sunxi_nand_spl_block_size
+
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_OFFSET	0x400000	/* at 4MB */
+#define CONFIG_ENV_SIZE		(128<<10)
+/*#define CONFIG_ENV_RANGE        0x300000*/
+#else
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512) KiB */
+#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
+#define CONFIG_SPL_LIBDISK_SUPPORT
+#define CONFIG_SPL_MMC_SUPPORT
+
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR        80      /* 40KiB */
+#define CONFIG_SPL_PAD_TO              32768           /* decimal for 'dd' */
+
 #endif
 
 #define CONFIG_CMD_MEMORY
@@ -89,12 +141,13 @@
 #ifndef CONFIG_MMC_SUNXI_SLOT
 #define CONFIG_MMC_SUNXI_SLOT		0
 #endif
-#define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
 #endif
 
 /* 4MB of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (4 << 20))
+/*#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (4 << 20)) */
+/* 16MB of malloc() pool */
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (16 << 20))
 
 /*
  * Miscellaneous configurable options
@@ -127,9 +180,6 @@
 
 #define CONFIG_SYS_MONITOR_LEN		(512 << 10)	/* 512 KiB */
 #define CONFIG_IDENT_STRING		" Allwinner Technology"
-
-#define CONFIG_ENV_OFFSET		(544 << 10) /* (8 + 24 + 512) KiB */
-#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 
 #ifdef CONFIG_SPL_FEL
 #define RUN_BOOT_RAM	"run boot_ram;"
@@ -283,13 +333,13 @@
 #define CONFIG_SPL_MAX_SIZE		0x5fe0		/* 24KB on sun4i/sun7i */
 #endif
 
-#define CONFIG_SPL_LIBDISK_SUPPORT
-#define CONFIG_SPL_MMC_SUPPORT
+/* #define CONFIG_SPL_LIBDISK_SUPPORT */
+/* #define CONFIG_SPL_MMC_SUPPORT */
 
 #define CONFIG_SPL_LDSCRIPT "arch/arm/cpu/armv7/sunxi/u-boot-spl.lds"
 
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	80	/* 40KiB */
-#define CONFIG_SPL_PAD_TO		32768		/* decimal for 'dd' */
+/* #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	80	*//* 40KiB */
+/* #define CONFIG_SPL_PAD_TO		32768		*//* decimal for 'dd' */
 
 #endif /* CONFIG_SPL */
 /* end of 32 KiB in sram */

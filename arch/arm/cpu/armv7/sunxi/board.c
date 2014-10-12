@@ -37,7 +37,24 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 u32 spl_boot_device(void)
 {
-	return BOOT_DEVICE_MMC1;
+	u32 cfg;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(7));
+	if( cfg == SUNXI_GPC7_SDC2_CLK )
+		return BOOT_DEVICE_MMC2;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPC(2));
+	if( cfg == SUNXI_GPC2_NCLE )
+		return BOOT_DEVICE_NAND;
+
+	cfg = sunxi_gpio_get_cfgpin(SUNXI_GPF(2));
+	if( cfg == SUNXI_GPF2_SDC0_CLK )
+		return BOOT_DEVICE_MMC1;
+
+	/* if we are here, something goes wrong */
+	return BOOT_DEVICE_NONE;
+
+//	return BOOT_DEVICE_MMC1;
 }
 
 /* No confirmation data available in SPL yet. Hardcode bootmode */
