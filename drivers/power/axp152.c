@@ -62,7 +62,7 @@ int axp152_set_dcdc2(int mvolt)
 
 int axp152_set_dcdc3(int mvolt)
 {
-	int target = axp152_mvolt_to_target(mvolt, 700, 3500, 25);
+	int target = axp152_mvolt_to_target(mvolt, 700, 3500, 50);
 
 	return axp152_write(AXP152_DCDC3_VOLTAGE, target);
 }
