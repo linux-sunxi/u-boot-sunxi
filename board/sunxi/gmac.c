@@ -29,7 +29,7 @@ int sunxi_gmac_initialize(bd_t *bis)
 	 * Bananapi. We don't know what these undocumented bits do, so this
 	 * is a Bananapi specific hack for now.
 	 */
-#ifdef CONFIG_BANANAPI
+#if defined(CONFIG_BANANAPI) || defined(CONFIG_BANANAPRO)
 	setbits_le32(&ccm->gmac_clk_cfg, 0x3 << 10);
 #endif
 
