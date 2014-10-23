@@ -31,7 +31,7 @@ int axp221_set_dcdc4(unsigned int mvolt)
 
 int axp221_set_dcdc5(unsigned int mvolt)
 {
-	return p2wi_write(AXP221_DCDC5_CTRL, (mvolt - 600) / 20);
+	return p2wi_write(AXP221_DCDC5_CTRL, (mvolt - 1000) / 50);
 }
 
 int axp221_set_dldo1(unsigned int mvolt)
