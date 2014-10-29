@@ -30,19 +30,25 @@
 
 /*asdfljsadf*/
 #define CONFIG_SPL_NAND_BOOT
-#define CONFIG_SYS_NAND_U_BOOT_OFFS     0x200000
+/*#define CONFIG_SYS_NAND_U_BOOT_OFFS     0x200000
 #define CONFIG_SYS_NAND_U_BOOT_DST	0x44000000
 #define CONFIG_SYS_NAND_U_BOOT_SIZE	0x100000
 #define CONFIG_SYS_NAND_U_BOOT_START	0x00
-
+*/
 #define MTDIDS_DEFAULT "nand0=mtd-nand-sunxi.0"
 #define MTDPARTS_DEFAULT "mtdparts=mtd-nand-sunxi.0:"       \
-        "2m(spl),"                                \
-        "2m(u-boot),"                                \
-        "2m(env),"                                \
-        "2m(dtb),"                                \
-        "8m(kernel),"                                    \
-        "-(rootfs)"
+        "16m(mbr),"                                \
+        "16m(bootloader),"                                \
+        "16m(env),"                                \
+        "16m(boot),"                                \
+        "640m(system),"                                \
+        "512m(data),"                                \
+        "16m(misc),"                                \
+        "32m(recovery),"                                \
+        "640m(cache),"                                \
+        "256m(databk),"                                \
+        "16m(private),"                                \
+        "-(UDISK)"
  
 /*
  * Display CPU and Board information
@@ -81,6 +87,10 @@
 #define PHYS_SDRAM_0_SIZE		0x40000000 /* 1 GiB */
 #endif
 
+#define CONFIG_CMD_EXT4_WRITE
+#define CONFIG_BZIP2
+
+
 #ifdef CONFIG_NAND
 /* Nand config */
 #define CONFIG_LIB_RAND
@@ -97,6 +107,8 @@
 #define CONFIG_CMD_MTDPARTS
 #define CONFIG_CMD_UBI
 #define CONFIG_CMD_UBIFS
+#define CONFIG_PACKIMG
+#define CONFIG_CMD_NAND_PACKIMG
 #define CONFIG_CMD_NAND_1K
 
 #define CONFIG_SPL_NAND_SUPPORT
@@ -104,12 +116,19 @@
 #define CONFIG_SPL_NAND_BASE
 #define CONFIG_SPL_NAND_DRIVERS
 #define CONFIG_SPL_DMA_SUPPORT
+#define CONFIG_SYS_NAND_U_BOOT_OFFS     0x100000
+
+#define CONFIG_SPL_OS_BOOT
+/*#define CONFIG_SYS_SPL_ARGS_ADDR        0x44000000*/
+#define CONFIG_SYS_NAND_SPL_KERNEL_OFFS 0x1100000
+#define CONFIG_SUNXI_PACKIMG_START      0x800000
+#define CONFIG_SUNXI_PACKIMG_END        0x1100000
 
 #define CONFIG_SYS_NAND_PAGE_SIZE sunxi_nand_spl_page_size
 #define CONFIG_SYS_NAND_BLOCK_SIZE sunxi_nand_spl_block_size
 
 #define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET	0x400000	/* at 4MB */
+#define CONFIG_ENV_OFFSET	0x2000000 /*0x400000*/	/* at 4MB */
 #define CONFIG_ENV_SIZE		(128<<10)
 /*#define CONFIG_ENV_RANGE        0x300000*/
 #else
@@ -289,6 +308,9 @@
 	  "else" \
 	    " setenv stdout $saved_stdout;" \
 	  "fi" \
+	  "\0" \
+	"mtdparts=" \
+	  MTDPARTS_DEFAULT \
 	  "\0" \
 	""
 

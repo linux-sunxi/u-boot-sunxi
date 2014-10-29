@@ -10,6 +10,7 @@
 #include <asm/io.h>
 #include <nand.h>
 #include <image.h>
+#include <packimg.h>
 
 #ifdef CONFIG_SUNXI
 
@@ -88,6 +89,49 @@ static void read_skip_bad(char *record, uint32_t start,
 		size -= len;
 	}
 }
+
+static int load_packimg(uint32_t start, uint32_t end, void *buff)
+{
+	int i;
+	struct pack_header *ph;
+	struct pack_entry *pe;
+	uint32_t offs = start, crc;
+	int nblocks = (end - start) / CONFIG_SYS_NAND_BLOCK_SIZE;
+	char record[nblocks];
+	memset(record, 0, nblocks);
+
+	while (offs < end) {
+		read_skip_bad(record, start, offs, CONFIG_SYS_NAND_PAGE_SIZE, buff);
+		ph = buff;
+		pe = buff + sizeof(*ph);
+
+		// check valid header
+		if (ph->magic != PACK_MAGIC)
+			goto next_block;
+		crc = calc_crc(pe, ph->nentry * sizeof(*pe));
+		if (ph->crc != crc)
+			goto next_block;
+
+		// load all entries
+		for (i = 0; i < ph->nentry; i++) {
+			read_skip_bad(record, start, offs + pe[i].offset, pe[i].size, (void *)pe[i].ldaddr);
+			crc = calc_crc((void *)pe[i].ldaddr, pe[i].size);
+			if (pe[i].crc != crc)
+				goto next_block;
+		}
+
+		debug("load packimg at %x success\n", offs);
+		return 0;
+
+	next_block:
+		error("invalid packimg at offset %x\n", offs);
+		offs += CONFIG_SYS_NAND_BLOCK_SIZE;
+	}
+
+	error("load packimg from %x to %x fail\n", start, end);
+	return -1;
+}
+
 #endif
 
 void spl_nand_load_image(void)
@@ -130,7 +174,7 @@ void spl_nand_load_image(void)
 
 		/* load linux */
 		nand_spl_load_image(CONFIG_SYS_NAND_SPL_KERNEL_OFFS,
-			CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
+			sizeof(*header), (void *)header);
 		spl_parse_image_header(header);
 		if (header->ih_os == IH_OS_LINUX) {
 			/* happy - was a linux */
@@ -151,13 +195,13 @@ uboot:
 #endif
 #ifdef CONFIG_NAND_ENV_DST
 	nand_spl_load_image(CONFIG_ENV_OFFSET,
-		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
+		sizeof(*header), (void *)header);
 	spl_parse_image_header(header);
 	nand_spl_load_image(CONFIG_ENV_OFFSET, spl_image.size,
 		(void *)spl_image.load_addr);
 #ifdef CONFIG_ENV_OFFSET_REDUND
 	nand_spl_load_image(CONFIG_ENV_OFFSET_REDUND,
-		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
+		sizeof(*header), (void *)header);
 	spl_parse_image_header(header);
 	nand_spl_load_image(CONFIG_ENV_OFFSET_REDUND, spl_image.size,
 		(void *)spl_image.load_addr);
@@ -165,7 +209,7 @@ uboot:
 #endif
 	/* Load u-boot */
 	nand_spl_load_image(CONFIG_SYS_NAND_U_BOOT_OFFS,
-		CONFIG_SYS_NAND_PAGE_SIZE, (void *)header);
+		sizeof(*header), (void *)header);
 	spl_parse_image_header(header);
 	nand_spl_load_image(CONFIG_SYS_NAND_U_BOOT_OFFS,
 		spl_image.size, (void *)spl_image.load_addr);
