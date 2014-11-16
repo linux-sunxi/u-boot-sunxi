@@ -235,11 +235,11 @@ int misc_init_r(void)
 	}
 #if defined(CONFIG_BANANAPI) || defined(CONFIG_BANANAPRO)
 	else {
-		unsigned char *p;
+		char *p;
 		p = getenv("ethaddr");
 		uint32_t reg_val = readl(SUNXI_SID_BASE);
 
-		if (reg_val) {
+		if (reg_val && !p) {
 			uint8_t mac_addr[6];
 			int i;
 
