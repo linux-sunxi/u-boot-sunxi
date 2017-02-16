@@ -621,6 +621,7 @@ libs-$(CONFIG_HAS_POST) += post/
 libs-y += test/
 libs-y += test/dm/
 libs-$(CONFIG_DM_DEMO) += drivers/demo/
+libs-$(CONFIG_NAND_SUNXI) += nand_sunxi/
 
 ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35 mxs vf610))
 libs-y += arch/$(ARCH)/imx-common/

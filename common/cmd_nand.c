@@ -181,6 +181,19 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size,
 		return ret;
 
 	return 0;
+#elif defined CONFIG_NAND_SUNXI
+	int ret;
+
+	*idx = 0;
+	ret = sunxi_nand_getpart_info_byname(partname, off, size);
+
+	if(ret) {
+		printf("Can not find partition \'%s\'\n", partname);
+		return ret;
+	}
+
+	return 0;
+
 #else
 	puts("offset is not a number\n");
 	return -1;
