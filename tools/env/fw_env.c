@@ -967,7 +967,8 @@ static int flash_read (int fd)
 		if (mtdinfo.type != MTD_NORFLASH &&
 		    mtdinfo.type != MTD_NANDFLASH &&
 		    mtdinfo.type != MTD_DATAFLASH &&
-		    mtdinfo.type != MTD_UBIVOLUME) {
+		    mtdinfo.type != MTD_UBIVOLUME &&
+		    mtdinfo.type != MTD_MLCNANDFLASH) {
 			fprintf (stderr, "Unsupported flash type %u on %s\n",
 				 mtdinfo.type, DEVNAME(dev_current));
 			return -1;
@@ -1143,6 +1144,9 @@ int fw_env_open(void)
 			environment.flag_scheme = FLAG_BOOLEAN;
 		} else if (DEVTYPE(dev_current) == MTD_NANDFLASH &&
 			   DEVTYPE(!dev_current) == MTD_NANDFLASH) {
+			environment.flag_scheme = FLAG_INCREMENTAL;
+		} else if (DEVTYPE(dev_current) == MTD_MLCNANDFLASH &&
+			   DEVTYPE(!dev_current) == MTD_MLCNANDFLASH) {
 			environment.flag_scheme = FLAG_INCREMENTAL;
 		} else if (DEVTYPE(dev_current) == MTD_DATAFLASH &&
 			   DEVTYPE(!dev_current) == MTD_DATAFLASH) {

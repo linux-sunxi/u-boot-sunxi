@@ -253,4 +253,6 @@ struct sunxi_ccm_reg {
 #define CCM_GMAC_CTRL_GPIT_MII (0x0 << 2)
 #define CCM_GMAC_CTRL_GPIT_RGMII (0x1 << 2)
 
+unsigned int clock_get_pll5(void);
+
 #endif /* _SUNXI_CLOCK_SUN4I_H */

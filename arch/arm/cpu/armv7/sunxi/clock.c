@@ -20,6 +20,8 @@ int clock_init(void)
 	clock_init_safe();
 #endif
 	clock_init_uart();
-
+#ifdef CONFIG_NAND_SUNXI
+	clock_init_nand();
+#endif
 	return 0;
 }

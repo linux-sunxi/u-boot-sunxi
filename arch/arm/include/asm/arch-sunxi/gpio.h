@@ -164,6 +164,12 @@ enum sunxi_gpio_number {
 #define SUN8I_GPL2_R_UART_TX	2
 #define SUN8I_GPL3_R_UART_RX	2
 
+#define SUNXI_GPF2_SDC0_CLK     (2)
+
+#define SUNXI_GPC7_SDC2_CLK     (3)
+
+#define SUNXI_GPC2_NCLE         (2)
+
 int sunxi_gpio_set_cfgpin(u32 pin, u32 val);
 int sunxi_gpio_get_cfgpin(u32 pin);
 int sunxi_gpio_set_drv(u32 pin, u32 val);
