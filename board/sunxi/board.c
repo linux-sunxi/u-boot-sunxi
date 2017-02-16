@@ -233,6 +233,34 @@ int misc_init_r(void)
 			eth_setenv_enetaddr("ethaddr", mac_addr);
 		}
 	}
+#ifdef CONFIG_BANANAPI
+	else {
+		unsigned char *p;
+		p = getenv("ethaddr");
+		uint32_t reg_val = readl(SUNXI_SID_BASE);
+
+		if (reg_val) {
+			uint8_t mac_addr[6];
+			int i;
+
+			mac_addr[0] = 0x02; /* Non OUI / registered MAC address */
+			mac_addr[1] = (reg_val >>  0) & 0xff;
+			reg_val = readl(SUNXI_SID_BASE + 0x0c);
+			mac_addr[2] = (reg_val >> 24) & 0xff;
+			mac_addr[3] = (reg_val >> 16) & 0xff;
+			mac_addr[4] = (reg_val >>  8) & 0xff;
+			mac_addr[5] = (reg_val >>  0) & 0xff;
+		
+			for(i = 0; i < 6; i ++)
+			{
+			    if(mac_addr[i] != *(p + i)){
+					eth_setenv_enetaddr("ethaddr", mac_addr);
+					break;
+			    }
+			}
+   		}
+	}
+#endif
 
 	return 0;
 }
