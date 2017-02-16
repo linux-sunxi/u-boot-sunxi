@@ -28,6 +28,11 @@
 #include <asm/arch/mmc.h>
 #include <asm/io.h>
 #include <net.h>
+#include <asm-generic/gpio.h>
+
+#ifdef CONFIG_MERRII_HUMMINGBIRD_A20
+#include "gpio-hummingbird.h"
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -216,6 +221,11 @@ void spl_display_print(void)
 #ifdef CONFIG_MISC_INIT_R
 int misc_init_r(void)
 {
+#ifdef CONFIG_MERRII_HUMMINGBIRD_A20
+//power the ethernet phy up
+        sunxi_gpio_set_cfgpin(PHY_POWER_BIT, SUNXI_GPIO_OUTPUT);
+        gpio_set_value(PHY_POWER_BIT, 1); //turn the power up
+#endif
 	if (!getenv("ethaddr")) {
 		uint32_t reg_val = readl(SUNXI_SID_BASE);
 
