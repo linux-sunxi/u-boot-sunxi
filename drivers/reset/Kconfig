@@ -106,4 +106,12 @@ config RESET_SOCFPGA
 	help
 	  Support for reset controller on SoCFPGA platform.
 
+config RESET_SUNXI
+	bool "RESET support for Allwinner SoCs"
+	depends on DM_RESET && ARCH_SUNXI
+	default y
+	help
+	  This enables support for common reset driver for
+	  Allwinner SoCs.
+
 endmenu
