@@ -697,6 +697,14 @@ static const struct sunxi_mmc_variant sun7i_a20_variant = {
 	.reset_start_bit = 8,
 };
 
+static const struct sunxi_mmc_variant sun50i_h6_variant = {
+	.has_reset = true,
+	.gate_offset = 0x84c,
+	.mclk_offset = 0x830,
+	.reset_offset = 0x84c,
+	.reset_start_bit = 16,
+};
+
 static const struct udevice_id sunxi_mmc_ids[] = {
 	{
 	  .compatible = "allwinner,sun4i-a10-mmc",
@@ -721,6 +729,14 @@ static const struct udevice_id sunxi_mmc_ids[] = {
 	{
 	  .compatible = "allwinner,sun50i-a64-emmc",
 	  .data = (ulong)&sun7i_a20_variant,
+	},
+	{
+	  .compatible = "allwinner,sun50i-h6-mmc",
+	  .data = (ulong)&sun50i_h6_variant,
+	},
+	{
+	  .compatible = "allwinner,sun50i-h6-emmc",
+	  .data = (ulong)&sun50i_h6_variant,
 	},
 	{ /* sentinel */ }
 };

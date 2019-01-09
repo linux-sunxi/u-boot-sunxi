@@ -301,6 +301,9 @@ struct sunxi_ccm_reg {
 #define DRAM_CLK_SRC_PLL5		(0 << 24)
 #define DRAM_CLK_M(m)			(((m)-1) << 0)
 
+/* MMC ahb clock bit field */
+#define AHB_GATE_OFFSET_MMC(n)		((n))
+
 /* MMC clock bit field */
 #define CCM_MMC_CTRL_M(x)		((x) - 1)
 #define CCM_MMC_CTRL_N(x)		((x) << 8)
