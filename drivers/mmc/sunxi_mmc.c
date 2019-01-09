@@ -21,8 +21,11 @@
 
 #ifdef CONFIG_DM_MMC
 struct sunxi_mmc_variant {
+	bool has_reset;
 	u16 gate_offset;
 	u16 mclk_offset;
+	u16 reset_offset;
+	u8 reset_start_bit;
 };
 #endif
 
@@ -609,7 +612,7 @@ static int sunxi_mmc_probe(struct udevice *dev)
 	struct sunxi_mmc_priv *priv = dev_get_priv(dev);
 	struct mmc_config *cfg = &plat->cfg;
 	struct ofnode_phandle_args args;
-	u32 *gate_reg, *ccu_reg;
+	u32 *gate_reg, *reset_reg, *ccu_reg;
 	int bus_width, ret;
 
 	cfg->name = dev->name;
@@ -643,6 +646,12 @@ static int sunxi_mmc_probe(struct udevice *dev)
 			(priv->variant->mclk_offset + (priv->mmc_no * 4));
 	gate_reg = (void *)ccu_reg + priv->variant->gate_offset;
 	setbits_le32(gate_reg, BIT(AHB_GATE_OFFSET_MMC(priv->mmc_no)));
+
+	if ((!IS_ENABLED(CONFIG_MACH_SUN7I)) && priv->variant->has_reset) {
+		reset_reg = (void *)ccu_reg + priv->variant->reset_offset;
+		setbits_le32(reset_reg, BIT(priv->mmc_no +
+			     priv->variant->reset_start_bit));
+	}
 
 	ret = mmc_set_mod_clk(priv, 24000000);
 	if (ret)
@@ -680,6 +689,14 @@ static const struct sunxi_mmc_variant sun4i_a10_variant = {
 	.mclk_offset = 0x88,
 };
 
+static const struct sunxi_mmc_variant sun7i_a20_variant = {
+	.has_reset = true,
+	.gate_offset = 0x60,
+	.mclk_offset = 0x88,
+	.reset_offset = 0x2c0,
+	.reset_start_bit = 8,
+};
+
 static const struct udevice_id sunxi_mmc_ids[] = {
 	{
 	  .compatible = "allwinner,sun4i-a10-mmc",
@@ -691,7 +708,7 @@ static const struct udevice_id sunxi_mmc_ids[] = {
 	},
 	{
 	  .compatible = "allwinner,sun7i-a20-mmc",
-	  .data = (ulong)&sun4i_a10_variant,
+	  .data = (ulong)&sun7i_a20_variant,
 	},
 	{ /* sentinel */ }
 };
