@@ -710,6 +710,10 @@ static const struct udevice_id sunxi_mmc_ids[] = {
 	  .compatible = "allwinner,sun7i-a20-mmc",
 	  .data = (ulong)&sun7i_a20_variant,
 	},
+	{
+	  .compatible = "allwinner,sun8i-a83t-emmc",
+	  .data = (ulong)&sun7i_a20_variant,
+	},
 	{ /* sentinel */ }
 };
 
