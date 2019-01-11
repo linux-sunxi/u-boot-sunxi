@@ -22,6 +22,7 @@
 #ifdef CONFIG_DM_MMC
 struct sunxi_mmc_variant {
 	bool has_reset;
+	bool has_mmc_common;
 	u16 gate_offset;
 	u16 mclk_offset;
 	u16 reset_offset;
@@ -653,6 +654,19 @@ static int sunxi_mmc_probe(struct udevice *dev)
 			     priv->variant->reset_start_bit));
 	}
 
+	if (priv->variant->has_mmc_common) {
+		u32 *mmc_config_clk, *mmc_common_base;
+
+		ret = dev_read_phandle_with_args(dev, "clocks", "#clock-cells", 0,
+					  0, &args);
+		if (ret)
+			return ret;
+		mmc_config_clk = (u32 *)ofnode_get_addr(args.node);
+
+		mmc_common_base = (void *)mmc_config_clk + (priv->mmc_no * 4);
+		setbits_le32(mmc_common_base, BIT(18) | BIT(16));
+	}
+
 	ret = mmc_set_mod_clk(priv, 24000000);
 	if (ret)
 		return ret;
@@ -697,6 +711,12 @@ static const struct sunxi_mmc_variant sun7i_a20_variant = {
 	.reset_start_bit = 8,
 };
 
+static const struct sunxi_mmc_variant sun9i_a80_variant = {
+	.has_mmc_common = true,
+	.gate_offset = 0x580,
+	.mclk_offset = 0x410,
+};
+
 static const struct sunxi_mmc_variant sun50i_h6_variant = {
 	.has_reset = true,
 	.gate_offset = 0x84c,
@@ -721,6 +741,10 @@ static const struct udevice_id sunxi_mmc_ids[] = {
 	{
 	  .compatible = "allwinner,sun8i-a83t-emmc",
 	  .data = (ulong)&sun7i_a20_variant,
+	},
+	{
+	  .compatible = "allwinner,sun9i-a80-mmc",
+	  .data = (ulong)&sun9i_a80_variant,
 	},
 	{
 	  .compatible = "allwinner,sun50i-a64-mmc",
