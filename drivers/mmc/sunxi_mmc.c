@@ -667,6 +667,10 @@ static int sunxi_mmc_probe(struct udevice *dev)
 		setbits_le32(mmc_common_base, BIT(18) | BIT(16));
 	}
 
+	printf("MMC%d: %p = 0x%x, %p = 0x%x, %p = 0x%x\n", priv->mmc_no, gate_reg,
+		readl(gate_reg), priv->mclkreg, readl(priv->mclkreg),
+		reset_reg, readl(reset_reg));
+
 	ret = mmc_set_mod_clk(priv, 24000000);
 	if (ret)
 		return ret;
